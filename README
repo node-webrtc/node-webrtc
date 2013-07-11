@@ -1,0 +1,11 @@
+To build libjingle (from top-level directory):
+
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git tools/depot_tools
+export PATH=`pwd`/tools/depot_tools:$PATH
+
+mkdir -p lib/libjingle
+cd lib/libjingle
+gclient config http://libjingle.googlecode.com/svn/trunk
+gclient sync
+gclient runhooks
+ninja -C trunk/out/Release
