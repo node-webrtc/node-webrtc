@@ -13,8 +13,8 @@ class PeerConnection
 
 private:
 
-  uv_mutex_t eventLock;
-  uv_async_t emitAsync;;
+//  uv_mutex_t eventLock;
+//  uv_async_t emitAsync;
 
 public:
 

@@ -9,11 +9,15 @@
       'dependencies': [],
       'variables': {
       },
-      'cflags': [
-	'-std=gnu++0x',
-	'-Wno-c++0x-extensions',
-        '-Wno-c++11-extensions'
-      ],
+      'xcode_settings':{
+        'OTHER_CFLAGS': [
+                        '-std=gnu++0x',
+                        '-Wno-c++0x-extensions',
+                        '-Wno-c++11-extensions',
+                        '-Wno-ignored-qualifiers',
+                        '-Wno-invalid-offsetof'
+        ]
+      },
       'defines': [
       ],
       'include_dirs': [

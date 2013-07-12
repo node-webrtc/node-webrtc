@@ -1,6 +1,9 @@
 
 #include <node_buffer.h>
 
+
+#undef STATIC_ASSERT  // Node defines this and so do we.
+
 #include <stdint.h>
 #include "PeerConnectionImpl.h"
 
