@@ -76,6 +76,7 @@ Persistent<Function> PeerConnection::constructor;
 
 PeerConnection::PeerConnection()
 {
+  sipcc::PeerConnectionImpl* pc = sipcc::PeerConnectionImpl::CreatePeerConnection();
 }
 
 PeerConnection::~PeerConnection()
