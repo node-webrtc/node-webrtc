@@ -1,7 +1,7 @@
 {
   'variables': {
     'mc%': 'lib/mozilla-central',
-    'obj%': 'obj-x86_64-apple-darwin10.8.0'
+    'obj%': 'obj-x86_64-unknown-linux-gnu'
   },
   'targets': [
     {
@@ -15,6 +15,7 @@
         '-Wno-c++11-extensions'
       ],
       'defines': [
+        '__STRICT_ANSI__'
       ],
       'include_dirs': [
 	'<(mc)/media/webrtc/trunk/testing/gtest/include',
