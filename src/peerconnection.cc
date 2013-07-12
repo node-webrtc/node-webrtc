@@ -1,12 +1,13 @@
 
 #include <node_buffer.h>
 
-#include "peerconnection.h"
-#include "talk/app/webrtc/jsep.h"
-#include "third_party/webrtc/system_wrappers/interface/ref_count.h"
-
 #include "common.h"
+#include "peerconnection.h"
 
+using namespace node;
+using namespace v8;
+
+#if 0
 Local<String> ToV8String( webrtc::PeerConnectionInterface::SignalingState state ) {
   switch( state ) {
     case webrtc::PeerConnectionInterface::kStable:
@@ -59,6 +60,7 @@ Local<String> ToV8String( webrtc::PeerConnectionInterface::IceConnectionState st
       return String::New( "unknown" );
   }
 };
+#endif
 
 Persistent<Function> PeerConnection::constructor;
 
@@ -68,85 +70,10 @@ Persistent<Function> PeerConnection::constructor;
 
 PeerConnection::PeerConnection()
 {
-  // Init the uvlib stuff.
-  uv_mutex_init( &eventLock );
-  uv_async_init( uv_default_loop(), &emitAsync, EmitAsync );
-
-  // Create the observers.
-  _createSessionDescriptionObserver = new talk_base::RefCountedObject<CreateSessionDescriptionObserver>( this );
-  _setRemoteDescriptionObserver = new talk_base::RefCountedObject<SetRemoteDescriptionObserver>( this );
-
-  // Init the PeerConnectionFactory
-  _signalThread = new talk_base::Thread;
-  _workerThread = new talk_base::Thread;
-
-  _signalThread->Start();
-  _workerThread->Start();
-
-  _peerConnectionFactory = webrtc::CreatePeerConnectionFactory(
-      _signalThread, _workerThread, NULL, NULL, NULL );
-
-  // Create the PeerConnection
-  _peerConnection =
-    _peerConnectionFactory->CreatePeerConnection( _iceServers, NULL, this );
 }
 
 PeerConnection::~PeerConnection()
 {
-  delete _signalThread;
-  delete _workerThread;
-}
-
-void PeerConnection::SetPeerConnection( webrtc::PeerConnectionInterface* peerConnection ) {
-  ASSERT( peerConnection );
-  ASSERT( _peerConnection.get() == NULL );
-  _peerConnection = peerConnection;
-}
-
-void PeerConnection::OnCreateSessionDescriptionSuccess( webrtc::SessionDescriptionInterface* sdp ) {
-  // TODO: run successCallback for create{Offer,Answer}
-}
-
-void PeerConnection::OnCreateSessionDescriptionFailure( const std::string& msg ) {
-  // TODO: run failureCallback for create{Offer,Answer}
-}
-
-void PeerConnection::OnSetLocalDescriptionSuccess() {
-}
-
-void PeerConnection::OnSetLocalDescriptionFailure( const std::string& msg ) {
-}
-
-void PeerConnection::OnSetRemoteDescriptionSuccess() {
-}
-
-void PeerConnection::OnSetRemoteDescriptionFailure( const std::string& msg ) {
-}
-
-void PeerConnection::OnError() {
-  // TODO: run error callback.
-}
-
-void PeerConnection::OnSignalingChange( webrtc::PeerConnectionInterface::SignalingState new_state ) {
-  // TODO: run callback.
-}
-
-void PeerConnection::OnIceConnectionChange( webrtc::PeerConnectionInterface::IceConnectionState new_state ) {
-  // TODO: run callback.
-}
-
-void PeerConnection::OnIceCandidate( const webrtc::IceCandidateInterface* candidate ) {
-  // TODO: run callback.
-}
-
-void PeerConnection::OnIceGatheringChange( webrtc::PeerConnectionInterface::IceGatheringState new_state ) {
-  // TODO: run callback.
-}
-
-void PeerConnection::OnAddStream( webrtc::MediaStreamInterface* stream ) {
-}
-
-void PeerConnection::OnRemoveStream( webrtc::MediaStreamInterface* stream ) {
 }
 
 Handle<Value> PeerConnection::New( const Arguments& args ) {
@@ -164,84 +91,38 @@ Handle<Value> PeerConnection::New( const Arguments& args ) {
 }
 
 Handle<Value> PeerConnection::CreateOffer( const Arguments& args ) {
-
+  HandleScope scope;
+  return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::CreateAnswer( const Arguments& args ) {
-
+  HandleScope scope;
+  return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::SetLocalDescription( const Arguments& args ) {
-
+  HandleScope scope;
+  return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::SetRemoteDescription( const Arguments& args ) {
   HandleScope scope;
-
-  REQ_OBJ_ARG( 0, desc );
-
-  String::Utf8Value type( desc->Get( String::NewSymbol( "type" ) )->ToString() );
-  String::Utf8Value sdp( desc->Get( String::NewSymbol( "sdp" ) )->ToString() );
-
-  webrtc::SessionDescriptionInterface* session_description(
-      webrtc::CreateSessionDescription(
-          std::string( *type ),
-          std::string( *sdp )));
-
-  if( !session_description ) {
-    ThrowException( Exception::TypeError( String::New("Could not parse session description") ) );
-    return scope.Close(Undefined());
-  };
-
-  PeerConnection* rtcConnection = ObjectWrap::Unwrap<PeerConnection>( args.This() );
-  rtcConnection->SetRemoteDescription( session_description );
-
-  return scope.Close( Undefined() );
+  return scope.Close(Undefined());
 }
-
 
 Handle<Value> PeerConnection::AddIceCandidate( const Arguments& args ) {
   HandleScope scope;
-
-  REQ_OBJ_ARG( 0, iceCandidate );
-
-  String::Utf8Value sdpMid( iceCandidate->Get( String::NewSymbol( "sdpMid" ) )->ToString() );
-  String::Utf8Value candidate( iceCandidate->Get( String::NewSymbol( "candidate" ) )->ToString() );
-  int sdpMLineIndex( iceCandidate->Get( String::NewSymbol( "sdpMLineIndex" ) )->ToNumber()->IntegerValue() );
-
-  talk_base::scoped_ptr< webrtc::IceCandidateInterface > iceItf(
-      webrtc::CreateIceCandidate(
-          std::string( *sdpMid ),
-          sdpMLineIndex,
-          std::string( *candidate )
-      ));
-
-  if( !iceItf.get() ) {
-    return ThrowException( Exception::TypeError(
-          String::New("Failed to parse candidate!" )));
-  }
-
-
-  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
-  if( !self->_peerConnection->AddIceCandidate( iceItf.get() ) ) {
-    return ThrowException( Exception::TypeError(
-          String::New("Failed to add candidate!" )));
-  }
-
-  return scope.Close( Undefined() );
+  return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::UpdateIce( const Arguments& args ) {
-
+  HandleScope scope;
+  return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::Close( const Arguments& args ) {
   HandleScope scope;
-
-  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
-  self->_peerConnection->Close();
-
-  return scope.Close( Undefined() );
+  return scope.Close(Undefined());
 }
 
 void PeerConnection::Init( Handle<Object> exports ) {
@@ -253,7 +134,7 @@ void PeerConnection::Init( Handle<Object> exports ) {
     FunctionTemplate::New( CreateOffer )->GetFunction() );
 
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "createAnswer" ),
-    FunctionTemplate::New( createAnswer )->GetFunction() );
+    FunctionTemplate::New( CreateAnswer )->GetFunction() );
 
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "setLocalDescription" ),
     FunctionTemplate::New( SetLocalDescription )->GetFunction() );
