@@ -1,6 +1,9 @@
 
 #include <node_buffer.h>
 
+#include <stdint.h>
+#include "PeerConnectionImpl.h"
+
 #include "common.h"
 #include "peerconnection.h"
 
