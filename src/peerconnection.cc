@@ -4,9 +4,15 @@
 
 #undef STATIC_ASSERT  // Node defines this and so do we.
 
-#include <stdint.h>
-#include "PeerConnectionImpl.h"
+#define USE_FAKE_MEDIA_STREAMS
 
+#include <stdint.h>
+#include <iostream>
+
+#include "FakeMediaStreams.h"
+#include "FakeMediaStreamsImpl.h"
+#include "PeerConnectionImpl.h"
+#include "PeerConnectionCtx.h"
 #include "common.h"
 #include "peerconnection.h"
 
