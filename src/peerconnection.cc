@@ -101,7 +101,8 @@ Persistent<Function> PeerConnection::constructor;
 class PeerConnectionSingleton {
  public:
   ~PeerConnectionSingleton() {
-    sts_->Shutdown();
+    if (sts_)
+      sts_->Shutdown();
   }
 
   static PeerConnectionSingleton* Instance() {
