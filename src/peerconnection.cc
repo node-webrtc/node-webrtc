@@ -1,17 +1,43 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include <node_buffer.h>
 
 
 #undef STATIC_ASSERT  // Node defines this and so do we.
 
+#define USE_FAKE_MEDIA_STREAMS
+
 #include <stdint.h>
+#include <iostream>
+
+#include "nspr.h"
+#include "nss.h"
+#include "ssl.h"
+
+#include "FakeMediaStreams.h"
+#include "FakeMediaStreamsImpl.h"
 #include "PeerConnectionImpl.h"
+#include "PeerConnectionCtx.h"
+#include "nsCOMPtr.h"
+#include "nsNetCID.h"
+#include "nsNetUtil.h"
+#include "nsXPCOMGlue.h"
+#include "nsXPCOM.h"
+#include "nsIIOService.h"
+#include "nsISocketTransportService.h"
+#include "nsPISocketTransportService.h"
+#include "nsServiceManagerUtils.h"
+#include "TestHarness.h"
+#include "runnable_utils.h"
 
 #include "common.h"
 #include "peerconnection.h"
 
 using namespace node;
 using namespace v8;
+using namespace mozilla;
 
 #if 0
 Local<String> ToV8String( webrtc::PeerConnectionInterface::SignalingState state ) {
@@ -70,17 +96,240 @@ Local<String> ToV8String( webrtc::PeerConnectionInterface::IceConnectionState st
 
 Persistent<Function> PeerConnection::constructor;
 
+
+// Singleton to hold XPCOM and the PC main thread.
+class PeerConnectionSingleton {
+ public:
+  ~PeerConnectionSingleton() {
+    if (sts_)
+      sts_->Shutdown();
+  }
+
+  static PeerConnectionSingleton* Instance() {
+    if (!instance_) {
+      instance_ = Create();
+    }
+    return instance_;
+  }
+
+  nsCOMPtr<nsIThread> main_thread() { return main_thread_; }
+
+
+ private:
+  PeerConnectionSingleton() : xpcom_("") {}
+
+  static PeerConnectionSingleton* Create() {
+    ScopedDeletePtr<PeerConnectionSingleton> instance(
+        new PeerConnectionSingleton());
+    if (!instance->InitServices())
+      return nullptr;
+    
+    return instance.forget();
+  }
+
+  bool InitServices() {
+    nsresult rv;
+
+#if 0
+    ioservice_ = do_GetIOService(&rv);
+~Pee    NS_ENSURE_SUCCESS(rv, false);
+    sts_target_ = do_GetService(NS_SOCKETTRANSPORTSERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, false);
+    sts_ = do_GetService(NS_SOCKETTRANSPORTSERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, false);
+#endif
+
+    nsIThread *thread;
+    rv = NS_NewNamedThread("pseudo-main",&thread);
+    if (NS_FAILED(rv))
+      return false;
+
+    main_thread_ = thread;
+
+    NSS_NoDB_Init(NULL);
+    NSS_SetDomesticPolicy();
+
+    return true;
+  }
+
+  ScopedXPCOM xpcom_;
+  nsCOMPtr<nsIIOService> ioservice_;
+  nsCOMPtr<nsIEventTarget> sts_target_;
+  nsCOMPtr<nsPISocketTransportService> sts_;
+  nsCOMPtr<nsIThread> main_thread_;
+
+  static PeerConnectionSingleton* instance_;
+};
+PeerConnectionSingleton* PeerConnectionSingleton::instance_;
+
+
+//
+// PeerConnectionObserver class
+//
+class PeerConnectionObserver : public IPeerConnectionObserver
+{
+public:
+  NS_DECL_ISUPPORTS
+  NS_DECL_IPEERCONNECTIONOBSERVER
+
+  PeerConnectionObserver();
+
+private:
+  virtual ~PeerConnectionObserver();
+
+protected:
+  /* additional members */
+};
+
+/* Implementation file */
+NS_IMPL_ISUPPORTS1(PeerConnectionObserver, IPeerConnectionObserver)
+
+PeerConnectionObserver::PeerConnectionObserver()
+{
+  /* member initializers and constructor code */
+}
+
+PeerConnectionObserver::~PeerConnectionObserver()
+{
+  /* destructor code */
+}
+
+/* void onCreateOfferSuccess (in string offer); */
+NS_IMETHODIMP PeerConnectionObserver::OnCreateOfferSuccess(const char * offer)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onCreateOfferError (in unsigned long name, in string message); */
+NS_IMETHODIMP PeerConnectionObserver::OnCreateOfferError(uint32_t name, const char * message)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onCreateAnswerSuccess (in string answer); */
+NS_IMETHODIMP PeerConnectionObserver::OnCreateAnswerSuccess(const char * answer)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onCreateAnswerError (in unsigned long name, in string message); */
+NS_IMETHODIMP PeerConnectionObserver::OnCreateAnswerError(uint32_t name, const char * message)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onSetLocalDescriptionSuccess (); */
+NS_IMETHODIMP PeerConnectionObserver::OnSetLocalDescriptionSuccess()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onSetRemoteDescriptionSuccess (); */
+NS_IMETHODIMP PeerConnectionObserver::OnSetRemoteDescriptionSuccess()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onSetLocalDescriptionError (in unsigned long name, in string message); */
+NS_IMETHODIMP PeerConnectionObserver::OnSetLocalDescriptionError(uint32_t name, const char * message)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onSetRemoteDescriptionError (in unsigned long name, in string message); */
+NS_IMETHODIMP PeerConnectionObserver::OnSetRemoteDescriptionError(uint32_t name, const char * message)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onAddIceCandidateSuccess (); */
+NS_IMETHODIMP PeerConnectionObserver::OnAddIceCandidateSuccess()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onAddIceCandidateError (in unsigned long name, in string message); */
+NS_IMETHODIMP PeerConnectionObserver::OnAddIceCandidateError(uint32_t name, const char * message)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void notifyDataChannel (in nsIDOMDataChannel channel); */
+NS_IMETHODIMP PeerConnectionObserver::NotifyDataChannel(nsIDOMDataChannel *channel)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void notifyConnection (); */
+NS_IMETHODIMP PeerConnectionObserver::NotifyConnection()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void notifyClosedConnection (); */
+NS_IMETHODIMP PeerConnectionObserver::NotifyClosedConnection()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onStateChange (in unsigned long state); */
+NS_IMETHODIMP PeerConnectionObserver::OnStateChange(uint32_t state)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onAddStream (in nsIDOMMediaStream stream); */
+NS_IMETHODIMP PeerConnectionObserver::OnAddStream(nsIDOMMediaStream *stream)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onRemoveStream (); */
+NS_IMETHODIMP PeerConnectionObserver::OnRemoveStream()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onAddTrack (); */
+NS_IMETHODIMP PeerConnectionObserver::OnAddTrack()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onRemoveTrack (); */
+NS_IMETHODIMP PeerConnectionObserver::OnRemoveTrack()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void foundIceCandidate (in string candidate); */
+NS_IMETHODIMP PeerConnectionObserver::FoundIceCandidate(const char * candidate)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 //
 // PeerConnection
 //
 
 PeerConnection::PeerConnection()
 {
-  sipcc::PeerConnectionImpl* pc = sipcc::PeerConnectionImpl::CreatePeerConnection();
+  RUN_ON_THREAD(PeerConnectionSingleton::Instance()->main_thread(),
+                WrapRunnable(this, &PeerConnection::Init_m),
+                NS_DISPATCH_SYNC);
 }
 
 PeerConnection::~PeerConnection()
 {
+}
+
+void PeerConnection::Init_m() {
+  sipcc::PeerConnectionImpl* pc =
+      sipcc::PeerConnectionImpl::CreatePeerConnection();
+  sipcc::IceConfiguration cfg;
+
+  pc->Initialize(new PeerConnectionObserver(), nullptr, cfg,
+                 PeerConnectionSingleton::Instance()->main_thread());
 }
 
 Handle<Value> PeerConnection::New( const Arguments& args ) {

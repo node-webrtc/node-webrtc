@@ -36,4 +36,7 @@ public:
   static Handle<Value> AddIceCandidate( const Arguments& args );
   static Handle<Value> Close( const Arguments& args );
 
+private:
+  // Private initializer.
+  void Init_m();
 };
