@@ -45,7 +45,7 @@
 	'<(mc)/<(obj)/dist/include/nspr',
 	'<(mc)/<(obj)/dist/include/nss',
 	'<(mc)/<(obj)/dist/include',
-	'<(mc)/<(obj)/dist/include',
+	'<(mc)/<(obj)/dist/include/testing',
       ],
       'link_settings': {
         'ldflags': [
