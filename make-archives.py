@@ -10,7 +10,7 @@ LIBS = [
     ['media/webrtc/signaling/signaling_sipcc/', 'libsipcc.a'],
     ['netwerk/sctp/src/', 'libnksctp_s.a'],
     ]
-    
+
 def die(msg):
     sys.stderr.write("ERROR: %s\n"%msg)
     sys.exit(1)
@@ -25,7 +25,7 @@ def read_archive(filename):
     if m is None:
         die("%s does not appear to be a .a.desc file"%file)
     return [m.group(1), m.group(2).split(" ")]
-    
+
 def make_archive(obj, dir, file):
     [type, lst] = read_archive(obj + dir + file + ".desc")
     if type == "LIBS":
@@ -53,8 +53,8 @@ def expand_archive(obj, args, file):
 
 if len(sys.argv) != 2:
     die("Usage: make-archives.py <objdir>")
-    
+
 for f in LIBS:
     make_archive(sys.argv[1], f[0], f[1])
-    
-    
+
+
