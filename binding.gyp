@@ -8,7 +8,7 @@
         'obj%': 'obj-x86_64-unknown-linux-gnu'
       }
     }],
-    ['OS=="osx"', {
+    ['OS=="mac"', {
       'variables': {
         'obj%': 'obj-x86_64-apple-darwin10.8.0'
       }
@@ -144,7 +144,7 @@
               '../<(mc)/<(obj)/dist/lib/libnksctp_s.a',
             ]
           }],
-          ['OS=="osx"', {
+          ['OS=="mac"', {
             'libraries': [
               '../<(mc)/<(obj)/dist/lib/XUL',
               '../<(mc)/<(obj)/dist/lib/libmozalloc.dylib',
