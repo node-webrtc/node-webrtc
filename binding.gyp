@@ -72,6 +72,7 @@
         'conditions': [
           ['OS=="linux"', {
             'libraries': [
+              '-Wl,--whole-archive',
               '../<(mc)/<(obj)/dist/lib/libxul.so',
               '../<(mc)/<(obj)/dist/lib/libmozalloc.so',
               '../<(mc)/<(obj)/dist/lib/libnspr4.a',
@@ -86,6 +87,7 @@
               '../<(mc)/<(obj)/dist/lib/libecc.a',
               '../<(mc)/<(obj)/dist/lib/libmtransport_s.a',
               '../<(mc)/<(obj)/dist/lib/libsipcc.a',
+
               '../<(mc)/<(obj)/dist/lib/libmozots.a',
               '../<(mc)/<(obj)/dist/lib/libmozqcms.a',
               '../<(mc)/<(obj)/dist/lib/libmozgraphite2.a',
@@ -127,7 +129,6 @@
               '../<(mc)/<(obj)/dist/lib/libvideo_engine_core.a',
               '../<(mc)/<(obj)/dist/lib/libmedia_file.a',
               '../<(mc)/<(obj)/dist/lib/librtp_rtcp.a',
-              #'../<(mc)/<(obj)/dist/lib/libudp_transport.a',
               '../<(mc)/<(obj)/dist/lib/libbitrate_controller.a',
               '../<(mc)/<(obj)/dist/lib/libremote_bitrate_estimator.a',
               '../<(mc)/<(obj)/dist/lib/libpaced_sender.a',
@@ -141,7 +142,11 @@
               '../<(mc)/<(obj)/dist/lib/libnrappkit.a',
               '../<(mc)/<(obj)/dist/lib/libvideo_processing_sse2.a',
               '../<(mc)/<(obj)/dist/lib/libaudio_processing_sse2.a',
-              '../<(mc)/<(obj)/dist/lib/libnksctp_s.a',
+
+              '../<(mc)/<(obj)/dist/lib/libnksrtp_s.a',
+              '../<(mc)/<(obj)/dist/lib/libmozz.a',
+              '-Wl,--no-whole-archive',
+              '-lasound   -lX11  -lgtk-x11-2.0 -latk-1.0 -lgio-2.0 -lpangoft2-1.0 -lfreetype -lfontconfig -lgdk-x11-2.0 -lpangocairo-1.0 -lpango-1.0 -lcairo -lgdk_pixbuf-2.0 -lgobject-2.0 -lglib-2.0  -lgthread-2.0    -lXrender',
             ]
           }],
           ['OS=="mac"', {
@@ -201,7 +206,6 @@
               '../<(mc)/<(obj)/dist/lib/libvideo_engine_core.a',
               '../<(mc)/<(obj)/dist/lib/libmedia_file.a',
               '../<(mc)/<(obj)/dist/lib/librtp_rtcp.a',
-              #'../<(mc)/<(obj)/dist/lib/libudp_transport.a',
               '../<(mc)/<(obj)/dist/lib/libbitrate_controller.a',
               '../<(mc)/<(obj)/dist/lib/libremote_bitrate_estimator.a',
               '../<(mc)/<(obj)/dist/lib/libpaced_sender.a',

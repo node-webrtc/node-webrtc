@@ -4,12 +4,14 @@ import re
 import os
 
 LIBS = [
-    ['dist/lib/', 'libgkmedias.a'],
+    ['layout/media/', 'libgkmedias.a'],
     ['media/mtransport/standalone/', 'libmtransport_s.a'],
     ['media/webrtc/signalingtest/signaling_ecc/', 'libecc.a'],
     ['media/webrtc/signaling/signaling_sipcc/', 'libsipcc.a'],
     ['netwerk/sctp/src/', 'libnksctp_s.a'],
-    ]
+    ['netwerk/srtp/src/', 'libnksrtp_s.a'],
+    ['modules/zlib/src/', 'libmozz.a'],
+]
 
 def die(msg):
     sys.stderr.write("ERROR: %s\n"%msg)

@@ -1,6 +1,7 @@
 #include <node.h>
 #include <v8.h>
 
+// #include "xpcom-config.h"
 #include "peerconnection.h"
 
 using namespace v8;
