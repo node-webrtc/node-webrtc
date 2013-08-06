@@ -72,12 +72,16 @@
         'conditions': [
           ['OS=="linux"', {
             'libraries': [
-              '-Wl,--whole-archive',
+              '-Wl,-rpath-link,../<(mc)/<(obj)/dist/bin',
+              '-Wl,-rpath-link,../<(mc)/<(obj)/dist/lib',
+              '-Wl,--start-group',
               '../<(mc)/<(obj)/dist/lib/libxul.so',
               '../<(mc)/<(obj)/dist/lib/libmozalloc.so',
               '../<(mc)/<(obj)/dist/lib/libnspr4.a',
+
               '../<(mc)/<(obj)/dist/lib/libplc4.a',
               '../<(mc)/<(obj)/dist/lib/libplds4.a',
+
               '../<(mc)/<(obj)/dist/lib/libcrmf.a',
               '../<(mc)/<(obj)/dist/lib/libsmime3.so',
               '../<(mc)/<(obj)/dist/lib/libssl3.so',
@@ -88,6 +92,7 @@
               '../<(mc)/<(obj)/dist/lib/libmtransport_s.a',
               '../<(mc)/<(obj)/dist/lib/libsipcc.a',
 
+              # libgkmedias.a
               '../<(mc)/<(obj)/dist/lib/libmozots.a',
               '../<(mc)/<(obj)/dist/lib/libmozqcms.a',
               '../<(mc)/<(obj)/dist/lib/libmozgraphite2.a',
@@ -143,10 +148,11 @@
               '../<(mc)/<(obj)/dist/lib/libvideo_processing_sse2.a',
               '../<(mc)/<(obj)/dist/lib/libaudio_processing_sse2.a',
 
+              '../<(mc)/<(obj)/dist/lib/libvideo_coding_utility.a',
               '../<(mc)/<(obj)/dist/lib/libnksrtp_s.a',
               '../<(mc)/<(obj)/dist/lib/libmozz.a',
-              '-Wl,--no-whole-archive',
-              '-lasound   -lX11  -lgtk-x11-2.0 -latk-1.0 -lgio-2.0 -lpangoft2-1.0 -lfreetype -lfontconfig -lgdk-x11-2.0 -lpangocairo-1.0 -lpango-1.0 -lcairo -lgdk_pixbuf-2.0 -lgobject-2.0 -lglib-2.0  -lgthread-2.0    -lXrender',
+              '-Wl,--end-group',
+              '-lasound   -lX11  -lgtk-x11-2.0 -latk-1.0 -lgio-2.0 -lpangoft2-1.0 -lfreetype -lfontconfig -lgdk-x11-2.0 -lpangocairo-1.0 -lpango-1.0 -lcairo -lgdk_pixbuf-2.0 -lgobject-2.0 -lglib-2.0 -lgthread-2.0 -lXrender',
             ]
           }],
           ['OS=="mac"', {
