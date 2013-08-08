@@ -37,7 +37,8 @@
         ]
       },
       'defines': [
-        '__STRICT_ANSI__'
+        '__STRICT_ANSI__',
+        '__STDC_LIMIT_MACROS'
       ],
       'include_dirs': [
       	'<(mc)/media/webrtc/trunk/testing/gtest/include',
