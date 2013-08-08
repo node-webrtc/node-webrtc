@@ -156,6 +156,7 @@
               '../<(mc)/<(obj)/dist/lib/libnksrtp_s.a',
               '../<(mc)/<(obj)/dist/lib/libmozz.a',
               '-Wl,--end-group',
+              '-Wl,--whole-archive ../<(mc)/<(obj)/dist/lib/libmozglue.a ../<(mc)/<(obj)/dist/lib/libmemory.a -Wl,--no-whole-archive '
               '-rdynamic',
               '-ldl'
             ]
