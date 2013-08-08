@@ -72,6 +72,8 @@
         'conditions': [
           ['OS=="linux"', {
             'libraries': [
+              '-pthread',
+              '-lpthread',
               '-Wl,-rpath-link,../<(mc)/<(obj)/dist/bin',
               '-Wl,-rpath-link,../<(mc)/<(obj)/dist/lib',
               '-Wl,--start-group',
@@ -149,10 +151,12 @@
               '../<(mc)/<(obj)/dist/lib/libaudio_processing_sse2.a',
 
               '../<(mc)/<(obj)/dist/lib/libvideo_coding_utility.a',
+              #'../<(mc)/<(obj)/dist/lib/libnksctp_s.a',
               '../<(mc)/<(obj)/dist/lib/libnksrtp_s.a',
               '../<(mc)/<(obj)/dist/lib/libmozz.a',
               '-Wl,--end-group',
-              '-lasound   -lX11  -lgtk-x11-2.0 -latk-1.0 -lgio-2.0 -lpangoft2-1.0 -lfreetype -lfontconfig -lgdk-x11-2.0 -lpangocairo-1.0 -lpango-1.0 -lcairo -lgdk_pixbuf-2.0 -lgobject-2.0 -lglib-2.0 -lgthread-2.0 -lXrender',
+              '-rdynamic',
+              '-ldl'
             ]
           }],
           ['OS=="mac"', {

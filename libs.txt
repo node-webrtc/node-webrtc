@@ -89,7 +89,8 @@ Executing:
 -lnssutil3
 ../../../../xpcom/glue/libxpcomglue_s.a
 ../../../../media/mtransport/standalone/libmtransport_s.a
-../../../../media/webrtc/signalingtest/signaling_ecc/libecc.a ../../../../media/webrtc/signalingtest/signaling_sipcc/libsipcc.a
+../../../../media/webrtc/signalingtest/signaling_ecc/libecc.a
+../../../../media/webrtc/signalingtest/signaling_sipcc/libsipcc.a
 ../../../../layout/media/libgkmedias.a
 ../../../../media/webrtc/trunk/testing/gtest_gtest/libgtest.a
 ../../../../netwerk/srtp/src/libnksrtp_s.a
@@ -106,4 +107,4 @@ Executing:
 /home/ack/work/mozilla-central/obj-x86_64-unknown-linux-gnu/modules/zlib/src/libmozz.a
 -Wl,--whole-archive /home/ack/work/mozilla-central/obj-x86_64-unknown-linux-gnu/dist/lib/libmozglue.a /home/ack/work/mozilla-central/obj-x86_64-unknown-linux-gnu/dist/lib/libmemory.a -Wl,--no-whole-archive
 -rdynamic
--ld
+-ldl
