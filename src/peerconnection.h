@@ -42,7 +42,6 @@ public:
   static Handle<Value> GetLocalDescription( Local<String> property, const AccessorInfo& info );
   static Handle<Value> GetRemoteDescription( Local<String> property, const AccessorInfo& info );
   static Handle<Value> GetSignalingState( Local<String> property, const AccessorInfo& info );
-  static Handle<Value> GetIceState( Local<String> property, const AccessorInfo& info );
   static void ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info );  
 
 private:
