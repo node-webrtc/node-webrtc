@@ -1,0 +1,19 @@
+{
+  "name": "webrtc",
+  "version": "0.0.1",
+  "author": "Alan K <ack@modeswitch.org>",
+  "homepage": "https://github.com/js-platform/webrtc.node",
+  "bugs": "https://github.com/js-platform/webrtc.node/issues",
+  "license": "BSD",
+  "preinstall": null,
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/js-platform/webrtc.node.git"
+  },
+  "engines": {
+    "node": "0.10.x"
+  },
+  "dependencies": {
+    "bindings": "~1.1.1"
+  }
+}

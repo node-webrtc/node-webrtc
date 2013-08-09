@@ -324,11 +324,10 @@ PeerConnection::~PeerConnection()
 }
 
 void PeerConnection::Init_m() {
-  sipcc::PeerConnectionImpl* pc =
-      sipcc::PeerConnectionImpl::CreatePeerConnection();
+  _pc = sipcc::PeerConnectionImpl::CreatePeerConnection();
   sipcc::IceConfiguration cfg;
 
-  pc->Initialize(new PeerConnectionObserver(), nullptr, cfg,
+  _pc->Initialize(new PeerConnectionObserver(), nullptr, cfg,
                  PeerConnectionSingleton::Instance()->main_thread());
 }
 
@@ -348,37 +347,127 @@ Handle<Value> PeerConnection::New( const Arguments& args ) {
 
 Handle<Value> PeerConnection::CreateOffer( const Arguments& args ) {
   HandleScope scope;
+
+  INFO("PeerConnection::CreateOffer");
+//  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+
   return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::CreateAnswer( const Arguments& args ) {
   HandleScope scope;
+
+  INFO("PeerConnection::CreateAnswer");
+
   return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::SetLocalDescription( const Arguments& args ) {
   HandleScope scope;
+
+  INFO("PeerConnection::SetLocalDescription");
+
   return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::SetRemoteDescription( const Arguments& args ) {
   HandleScope scope;
+
+  INFO("PeerConnection::SetRemoteDescription");
+
   return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::AddIceCandidate( const Arguments& args ) {
   HandleScope scope;
+
+  INFO("PeerConnection::AddIceCandidate");
+
   return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::UpdateIce( const Arguments& args ) {
   HandleScope scope;
+
+  INFO("PeerConnection::UpdateIce");
+
   return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::Close( const Arguments& args ) {
   HandleScope scope;
+
+  INFO("PeerConnection::Close");
+
   return scope.Close(Undefined());
+}
+
+Handle<Value> PeerConnection::GetLocalDescription( Local<String> property, const AccessorInfo& info ) {
+  HandleScope scope;
+
+  INFO("PeerConnection::GetLocalDescription");
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
+  char* sdp = 0;
+  self->_pc->GetLocalDescription(&sdp);
+  
+  Handle<Value> value;
+  if(!sdp) {
+    value = Null();
+  } else {
+    value = String::New(sdp);
+  }
+
+  return scope.Close(value);
+}
+
+Handle<Value> PeerConnection::GetRemoteDescription( Local<String> property, const AccessorInfo& info ) {
+  HandleScope scope;
+
+  INFO("PeerConnection::GetRemoteDescription");
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
+  char* sdp = 0;
+  self->_pc->GetRemoteDescription(&sdp);
+  
+  Handle<Value> value;
+  if(!sdp) {
+    value = Null();
+  } else {
+    value = String::New(sdp);
+  }
+
+  return scope.Close(value);
+}
+
+Handle<Value> PeerConnection::GetSignalingState( Local<String> property, const AccessorInfo& info ) {
+  HandleScope scope;
+
+  INFO("PeerConnection::GetSignalingState");
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
+
+  uint32_t state;
+  self->_pc->GetSignalingState(&state);
+
+  return scope.Close(Number::New(state));
+}
+
+Handle<Value> PeerConnection::GetIceState( Local<String> property, const AccessorInfo& info ) {
+  HandleScope scope;
+
+  INFO("PeerConnection::GetIceState");
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
+
+  uint32_t state;
+  self->_pc->GetIceState(&state);
+
+  return scope.Close(Number::New(state));
+}
+
+void PeerConnection::ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info ) {
+  INFO("PeerConnection::ReadOnly");
 }
 
 void PeerConnection::Init( Handle<Object> exports ) {
@@ -439,6 +528,11 @@ void PeerConnection::Init( Handle<Object> exports ) {
 
   tpl->PrototypeTemplate()->Set(String::NewSymbol("oniceconnectionstatechange"),
     Null());
+
+  tpl->InstanceTemplate()->SetAccessor(String::New("localDescription"), GetLocalDescription, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(String::New("remoteDescription"), GetRemoteDescription, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(String::New("signalingState"), GetSignalingState, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(String::New("iceState"), GetSignalingState, ReadOnly);
 
   Persistent<Function> ctor = Persistent<Function>::New( tpl->GetFunction() );
   exports->Set( String::NewSymbol("PeerConnection"), ctor );
