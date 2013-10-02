@@ -11,6 +11,25 @@ function RTCSessionDescription(dict) {
 	this.sdp = dict.sdp;
 };
 
+function RTCError(code, message) {
+	this.name = this.reasonName[Math.min(code, this.reasonName.length - 1)];
+  	this.message = (typeof message === "string")? message : this.name;
+}
+
+RTCError.prototype.reasonName = [
+	// These strings must match those defined in the WebRTC spec.
+	"NO_ERROR", // Should never happen -- only used for testing
+    "INVALID_CONSTRAINTS_TYPE",
+    "INVALID_CANDIDATE_TYPE",
+    "INVALID_MEDIASTREAM_TRACK",
+    "INVALID_STATE",
+    "INVALID_SESSION_DESCRIPTION",
+    "INCOMPATIBLE_SESSION_DESCRIPTION",
+    "INCOMPATIBLE_CONSTRAINTS",
+    "INCOMPATIBLE_MEDIASTREAMTRACK",
+    "INTERNAL_ERROR"
+];
+
 function PeerConnection() {
 	this._pc = new _webrtc.PeerConnection();
 
@@ -71,8 +90,8 @@ PeerConnection.prototype.getIceConnectionState = function getIceConnectionState(
 	return this._iceConnectionState;
 };
 
-PeerConnection.prototype.createOffer = function createOffer() {
-
+PeerConnection.prototype.createOffer = function createOffer(onSuccess, onError, constraints) {
+	this._getPC().createOffer(onSuccess, onError, constraints);
 };
 
 function RTCPeerConnection() {
@@ -105,6 +124,10 @@ function RTCPeerConnection() {
 			}
 		}
 	});
+
+	this.createOffer = function createOffer() {
+		pc.createOffer.apply(pc, arguments);
+	}
 };
 
 exports.RTCPeerConnection = RTCPeerConnection;

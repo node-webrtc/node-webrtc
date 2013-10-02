@@ -12,6 +12,8 @@
 #define TRACE(msg) printf("   TRACE: %s\n", msg)
 #define TRACE_S(msg, s) printf("   TRACE: %s : %s\n", msg, s)
 #define TRACE_I(msg, i) printf("   TRACE: %s : %d\n", msg, i)
+#define TRACE_U(msg, u) printf("   TRACE: %s : %u\n", msg, u)
+#define TRACE_X(msg, x) printf("   TRACE: %s : 0x%x\n", msg, x)
 #define TRACE_CALL printf("-> TRACE: Call::%s\n", __FUNCTION__)
 #define TRACE_CALL_I(p1) printf("-> TRACE: Call::%s(%d)\n", __FUNCTION__, p1)
 #define TRACE_END printf("<- Call::%s\n", __FUNCTION__)
@@ -21,6 +23,8 @@
 #define TRACE(msg)
 #define TRACE_S(msg, s)
 #define TRACE_I(msg, i)
+#define TRACE_U(msg, u)
+#define TRACE_X(msg, x)
 #define TRACE_CALL
 #define TRACE_CALL_I(p1)
 #define TRACE_END

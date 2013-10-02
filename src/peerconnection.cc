@@ -39,63 +39,7 @@ using namespace node;
 using namespace v8;
 using namespace mozilla;
 
-#if 0
-Local<String> ToV8String( webrtc::PeerConnectionInterface::SignalingState state ) {
-  switch( state ) {
-    case webrtc::PeerConnectionInterface::kStable:
-      return String::New( "stable" );
-    case webrtc::PeerConnectionInterface::kHaveLocalOffer:
-      return String::New( "have-local-offer" );
-    case webrtc::PeerConnectionInterface::kHaveRemoteOffer:
-      return String::New( "have-remote-offer" );
-    case webrtc::PeerConnectionInterface::kHaveLocalPrAnswer:
-      return String::New( "have-local-pranswer" );
-    case webrtc::PeerConnectionInterface::kHaveRemotePrAnswer:
-      return String::New( "have-remote-pranswer" );
-    case webrtc::PeerConnectionInterface::kClosed:
-      return String::New( "closed" );
-    default:
-      return String::New( "unknown" );
-  }
-};
-
-Local<String> ToV8String( webrtc::PeerConnectionInterface::IceGatheringState state ) {
-  switch( state ) {
-    case webrtc::PeerConnectionInterface::kIceGatheringNew:
-      return String::New( "new" );
-    case webrtc::PeerConnectionInterface::kIceGatheringGathering:
-      return String::New( "gathering" );
-    case webrtc::PeerConnectionInterface::kIceGatheringComplete:
-      return String::New( "complete" );
-    default:
-      return String::New( "unknown" );
-  }
-};
-
-Local<String> ToV8String( webrtc::PeerConnectionInterface::IceConnectionState state ) {
-  switch( state ) {
-    case webrtc::PeerConnectionInterface::kIceConnectionNew:
-      return String::New( "new" );
-    case webrtc::PeerConnectionInterface::kIceConnectionChecking:
-      return String::New( "checking" );
-    case webrtc::PeerConnectionInterface::kIceConnectionConnected:
-      return String::New( "connected" );
-    case webrtc::PeerConnectionInterface::kIceConnectionCompleted:
-      return String::New( "completed" );
-    case webrtc::PeerConnectionInterface::kIceConnectionFailed:
-      return String::New( "failed" );
-    case webrtc::PeerConnectionInterface::kIceConnectionDisconnected:
-      return String::New( "disconnected" );
-    case webrtc::PeerConnectionInterface::kIceConnectionClosed:
-      return String::New( "closed" );
-    default:
-      return String::New( "unknown" );
-  }
-};
-#endif
-
 Persistent<Function> PeerConnection::constructor;
-
 
 // Singleton to hold XPCOM and the PC main thread.
 class PeerConnectionSingleton {
@@ -114,7 +58,6 @@ class PeerConnectionSingleton {
 
   nsCOMPtr<nsIThread> main_thread() { return main_thread_; }
 
-
  private:
   PeerConnectionSingleton() : xpcom_("") {}
 
@@ -123,22 +66,12 @@ class PeerConnectionSingleton {
         new PeerConnectionSingleton());
     if (!instance->InitServices())
       return nullptr;
-    
+
     return instance.forget();
   }
 
   bool InitServices() {
     nsresult rv;
-
-#if 0
-    ioservice_ = do_GetIOService(&rv);
-~Pee    NS_ENSURE_SUCCESS(rv, false);
-    sts_target_ = do_GetService(NS_SOCKETTRANSPORTSERVICE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, false);
-    sts_ = do_GetService(NS_SOCKETTRANSPORTSERVICE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, false);
-#endif
-
     nsIThread *thread;
     rv = NS_NewNamedThread("pseudo-main",&thread);
     if (NS_FAILED(rv))
@@ -166,15 +99,17 @@ PeerConnectionSingleton* PeerConnectionSingleton::instance_;
 //
 // PeerConnectionObserver class
 //
-class PeerConnectionObserver : public IPeerConnectionObserver
+class PeerConnectionObserver
+: public IPeerConnectionObserver
 {
 public:
   NS_DECL_ISUPPORTS
   NS_DECL_IPEERCONNECTIONOBSERVER
 
-  PeerConnectionObserver();
+  PeerConnectionObserver(PeerConnection* pc);
 
 private:
+  PeerConnection* _pc;
   virtual ~PeerConnectionObserver();
 
 protected:
@@ -184,7 +119,8 @@ protected:
 /* Implementation file */
 NS_IMPL_ISUPPORTS1(PeerConnectionObserver, IPeerConnectionObserver)
 
-PeerConnectionObserver::PeerConnectionObserver()
+PeerConnectionObserver::PeerConnectionObserver(PeerConnection* pc)
+ : _pc(pc)
 {
   /* member initializers and constructor code */
 }
@@ -197,13 +133,15 @@ PeerConnectionObserver::~PeerConnectionObserver()
 /* void onCreateOfferSuccess (in string offer); */
 NS_IMETHODIMP PeerConnectionObserver::OnCreateOfferSuccess(const char * offer)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+    INFO("PeerConnectionObserver::OnCreateOfferSuccess");
+    return NS_OK;
 }
 
 /* void onCreateOfferError (in unsigned long name, in string message); */
 NS_IMETHODIMP PeerConnectionObserver::OnCreateOfferError(uint32_t name, const char * message)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+    INFO("PeerConnectionObserver::OnCreateOfferError");
+    return NS_OK;
 }
 
 /* void onCreateAnswerSuccess (in string answer); */
@@ -275,7 +213,8 @@ NS_IMETHODIMP PeerConnectionObserver::NotifyClosedConnection()
 /* void onStateChange (in unsigned long state); */
 NS_IMETHODIMP PeerConnectionObserver::OnStateChange(uint32_t state)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+    INFO("PeerConnectionObserver::OnStateChange");
+    return NS_OK;
 }
 
 /* void onAddStream (in nsIDOMMediaStream stream); */
@@ -303,7 +242,7 @@ NS_IMETHODIMP PeerConnectionObserver::OnRemoveTrack()
 }
 
 /* void foundIceCandidate (in string candidate); */
-NS_IMETHODIMP PeerConnectionObserver::FoundIceCandidate(const char * candidate)
+NS_IMETHODIMP PeerConnectionObserver::OnIceCandidate(uint16_t level, const char * mid, const char * candidate)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -314,6 +253,8 @@ NS_IMETHODIMP PeerConnectionObserver::FoundIceCandidate(const char * candidate)
 
 PeerConnection::PeerConnection()
 {
+  uv_mutex_init(&eventLock);
+
   RUN_ON_THREAD(PeerConnectionSingleton::Instance()->main_thread(),
                 WrapRunnable(this, &PeerConnection::Init_m),
                 NS_DISPATCH_SYNC);
@@ -327,7 +268,7 @@ void PeerConnection::Init_m() {
   _pc = sipcc::PeerConnectionImpl::CreatePeerConnection();
   sipcc::IceConfiguration cfg;
 
-  _pc->Initialize(new PeerConnectionObserver(), nullptr, cfg,
+  _pc->Initialize(new PeerConnectionObserver(this), nullptr, cfg,
                  PeerConnectionSingleton::Instance()->main_thread());
 }
 
@@ -349,7 +290,11 @@ Handle<Value> PeerConnection::CreateOffer( const Arguments& args ) {
   HandleScope scope;
 
   INFO("PeerConnection::CreateOffer");
-//  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+
+  sipcc::MediaConstraints constraints;
+  nsresult ret = self->_pc->CreateOffer(constraints);
+  TRACE_X("CreateOffer", ret);
 
   return scope.Close(Undefined());
 }
@@ -410,7 +355,7 @@ Handle<Value> PeerConnection::GetLocalDescription( Local<String> property, const
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
   char* sdp = 0;
   self->_pc->GetLocalDescription(&sdp);
-  
+
   Handle<Value> value;
   if(!sdp) {
     value = Null();
@@ -429,7 +374,7 @@ Handle<Value> PeerConnection::GetRemoteDescription( Local<String> property, cons
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
   char* sdp = 0;
   self->_pc->GetRemoteDescription(&sdp);
-  
+
   Handle<Value> value;
   if(!sdp) {
     value = Null();

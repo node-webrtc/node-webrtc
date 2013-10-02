@@ -12,4 +12,6 @@ console.log('pc.signalingState: ', pc.signalingState);
 console.log('pc.iceGatheringState: ', pc.iceGatheringState);
 console.log('pc.iceConnectionState: ', pc.iceConnectionState);
 
+pc.createOffer();
+
 console.log('\n\n---------------\n\n');

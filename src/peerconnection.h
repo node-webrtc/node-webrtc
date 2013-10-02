@@ -16,8 +16,32 @@ class PeerConnection
 
 private:
 
-//  uv_mutex_t eventLock;
-//  uv_async_t emitAsync;
+  enum AsyncEventType {
+    CREATE_OFFER_SUCCESS,
+    CREATE_OFFER_ERROR,
+    CREATE_ANSWER_SUCCESS,
+    CREATE_ANSWER_ERROR,
+    SET_LOCAL_DESCRIPTION_SUCCESS,
+    SET_LOCAL_DESCRIPTION_ERROR,
+    SET_REMOTE_DESCRIPTION_SUCCESS,
+    SET_REMOTE_DESCRIPTION_ERROR,
+    ADD_ICE_CANDIDATE_SUCCESS,
+    ADD_ICE_CANDIDATE_ERROR,
+    NOTIFY_DATA_CHANNEL,
+    NOTIFY_CONNECTION,
+    NOTIFY_CLOSED_CONNECTION,
+    STATE_CHANGE,
+    FOUND_ICE_CANDIDATE
+  };
+
+  struct AsyncEvent {
+    AsyncEventType type;
+    void* data;
+  };
+
+  uv_mutex_t eventLock;
+  uv_async_t emitAsync;
+  std::queue<AsyncEvent> _events;
 
 public:
 
