@@ -295,6 +295,8 @@ Handle<Value> PeerConnection::CreateOffer( const Arguments& args ) {
   sipcc::MediaConstraints constraints;
   nsresult ret = self->_pc->CreateOffer(constraints);
   TRACE_X("CreateOffer", ret);
+  if(NS_OK != ret)
+    ERROR("CreateOffer returned an unexpected error");
 
   return scope.Close(Undefined());
 }
