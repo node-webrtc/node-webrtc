@@ -26,6 +26,7 @@
 #include "nsXPCOMGlue.h"
 #include "nsXPCOM.h"
 #include "nsIIOService.h"
+#include "nsWeakReference.h"
 #include "nsISocketTransportService.h"
 #include "nsPISocketTransportService.h"
 #include "nsServiceManagerUtils.h"
@@ -62,8 +63,7 @@ class PeerConnectionSingleton {
   PeerConnectionSingleton() : xpcom_("") {}
 
   static PeerConnectionSingleton* Create() {
-    ScopedDeletePtr<PeerConnectionSingleton> instance(
-        new PeerConnectionSingleton());
+    ScopedDeletePtr<PeerConnectionSingleton> instance(new PeerConnectionSingleton());
     if (!instance->InitServices())
       return nullptr;
 
@@ -100,10 +100,11 @@ PeerConnectionSingleton* PeerConnectionSingleton::instance_;
 // PeerConnectionObserver class
 //
 class PeerConnectionObserver
-: public IPeerConnectionObserver
+: public IPeerConnectionObserver,
+  public nsSupportsWeakReference
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_IPEERCONNECTIONOBSERVER
 
   PeerConnectionObserver(PeerConnection* pc);
@@ -117,7 +118,8 @@ protected:
 };
 
 /* Implementation file */
-NS_IMPL_ISUPPORTS1(PeerConnectionObserver, IPeerConnectionObserver)
+NS_IMPL_ISUPPORTS2(PeerConnectionObserver, IPeerConnectionObserver,
+                                           nsISupportsWeakReference)
 
 PeerConnectionObserver::PeerConnectionObserver(PeerConnection* pc)
  : _pc(pc)
@@ -128,6 +130,7 @@ PeerConnectionObserver::PeerConnectionObserver(PeerConnection* pc)
 PeerConnectionObserver::~PeerConnectionObserver()
 {
   /* destructor code */
+  INFO("PeerConnectionObserver::~PeerConnectionObserver");
 }
 
 /* void onCreateOfferSuccess (in string offer); */
@@ -189,7 +192,8 @@ NS_IMETHODIMP PeerConnectionObserver::OnAddIceCandidateSuccess()
 /* void onAddIceCandidateError (in unsigned long name, in string message); */
 NS_IMETHODIMP PeerConnectionObserver::OnAddIceCandidateError(uint32_t name, const char * message)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+    INFO("PeerConnectionObserver::OnAddIceCandidateError");
+    return NS_OK;
 }
 
 /* void notifyDataChannel (in nsIDOMDataChannel channel); */
@@ -244,7 +248,8 @@ NS_IMETHODIMP PeerConnectionObserver::OnRemoveTrack()
 /* void foundIceCandidate (in string candidate); */
 NS_IMETHODIMP PeerConnectionObserver::OnIceCandidate(uint16_t level, const char * mid, const char * candidate)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+    INFO("PeerConnectionObserver::OnIceCandidate");
+    return NS_OK;
 }
 
 //
@@ -254,10 +259,11 @@ NS_IMETHODIMP PeerConnectionObserver::OnIceCandidate(uint16_t level, const char 
 PeerConnection::PeerConnection()
 {
   uv_mutex_init(&eventLock);
-
+  INFO("PeerConnection::PeerConnection begin");
   RUN_ON_THREAD(PeerConnectionSingleton::Instance()->main_thread(),
                 WrapRunnable(this, &PeerConnection::Init_m),
                 NS_DISPATCH_SYNC);
+  INFO("PeerConnection::PeerConnection end");
 }
 
 PeerConnection::~PeerConnection()
@@ -268,7 +274,8 @@ void PeerConnection::Init_m() {
   _pc = sipcc::PeerConnectionImpl::CreatePeerConnection();
   sipcc::IceConfiguration cfg;
 
-  _pc->Initialize(new PeerConnectionObserver(this), nullptr, cfg,
+  _pco = new PeerConnectionObserver(this);
+  _pc->Initialize(_pco, nullptr, cfg,
                  PeerConnectionSingleton::Instance()->main_thread());
 }
 
@@ -283,7 +290,7 @@ Handle<Value> PeerConnection::New( const Arguments& args ) {
   PeerConnection* obj = new PeerConnection();
   obj->Wrap( args.This() );
 
-  return args.This();
+  return scope.Close( args.This() );
 }
 
 Handle<Value> PeerConnection::CreateOffer( const Arguments& args ) {
@@ -355,7 +362,7 @@ Handle<Value> PeerConnection::GetLocalDescription( Local<String> property, const
   INFO("PeerConnection::GetLocalDescription");
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
-  char* sdp = 0;
+  char* sdp = nullptr;
   self->_pc->GetLocalDescription(&sdp);
 
   Handle<Value> value;

@@ -106,12 +106,12 @@ function RTCPeerConnection() {
 		'remoteDescription': {
 			get: function getRemoteDescription() {
 				return pc.getRemoteDescription();
-			}	
+			}
 		},
 		'signalingState': {
 			get: function getSignalingState() {
 				return pc.getSignalingState();
-			}	
+			}
 		},
 		'iceGatheringState': {
 			get: function getIceGatheringState() {

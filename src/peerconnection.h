@@ -1,14 +1,19 @@
+#include <queue>
 #include <v8.h>
 #include <node.h>
 #include <uv.h>
 
-#include <queue>
+#undef STATIC_ASSERT  // Node defines this and so do we.
+
+#include "nsAutoPtr.h"
 
 using namespace node;
 using namespace v8;
 
 // forward decl
 namespace sipcc { class PeerConnectionImpl; }
+
+class PeerConnectionObserver;
 
 class PeerConnection
 : public ObjectWrap
@@ -66,11 +71,12 @@ public:
   static Handle<Value> GetLocalDescription( Local<String> property, const AccessorInfo& info );
   static Handle<Value> GetRemoteDescription( Local<String> property, const AccessorInfo& info );
   static Handle<Value> GetSignalingState( Local<String> property, const AccessorInfo& info );
-  static void ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info );  
+  static void ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info );
 
 private:
   // Private initializer.
   void Init_m();
 
-  sipcc::PeerConnectionImpl* _pc;
+  nsRefPtr<sipcc::PeerConnectionImpl> _pc;
+  nsRefPtr<PeerConnectionObserver> _pco;
 };
