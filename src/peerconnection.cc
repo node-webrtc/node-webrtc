@@ -125,100 +125,108 @@ PeerConnectionObserver::PeerConnectionObserver(PeerConnection* pc)
  : _pc(pc)
 {
   /* member initializers and constructor code */
+  TRACE_CALL;
+  TRACE_END;
 }
 
 PeerConnectionObserver::~PeerConnectionObserver()
 {
   /* destructor code */
-  INFO("PeerConnectionObserver::~PeerConnectionObserver");
+  TRACE_CALL;
+  TRACE_END;
 }
 
 /* void onCreateOfferSuccess (in string offer); */
 NS_IMETHODIMP PeerConnectionObserver::OnCreateOfferSuccess(const char * offer)
 {
-    INFO("PeerConnectionObserver::OnCreateOfferSuccess");
-    return NS_OK;
+  TRACE_CALL;
+  INFO(offer);
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void onCreateOfferError (in unsigned long name, in string message); */
 NS_IMETHODIMP PeerConnectionObserver::OnCreateOfferError(uint32_t name, const char * message)
 {
-    INFO("PeerConnectionObserver::OnCreateOfferError");
-    return NS_OK;
+  TRACE_CALL;
+  INFO(message);
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void onCreateAnswerSuccess (in string answer); */
 NS_IMETHODIMP PeerConnectionObserver::OnCreateAnswerSuccess(const char * answer)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* void onCreateAnswerError (in unsigned long name, in string message); */
 NS_IMETHODIMP PeerConnectionObserver::OnCreateAnswerError(uint32_t name, const char * message)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* void onSetLocalDescriptionSuccess (); */
 NS_IMETHODIMP PeerConnectionObserver::OnSetLocalDescriptionSuccess()
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* void onSetRemoteDescriptionSuccess (); */
 NS_IMETHODIMP PeerConnectionObserver::OnSetRemoteDescriptionSuccess()
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* void onSetLocalDescriptionError (in unsigned long name, in string message); */
 NS_IMETHODIMP PeerConnectionObserver::OnSetLocalDescriptionError(uint32_t name, const char * message)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* void onSetRemoteDescriptionError (in unsigned long name, in string message); */
 NS_IMETHODIMP PeerConnectionObserver::OnSetRemoteDescriptionError(uint32_t name, const char * message)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* void onAddIceCandidateSuccess (); */
 NS_IMETHODIMP PeerConnectionObserver::OnAddIceCandidateSuccess()
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* void onAddIceCandidateError (in unsigned long name, in string message); */
 NS_IMETHODIMP PeerConnectionObserver::OnAddIceCandidateError(uint32_t name, const char * message)
 {
-    INFO("PeerConnectionObserver::OnAddIceCandidateError");
-    return NS_OK;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* void notifyDataChannel (in nsIDOMDataChannel channel); */
 NS_IMETHODIMP PeerConnectionObserver::NotifyDataChannel(nsIDOMDataChannel *channel)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* void notifyConnection (); */
 NS_IMETHODIMP PeerConnectionObserver::NotifyConnection()
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* void notifyClosedConnection (); */
 NS_IMETHODIMP PeerConnectionObserver::NotifyClosedConnection()
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* void onStateChange (in unsigned long state); */
 NS_IMETHODIMP PeerConnectionObserver::OnStateChange(uint32_t state)
 {
-    INFO("PeerConnectionObserver::OnStateChange");
-    return NS_OK;
+  TRACE_CALL;
+  TRACE_U("state", state);
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void onAddStream (in nsIDOMMediaStream stream); */
@@ -259,11 +267,9 @@ NS_IMETHODIMP PeerConnectionObserver::OnIceCandidate(uint16_t level, const char 
 PeerConnection::PeerConnection()
 {
   uv_mutex_init(&eventLock);
-  INFO("PeerConnection::PeerConnection begin");
   RUN_ON_THREAD(PeerConnectionSingleton::Instance()->main_thread(),
                 WrapRunnable(this, &PeerConnection::Init_m),
                 NS_DISPATCH_SYNC);
-  INFO("PeerConnection::PeerConnection end");
 }
 
 PeerConnection::~PeerConnection()
@@ -280,6 +286,7 @@ void PeerConnection::Init_m() {
 }
 
 Handle<Value> PeerConnection::New( const Arguments& args ) {
+  TRACE_CALL;
   HandleScope scope;
 
   if( !args.IsConstructCall()) {
@@ -290,76 +297,70 @@ Handle<Value> PeerConnection::New( const Arguments& args ) {
   PeerConnection* obj = new PeerConnection();
   obj->Wrap( args.This() );
 
+  TRACE_END;
   return scope.Close( args.This() );
 }
 
 Handle<Value> PeerConnection::CreateOffer( const Arguments& args ) {
+  TRACE_CALL;
   HandleScope scope;
 
-  INFO("PeerConnection::CreateOffer");
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
 
   sipcc::MediaConstraints constraints;
   nsresult ret = self->_pc->CreateOffer(constraints);
-  TRACE_X("CreateOffer", ret);
   if(NS_OK != ret)
     ERROR("CreateOffer returned an unexpected error");
 
+  TRACE_END;
   return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::CreateAnswer( const Arguments& args ) {
+  TRACE_CALL;
   HandleScope scope;
-
-  INFO("PeerConnection::CreateAnswer");
-
+  TRACE_END;
   return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::SetLocalDescription( const Arguments& args ) {
+  TRACE_CALL;
   HandleScope scope;
-
-  INFO("PeerConnection::SetLocalDescription");
-
+  TRACE_END;
   return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::SetRemoteDescription( const Arguments& args ) {
+  TRACE_CALL;
   HandleScope scope;
-
-  INFO("PeerConnection::SetRemoteDescription");
-
+  TRACE_END;
   return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::AddIceCandidate( const Arguments& args ) {
+  TRACE_CALL;
   HandleScope scope;
-
-  INFO("PeerConnection::AddIceCandidate");
-
+  TRACE_END;
   return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::UpdateIce( const Arguments& args ) {
+  TRACE_CALL;
   HandleScope scope;
-
-  INFO("PeerConnection::UpdateIce");
-
+  TRACE_END;
   return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::Close( const Arguments& args ) {
+  TRACE_CALL;
   HandleScope scope;
-
-  INFO("PeerConnection::Close");
-
+  TRACE_END;
   return scope.Close(Undefined());
 }
 
 Handle<Value> PeerConnection::GetLocalDescription( Local<String> property, const AccessorInfo& info ) {
+  TRACE_CALL;
   HandleScope scope;
-
-  INFO("PeerConnection::GetLocalDescription");
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
   char* sdp = nullptr;
@@ -372,13 +373,13 @@ Handle<Value> PeerConnection::GetLocalDescription( Local<String> property, const
     value = String::New(sdp);
   }
 
+  TRACE_END;
   return scope.Close(value);
 }
 
 Handle<Value> PeerConnection::GetRemoteDescription( Local<String> property, const AccessorInfo& info ) {
+  TRACE_CALL;
   HandleScope scope;
-
-  INFO("PeerConnection::GetRemoteDescription");
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
   char* sdp = 0;
@@ -391,19 +392,20 @@ Handle<Value> PeerConnection::GetRemoteDescription( Local<String> property, cons
     value = String::New(sdp);
   }
 
+  TRACE_END;
   return scope.Close(value);
 }
 
 Handle<Value> PeerConnection::GetSignalingState( Local<String> property, const AccessorInfo& info ) {
+  TRACE_CALL;
   HandleScope scope;
-
-  INFO("PeerConnection::GetSignalingState");
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
 
   uint32_t state;
   self->_pc->GetSignalingState(&state);
 
+  TRACE_END;
   return scope.Close(Number::New(state));
 }
 
