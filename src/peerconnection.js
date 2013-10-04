@@ -68,9 +68,11 @@ PeerConnection.prototype._checkClosed = function _checkClosed() {
 };
 
 PeerConnection.prototype._queueOrRun = function _queueOrRun(obj) {
+	var pc;
 	this._checkClosed();
 	if(null == this._pending) {
-		obj.func.apply(this, obj.args);
+		pc = this._getPC();
+		pc[obj.func].apply(pc, obj.args);
 		if(obj.wait) {
 			this._pending = obj;
 		}
@@ -80,10 +82,11 @@ PeerConnection.prototype._queueOrRun = function _queueOrRun(obj) {
 };
 
 PeerConnection.prototype._executeNext = function _executeNext() {
-	var obj;
+	var obj, pc;
 	if(this._queue.length > 0) {
-		var obj = this._queue.shift();
-		obj.func.apply(this, obj.args);
+		obj = this._queue.shift();
+		pc = this._getPC();
+		pc[obj.func].apply(pc, obj.args);
 		if(!obj.wait)
 		{
 			this._executeNext();
@@ -127,10 +130,11 @@ PeerConnection.prototype.getIceConnectionState = function getIceConnectionState(
 };
 
 PeerConnection.prototype.createOffer = function createOffer(onSuccess, onError, constraints) {
+	//this._getPC().createOffer(onSuccess, onError, constraints);
 	constraints = constraints || {};
 	// FIXME: complain if onError is undefined
 	this._queueOrRun({
-		func: this._getPC().createOffer,
+		func: 'createOffer',
 		args: [constraints],
 		wait: true,
 		onSuccess: onSuccess,
@@ -171,7 +175,7 @@ function RTCPeerConnection() {
 	});
 
 	this.createOffer = function createOffer() {
-		return pc.createOffer.apply(pc, arguments);
+		pc.createOffer.apply(pc, arguments);
 	}
 };
 
