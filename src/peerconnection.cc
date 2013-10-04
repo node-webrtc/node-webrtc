@@ -95,7 +95,6 @@ class PeerConnectionSingleton {
 };
 PeerConnectionSingleton* PeerConnectionSingleton::instance_;
 
-
 //
 // PeerConnectionObserver class
 //
@@ -256,8 +255,9 @@ NS_IMETHODIMP PeerConnectionObserver::OnRemoveTrack()
 /* void foundIceCandidate (in string candidate); */
 NS_IMETHODIMP PeerConnectionObserver::OnIceCandidate(uint16_t level, const char * mid, const char * candidate)
 {
-    INFO("PeerConnectionObserver::OnIceCandidate");
-    return NS_OK;
+    TRACE_CALL;
+    TRACE_END;
+    return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 //
@@ -266,17 +266,20 @@ NS_IMETHODIMP PeerConnectionObserver::OnIceCandidate(uint16_t level, const char 
 
 PeerConnection::PeerConnection()
 {
-  uv_mutex_init(&eventLock);
   RUN_ON_THREAD(PeerConnectionSingleton::Instance()->main_thread(),
-                WrapRunnable(this, &PeerConnection::Init_m),
-                NS_DISPATCH_SYNC);
+              WrapRunnable(this, &PeerConnection::Init_m),
+              NS_DISPATCH_SYNC);
+  uv_mutex_init(&lock);
+  uv_async_init(uv_default_loop(), &async, Run);
+  async.data = this;
 }
 
 PeerConnection::~PeerConnection()
 {
 }
 
-void PeerConnection::Init_m() {
+void PeerConnection::Init_m()
+{
   _pc = sipcc::PeerConnectionImpl::CreatePeerConnection();
   sipcc::IceConfiguration cfg;
 
@@ -285,11 +288,42 @@ void PeerConnection::Init_m() {
                  PeerConnectionSingleton::Instance()->main_thread());
 }
 
+void PeerConnection::QueueEvent(AsyncEventType type, void* data)
+{
+  TRACE_CALL;
+  AsyncEvent evt;
+  evt.type = type;
+  evt.data = data;
+  uv_mutex_lock(&lock);
+  _events.push(evt);
+  uv_mutex_unlock(&lock);
+
+  uv_async_send(&async);
+  TRACE_END;
+}
+
+void PeerConnection::Run(uv_async_t* handle, int status)
+{
+  TRACE_CALL;
+#if 0
+  HandleScope handle_scope;
+
+  PeerConnection* self = static_cast<PeerConnection*>(handle->data);
+
+  while(!self->_events.empty())
+  {
+    AsyncEvent evt = self->_events.front();
+    self->_events.pop();
+  }
+#endif
+  TRACE_END;
+}
+
 Handle<Value> PeerConnection::New( const Arguments& args ) {
   TRACE_CALL;
   HandleScope scope;
 
-  if( !args.IsConstructCall()) {
+  if(!args.IsConstructCall()) {
     return ThrowException(Exception::TypeError(
           String::New("Use the new operator to construct the PeerConnection.")));
   }

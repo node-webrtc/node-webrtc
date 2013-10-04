@@ -30,6 +30,7 @@ RTCError.prototype.reasonName = [
   "INTERNAL_ERROR"
 ];
 
+
 function PeerConnection() {
 	this._pc = new _webrtc.PeerConnection();
 
@@ -38,9 +39,12 @@ function PeerConnection() {
 
 	this._iceGatheringState = 'new';
 	this._iceConnectionState = 'new';
+
+	this._queue = [];
+	this._pending = null;
 };
 
-PeerConnection.prototype._signalingStateMap = [
+PeerConnection.prototype.RTCSignalingStateMap = [
 	'invalid',
 	'stable',
 	'have-local-offer',
@@ -55,6 +59,38 @@ PeerConnection.prototype._getPC = function _getPC() {
 		throw new Error('RTCPeerConnection is gone');
 	}
 	return this._pc;
+};
+
+PeerConnection.prototype._checkClosed = function _checkClosed() {
+	if(this._closed) {
+		throw new Error('Peer is closed');
+	}
+};
+
+PeerConnection.prototype._queueOrRun = function _queueOrRun(obj) {
+	this._checkClosed();
+	if(null == this._pending) {
+		obj.func.apply(this, obj.args);
+		if(obj.wait) {
+			this._pending = obj;
+		}
+	} else {
+		this._queue.push(obj);
+	}
+};
+
+PeerConnection.prototype._executeNext = function _executeNext() {
+	var obj;
+	if(this._queue.length > 0) {
+		var obj = this._queue.shift();
+		obj.func.apply(this, obj.args);
+		if(!obj.wait)
+		{
+			this._executeNext();
+		}
+	} else {
+		this._pending = null;
+	}
 };
 
 PeerConnection.prototype.getLocalDescription = function getLocalDescription() {
@@ -79,7 +115,7 @@ PeerConnection.prototype.getSignalingState = function getSignalingState() {
 	if(this._closed) {
 		return 'closed';
 	}
-	return this._signalingStateMap[this._getPC().signalingState];
+	return this.RTCSignalingStateMap[this._getPC().signalingState];
 };
 
 PeerConnection.prototype.getIceGatheringState = function getIceGatheringState() {
@@ -91,8 +127,17 @@ PeerConnection.prototype.getIceConnectionState = function getIceConnectionState(
 };
 
 PeerConnection.prototype.createOffer = function createOffer(onSuccess, onError, constraints) {
-	this._getPC().createOffer(onSuccess, onError, constraints);
+	constraints = constraints || {};
+	// FIXME: complain if onError is undefined
+	this._queueOrRun({
+		func: this._getPC().createOffer,
+		args: [constraints],
+		wait: true,
+		onSuccess: onSuccess,
+		onError: onError
+	});
 };
+
 
 function RTCPeerConnection() {
 	var pc = new PeerConnection();
@@ -126,7 +171,7 @@ function RTCPeerConnection() {
 	});
 
 	this.createOffer = function createOffer() {
-		pc.createOffer.apply(pc, arguments);
+		return pc.createOffer.apply(pc, arguments);
 	}
 };
 

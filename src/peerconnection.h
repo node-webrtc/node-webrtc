@@ -19,7 +19,7 @@ class PeerConnection
 : public ObjectWrap
 {
 
-private:
+public:
 
   enum AsyncEventType {
     CREATE_OFFER_SUCCESS,
@@ -36,19 +36,8 @@ private:
     NOTIFY_CONNECTION,
     NOTIFY_CLOSED_CONNECTION,
     STATE_CHANGE,
-    FOUND_ICE_CANDIDATE
+    ICE_CANDIDATE
   };
-
-  struct AsyncEvent {
-    AsyncEventType type;
-    void* data;
-  };
-
-  uv_mutex_t eventLock;
-  uv_async_t emitAsync;
-  std::queue<AsyncEvent> _events;
-
-public:
 
   PeerConnection();
   ~PeerConnection();
@@ -76,6 +65,17 @@ public:
 private:
   // Private initializer.
   void Init_m();
+  void QueueEvent(AsyncEventType type, void* data);
+  static void Run(uv_async_t* handle, int status);
+
+  struct AsyncEvent {
+    AsyncEventType type;
+    void* data;
+  };
+
+  uv_mutex_t lock;
+  uv_async_t async;
+  std::queue<AsyncEvent> _events;
 
   nsRefPtr<sipcc::PeerConnectionImpl> _pc;
   nsRefPtr<PeerConnectionObserver> _pco;
