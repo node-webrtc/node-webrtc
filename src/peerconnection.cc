@@ -109,20 +109,21 @@ public:
 
   PeerConnectionObserver(PeerConnection* pc);
 
-private:
-  PeerConnection* _pc;
-  virtual ~PeerConnectionObserver();
-
   struct ErrorEvent {
     ErrorEvent(const uint32_t code, const char* message)
     : code(code)
     {
-      this->message = new char[sizeof(message)];
+      this->message = new char[sizeof(message)+1];
+      this->message[strlen(message)] = 0;
       strncpy(this->message, message, strlen(message));
     }
     uint32_t code;
     char* message;
   };
+
+private:
+  PeerConnection* _pc;
+  virtual ~PeerConnectionObserver();
 
 protected:
   /* additional members */
@@ -331,15 +332,20 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     switch(evt.type)
     {
       case CREATE_OFFER_ERROR:
+      case CREATE_ANSWER_ERROR:
+      case SET_LOCAL_DESCRIPTION_ERROR:
+      case SET_REMOTE_DESCRIPTION_ERROR:
+      case ADD_ICE_CANDIDATE_ERROR:
+        PeerConnectionObserver::ErrorEvent* data = static_cast<PeerConnectionObserver::ErrorEvent*>(evt.data);
         v8::Persistent<v8::Object> pc = self->handle_;
         v8::Local<v8::Object> pending = v8::Local<v8::Object>::Cast(pc->Get(String::New("_pending")));
         v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pending->Get(String::New("onError")));
         if(!callback->IsNull()) {
-          v8::Local<v8::Value> argv[0];
-          callback->Call(pc, 0, argv);
-        } else {
-          INFO("callback is null");
+          v8::Local<v8::Value> argv[1];
+          argv[0] = Exception::Error(String::New(data->message));
+          callback->Call(pc, 1, argv);
         }
+        break;
     }
   }
   TRACE_END;
