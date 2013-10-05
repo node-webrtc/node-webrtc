@@ -62,10 +62,11 @@ public:
   static Handle<Value> GetSignalingState( Local<String> property, const AccessorInfo& info );
   static void ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info );
 
+  void QueueEvent(AsyncEventType type, void* data);
+
 private:
   // Private initializer.
   void Init_m();
-  void QueueEvent(AsyncEventType type, void* data);
   static void Run(uv_async_t* handle, int status);
 
   struct AsyncEvent {

@@ -10,4 +10,4 @@ console.log('pc.signalingState: ', pc.signalingState);
 console.log('pc.iceGatheringState: ', pc.iceGatheringState);
 console.log('pc.iceConnectionState: ', pc.iceConnectionState);
 
-pc.createOffer();
+pc.createOffer(function(){}, function(){console.log('error!');}, {});

@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 #include <iostream>
+#include <string>
 
 #include "nspr.h"
 #include "nss.h"
@@ -112,6 +113,17 @@ private:
   PeerConnection* _pc;
   virtual ~PeerConnectionObserver();
 
+  struct ErrorEvent {
+    ErrorEvent(const uint32_t code, const char* message)
+    : code(code)
+    {
+      this->message = new char[sizeof(message)];
+      strncpy(this->message, message, strlen(message));
+    }
+    uint32_t code;
+    char* message;
+  };
+
 protected:
   /* additional members */
 };
@@ -145,10 +157,11 @@ NS_IMETHODIMP PeerConnectionObserver::OnCreateOfferSuccess(const char * offer)
 }
 
 /* void onCreateOfferError (in unsigned long name, in string message); */
-NS_IMETHODIMP PeerConnectionObserver::OnCreateOfferError(uint32_t name, const char * message)
+NS_IMETHODIMP PeerConnectionObserver::OnCreateOfferError(uint32_t code, const char * message)
 {
   TRACE_CALL;
-  INFO(message);
+  ErrorEvent* data = new ErrorEvent(code, message);
+  _pc->QueueEvent(PeerConnection::CREATE_OFFER_ERROR, (void*)data);
   TRACE_END;
   return NS_OK;
 }
@@ -305,8 +318,7 @@ void PeerConnection::QueueEvent(AsyncEventType type, void* data)
 void PeerConnection::Run(uv_async_t* handle, int status)
 {
   TRACE_CALL;
-#if 0
-  HandleScope handle_scope;
+  HandleScope scope;
 
   PeerConnection* self = static_cast<PeerConnection*>(handle->data);
 
@@ -314,8 +326,22 @@ void PeerConnection::Run(uv_async_t* handle, int status)
   {
     AsyncEvent evt = self->_events.front();
     self->_events.pop();
+    TRACE_U("event type", evt.type);
+
+    switch(evt.type)
+    {
+      case CREATE_OFFER_ERROR:
+        v8::Persistent<v8::Object> pc = self->handle_;
+        v8::Local<v8::Object> pending = v8::Local<v8::Object>::Cast(pc->Get(String::New("_pending")));
+        v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pending->Get(String::New("onError")));
+        if(!callback->IsNull()) {
+          v8::Local<v8::Value> argv[0];
+          callback->Call(pc, 0, argv);
+        } else {
+          INFO("callback is null");
+        }
+    }
   }
-#endif
   TRACE_END;
 }
 
@@ -504,6 +530,8 @@ void PeerConnection::Init( Handle<Object> exports ) {
   //   Null());
 
   tpl->PrototypeTemplate()->Set(String::NewSymbol("oniceconnectionstatechange"),
+    Null());
+  tpl->PrototypeTemplate()->Set(String::NewSymbol("_pending"),
     Null());
 
   tpl->InstanceTemplate()->SetAccessor(String::New("localDescription"), GetLocalDescription, ReadOnly);

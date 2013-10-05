@@ -41,7 +41,6 @@ function PeerConnection() {
 	this._iceConnectionState = 'new';
 
 	this._queue = [];
-	this._pending = null;
 };
 
 PeerConnection.prototype.RTCSignalingStateMap = [
@@ -68,13 +67,13 @@ PeerConnection.prototype._checkClosed = function _checkClosed() {
 };
 
 PeerConnection.prototype._queueOrRun = function _queueOrRun(obj) {
-	var pc;
+	var pc = this._getPC();
 	this._checkClosed();
-	if(null == this._pending) {
+	if(null == pc._pending) {
 		pc = this._getPC();
 		pc[obj.func].apply(pc, obj.args);
 		if(obj.wait) {
-			this._pending = obj;
+			pc._pending = obj;
 		}
 	} else {
 		this._queue.push(obj);
@@ -83,16 +82,16 @@ PeerConnection.prototype._queueOrRun = function _queueOrRun(obj) {
 
 PeerConnection.prototype._executeNext = function _executeNext() {
 	var obj, pc;
+	pc = this._getPC();
 	if(this._queue.length > 0) {
 		obj = this._queue.shift();
-		pc = this._getPC();
 		pc[obj.func].apply(pc, obj.args);
 		if(!obj.wait)
 		{
 			this._executeNext();
 		}
 	} else {
-		this._pending = null;
+		pc._pending = null;
 	}
 };
 
@@ -130,7 +129,6 @@ PeerConnection.prototype.getIceConnectionState = function getIceConnectionState(
 };
 
 PeerConnection.prototype.createOffer = function createOffer(onSuccess, onError, constraints) {
-	//this._getPC().createOffer(onSuccess, onError, constraints);
 	constraints = constraints || {};
 	// FIXME: complain if onError is undefined
 	this._queueOrRun({
