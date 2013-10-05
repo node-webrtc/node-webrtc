@@ -113,7 +113,7 @@ public:
     ErrorEvent(const uint32_t code, const char* message)
     : code(code)
     {
-      this->message = new char[sizeof(message)+1];
+      this->message = new char[strlen(message)+1];
       this->message[strlen(message)] = 0;
       strncpy(this->message, message, strlen(message));
     }
