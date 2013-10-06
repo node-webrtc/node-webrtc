@@ -113,12 +113,24 @@ public:
     ErrorEvent(const uint32_t code, const char* message)
     : code(code)
     {
-      this->message = new char[strlen(message)+1];
-      this->message[strlen(message)] = 0;
-      strncpy(this->message, message, strlen(message));
+      size_t msglen = strlen(message);
+      this->message = new char[msglen+1];
+      this->message[msglen] = 0;
+      strncpy(this->message, message, msglen);
     }
     uint32_t code;
     char* message;
+  };
+
+  struct SDPEvent {
+    SDPEvent(const char* sdp)
+    {
+      size_t sdplen = strlen(sdp);
+      this->sdp = new char[sdplen+1];
+      this->sdp[sdplen] = 0;
+      strncpy(this->sdp, sdp, sdplen);
+    }
+    char* sdp;
   };
 
 private:
@@ -152,7 +164,8 @@ PeerConnectionObserver::~PeerConnectionObserver()
 NS_IMETHODIMP PeerConnectionObserver::OnCreateOfferSuccess(const char * offer)
 {
   TRACE_CALL;
-  INFO(offer);
+  SDPEvent* data = new SDPEvent(offer);
+  _pc->QueueEvent(PeerConnection::CREATE_OFFER_SUCCESS, (void*)data);
   TRACE_END;
   return NS_OK;
 }
@@ -245,7 +258,9 @@ NS_IMETHODIMP PeerConnectionObserver::OnStateChange(uint32_t state)
 /* void onAddStream (in nsIDOMMediaStream stream); */
 NS_IMETHODIMP PeerConnectionObserver::OnAddStream(nsIDOMMediaStream *stream)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  TRACE_END;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* void onRemoveStream (); */
@@ -300,6 +315,9 @@ void PeerConnection::Init_m()
   _pco = new PeerConnectionObserver(this);
   _pc->Initialize(_pco, nullptr, cfg,
                  PeerConnectionSingleton::Instance()->main_thread());
+  _fs = new DOMMediaStream();
+  _fs->SetHintContents(DOMMediaStream::HINT_CONTENTS_VIDEO | DOMMediaStream::HINT_CONTENTS_AUDIO);
+  _pc->AddStream(_fs);
 }
 
 void PeerConnection::QueueEvent(AsyncEventType type, void* data)
@@ -322,6 +340,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
   HandleScope scope;
 
   PeerConnection* self = static_cast<PeerConnection*>(handle->data);
+  v8::Persistent<v8::Object> pc = self->handle_;
 
   while(!self->_events.empty())
   {
@@ -329,23 +348,26 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     self->_events.pop();
     TRACE_U("event type", evt.type);
 
-    switch(evt.type)
+    if(PeerConnection::ERROR_EVENT & evt.type)
     {
-      case CREATE_OFFER_ERROR:
-      case CREATE_ANSWER_ERROR:
-      case SET_LOCAL_DESCRIPTION_ERROR:
-      case SET_REMOTE_DESCRIPTION_ERROR:
-      case ADD_ICE_CANDIDATE_ERROR:
-        PeerConnectionObserver::ErrorEvent* data = static_cast<PeerConnectionObserver::ErrorEvent*>(evt.data);
-        v8::Persistent<v8::Object> pc = self->handle_;
-        v8::Local<v8::Object> pending = v8::Local<v8::Object>::Cast(pc->Get(String::New("_pending")));
-        v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pending->Get(String::New("onError")));
-        if(!callback->IsNull()) {
-          v8::Local<v8::Value> argv[1];
-          argv[0] = Exception::Error(String::New(data->message));
-          callback->Call(pc, 1, argv);
-        }
-        break;
+      PeerConnectionObserver::ErrorEvent* data = static_cast<PeerConnectionObserver::ErrorEvent*>(evt.data);
+      v8::Local<v8::Object> pending = v8::Local<v8::Object>::Cast(pc->Get(String::New("_pending")));
+      v8::Local<v8::Function> onError = v8::Local<v8::Function>::Cast(pending->Get(String::New("onError")));
+      if(!onError->IsNull()) {
+        v8::Local<v8::Value> argv[1];
+        argv[0] = Exception::Error(String::New(data->message));
+        onError->Call(pc, 1, argv);
+      }
+    } else if(PeerConnection::SDP_EVENT & evt.type)
+    {
+      PeerConnectionObserver::SDPEvent* data = static_cast<PeerConnectionObserver::SDPEvent*>(evt.data);
+      v8::Local<v8::Object> pending = v8::Local<v8::Object>::Cast(pc->Get(String::New("_pending")));
+      v8::Local<v8::Function> onSuccess = v8::Local<v8::Function>::Cast(pending->Get(String::New("onSuccess")));
+      if(!onSuccess->IsNull()) {
+        v8::Local<v8::Value> argv[1];
+        argv[0] = String::New(data->sdp);
+        onSuccess->Call(pc, 1, argv);
+      }
     }
   }
   TRACE_END;

@@ -11,7 +11,9 @@ console.log('pc.iceGatheringState: ', pc.iceGatheringState);
 console.log('pc.iceConnectionState: ', pc.iceConnectionState);
 
 pc.createOffer(
-  function(){},
+  function(sdp){
+    console.log('sdp', sdp);
+  },
   function(err){
     console.log('error', err);
   },
