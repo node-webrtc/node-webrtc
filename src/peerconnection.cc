@@ -468,7 +468,24 @@ Handle<Value> PeerConnection::SetRemoteDescription( const Arguments& args ) {
   TRACE_CALL;
   HandleScope scope;
 
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  v8::Local<v8::Object> desc = v8::Local<v8::Object>::Cast(args[0]);
+  v8::String::Utf8Value _type(desc->Get(v8::String::NewSymbol("type"))->ToString());
+  v8::String::Utf8Value _sdp(desc->Get(v8::String::NewSymbol("sdp"))->ToString());
 
+  std::string type = *_type;
+  std::string sdp = *_sdp;
+
+  PeerConnection::Action action;
+  if("offer" == type)
+  {
+    action = PeerConnection::OFFER;
+  } else if("answer" == type)
+  {
+    action = PeerConnection::ANSWER;
+  }
+
+  self->_pc->SetRemoteDescription(action, sdp.c_str());
 
   TRACE_END;
   return scope.Close(Undefined());

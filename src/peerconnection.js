@@ -161,7 +161,21 @@ PeerConnection.prototype.createOffer = function createOffer(onSuccess, onError, 
 		args: [constraints],
 		wait: true,
 		onSuccess: function(sdp) {
-			onSuccess.call(this, {type: 'offer', sdp: sdp});
+			onSuccess.call(this, new RTCSessionDescription({type: 'offer', sdp: sdp}));
+		},
+		onError: onError
+	});
+};
+
+PeerConnection.prototype.createAnswer = function createAnswer(onSuccess, onError, constraints) {
+	constraints = constraints || {};
+	// FIXME: complain if onError is undefined
+	this._queueOrRun({
+		func: 'createAnswer',
+		args: [constraints],
+		wait: true,
+		onSuccess: function(sdp) {
+			onSuccess.call(this, new RTCSessionDescription({type: 'answer', sdp: sdp}));
 		},
 		onError: onError
 	});
@@ -169,8 +183,21 @@ PeerConnection.prototype.createOffer = function createOffer(onSuccess, onError, 
 
 PeerConnection.prototype.setLocalDescription = function setLocalDescription(sdp, onSuccess, onError) {
 	sdp = sdp || {};
+	this._localType = sdp.type;
 	this._queueOrRun({
 		func: 'setLocalDescription',
+		args: [sdp],
+		wait: true,
+		onSuccess: onSuccess,
+		onError: onError
+	});
+};
+
+PeerConnection.prototype.setRemoteDescription = function setRemoteDescription(sdp, onSuccess, onError) {
+	sdp = sdp || {};
+	this._remoteType = sdp.type;
+	this._queueOrRun({
+		func: 'setRemoteDescription',
 		args: [sdp],
 		wait: true,
 		onSuccess: onSuccess,
@@ -212,11 +239,19 @@ function RTCPeerConnection() {
 
 	this.createOffer = function createOffer() {
 		pc.createOffer.apply(pc, arguments);
-	}
+	};
+
+	this.createAnswer = function createAnswer() {
+		pc.createAnswer.apply(pc, arguments);
+	};
 
 	this.setLocalDescription = function setLocalDescription() {
 		pc.setLocalDescription.apply(pc, arguments);
-	}
+	};
+
+	this.setRemoteDescription = function setRemoteDescription() {
+		pc.setRemoteDescription.apply(pc, arguments);
+	};
 };
 
 exports.RTCPeerConnection = RTCPeerConnection;
