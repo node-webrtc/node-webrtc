@@ -133,6 +133,12 @@ public:
     char* sdp;
   };
 
+  struct StateEvent {
+    StateEvent(uint32_t state)
+    : state(state) {}
+    uint32_t state;
+  };
+
 private:
   PeerConnection* _pc;
   virtual ~PeerConnectionObserver();
@@ -272,7 +278,8 @@ NS_IMETHODIMP PeerConnectionObserver::NotifyClosedConnection()
 NS_IMETHODIMP PeerConnectionObserver::OnStateChange(uint32_t state)
 {
   TRACE_CALL;
-  TRACE_U("state", state);
+  StateEvent* data = new StateEvent(state);
+  _pc->QueueEvent(PeerConnection::STATE_CHANGE, (void*)data);
   TRACE_END;
   return NS_OK;
 }
@@ -373,22 +380,29 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     if(PeerConnection::ERROR_EVENT & evt.type)
     {
       PeerConnectionObserver::ErrorEvent* data = static_cast<PeerConnectionObserver::ErrorEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("_ErrorCallback")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onerror")));
       v8::Local<v8::Value> argv[1];
       argv[0] = Exception::Error(String::New(data->message));
       callback->Call(pc, 1, argv);
     } else if(PeerConnection::SDP_EVENT & evt.type)
     {
       PeerConnectionObserver::SDPEvent* data = static_cast<PeerConnectionObserver::SDPEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("_SDPCallback")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsuccess")));
       v8::Local<v8::Value> argv[1];
       argv[0] = String::New(data->sdp);
       callback->Call(pc, 1, argv);
-    } else if(PeerConnection::VOID_EVENT * evt.type)
+    } else if(PeerConnection::VOID_EVENT & evt.type)
     {
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("_VoidCallback")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsuccess")));
       v8::Local<v8::Value> argv[0];
       callback->Call(pc, 0, argv);
+    } else if(PeerConnection::STATE_CHANGE & evt.type)
+    {
+      PeerConnectionObserver::StateEvent* data = static_cast<PeerConnectionObserver::StateEvent*>(evt.data);
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsignalingstatechange")));
+      v8::Local<v8::Value> argv[1];
+      argv[0] = Number::New(data->state);
+      callback->Call(pc, 1, argv);
     }
   }
 
@@ -517,7 +531,7 @@ Handle<Value> PeerConnection::GetLocalDescription( Local<String> property, const
   HandleScope scope;
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
-  char* sdp = nullptr;
+  char* sdp = NULL;
   self->_pc->GetLocalDescription(&sdp);
 
   Handle<Value> value;
@@ -536,7 +550,7 @@ Handle<Value> PeerConnection::GetRemoteDescription( Local<String> property, cons
   HandleScope scope;
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
-  char* sdp = 0;
+  char* sdp = NULL;
   self->_pc->GetRemoteDescription(&sdp);
 
   Handle<Value> value;
@@ -588,7 +602,7 @@ void PeerConnection::Init( Handle<Object> exports ) {
     FunctionTemplate::New( UpdateIce )->GetFunction() );
 
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "addIceCandidate" ),
-      FunctionTemplate::New( AddIceCandidate )->GetFunction() );
+    FunctionTemplate::New( AddIceCandidate )->GetFunction() );
 
   // tpl->PrototypeTemplate()->Set( String::NewSymbol( "getLocalStreams" ),
   //     FunctionTemplate::New( GetLocalStreams )->GetFunction() );
@@ -606,7 +620,7 @@ void PeerConnection::Init( Handle<Object> exports ) {
   //     FunctionTemplate::New( RemoveStream )->GetFunction() );
 
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "close" ),
-      FunctionTemplate::New( Close )->GetFunction() );
+    FunctionTemplate::New( Close )->GetFunction() );
 
   tpl->PrototypeTemplate()->Set(String::NewSymbol("onnegotiationneeded"),
     Null());

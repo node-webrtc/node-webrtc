@@ -45,23 +45,16 @@ function PeerConnection() {
 	this._pending = null;
 
 	// FIXME: this is a bit of a hack, can do better
-	this._pc._ErrorCallback = function _ErrorCallback(err) {
+	this._pc.onerror = function onerror() {
 		if(null !== that._pending && that._pending.onError) {
-			that._pending.onError.apply(that, [err]);
+			that._pending.onError.apply(that, arguments);
 		}
 		that._executeNext();
 	};
 
-	this._pc._SDPCallback = function _SDPCallback(sdp) {
+	this._pc.onsuccess = function onsuccess() {
 		if(null !== that._pending && that._pending.onSuccess) {
-			that._pending.onSuccess.apply(that, [sdp]);
-		}
-		that._executeNext();
-	};
-
-	this._pc._VoidCallback = function _SDPCallback() {
-		if(null !== that._pending && that._pending.onSuccess) {
-			that._pending.onSuccess.apply(that, []);
+			that._pending.onSuccess.apply(that, arguments);
 		}
 		that._executeNext();
 	};
@@ -74,6 +67,16 @@ PeerConnection.prototype.RTCSignalingStateMap = [
 	'have-remote-offer',
 	'have-local-pranswer',
 	'have-remote-pranswer',
+	'closed'
+];
+
+PeerConnection.prototype.RTCIceConnectionState = [
+	'gathering',
+	'waiting',
+	'checking',
+	'connected',
+	'failed',
+	'disconnected',
 	'closed'
 ];
 
@@ -151,6 +154,14 @@ PeerConnection.prototype.getIceGatheringState = function getIceGatheringState() 
 
 PeerConnection.prototype.getIceConnectionState = function getIceConnectionState() {
 	return this._iceConnectionState;
+};
+
+PeerConnection.prototype.getOnSignalingStateChange = function() {
+	return this._pc.onsignalingstatechange;
+};
+
+PeerConnection.prototype.setOnSignalingStateChange = function(cb) {
+	this._pc.onsignalingstatechange = cb;
 };
 
 PeerConnection.prototype.createOffer = function createOffer(onSuccess, onError, constraints) {
@@ -233,6 +244,14 @@ function RTCPeerConnection() {
 		'iceConnectionState': {
 			get: function getIceConnectionState() {
 				return pc.getIceConnectionState();
+			}
+		},
+		'onsignalingstatechange': {
+			get: function() {
+				return pc.getOnSignalingStateChange();
+			},
+			set: function(cb) {
+				pc.setOnSignalingStateChange(cb);
 			}
 		}
 	});

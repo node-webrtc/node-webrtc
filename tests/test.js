@@ -12,12 +12,12 @@ console.log('pc.iceConnectionState: ', pc.iceConnectionState);
 
 pc.createOffer(
   function(sdp){
-    console.log('sdp', sdp);
+    console.log('offer sdp', sdp);
     pc.setLocalDescription(
       sdp,
       function() {
+        console.log('local description set');
         console.log('pc.localDescription: ', pc.localDescription);
-        console.log('pc.signalingState: ', pc.signalingState);
       },
       function(err) {
         console.log('error', err);
@@ -29,3 +29,6 @@ pc.createOffer(
   },
   {}
 );
+pc.onsignalingstatechange = function(state) {
+  console.log('signaling state change', state);
+};
