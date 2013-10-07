@@ -13,7 +13,7 @@ function RTCSessionDescription(dict) {
 
 function RTCError(code, message) {
 	this.name = this.reasonName[Math.min(code, this.reasonName.length - 1)];
-  	this.message = (typeof message === "string")? message : this.name;
+	this.message = (typeof message === "string")? message : this.name;
 }
 
 RTCError.prototype.reasonName = [
@@ -32,6 +32,7 @@ RTCError.prototype.reasonName = [
 
 
 function PeerConnection() {
+	var that = this;
 	this._pc = new _webrtc.PeerConnection();
 
 	this._localType = null;
@@ -41,6 +42,29 @@ function PeerConnection() {
 	this._iceConnectionState = 'new';
 
 	this._queue = [];
+	this._pending = null;
+
+	// FIXME: this is a bit of a hack, can do better
+	this._pc._ErrorCallback = function _ErrorCallback(err) {
+		if(null !== that._pending && that._pending.onError) {
+			that._pending.onError.apply(that, [err]);
+		}
+		that._executeNext();
+	};
+
+	this._pc._SDPCallback = function _SDPCallback(sdp) {
+		if(null !== that._pending && that._pending.onSuccess) {
+			that._pending.onSuccess.apply(that, [sdp]);
+		}
+		that._executeNext();
+	};
+
+	this._pc._VoidCallback = function _SDPCallback() {
+		if(null !== that._pending && that._pending.onSuccess) {
+			that._pending.onSuccess.apply(that, []);
+		}
+		that._executeNext();
+	};
 };
 
 PeerConnection.prototype.RTCSignalingStateMap = [
@@ -69,11 +93,10 @@ PeerConnection.prototype._checkClosed = function _checkClosed() {
 PeerConnection.prototype._queueOrRun = function _queueOrRun(obj) {
 	var pc = this._getPC();
 	this._checkClosed();
-	if(null == pc._pending) {
-		pc = this._getPC();
+	if(null == this._pending) {
 		pc[obj.func].apply(pc, obj.args);
 		if(obj.wait) {
-			pc._pending = obj;
+			this._pending = obj;
 		}
 	} else {
 		this._queue.push(obj);
@@ -86,12 +109,14 @@ PeerConnection.prototype._executeNext = function _executeNext() {
 	if(this._queue.length > 0) {
 		obj = this._queue.shift();
 		pc[obj.func].apply(pc, obj.args);
-		if(!obj.wait)
+		if(obj.wait)
 		{
+			this._pending = obj;
+		} else {
 			this._executeNext();
 		}
 	} else {
-		pc._pending = null;
+		this._pending = null;
 	}
 };
 
@@ -135,6 +160,19 @@ PeerConnection.prototype.createOffer = function createOffer(onSuccess, onError, 
 		func: 'createOffer',
 		args: [constraints],
 		wait: true,
+		onSuccess: function(sdp) {
+			onSuccess.call(this, {type: 'offer', sdp: sdp});
+		},
+		onError: onError
+	});
+};
+
+PeerConnection.prototype.setLocalDescription = function setLocalDescription(sdp, onSuccess, onError) {
+	sdp = sdp || {};
+	this._queueOrRun({
+		func: 'setLocalDescription',
+		args: [sdp],
+		wait: true,
 		onSuccess: onSuccess,
 		onError: onError
 	});
@@ -174,6 +212,10 @@ function RTCPeerConnection() {
 
 	this.createOffer = function createOffer() {
 		pc.createOffer.apply(pc, arguments);
+	}
+
+	this.setLocalDescription = function setLocalDescription() {
+		pc.setLocalDescription.apply(pc, arguments);
 	}
 };
 

@@ -187,7 +187,7 @@ NS_IMETHODIMP PeerConnectionObserver::OnCreateAnswerSuccess(const char * answer)
 }
 
 /* void onCreateAnswerError (in unsigned long name, in string message); */
-NS_IMETHODIMP PeerConnectionObserver::OnCreateAnswerError(uint32_t name, const char * message)
+NS_IMETHODIMP PeerConnectionObserver::OnCreateAnswerError(uint32_t code, const char * message)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -195,7 +195,10 @@ NS_IMETHODIMP PeerConnectionObserver::OnCreateAnswerError(uint32_t name, const c
 /* void onSetLocalDescriptionSuccess (); */
 NS_IMETHODIMP PeerConnectionObserver::OnSetLocalDescriptionSuccess()
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  _pc->QueueEvent(PeerConnection::SET_LOCAL_DESCRIPTION_SUCCESS, (void*)NULL);
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void onSetRemoteDescriptionSuccess (); */
@@ -205,13 +208,17 @@ NS_IMETHODIMP PeerConnectionObserver::OnSetRemoteDescriptionSuccess()
 }
 
 /* void onSetLocalDescriptionError (in unsigned long name, in string message); */
-NS_IMETHODIMP PeerConnectionObserver::OnSetLocalDescriptionError(uint32_t name, const char * message)
+NS_IMETHODIMP PeerConnectionObserver::OnSetLocalDescriptionError(uint32_t code, const char * message)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  ErrorEvent* data = new ErrorEvent(code, message);
+  _pc->QueueEvent(PeerConnection::SET_LOCAL_DESCRIPTION_ERROR, (void*)data);
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void onSetRemoteDescriptionError (in unsigned long name, in string message); */
-NS_IMETHODIMP PeerConnectionObserver::OnSetRemoteDescriptionError(uint32_t name, const char * message)
+NS_IMETHODIMP PeerConnectionObserver::OnSetRemoteDescriptionError(uint32_t code, const char * message)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -223,7 +230,7 @@ NS_IMETHODIMP PeerConnectionObserver::OnAddIceCandidateSuccess()
 }
 
 /* void onAddIceCandidateError (in unsigned long name, in string message); */
-NS_IMETHODIMP PeerConnectionObserver::OnAddIceCandidateError(uint32_t name, const char * message)
+NS_IMETHODIMP PeerConnectionObserver::OnAddIceCandidateError(uint32_t code, const char * message)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -351,25 +358,25 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     if(PeerConnection::ERROR_EVENT & evt.type)
     {
       PeerConnectionObserver::ErrorEvent* data = static_cast<PeerConnectionObserver::ErrorEvent*>(evt.data);
-      v8::Local<v8::Object> pending = v8::Local<v8::Object>::Cast(pc->Get(String::New("_pending")));
-      v8::Local<v8::Function> onError = v8::Local<v8::Function>::Cast(pending->Get(String::New("onError")));
-      if(!onError->IsNull()) {
-        v8::Local<v8::Value> argv[1];
-        argv[0] = Exception::Error(String::New(data->message));
-        onError->Call(pc, 1, argv);
-      }
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("_ErrorCallback")));
+      v8::Local<v8::Value> argv[1];
+      argv[0] = Exception::Error(String::New(data->message));
+      callback->Call(pc, 1, argv);
     } else if(PeerConnection::SDP_EVENT & evt.type)
     {
       PeerConnectionObserver::SDPEvent* data = static_cast<PeerConnectionObserver::SDPEvent*>(evt.data);
-      v8::Local<v8::Object> pending = v8::Local<v8::Object>::Cast(pc->Get(String::New("_pending")));
-      v8::Local<v8::Function> onSuccess = v8::Local<v8::Function>::Cast(pending->Get(String::New("onSuccess")));
-      if(!onSuccess->IsNull()) {
-        v8::Local<v8::Value> argv[1];
-        argv[0] = String::New(data->sdp);
-        onSuccess->Call(pc, 1, argv);
-      }
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("_SDPCallback")));
+      v8::Local<v8::Value> argv[1];
+      argv[0] = String::New(data->sdp);
+      callback->Call(pc, 1, argv);
+    } else if(PeerConnection::VOID_EVENT * evt.type)
+    {
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("_VoidCallback")));
+      v8::Local<v8::Value> argv[0];
+      callback->Call(pc, 0, argv);
     }
   }
+
   TRACE_END;
 }
 
@@ -396,9 +403,7 @@ Handle<Value> PeerConnection::CreateOffer( const Arguments& args ) {
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
 
   sipcc::MediaConstraints constraints;
-  nsresult ret = self->_pc->CreateOffer(constraints);
-  if(NS_OK != ret)
-    ERROR("CreateOffer returned an unexpected error");
+  self->_pc->CreateOffer(constraints);
 
   TRACE_END;
   return scope.Close(Undefined());
@@ -407,6 +412,12 @@ Handle<Value> PeerConnection::CreateOffer( const Arguments& args ) {
 Handle<Value> PeerConnection::CreateAnswer( const Arguments& args ) {
   TRACE_CALL;
   HandleScope scope;
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+
+  sipcc::MediaConstraints constraints;
+  self->_pc->CreateAnswer(constraints);
+
   TRACE_END;
   return scope.Close(Undefined());
 }
@@ -414,6 +425,26 @@ Handle<Value> PeerConnection::CreateAnswer( const Arguments& args ) {
 Handle<Value> PeerConnection::SetLocalDescription( const Arguments& args ) {
   TRACE_CALL;
   HandleScope scope;
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  v8::Local<v8::Object> desc = v8::Local<v8::Object>::Cast(args[0]);
+  v8::String::Utf8Value _type(desc->Get(v8::String::NewSymbol("type"))->ToString());
+  v8::String::Utf8Value _sdp(desc->Get(v8::String::NewSymbol("sdp"))->ToString());
+
+  std::string type = *_type;
+  std::string sdp = *_sdp;
+
+  PeerConnection::Action action;
+  if("offer" == type)
+  {
+    action = PeerConnection::OFFER;
+  } else if("answer" == type)
+  {
+    action = PeerConnection::ANSWER;
+  }
+
+  self->_pc->SetLocalDescription(action, sdp.c_str());
+
   TRACE_END;
   return scope.Close(Undefined());
 }
@@ -421,6 +452,9 @@ Handle<Value> PeerConnection::SetLocalDescription( const Arguments& args ) {
 Handle<Value> PeerConnection::SetRemoteDescription( const Arguments& args ) {
   TRACE_CALL;
   HandleScope scope;
+
+
+
   TRACE_END;
   return scope.Close(Undefined());
 }
@@ -458,7 +492,7 @@ Handle<Value> PeerConnection::GetLocalDescription( Local<String> property, const
   if(!sdp) {
     value = Null();
   } else {
-    value = String::New(sdp);
+    value = v8::String::New(sdp);
   }
 
   TRACE_END;
@@ -477,7 +511,7 @@ Handle<Value> PeerConnection::GetRemoteDescription( Local<String> property, cons
   if(!sdp) {
     value = Null();
   } else {
-    value = String::New(sdp);
+    value = v8::String::New(sdp);
   }
 
   TRACE_END;
@@ -558,8 +592,6 @@ void PeerConnection::Init( Handle<Object> exports ) {
   //   Null());
 
   tpl->PrototypeTemplate()->Set(String::NewSymbol("oniceconnectionstatechange"),
-    Null());
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("_pending"),
     Null());
 
   tpl->InstanceTemplate()->SetAccessor(String::New("localDescription"), GetLocalDescription, ReadOnly);
