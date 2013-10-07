@@ -183,13 +183,21 @@ NS_IMETHODIMP PeerConnectionObserver::OnCreateOfferError(uint32_t code, const ch
 /* void onCreateAnswerSuccess (in string answer); */
 NS_IMETHODIMP PeerConnectionObserver::OnCreateAnswerSuccess(const char * answer)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  SDPEvent* data = new SDPEvent(answer);
+  _pc->QueueEvent(PeerConnection::CREATE_ANSWER_SUCCESS, (void*)data);
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void onCreateAnswerError (in unsigned long name, in string message); */
 NS_IMETHODIMP PeerConnectionObserver::OnCreateAnswerError(uint32_t code, const char * message)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  ErrorEvent* data = new ErrorEvent(code, message);
+  _pc->QueueEvent(PeerConnection::CREATE_ANSWER_ERROR, (void*)data);
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void onSetLocalDescriptionSuccess (); */
@@ -204,7 +212,10 @@ NS_IMETHODIMP PeerConnectionObserver::OnSetLocalDescriptionSuccess()
 /* void onSetRemoteDescriptionSuccess (); */
 NS_IMETHODIMP PeerConnectionObserver::OnSetRemoteDescriptionSuccess()
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  _pc->QueueEvent(PeerConnection::SET_REMOTE_DESCRIPTION_SUCCESS, (void*)NULL);
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void onSetLocalDescriptionError (in unsigned long name, in string message); */
@@ -220,7 +231,11 @@ NS_IMETHODIMP PeerConnectionObserver::OnSetLocalDescriptionError(uint32_t code, 
 /* void onSetRemoteDescriptionError (in unsigned long name, in string message); */
 NS_IMETHODIMP PeerConnectionObserver::OnSetRemoteDescriptionError(uint32_t code, const char * message)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  ErrorEvent* data = new ErrorEvent(code, message);
+  _pc->QueueEvent(PeerConnection::SET_REMOTE_DESCRIPTION_ERROR, (void*)data);
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void onAddIceCandidateSuccess (); */
