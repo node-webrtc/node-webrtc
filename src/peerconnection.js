@@ -164,6 +164,14 @@ PeerConnection.prototype.setOnSignalingStateChange = function(cb) {
 	this._pc.onsignalingstatechange = cb;
 };
 
+PeerConnection.prototype.getOnIceCandidate = function() {
+	return this._pc.onicecandidate;
+};
+
+PeerConnection.prototype.setOnIceCandidate = function(cb) {
+	this._pc.onicecandidate = cb;
+};
+
 PeerConnection.prototype.createOffer = function createOffer(onSuccess, onError, constraints) {
 	constraints = constraints || {};
 	// FIXME: complain if onError is undefined
@@ -252,6 +260,14 @@ function RTCPeerConnection() {
 			},
 			set: function(cb) {
 				pc.setOnSignalingStateChange(cb);
+			}
+		},
+		'onicecandidate': {
+			get: function() {
+				return pc.getOnIceCandidate();
+			},
+			set: function(cb) {
+				pc.setOnIceCandidate(cb);
 			}
 		}
 	});

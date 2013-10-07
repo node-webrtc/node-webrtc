@@ -139,6 +139,27 @@ public:
     uint32_t state;
   };
 
+  struct ICEEvent {
+    ICEEvent(uint32_t level, const char* mid, const char* candidate)
+    : level(level)
+    {
+      size_t len;
+
+      len = strlen(mid);
+      this->mid = new char[len+1];
+      this->mid[len] = 0;
+      strncpy(this->mid, mid, len);
+
+      len = strlen(candidate);
+      this->candidate = new char[len+1];
+      this->candidate[len] = 0;
+      strncpy(this->candidate, candidate, len);
+    }
+    uint32_t level;
+    char* mid;
+    char* candidate;
+  };
+
 private:
   PeerConnection* _pc;
   virtual ~PeerConnectionObserver();
@@ -314,8 +335,10 @@ NS_IMETHODIMP PeerConnectionObserver::OnRemoveTrack()
 NS_IMETHODIMP PeerConnectionObserver::OnIceCandidate(uint16_t level, const char * mid, const char * candidate)
 {
     TRACE_CALL;
+    ICEEvent* data = new ICEEvent(level, mid, candidate);
+    _pc->QueueEvent(PeerConnection::ICE_EVENT, (void*)data);
     TRACE_END;
-    return NS_ERROR_NOT_IMPLEMENTED;
+    return NS_OK;
 }
 
 //
@@ -400,9 +423,22 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     {
       PeerConnectionObserver::StateEvent* data = static_cast<PeerConnectionObserver::StateEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsignalingstatechange")));
-      v8::Local<v8::Value> argv[1];
-      argv[0] = Number::New(data->state);
-      callback->Call(pc, 1, argv);
+      if(!callback.IsEmpty())
+      {
+        v8::Local<v8::Value> argv[1];
+        argv[0] = Number::New(data->state);
+        callback->Call(pc, 1, argv);
+      }
+    } else if(PeerConnection::ICE_EVENT & evt.type)
+    {
+      PeerConnectionObserver::ICEEvent* data = static_cast<PeerConnectionObserver::ICEEvent*>(evt.data);
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onicecandidate")));
+      if(!callback.IsEmpty())
+      {
+        v8::Local<v8::Value> argv[1];
+        argv[0] = String::New(data->candidate);
+        callback->Call(pc, 1, argv);
+      }
     }
   }
 
@@ -621,6 +657,12 @@ void PeerConnection::Init( Handle<Object> exports ) {
 
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "close" ),
     FunctionTemplate::New( Close )->GetFunction() );
+
+  tpl->PrototypeTemplate()->Set(String::NewSymbol("onerror"),
+    Null());
+
+  tpl->PrototypeTemplate()->Set(String::NewSymbol("onsuccess"),
+    Null());
 
   tpl->PrototypeTemplate()->Set(String::NewSymbol("onnegotiationneeded"),
     Null());
