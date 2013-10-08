@@ -1,0 +1,888 @@
+# HG changeset patch
+# User Ted Mielczarek <ted.mielczarek@gmail.com>
+# Date 1381140769 14400
+#      Mon Oct 07 06:12:49 2013 -0400
+# Node ID 0843da2fce93c74d078d8c074f9e557e706f08c4
+# Parent  e3c84e9f24906f37e19dbd3ab7b8a7ef1d952dba
+bug 910462 - ifdef nsDOMDataChannel to work with external linkage
+
+diff --git a/content/base/public/nsIDOMDataChannel.idl b/content/base/public/nsIDOMDataChannel.idl
+--- a/content/base/public/nsIDOMDataChannel.idl
++++ b/content/base/public/nsIDOMDataChannel.idl
+@@ -1,38 +1,33 @@
+ /* This Source Code Form is subject to the terms of the Mozilla Public
+  * License, v. 2.0. If a copy of the MPL was not distributed with this
+  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ 
+-#include "nsIDOMEventTarget.idl"
++#include "nsISupports.idl"
+ 
+ %{C++
+ #ifdef GetBinaryType
+ // Windows apparently has a #define for GetBinaryType...
+ #undef GetBinaryType
+ #endif
+ %}
+ 
+ interface nsIVariant;
+ 
+-[scriptable, builtinclass, uuid(af7077ac-0f9f-44e1-815f-9b1a94618531)]
+-interface nsIDOMDataChannel : nsIDOMEventTarget
++[scriptable, builtinclass, uuid(e226ff19-3704-41ed-b8e0-ddead588094b)]
++interface nsIDOMDataChannel : nsISupports
+ {
+   readonly attribute DOMString label;
+   readonly attribute DOMString protocol;
+   readonly attribute boolean reliable;
+   readonly attribute boolean ordered;
+ 
+   readonly attribute DOMString readyState;
+   readonly attribute unsigned long bufferedAmount;
+ 
+   readonly attribute unsigned short id;
+   readonly attribute unsigned short stream; /* deprecated name for 'id' */
+ 
+-  [implicit_jscontext] attribute jsval onopen;
+-  [implicit_jscontext] attribute jsval onerror;
+-  [implicit_jscontext] attribute jsval onclose;
+-  [implicit_jscontext] attribute jsval onmessage;
+-
+   attribute DOMString binaryType;
+ 
+   void close();
+ };
+diff --git a/content/base/src/nsDOMDataChannel.cpp b/content/base/src/nsDOMDataChannel.cpp
+--- a/content/base/src/nsDOMDataChannel.cpp
++++ b/content/base/src/nsDOMDataChannel.cpp
+@@ -17,46 +17,51 @@
+ extern PRLogModuleInfo* GetDataChannelLog();
+ #endif
+ #undef LOG
+ #define LOG(args) PR_LOG(GetDataChannelLog(), PR_LOG_DEBUG, args)
+ 
+ 
+ #include "nsDOMDataChannelDeclarations.h"
+ #include "nsIDOMFile.h"
+ #include "nsIDOMDataChannel.h"
+ #include "nsIDOMMessageEvent.h"
++#ifdef MOZILLA_INTERNAL_API
+ #include "nsDOMEventTargetHelper.h"
++#endif
+ 
+ #include "nsError.h"
+ #include "nsAutoPtr.h"
++#ifdef MOZILLA_INTERNAL_API
+ #include "nsContentUtils.h"
+ #include "nsCxPusher.h"
+ #include "nsCycleCollectionParticipant.h"
+ #include "nsIScriptObjectPrincipal.h"
++#include "nsDOMFile.h"
++#endif
+ #include "nsNetUtil.h"
+-#include "nsDOMFile.h"
+ 
+ #include "DataChannel.h"
+ 
+ using namespace mozilla;
+ using namespace mozilla::dom;
+ 
+ nsDOMDataChannel::~nsDOMDataChannel()
+ {
+   // Don't call us anymore!  Likely isn't an issue (or maybe just less of
+   // one) once we block GC until all the (appropriate) onXxxx handlers
+   // are dropped. (See WebRTC spec)
+   LOG(("Close()ing %p", mDataChannel.get()));
+   mDataChannel->SetListener(nullptr, nullptr);
+   mDataChannel->Close();
+ }
+ 
++#ifdef MOZILLA_INTERNAL_API
+ /* virtual */ JSObject*
+ nsDOMDataChannel::WrapObject(JSContext* aCx, JS::Handle<JSObject*> aScope)
+ {
+   return DataChannelBinding::Wrap(aCx, aScope, this);
+ }
+ 
+ NS_IMPL_CYCLE_COLLECTION_CLASS(nsDOMDataChannel)
+ 
+ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(nsDOMDataChannel,
+                                                   nsDOMEventTargetHelper)
+@@ -66,29 +71,34 @@
+                                                 nsDOMEventTargetHelper)
+ NS_IMPL_CYCLE_COLLECTION_UNLINK_END
+ 
+ NS_IMPL_ADDREF_INHERITED(nsDOMDataChannel, nsDOMEventTargetHelper)
+ NS_IMPL_RELEASE_INHERITED(nsDOMDataChannel, nsDOMEventTargetHelper)
+ 
+ NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(nsDOMDataChannel)
+   NS_INTERFACE_MAP_ENTRY(nsIDOMDataChannel)
+ NS_INTERFACE_MAP_END_INHERITING(nsDOMEventTargetHelper)
+ 
++#else
++NS_IMPL_ISUPPORTS1(nsDOMDataChannel, nsIDOMDataChannel)
++#endif // MOZILLA_INTERNAL_API
++
+ nsresult
+ nsDOMDataChannel::Init(nsPIDOMWindow* aDOMWindow)
+ {
+-  nsresult rv;
++  nsresult rv = NS_OK;
+   nsAutoString urlParam;
+ 
+   MOZ_ASSERT(mDataChannel);
+   mDataChannel->SetListener(this, nullptr);
+ 
++#ifdef MOZILLA_INTERNAL_API
+   // Now grovel through the objects to get a usable origin for onMessage
+   nsCOMPtr<nsIScriptGlobalObject> sgo = do_QueryInterface(aDOMWindow);
+   NS_ENSURE_STATE(sgo);
+   nsCOMPtr<nsIScriptContext> scriptContext = sgo->GetContext();
+   NS_ENSURE_STATE(scriptContext);
+ 
+   nsCOMPtr<nsIScriptObjectPrincipal> scriptPrincipal(do_QueryInterface(aDOMWindow));
+   NS_ENSURE_STATE(scriptPrincipal);
+   nsCOMPtr<nsIPrincipal> principal = scriptPrincipal->GetPrincipal();
+   NS_ENSURE_STATE(principal);
+@@ -99,28 +109,24 @@
+   } else {
+     BindToOwner(aDOMWindow);
+   }
+ 
+   // Attempt to kill "ghost" DataChannel (if one can happen): but usually too early for check to fail
+   rv = CheckInnerWindowCorrectness();
+   NS_ENSURE_SUCCESS(rv,rv);
+ 
+   rv = nsContentUtils::GetUTFOrigin(principal,mOrigin);
+   LOG(("%s: origin = %s\n",__FUNCTION__,NS_LossyConvertUTF16toASCII(mOrigin).get()));
++#endif // MOZILLA_INTERNAL_API
+   return rv;
+ }
+ 
+-NS_IMPL_EVENT_HANDLER(nsDOMDataChannel, open)
+-NS_IMPL_EVENT_HANDLER(nsDOMDataChannel, error)
+-NS_IMPL_EVENT_HANDLER(nsDOMDataChannel, close)
+-NS_IMPL_EVENT_HANDLER(nsDOMDataChannel, message)
+-
+ NS_IMETHODIMP
+ nsDOMDataChannel::GetLabel(nsAString& aLabel)
+ {
+   mDataChannel->GetLabel(aLabel);
+   return NS_OK;
+ }
+ 
+ NS_IMETHODIMP
+ nsDOMDataChannel::GetProtocol(nsAString& aProtocol)
+ {
+@@ -174,26 +180,27 @@
+   return mDataChannel->GetOrdered();
+ }
+ 
+ NS_IMETHODIMP
+ nsDOMDataChannel::GetOrdered(bool* aOrdered)
+ {
+   *aOrdered = Ordered();
+   return NS_OK;
+ }
+ 
++#ifdef MOZILLA_INTERNAL_API
+ RTCDataChannelState
+ nsDOMDataChannel::ReadyState() const
+ {
+   return static_cast<RTCDataChannelState>(mDataChannel->GetReadyState());
+ }
+-
++#endif
+ 
+ NS_IMETHODIMP
+ nsDOMDataChannel::GetReadyState(nsAString& aReadyState)
+ {
+   uint16_t readyState = mDataChannel->GetReadyState();
+   // From the WebRTC spec
+   const char * stateName[] = {
+     "connecting",
+     "open",
+     "closing",
+@@ -258,21 +265,23 @@
+ void
+ nsDOMDataChannel::Send(const nsAString& aData, ErrorResult& aRv)
+ {
+   NS_ConvertUTF16toUTF8 msgString(aData);
+   Send(nullptr, msgString, msgString.Length(), false, aRv);
+ }
+ 
+ void
+ nsDOMDataChannel::Send(nsIDOMBlob* aData, ErrorResult& aRv)
+ {
++#ifdef MOZILLA_INTERNAL_API
+   NS_ABORT_IF_FALSE(NS_IsMainThread(), "Not running on main thread");
++#endif
+ 
+   nsCOMPtr<nsIInputStream> msgStream;
+   nsresult rv = aData->GetInternalStream(getter_AddRefs(msgStream));
+   if (NS_FAILED(rv)) {
+     aRv.Throw(rv);
+     return;
+   }
+ 
+   uint64_t msgLength;
+   rv = aData->GetSize(&msgLength);
+@@ -285,21 +294,23 @@
+     aRv.Throw(NS_ERROR_FILE_TOO_BIG);
+     return;
+   }
+ 
+   Send(msgStream, EmptyCString(), msgLength, true, aRv);
+ }
+ 
+ void
+ nsDOMDataChannel::Send(const ArrayBuffer& aData, ErrorResult& aRv)
+ {
++#ifdef MOZILLA_INTERNAL_API
+   NS_ABORT_IF_FALSE(NS_IsMainThread(), "Not running on main thread");
++#endif
+ 
+   MOZ_ASSERT(sizeof(*aData.Data()) == 1);
+   uint32_t len = aData.Length();
+   char* data = reinterpret_cast<char*>(aData.Data());
+ 
+   nsDependentCSubstring msgString(data, len);
+   Send(nullptr, msgString, len, true, aRv);
+ }
+ 
+ void
+@@ -315,21 +326,23 @@
+   Send(nullptr, msgString, len, true, aRv);
+ }
+ 
+ void
+ nsDOMDataChannel::Send(nsIInputStream* aMsgStream,
+                        const nsACString& aMsgString,
+                        uint32_t aMsgLength,
+                        bool aIsBinary,
+                        ErrorResult& aRv)
+ {
++#ifdef MOZILLA_INTERNAL_API
+   MOZ_ASSERT(NS_IsMainThread());
++#endif
+   uint16_t state = mDataChannel->GetReadyState();
+ 
+   // In reality, the DataChannel protocol allows this, but we want it to
+   // look like WebSockets
+   if (state == mozilla::DataChannel::CONNECTING) {
+     aRv.Throw(NS_ERROR_DOM_INVALID_STATE_ERR);
+     return;
+   }
+ 
+   if (state == mozilla::DataChannel::CLOSING ||
+@@ -348,20 +361,21 @@
+       sent = mDataChannel->SendBinaryMsg(aMsgString);
+     } else {
+       sent = mDataChannel->SendMsg(aMsgString);
+     }
+   }
+   if (sent < 0) {
+     aRv.Throw(NS_ERROR_FAILURE);
+   }
+ }
+ 
++#ifdef MOZILLA_INTERNAL_API
+ nsresult
+ nsDOMDataChannel::DoOnMessageAvailable(const nsACString& aData,
+                                        bool aBinary)
+ {
+   MOZ_ASSERT(NS_IsMainThread());
+ 
+   LOG(("DoOnMessageAvailable%s\n",aBinary ? ((mBinaryType == DC_BINARY_TYPE_BLOB) ? " (blob)" : " (binary)") : ""));
+ 
+   nsresult rv = CheckInnerWindowCorrectness();
+   if (NS_FAILED(rv)) {
+@@ -411,57 +425,70 @@
+   NS_ENSURE_SUCCESS(rv,rv);
+   event->SetTrusted(true);
+ 
+   LOG(("%p(%p): %s - Dispatching\n",this,(void*)mDataChannel,__FUNCTION__));
+   rv = DispatchDOMEvent(nullptr, event, nullptr, nullptr);
+   if (NS_FAILED(rv)) {
+     NS_WARNING("Failed to dispatch the message event!!!");
+   }
+   return rv;
+ }
++#endif // MOZILLA_INTERNAL_API
+ 
+ nsresult
+ nsDOMDataChannel::OnMessageAvailable(nsISupports* aContext,
+                                      const nsACString& aMessage)
+ {
++#ifdef MOZILLA_INTERNAL_API
+   MOZ_ASSERT(NS_IsMainThread());
+   return DoOnMessageAvailable(aMessage, false);
++#else
++  return NS_OK;
++#endif
+ }
+ 
+ nsresult
+ nsDOMDataChannel::OnBinaryMessageAvailable(nsISupports* aContext,
+                                            const nsACString& aMessage)
+ {
++#ifdef MOZILLA_INTERNAL_API
+   MOZ_ASSERT(NS_IsMainThread());
+   return DoOnMessageAvailable(aMessage, true);
++#else
++  return NS_OK;
++#endif
+ }
+ 
+ nsresult
+ nsDOMDataChannel::OnSimpleEvent(nsISupports* aContext, const nsAString& aName)
+ {
++#ifdef MOZILLA_INTERNAL_API
+   MOZ_ASSERT(NS_IsMainThread());
+ 
+   nsresult rv = CheckInnerWindowCorrectness();
+   if (NS_FAILED(rv)) {
+     return NS_OK;
+   }
+ 
+   nsCOMPtr<nsIDOMEvent> event;
+   rv = NS_NewDOMEvent(getter_AddRefs(event), this, nullptr, nullptr);
+   NS_ENSURE_SUCCESS(rv,rv);
+ 
+   rv = event->InitEvent(aName, false, false);
+   NS_ENSURE_SUCCESS(rv,rv);
+ 
+   event->SetTrusted(true);
+ 
+   return DispatchDOMEvent(nullptr, event, nullptr, nullptr);
++#else
++  return NS_OK;
++#endif
+ }
+ 
+ nsresult
+ nsDOMDataChannel::OnChannelConnected(nsISupports* aContext)
+ {
+   LOG(("%p(%p): %s - Dispatching\n",this,(void*)mDataChannel,__FUNCTION__));
+ 
+   return OnSimpleEvent(aContext, NS_LITERAL_STRING("open"));
+ }
+ 
+diff --git a/content/base/src/nsDOMDataChannel.h b/content/base/src/nsDOMDataChannel.h
+--- a/content/base/src/nsDOMDataChannel.h
++++ b/content/base/src/nsDOMDataChannel.h
+@@ -1,90 +1,112 @@
+ /* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+ /* vim: set sw=2 ts=8 et tw=80 : */
+ /* This Source Code Form is subject to the terms of the Mozilla Public
+  * License, v. 2.0. If a copy of the MPL was not distributed with this
+  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ 
+ #ifndef nsDOMDataChannel_h
+ #define nsDOMDataChannel_h
++/*
++ * This file is built twice--once with internal linkage and once without.
++ * The former is used for the DOM binding and the latter for C++ unit tests.
++ */
+ 
+ #include "mozilla/Attributes.h"
+-#include "mozilla/dom/DataChannelBinding.h"
+ #include "mozilla/dom/TypedArray.h"
+ #include "mozilla/net/DataChannel.h"
++#include "nsIDOMDataChannel.h"
++#ifdef MOZILLA_INTERNAL_API
++#include "mozilla/dom/DataChannelBinding.h"
+ #include "nsDOMEventTargetHelper.h"
+-#include "nsIDOMDataChannel.h"
++#else
++#include "mozilla/ErrorResult.h"
++#endif
+ 
+-class nsDOMDataChannel : public nsDOMEventTargetHelper,
++class nsIDOMBlob;
++class nsPIDOMWindow;
++
++class nsDOMDataChannel :
++#ifdef MOZILLA_INTERNAL_API
++                         public nsDOMEventTargetHelper,
++#endif
+                          public nsIDOMDataChannel,
+                          public mozilla::DataChannelListener
+ {
+ public:
+   nsDOMDataChannel(already_AddRefed<mozilla::DataChannel> aDataChannel)
+     : mDataChannel(aDataChannel)
+     , mBinaryType(DC_BINARY_TYPE_BLOB)
+   {
++#ifdef MOZILLA_INTERNAL_API
+     SetIsDOMBinding();
++#endif
+   }
+ 
+   ~nsDOMDataChannel();
+ 
+   nsresult Init(nsPIDOMWindow* aDOMWindow);
+ 
++  NS_DECL_NSIDOMDATACHANNEL
++#ifdef MOZILLA_INTERNAL_API
+   NS_DECL_ISUPPORTS_INHERITED
+-  NS_DECL_NSIDOMDATACHANNEL
+-
+   NS_REALLY_FORWARD_NSIDOMEVENTTARGET(nsDOMEventTargetHelper)
+-
+   NS_DECL_CYCLE_COLLECTION_CLASS_INHERITED(nsDOMDataChannel,
+                                            nsDOMEventTargetHelper)
+ 
+   virtual JSObject* WrapObject(JSContext* aCx, JS::Handle<JSObject*> aScope)
+     MOZ_OVERRIDE;
+   nsPIDOMWindow* GetParentObject() const
+   {
+     return GetOwner();
+   }
++#else
++  NS_DECL_ISUPPORTS
++#endif
+ 
+   // WebIDL
+   // Uses XPIDL GetLabel.
+   bool Reliable() const;
++  uint32_t BufferedAmount() const;
++#ifdef MOZILLA_INTERNAL_API
+   mozilla::dom::RTCDataChannelState ReadyState() const;
+-  uint32_t BufferedAmount() const;
+   IMPL_EVENT_HANDLER(open)
+   IMPL_EVENT_HANDLER(error)
+   IMPL_EVENT_HANDLER(close)
+   // Uses XPIDL Close.
+   IMPL_EVENT_HANDLER(message)
+   mozilla::dom::RTCDataChannelType BinaryType() const
+   {
+     return static_cast<mozilla::dom::RTCDataChannelType>(
+       static_cast<int>(mBinaryType));
+   }
+   void SetBinaryType(mozilla::dom::RTCDataChannelType aType)
+   {
+     mBinaryType = static_cast<DataChannelBinaryType>(
+       static_cast<int>(aType));
+   }
++#endif
+   void Send(const nsAString& aData, mozilla::ErrorResult& aRv);
+   void Send(nsIDOMBlob* aData, mozilla::ErrorResult& aRv);
+   void Send(const mozilla::dom::ArrayBuffer& aData, mozilla::ErrorResult& aRv);
+   void Send(const mozilla::dom::ArrayBufferView& aData,
+             mozilla::ErrorResult& aRv);
+ 
+   // Uses XPIDL GetProtocol.
+   bool Ordered() const;
+   uint16_t Id() const;
+   uint16_t Stream() const; // deprecated
+ 
++#ifdef MOZILLA_INTERNAL_API
+   nsresult
+   DoOnMessageAvailable(const nsACString& aMessage, bool aBinary);
++#endif
+ 
+   virtual nsresult
+   OnMessageAvailable(nsISupports* aContext, const nsACString& aMessage) MOZ_OVERRIDE;
+ 
+   virtual nsresult
+   OnBinaryMessageAvailable(nsISupports* aContext, const nsACString& aMessage) MOZ_OVERRIDE;
+ 
+   virtual nsresult OnSimpleEvent(nsISupports* aContext, const nsAString& aName);
+ 
+   virtual nsresult
+diff --git a/media/mtransport/standalone/Makefile.in b/media/mtransport/standalone/Makefile.in
+--- a/media/mtransport/standalone/Makefile.in
++++ b/media/mtransport/standalone/Makefile.in
+@@ -1,20 +1,35 @@
+ # -*- Mode: makefile; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- #
+ # This Source Code Form is subject to the terms of the Mozilla Public
+ # License, v. 2.0. If a copy of the MPL was not distributed with this
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ FORCE_STATIC_LIB= 1
+ ifeq (WINNT,$(OS_TARGET))
+ VISIBILITY_FLAGS =
+ endif
+ 
++DEFINES = \
++  -DINET=1 \
++  -DSCTP_DEBUG=1 \
++  $(NULL)
++
++ifneq ($(OS_TARGET),Android)
++DEFINES += -DINET6=1
++endif
++
++ifeq ($(OS_TARGET),WINNT)
++DEFINES += -D__Userspace_os_Windows=1
++else
++DEFINES += -D__Userspace_os_$(OS_TARGET)=1
++endif
++
+ DEFINES += -DHAVE_STRDUP -DNR_SOCKET_IS_VOID_PTR
+ 
+ ifneq (,$(filter Darwin DragonFly FreeBSD NetBSD OpenBSD,$(OS_TARGET)))
+ ifeq ($(OS_TARGET), Darwin)
+ DEFINES += -DDARWIN
+ else
+ DEFINES += -DBSD
+ endif
+ endif
+ 
+@@ -43,10 +58,12 @@
+ # for stun.h
+ ifeq (WINNT,$(OS_TARGET))
+ DEFINES += \
+   -DWIN32 \
+   -DNOMINMAX \
+   $(NULL)
+ else ifeq (Linux,$(OS_TARGET))
+ DEFINES += -DLINUX
+ endif
+ 
++include $(topsrcdir)/config/rules.mk
++include $(topsrcdir)/ipc/chromium/chromium-config.mk
+diff --git a/media/mtransport/standalone/moz.build b/media/mtransport/standalone/moz.build
+--- a/media/mtransport/standalone/moz.build
++++ b/media/mtransport/standalone/moz.build
+@@ -2,42 +2,48 @@
+ # vim: set filetype=python:
+ # This Source Code Form is subject to the terms of the Mozilla Public
+ # License, v. 2.0. If a copy of the MPL was not distributed with this
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ MODULE = 'mtransport_s'
+ 
+ include('../objs.mozbuild')
+ 
+ CPP_SOURCES += mtransport_cppsrcs
++CPP_SOURCES += [
++    TOPSRCDIR + '/content/base/src/nsDOMDataChannel.cpp',
++    TOPSRCDIR + '/netwerk/sctp/datachannel/DataChannel.cpp',
++]
+ 
+ LIBRARY_NAME = 'mtransport_s'
+ 
+ LOCAL_INCLUDES = [
+-    '/media/webrtc/trunk/third_party/libjingle/source/',
+-]
+-LOCAL_INCLUDES += [
++    '$(DEPTH)/dist/include/mozilla/net',
+     '/media/mtransport/',
+     '/media/mtransport/third_party/',
+     '/media/mtransport/third_party/nICEr/src/crypto',
+     '/media/mtransport/third_party/nICEr/src/ice',
+     '/media/mtransport/third_party/nICEr/src/net',
+     '/media/mtransport/third_party/nICEr/src/stun',
+     '/media/mtransport/third_party/nICEr/src/util',
+     '/media/mtransport/third_party/nrappkit/src/event',
+     '/media/mtransport/third_party/nrappkit/src/log',
+     '/media/mtransport/third_party/nrappkit/src/plugin',
+     '/media/mtransport/third_party/nrappkit/src/port/generic/include',
+     '/media/mtransport/third_party/nrappkit/src/registry',
+     '/media/mtransport/third_party/nrappkit/src/share',
+     '/media/mtransport/third_party/nrappkit/src/stats',
+     '/media/mtransport/third_party/nrappkit/src/util/libekr',
++    '/media/webrtc/trunk/third_party/libjingle/source/',
++    '/netwerk/sctp/datachannel',
++    '/netwerk/sctp/src',
++    '/xpcom/ds',
+ ]
+ 
+ if CONFIG['OS_TARGET'] in ['Darwin', 'DragonFly', 'FreeBSD', 'NetBSD', 'OpenBSD']:
+     LOCAL_INCLUDES += [
+         '/media/mtransport/third_party/nrappkit/src/port/darwin/include',
+     ]
+ elif CONFIG['OS_TARGET'] == 'Linux':
+     LOCAL_INCLUDES += [
+         '/media/mtransport/third_party/nrappkit/src/port/linux/include',
+     ]
+diff --git a/media/webrtc/signaling/src/peerconnection/PeerConnectionImpl.cpp b/media/webrtc/signaling/src/peerconnection/PeerConnectionImpl.cpp
+--- a/media/webrtc/signaling/src/peerconnection/PeerConnectionImpl.cpp
++++ b/media/webrtc/signaling/src/peerconnection/PeerConnectionImpl.cpp
+@@ -836,21 +836,20 @@
+                                       bool outOfOrderAllowed,
+                                       uint16_t aMaxTime,
+                                       uint16_t aMaxNum,
+                                       bool aExternalNegotiated,
+                                       uint16_t aStream,
+                                       nsIDOMDataChannel** aRetval)
+ {
+   PC_AUTO_ENTER_API_CALL_NO_CHECK();
+   MOZ_ASSERT(aRetval);
+ 
+-#ifdef MOZILLA_INTERNAL_API
+   nsRefPtr<mozilla::DataChannel> dataChannel;
+   mozilla::DataChannelConnection::Type theType =
+     static_cast<mozilla::DataChannelConnection::Type>(aType);
+ 
+   nsresult rv = EnsureDataConnection(WEBRTC_DATACHANNEL_STREAMS_DEFAULT);
+   if (NS_FAILED(rv)) {
+     return rv;
+   }
+   dataChannel = mDataConnection->Open(
+     aLabel, aProtocol, theType, !outOfOrderAllowed,
+@@ -862,23 +861,20 @@
+ 
+   CSFLogDebug(logTag, "%s: making DOMDataChannel", __FUNCTION__);
+ 
+   if (!mHaveDataStream) {
+     // XXX stream_id of 0 might confuse things...
+     mCall->addStream(0, 2, DATA);
+     mHaveDataStream = true;
+   }
+ 
+   return NS_NewDOMDataChannel(dataChannel.forget(), mWindow, aRetval);
+-#else
+-  return NS_OK;
+-#endif
+ }
+ 
+ void
+ PeerConnectionImpl::NotifyConnection()
+ {
+   PC_AUTO_ENTER_API_CALL_NO_CHECK();
+ 
+   CSFLogDebug(logTag, "%s", __FUNCTION__);
+ 
+ #ifdef MOZILLA_INTERNAL_API
+diff --git a/media/webrtc/signaling/src/peerconnection/PeerConnectionImpl.h b/media/webrtc/signaling/src/peerconnection/PeerConnectionImpl.h
+--- a/media/webrtc/signaling/src/peerconnection/PeerConnectionImpl.h
++++ b/media/webrtc/signaling/src/peerconnection/PeerConnectionImpl.h
+@@ -23,29 +23,25 @@
+ #include "peer_connection_types.h"
+ #include "CallControlManager.h"
+ #include "CC_Device.h"
+ #include "CC_Call.h"
+ #include "CC_Observer.h"
+ #include "MediaPipeline.h"
+ #include "PeerConnectionMedia.h"
+ 
+ #ifdef MOZILLA_INTERNAL_API
+ #include "mozilla/TimeStamp.h"
+-#include "mozilla/net/DataChannel.h"
+ #include "VideoUtils.h"
+ #include "VideoSegment.h"
+ #include "nsNSSShutDown.h"
+-#else
+-namespace mozilla {
+-  class DataChannel;
+-}
+ #endif
++#include "mozilla/net/DataChannel.h"
+ 
+ #if defined(__cplusplus) && __cplusplus >= 201103L
+ typedef struct Timecard Timecard;
+ #else
+ #include "timecard.h"
+ #endif
+ 
+ using namespace mozilla;
+ 
+ namespace sipcc {
+@@ -113,22 +109,22 @@
+ #define PC_AUTO_ENTER_API_CALL(assert_ice_ready) \
+     do { \
+       /* do/while prevents res from conflicting with locals */    \
+       nsresult res = CheckApiState(assert_ice_ready);             \
+       if (NS_FAILED(res)) return res; \
+     } while(0)
+ #define PC_AUTO_ENTER_API_CALL_NO_CHECK() CheckThread()
+ 
+ 
+ class PeerConnectionImpl MOZ_FINAL : public IPeerConnection,
++                                     public mozilla::DataChannelConnection::DataConnectionListener,
+ #ifdef MOZILLA_INTERNAL_API
+-                                     public mozilla::DataChannelConnection::DataConnectionListener,
+                                      public nsNSSShutDownObject,
+ #endif
+                                      public sigslot::has_slots<>
+ {
+ public:
+   PeerConnectionImpl();
+   ~PeerConnectionImpl();
+ 
+   enum ReadyState {
+     kNew,
+@@ -355,24 +351,22 @@
+ 
+   // The DTLS identity
+   mozilla::RefPtr<DtlsIdentity> mIdentity;
+ 
+   // A handle to refer to this PC with
+   std::string mHandle;
+ 
+   // The target to run stuff on
+   nsCOMPtr<nsIEventTarget> mSTSThread;
+ 
+-#ifdef MOZILLA_INTERNAL_API
+   // DataConnection that's used to get all the DataChannels
+-	nsRefPtr<mozilla::DataChannelConnection> mDataConnection;
+-#endif
++  nsRefPtr<mozilla::DataChannelConnection> mDataConnection;
+ 
+   nsRefPtr<PeerConnectionMedia> mMedia;
+ 
+ #ifdef MOZILLA_INTERNAL_API
+   // Start time of call used for Telemetry
+   mozilla::TimeStamp mStartTime;
+ #endif
+ 
+   // Temporary: used to prevent multiple audio streams or multiple video streams
+   // in a single PC. This is tied up in the IETF discussion around proper
+diff --git a/media/webrtc/signaling/test/Makefile.in b/media/webrtc/signaling/test/Makefile.in
+--- a/media/webrtc/signaling/test/Makefile.in
++++ b/media/webrtc/signaling/test/Makefile.in
+@@ -7,20 +7,21 @@
+   $(NSPR_LIBS) \
+   $(NSS_LIBS) \
+   $(REALTIME_LIBS) \
+   $(DEPTH)/xpcom/glue/$(LIB_PREFIX)xpcomglue_s.$(LIB_SUFFIX) \
+   $(DEPTH)/media/mtransport/standalone/$(LIB_PREFIX)mtransport_s.$(LIB_SUFFIX) \
+   $(DEPTH)/media/webrtc/signalingtest/signaling_ecc/$(LIB_PREFIX)ecc.$(LIB_SUFFIX) \
+   $(DEPTH)/media/webrtc/signalingtest/signaling_sipcc/$(LIB_PREFIX)sipcc.$(LIB_SUFFIX) \
+   $(DEPTH)/layout/media/$(LIB_PREFIX)gkmedias.$(LIB_SUFFIX) \
+   $(DEPTH)/media/webrtc/trunk/testing/gtest_gtest/$(LIB_PREFIX)gtest.$(LIB_SUFFIX) \
+   $(DEPTH)/netwerk/srtp/src/$(LIB_PREFIX)nksrtp_s.$(LIB_SUFFIX) \
++  $(DEPTH)/netwerk/sctp/src/$(LIB_PREFIX)nksctp_s.$(LIB_SUFFIX) \
+   $(NULL)
+ 
+ ifdef MOZ_CUBEB
+ ifdef MOZ_ALSA
+ LIBS += \
+   $(MOZ_ALSA_LIBS) \
+   $(NULL)
+ endif
+ ifdef MOZ_PULSEAUDIO
+ LIBS += \
+diff --git a/netwerk/sctp/datachannel/DataChannel.cpp b/netwerk/sctp/datachannel/DataChannel.cpp
+--- a/netwerk/sctp/datachannel/DataChannel.cpp
++++ b/netwerk/sctp/datachannel/DataChannel.cpp
+@@ -69,20 +69,35 @@
+ 
+ // Let us turn on and off important assertions in non-debug builds
+ #ifdef DEBUG
+ #define ASSERT_WEBRTC(x) MOZ_ASSERT((x))
+ #elif defined(MOZ_WEBRTC_ASSERT_ALWAYS)
+ #define ASSERT_WEBRTC(x) do { if (!(x)) { MOZ_CRASH(); } } while (0)
+ #endif
+ 
+ static bool sctp_initialized;
+ 
++#ifndef MOZILLA_INTERNAL_API
++
++inline nsresult
++NS_ReadInputStreamToString(nsIInputStream *aInputStream,
++                           nsACString &aDest,
++                           uint32_t aCount)
++{
++    if (!aDest.SetLength(aCount))
++        return NS_ERROR_OUT_OF_MEMORY;
++    void* dest = aDest.BeginWriting();
++    return NS_ReadInputStreamToBuffer(aInputStream, &dest, aCount);
++}
++
++#endif
++
+ namespace mozilla {
+ 
+ class DataChannelShutdown;
+ StaticRefPtr<DataChannelShutdown> gDataChannelShutdown;
+ 
+ class DataChannelShutdown : public nsIObserver
+ {
+ public:
+   // This needs to be tied to some form object that is guaranteed to be
+   // around (singleton likely) unless we want to shutdown sctp whenever
+@@ -1247,21 +1262,21 @@
+   {
+     nsAutoCString recvData(buffer, length);
+     bool is_binary = true;
+ 
+     if (ppid == DATA_CHANNEL_PPID_DOMSTRING ||
+         ppid == DATA_CHANNEL_PPID_DOMSTRING_LAST) {
+       is_binary = false;
+     }
+     if (is_binary != channel->mIsRecvBinary && !channel->mRecvBuffer.IsEmpty()) {
+       NS_WARNING("DataChannel message aborted by fragment type change!");
+-      channel->mRecvBuffer.Truncate(0);
++      channel->mRecvBuffer.Truncate();
+     }
+     channel->mIsRecvBinary = is_binary;
+ 
+     switch (ppid) {
+       case DATA_CHANNEL_PPID_DOMSTRING:
+       case DATA_CHANNEL_PPID_BINARY:
+         channel->mRecvBuffer += recvData;
+         LOG(("DataChannel: Partial %s message of length %lu (total %u) on channel id %u",
+              is_binary ? "binary" : "string", length, channel->mRecvBuffer.Length(),
+              channel->mStream));
+@@ -1269,40 +1284,40 @@
+ 
+       case DATA_CHANNEL_PPID_DOMSTRING_LAST:
+         LOG(("DataChannel: String message received of length %lu on channel %u",
+              length, channel->mStream));
+         if (!channel->mRecvBuffer.IsEmpty()) {
+           channel->mRecvBuffer += recvData;
+           LOG(("%s: sending ON_DATA (string fragmented) for %p", __FUNCTION__, channel));
+           channel->SendOrQueue(new DataChannelOnMessageAvailable(
+                                  DataChannelOnMessageAvailable::ON_DATA, this,
+                                  channel, channel->mRecvBuffer, -1));
+-          channel->mRecvBuffer.Truncate(0);
++          channel->mRecvBuffer.Truncate();
+           return;
+         }
+         // else send using recvData normally
+         length = -1; // Flag for DOMString
+ 
+         // WebSockets checks IsUTF8() here; we can try to deliver it
+         break;
+ 
+       case DATA_CHANNEL_PPID_BINARY_LAST:
+         LOG(("DataChannel: Received binary message of length %lu on channel id %u",
+              length, channel->mStream));
+         if (!channel->mRecvBuffer.IsEmpty()) {
+           channel->mRecvBuffer += recvData;
+           LOG(("%s: sending ON_DATA (binary fragmented) for %p", __FUNCTION__, channel));
+           channel->SendOrQueue(new DataChannelOnMessageAvailable(
+                                  DataChannelOnMessageAvailable::ON_DATA, this,
+                                  channel, channel->mRecvBuffer,
+                                  channel->mRecvBuffer.Length()));
+-          channel->mRecvBuffer.Truncate(0);
++          channel->mRecvBuffer.Truncate();
+           return;
+         }
+         // else send using recvData normally
+         break;
+ 
+       default:
+         NS_ERROR("Unknown data PPID");
+         return;
+     }
+     /* Notify onmessage */
+diff --git a/netwerk/sctp/datachannel/DataChannel.h b/netwerk/sctp/datachannel/DataChannel.h
+--- a/netwerk/sctp/datachannel/DataChannel.h
++++ b/netwerk/sctp/datachannel/DataChannel.h
+@@ -9,21 +9,21 @@
+ 
+ #ifdef MOZ_WEBRTC_SIGNALING
+ #define SCTP_DTLS_SUPPORTED 1
+ #endif
+ 
+ #include <string>
+ #include <errno.h>
+ #include "nsISupports.h"
+ #include "nsCOMPtr.h"
+ #include "mozilla/WeakPtr.h"
+-#include "nsString.h"
++#include "nsStringGlue.h"
+ #include "nsThreadUtils.h"
+ #include "nsTArray.h"
+ #include "nsDeque.h"
+ #include "nsIInputStream.h"
+ #include "nsITimer.h"
+ #include "mozilla/Mutex.h"
+ #include "DataChannelProtocol.h"
+ #ifdef SCTP_DTLS_SUPPORTED
+ #include "mtransport/sigslot.h"
+ #include "mtransport/transportflow.h"
