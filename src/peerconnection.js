@@ -44,7 +44,6 @@ function PeerConnection() {
 	this._queue = [];
 	this._pending = null;
 
-	// FIXME: this is a bit of a hack, can do better
 	this._pc.onerror = function onerror() {
 		if(null !== that._pending && that._pending.onError) {
 			that._pending.onError.apply(that, arguments);
@@ -58,6 +57,22 @@ function PeerConnection() {
 		}
 		that._executeNext();
 	};
+
+	this._pc.onicecandidate = function onicecandidate() {
+		if(that.onicecandidate) {
+			that.onicecandidate.apply(that, arguments);
+		}
+	};
+
+	this._pc.onsignalingstatechange = function onsignalingstatechange(state) {
+		if(that.onsignalingstatechange) {
+			stateString = that.RTCSignalingStateMap[state];
+			that.onsignalingstatechange.apply(that, [stateString]);
+		}
+	};
+
+	this.onicecandidate = null;
+	this.onsignalingstatechange = null;
 };
 
 PeerConnection.prototype.RTCSignalingStateMap = [
@@ -157,19 +172,21 @@ PeerConnection.prototype.getIceConnectionState = function getIceConnectionState(
 };
 
 PeerConnection.prototype.getOnSignalingStateChange = function() {
-	return this._pc.onsignalingstatechange;
+	return this.onsignalingstatechange;
 };
 
 PeerConnection.prototype.setOnSignalingStateChange = function(cb) {
-	this._pc.onsignalingstatechange = cb;
+	// FIXME: throw an exception if cb isn't callable
+	this.onsignalingstatechange = cb;
 };
 
 PeerConnection.prototype.getOnIceCandidate = function() {
-	return this._pc.onicecandidate;
+	return this.onicecandidate;
 };
 
 PeerConnection.prototype.setOnIceCandidate = function(cb) {
-	this._pc.onicecandidate = cb;
+	// FIXME: throw an exception if cb isn't callable
+	this.onicecandidate = cb;
 };
 
 PeerConnection.prototype.createOffer = function createOffer(onSuccess, onError, constraints) {

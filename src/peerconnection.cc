@@ -336,7 +336,7 @@ NS_IMETHODIMP PeerConnectionObserver::OnIceCandidate(uint16_t level, const char 
 {
     TRACE_CALL;
     ICEEvent* data = new ICEEvent(level, mid, candidate);
-    _pc->QueueEvent(PeerConnection::ICE_EVENT, (void*)data);
+    _pc->QueueEvent(PeerConnection::ICE_CANDIDATE, (void*)data);
     TRACE_END;
     return NS_OK;
 }
@@ -398,7 +398,6 @@ void PeerConnection::Run(uv_async_t* handle, int status)
   {
     AsyncEvent evt = self->_events.front();
     self->_events.pop();
-    TRACE_U("event type", evt.type);
 
     if(PeerConnection::ERROR_EVENT & evt.type)
     {
@@ -429,7 +428,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
         argv[0] = Number::New(data->state);
         callback->Call(pc, 1, argv);
       }
-    } else if(PeerConnection::ICE_EVENT & evt.type)
+    } else if(PeerConnection::ICE_CANDIDATE & evt.type)
     {
       PeerConnectionObserver::ICEEvent* data = static_cast<PeerConnectionObserver::ICEEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onicecandidate")));

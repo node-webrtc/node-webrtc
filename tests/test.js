@@ -2,22 +2,15 @@ var webrtc = require('../index');
 
 var pc = new webrtc.RTCPeerConnection();
 
-console.log('pc Object.keys: ' + Object.keys(pc));
-
-console.log('pc.localDescription: ', pc.localDescription);
-console.log('pc.remoteDescription: ', pc.remoteDescription);
-console.log('pc.signalingState: ', pc.signalingState);
-console.log('pc.iceGatheringState: ', pc.iceGatheringState);
-console.log('pc.iceConnectionState: ', pc.iceConnectionState);
+console.log('\npc Object.keys: ' + Object.keys(pc), '\n');
 
 pc.createOffer(
   function(sdp){
-    console.log('offer sdp', sdp);
+    console.log('\ncreated offer sdp:', sdp, '\n');
     pc.setLocalDescription(
       sdp,
       function() {
-        console.log('local description set');
-        console.log('pc.localDescription: ', pc.localDescription);
+        console.log('\nlocal description set:', pc.localDescription, '\n');
       },
       function(err) {
         console.log('error', err);
@@ -30,5 +23,5 @@ pc.createOffer(
   {}
 );
 pc.onsignalingstatechange = function(state) {
-  console.log('signaling state change', state);
+  console.log('\nsignaling state changed:', state, '\n');
 };
