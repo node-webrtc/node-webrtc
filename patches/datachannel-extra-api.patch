@@ -1,0 +1,113 @@
+# HG changeset patch
+# Parent 0843da2fce93c74d078d8c074f9e557e706f08c4
+Add a simple notification API to nsIDOMDataChannel
+
+diff --git a/content/base/public/nsIDOMDataChannel.idl b/content/base/public/nsIDOMDataChannel.idl
+--- a/content/base/public/nsIDOMDataChannel.idl
++++ b/content/base/public/nsIDOMDataChannel.idl
+@@ -13,6 +13,17 @@
+ 
+ interface nsIVariant;
+ 
++[uuid(9e8229d9-6dd0-4dd4-a5a8-8b852a8cc744)]
++interface nsIDOMDataChannelListener : nsISupports
++{
++  const long DC_OPEN = 0;
++  const long DC_CLOSE = 1;
++  const long DC_ERROR = 2;
++  const long DC_MESSAGE = 3;
++
++  void dataChannelEvent(in long type, in nsISupports data);
++};
++
+ [scriptable, builtinclass, uuid(e226ff19-3704-41ed-b8e0-ddead588094b)]
+ interface nsIDOMDataChannel : nsISupports
+ {
+@@ -30,4 +41,7 @@
+   attribute DOMString binaryType;
+ 
+   void close();
++
++  [noscript]
++  void setListener(in nsIDOMDataChannelListener listener);
+ };
+diff --git a/content/base/src/nsDOMDataChannel.cpp b/content/base/src/nsDOMDataChannel.cpp
+--- a/content/base/src/nsDOMDataChannel.cpp
++++ b/content/base/src/nsDOMDataChannel.cpp
+@@ -442,6 +442,16 @@
+   MOZ_ASSERT(NS_IsMainThread());
+   return DoOnMessageAvailable(aMessage, false);
+ #else
++  if (mListener) {
++    nsresult rv;
++    nsCOMPtr<nsISupportsString>
++      data(do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID, &rv));
++    NS_ENSURE_SUCCESS(rv, rv);
++
++    rv = data->SetData(NS_ConvertUTF8toUTF16(aMessage));
++    NS_ENSURE_SUCCESS(rv, rv);
++    mListener->DataChannelEvent(nsIDOMDataChannelListener::DC_MESSAGE, data);
++  }
+   return NS_OK;
+ #endif
+ }
+@@ -454,6 +464,16 @@
+   MOZ_ASSERT(NS_IsMainThread());
+   return DoOnMessageAvailable(aMessage, true);
+ #else
++  if (mListener) {
++    nsresult rv;
++    nsCOMPtr<nsISupportsCString>
++      data(do_CreateInstance(NS_SUPPORTS_CSTRING_CONTRACTID, &rv));
++    NS_ENSURE_SUCCESS(rv, rv);
++
++    rv = data->SetData(aMessage);
++    NS_ENSURE_SUCCESS(rv, rv);
++    mListener->DataChannelEvent(nsIDOMDataChannelListener::DC_MESSAGE, data);
++  }
+   return NS_OK;
+ #endif
+ }
+@@ -488,6 +508,8 @@
+ nsDOMDataChannel::OnChannelConnected(nsISupports* aContext)
+ {
+   LOG(("%p(%p): %s - Dispatching\n",this,(void*)mDataChannel,__FUNCTION__));
++  if (mListener)
++    mListener->DataChannelEvent(nsIDOMDataChannelListener::DC_OPEN, nullptr);
+ 
+   return OnSimpleEvent(aContext, NS_LITERAL_STRING("open"));
+ }
+@@ -496,6 +518,8 @@
+ nsDOMDataChannel::OnChannelClosed(nsISupports* aContext)
+ {
+   LOG(("%p(%p): %s - Dispatching\n",this,(void*)mDataChannel,__FUNCTION__));
++  if (mListener)
++    mListener->DataChannelEvent(nsIDOMDataChannelListener::DC_CLOSE, nullptr);
+ 
+   return OnSimpleEvent(aContext, NS_LITERAL_STRING("close"));
+ }
+@@ -506,6 +530,13 @@
+   mDataChannel->AppReady();
+ }
+ 
++/* [noscript] void setListener (in nsIDOMDataChannelListener listener); */
++NS_IMETHODIMP nsDOMDataChannel::SetListener(nsIDOMDataChannelListener* aListener)
++{
++  mListener = aListener;
++  return NS_OK;
++}
++
+ /* static */
+ nsresult
+ NS_NewDOMDataChannel(already_AddRefed<mozilla::DataChannel> aDataChannel,
+diff --git a/content/base/src/nsDOMDataChannel.h b/content/base/src/nsDOMDataChannel.h
+--- a/content/base/src/nsDOMDataChannel.h
++++ b/content/base/src/nsDOMDataChannel.h
+@@ -125,6 +125,7 @@
+   // Owning reference
+   nsRefPtr<mozilla::DataChannel> mDataChannel;
+   nsString  mOrigin;
++  nsCOMPtr<nsIDOMDataChannelListener> mListener;
+   enum DataChannelBinaryType {
+     DC_BINARY_TYPE_ARRAYBUFFER,
+     DC_BINARY_TYPE_BLOB,

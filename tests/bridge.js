@@ -59,6 +59,7 @@ function request_handler(req, res)
     {
       res.statusCode = 200;
       res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify(answer));
       console.info('signaling state:', pc.signalingState);
     }

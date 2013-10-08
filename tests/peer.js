@@ -10,7 +10,16 @@ function doNOP()
   console.log('!');
 }
 
+function doClose()
+{
+  pc.close();
+}
+
 var pc = new mozRTCPeerConnection();
+pc.onsignalingstatechange = function(state)
+{
+  console.info('state change', state);
+}
 var mediaOptions = {
   video: false,
   audio: true
@@ -58,10 +67,9 @@ function doSendOffer(offer)
 
 function doSetRemoteDesc(desc)
 {
-  console.log(desc);
   pc.setRemoteDescription(
     new mozRTCSessionDescription(desc),
-    doNOP,
+    doClose,
     doHandleError
   );
 }
