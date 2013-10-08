@@ -347,11 +347,11 @@ NS_IMETHODIMP PeerConnectionObserver::OnIceCandidate(uint16_t level, const char 
 
 PeerConnection::PeerConnection()
 {
+  uv_mutex_init(&lock);
+  uv_async_init(uv_default_loop(), &async, Run);
   RUN_ON_THREAD(PeerConnectionSingleton::Instance()->main_thread(),
               WrapRunnable(this, &PeerConnection::Init_m),
               NS_DISPATCH_SYNC);
-  uv_mutex_init(&lock);
-  uv_async_init(uv_default_loop(), &async, Run);
   async.data = this;
 }
 
@@ -394,10 +394,18 @@ void PeerConnection::Run(uv_async_t* handle, int status)
   PeerConnection* self = static_cast<PeerConnection*>(handle->data);
   v8::Persistent<v8::Object> pc = self->handle_;
 
-  while(!self->_events.empty())
+  while(true)
   {
+    uv_mutex_lock(&self->lock);
+    bool empty = self->_events.empty();
+    if(empty)
+    {
+      uv_mutex_unlock(&self->lock);
+      break;
+    }
     AsyncEvent evt = self->_events.front();
     self->_events.pop();
+    uv_mutex_unlock(&self->lock);
 
     if(PeerConnection::ERROR_EVENT & evt.type)
     {

@@ -59,8 +59,8 @@ function request_handler(req, res)
     {
       res.statusCode = 200;
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify(answer));
+      console.info('signaling state:', pc.signalingState);
     }
 
     var offer = new webrtc.RTCSessionDescription(JSON.parse(data));
@@ -72,7 +72,11 @@ function request_handler(req, res)
     );
     pc.onsignalingstatechange = function(state)
     {
-      console.info('signaling state:', state);
+      console.info('signaling state change:', state);
+    }
+    pc.onicecandidate = function(candidate)
+    {
+      console.info(candidate);
     }
   });
 }
