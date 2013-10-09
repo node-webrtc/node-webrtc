@@ -5,14 +5,9 @@ function doHandleError(error)
   throw error;
 }
 
-function doNOP()
+function doComplete()
 {
   console.log('!');
-}
-
-function doClose()
-{
-  pc.close();
 }
 
 var pc = new mozRTCPeerConnection();
@@ -22,7 +17,8 @@ pc.onsignalingstatechange = function(state)
 }
 var mediaOptions = {
   video: false,
-  audio: true
+  audio: true,
+  fake: true
 };
 navigator.mozGetUserMedia(mediaOptions,
   function(stream)
@@ -69,7 +65,7 @@ function doSetRemoteDesc(desc)
 {
   pc.setRemoteDescription(
     new mozRTCSessionDescription(desc),
-    doClose,
+    doComplete,
     doHandleError
   );
 }
