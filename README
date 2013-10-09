@@ -1,3 +1,8 @@
+Mozilla Central
+---------------
+
+The node module links against mozilla-central. Current tested version is a4b06c1c59e30fd1bd66207b8f81f4ec81038bb9.
+
 Build mozilla-central archives:
 ---------------------------------
 
