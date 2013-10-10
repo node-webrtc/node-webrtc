@@ -85,6 +85,7 @@ function request_handler(req, res)
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify(answer));
+      console.log('awaiting data channels');
     }
 
     function doHandleDataChannels()
@@ -125,11 +126,11 @@ function request_handler(req, res)
     pc.onsignalingstatechange = function(state)
     {
       console.info('signaling state change:', state);
-      console.info('ready state', pc.readyState);
+      console.info('ready state:', pc.readyState);
     }
     pc.onicecandidate = function(candidate)
     {
-      console.info(candidate);
+      console.info('candidate:', candidate);
     }
   });
 }

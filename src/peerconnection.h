@@ -57,6 +57,7 @@ public:
   PeerConnection();
   ~PeerConnection();
 
+  // FIXME: clean these up
   void _GetReadyState(uint32_t* state);
   void _GetIceState(uint32_t* state);
   void _GetSignalingState(uint32_t* state);
