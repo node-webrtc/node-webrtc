@@ -1,5 +1,22 @@
 (function() {
 
+var dataChannelSettings = {
+  'unreliable': {
+        ordered: false,
+        maxRetransmits: 0
+      },
+  /*
+  'reliable': {},
+  '@control': {
+        outOfOrderAllowed: true,
+        maxRetransmitNum: 0
+      }
+  */
+};
+
+var pendingDataChannels = {};
+var dataChannels = {}
+
 function doHandleError(error)
 {
   throw error;
@@ -7,7 +24,12 @@ function doHandleError(error)
 
 function doComplete()
 {
-  console.log('!');
+  console.log('complete');
+}
+
+function doNothing()
+{
+  console.log('awaiting data channels')
 }
 
 var pc = new mozRTCPeerConnection();
@@ -24,10 +46,30 @@ navigator.mozGetUserMedia(mediaOptions,
   function(stream)
   {
     pc.addStream(stream);
-    doCreateOffer();
+    doCreateDataChannels(doComplete);
   },
   doHandleError
   );
+
+function doCreateDataChannels(cb)
+{
+  var labels = Object.keys(dataChannelSettings);
+  labels.forEach(function(label) {
+    var channelOptions = dataChannelSettings[label];
+    var channel = pendingDataChannels[label] = pc.createDataChannel(label, channelOptions);
+    channel.binaryType = 'arraybuffer';
+    channel.onopen = function() {
+      console.error('onopen');
+      dataChannels[label] = channel;
+      delete pendingDataChannels[label];
+      if(Object.keys(dataChannels).length === labels.length) {
+        cb.apply(undefined, []);
+      }
+    };
+    channel.onerror = doHandleError;
+  });
+  doCreateOffer();
+}
 
 function doCreateOffer()
 {
@@ -65,7 +107,7 @@ function doSetRemoteDesc(desc)
 {
   pc.setRemoteDescription(
     new mozRTCSessionDescription(desc),
-    doComplete,
+    doNothing,
     doHandleError
   );
 }

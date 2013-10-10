@@ -24,8 +24,10 @@ public:
 
   // From IPeerConnection.idl
   enum Action {
+    NONE = -1,
     OFFER = 0,
-    ANSWER = 1
+    ANSWER = 1,
+    PFANSWER = 2
   };
 
   enum AsyncEventType {
@@ -55,6 +57,11 @@ public:
   PeerConnection();
   ~PeerConnection();
 
+  void _GetReadyState(uint32_t* state);
+  void _GetIceState(uint32_t* state);
+  void _GetSignalingState(uint32_t* state);
+  void _GetSipccState(uint32_t* state);
+
   //
   // Nodejs wrapping.
   //
@@ -72,6 +79,8 @@ public:
 
   static Handle<Value> GetLocalDescription( Local<String> property, const AccessorInfo& info );
   static Handle<Value> GetRemoteDescription( Local<String> property, const AccessorInfo& info );
+  static Handle<Value> GetReadyState( Local<String> property, const AccessorInfo& info );
+  static Handle<Value> GetIceConnectionState( Local<String> property, const AccessorInfo& info );
   static Handle<Value> GetSignalingState( Local<String> property, const AccessorInfo& info );
   static void ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info );
 

@@ -134,8 +134,9 @@ public:
   };
 
   struct StateEvent {
-    StateEvent(uint32_t state)
-    : state(state) {}
+    StateEvent(uint32_t type, uint32_t state)
+    : type(type), state(state) {}
+    uint32_t type;
     uint32_t state;
   };
 
@@ -268,38 +269,68 @@ NS_IMETHODIMP PeerConnectionObserver::OnSetRemoteDescriptionError(uint32_t code,
 /* void onAddIceCandidateSuccess (); */
 NS_IMETHODIMP PeerConnectionObserver::OnAddIceCandidateSuccess()
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void onAddIceCandidateError (in unsigned long name, in string message); */
 NS_IMETHODIMP PeerConnectionObserver::OnAddIceCandidateError(uint32_t code, const char * message)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void notifyDataChannel (in nsIDOMDataChannel channel); */
 NS_IMETHODIMP PeerConnectionObserver::NotifyDataChannel(nsIDOMDataChannel *channel)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void notifyConnection (); */
 NS_IMETHODIMP PeerConnectionObserver::NotifyConnection()
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void notifyClosedConnection (); */
 NS_IMETHODIMP PeerConnectionObserver::NotifyClosedConnection()
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void onStateChange (in unsigned long state); */
-NS_IMETHODIMP PeerConnectionObserver::OnStateChange(uint32_t state)
+NS_IMETHODIMP PeerConnectionObserver::OnStateChange(uint32_t type)
 {
   TRACE_CALL;
-  StateEvent* data = new StateEvent(state);
+  uint32_t state;
+  StateEvent* data;
+  switch(type)
+  {
+    case IPeerConnectionObserver::kReadyState:
+      _pc->_GetReadyState(&state);
+      break;
+    case IPeerConnectionObserver::kIceState:
+      _pc->_GetIceState(&state);
+      break;
+    case IPeerConnectionObserver::kSdpState:
+      // don't care
+      break;
+    case IPeerConnectionObserver::kSipccState:
+      _pc->_GetSipccState(&state);
+      break;
+    case IPeerConnectionObserver::kSignalingState:
+      _pc->_GetSignalingState(&state);
+      break;
+  }
+  data = new StateEvent(type, state);
   _pc->QueueEvent(PeerConnection::STATE_CHANGE, (void*)data);
   TRACE_END;
   return NS_OK;
@@ -310,25 +341,31 @@ NS_IMETHODIMP PeerConnectionObserver::OnAddStream(nsIDOMMediaStream *stream)
 {
   TRACE_CALL;
   TRACE_END;
-  return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_OK;
 }
 
 /* void onRemoveStream (); */
 NS_IMETHODIMP PeerConnectionObserver::OnRemoveStream()
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void onAddTrack (); */
 NS_IMETHODIMP PeerConnectionObserver::OnAddTrack()
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void onRemoveTrack (); */
 NS_IMETHODIMP PeerConnectionObserver::OnRemoveTrack()
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+  TRACE_CALL;
+  TRACE_END;
+  return NS_OK;
 }
 
 /* void foundIceCandidate (in string candidate); */
@@ -429,12 +466,13 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     } else if(PeerConnection::STATE_CHANGE & evt.type)
     {
       PeerConnectionObserver::StateEvent* data = static_cast<PeerConnectionObserver::StateEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsignalingstatechange")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onstatechange")));
       if(!callback.IsEmpty())
       {
-        v8::Local<v8::Value> argv[1];
-        argv[0] = Number::New(data->state);
-        callback->Call(pc, 1, argv);
+        v8::Local<v8::Value> argv[2];
+        argv[0] = Number::New(data->type);
+        argv[1] = Number::New(data->state);
+        callback->Call(pc, 2, argv);
       }
     } else if(PeerConnection::ICE_CANDIDATE & evt.type)
     {
@@ -466,6 +504,26 @@ Handle<Value> PeerConnection::New( const Arguments& args ) {
 
   TRACE_END;
   return scope.Close( args.This() );
+}
+
+void PeerConnection::_GetReadyState(uint32_t* state)
+{
+  _pc->GetReadyState(state);
+}
+
+void PeerConnection::_GetIceState(uint32_t* state)
+{
+  _pc->GetIceState(state);
+}
+
+void PeerConnection::_GetSignalingState(uint32_t* state)
+{
+  _pc->GetSignalingState(state);
+}
+
+void PeerConnection::_GetSipccState(uint32_t* state)
+{
+  _pc->GetSipccState(state);
 }
 
 Handle<Value> PeerConnection::CreateOffer( const Arguments& args ) {
@@ -513,6 +571,10 @@ Handle<Value> PeerConnection::SetLocalDescription( const Arguments& args ) {
   } else if("answer" == type)
   {
     action = PeerConnection::ANSWER;
+  } else
+  {
+    return ThrowException(Exception::TypeError(
+          String::New("Unknown SDP type.")));
   }
 
   self->_pc->SetLocalDescription(action, sdp.c_str());
@@ -540,6 +602,10 @@ Handle<Value> PeerConnection::SetRemoteDescription( const Arguments& args ) {
   } else if("answer" == type)
   {
     action = PeerConnection::ANSWER;
+  } else
+  {
+    return ThrowException(Exception::TypeError(
+          String::New("Unknown SDP type.")));
   }
 
   self->_pc->SetRemoteDescription(action, sdp.c_str());
@@ -620,6 +686,32 @@ Handle<Value> PeerConnection::GetSignalingState( Local<String> property, const A
   return scope.Close(Number::New(state));
 }
 
+Handle<Value> PeerConnection::GetReadyState( Local<String> property, const AccessorInfo& info ) {
+  TRACE_CALL;
+  HandleScope scope;
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
+
+  uint32_t state;
+  self->_pc->GetReadyState(&state);
+
+  TRACE_END;
+  return scope.Close(Number::New(state));
+}
+
+Handle<Value> PeerConnection::GetIceConnectionState( Local<String> property, const AccessorInfo& info ) {
+  TRACE_CALL;
+  HandleScope scope;
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
+
+  uint32_t state;
+  self->_pc->GetIceState(&state);
+
+  TRACE_END;
+  return scope.Close(Number::New(state));
+}
+
 void PeerConnection::ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info ) {
   INFO("PeerConnection::ReadOnly");
 }
@@ -677,21 +769,20 @@ void PeerConnection::Init( Handle<Object> exports ) {
   tpl->PrototypeTemplate()->Set(String::NewSymbol("onicecandidate"),
     Null());
 
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("onsignalingstatechange"),
-    Null());
-
   // tpl->PrototypeTemplate()->Set(String::NewSymbol("onaddstream"),
   //   Null());
 
   // tpl->PrototypeTemplate()->Set(String::NewSymbol("onremovestream"),
   //   Null());
 
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("oniceconnectionstatechange"),
+  tpl->PrototypeTemplate()->Set(String::NewSymbol("onstatechange"),
     Null());
 
   tpl->InstanceTemplate()->SetAccessor(String::New("localDescription"), GetLocalDescription, ReadOnly);
   tpl->InstanceTemplate()->SetAccessor(String::New("remoteDescription"), GetRemoteDescription, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(String::New("readyState"), GetReadyState, ReadOnly);
   tpl->InstanceTemplate()->SetAccessor(String::New("signalingState"), GetSignalingState, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(String::New("iceConnectionState"), GetIceConnectionState, ReadOnly);
 
   Persistent<Function> ctor = Persistent<Function>::New( tpl->GetFunction() );
   exports->Set( String::NewSymbol("PeerConnection"), ctor );

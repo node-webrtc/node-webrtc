@@ -38,8 +38,10 @@ function PeerConnection() {
 	this._localType = null;
 	this._remoteType = null;
 
-	this._iceGatheringState = 'new';
-	this._iceConnectionState = 'new';
+	this.iceGatheringState = 'new';
+	this.iceConnectionState = this.RTCIceConnectionStates[this._pc.iceConnectionState];
+	this.signalingState = this.RTCSignalingStates[this._pc.signalingState];
+	this.readyState = this.RTCReadyStates[this._pc.readyState];
 
 	this._queue = [];
 	this._pending = null;
@@ -64,10 +66,32 @@ function PeerConnection() {
 		}
 	};
 
-	this._pc.onsignalingstatechange = function onsignalingstatechange(state) {
-		if(that.onsignalingstatechange) {
-			stateString = that.RTCSignalingStateMap[state];
-			that.onsignalingstatechange.apply(that, [stateString]);
+	this._pc.onstatechange = function onstatechange(type, state) {
+		var typeString = that.RTCStateTypes[type];
+		var stateString = null;
+		var callback = null;
+		switch(typeString)
+		{
+			case 'ready':
+				stateString = that.readyState = that.RTCReadyStates[state];
+				break;
+			case 'ice':
+				stateString = that.iceConnectionState = that.RTCIceConnectionStates[state];
+				callback = that.oniceconnectionstatechange;
+				break;
+			case 'sdp':
+				// don't care
+				break;
+			case 'sipcc':
+				// don't care
+				break;
+			case 'signaling':
+				stateString = that.signalingState = that.RTCSignalingStates[state];
+				callback = that.onsignalingstatechange;
+				break;
+		}
+		if(callback && typeof callback == 'function') {
+			callback.apply(that, [stateString]);
 		}
 	};
 
@@ -75,7 +99,24 @@ function PeerConnection() {
 	this.onsignalingstatechange = null;
 };
 
-PeerConnection.prototype.RTCSignalingStateMap = [
+PeerConnection.prototype.RTCStateTypes = [
+	undefined,
+	'ready',
+	'ice',
+	'sdp',
+	'sipcc',
+	'signaling'
+];
+
+PeerConnection.prototype.RTCReadyStates = [
+	'new',
+	'negotiating',
+	'active',
+	'closing',
+	'closed'
+];
+
+PeerConnection.prototype.RTCSignalingStates = [
 	'invalid',
 	'stable',
 	'have-local-offer',
@@ -85,7 +126,7 @@ PeerConnection.prototype.RTCSignalingStateMap = [
 	'closed'
 ];
 
-PeerConnection.prototype.RTCIceConnectionState = [
+PeerConnection.prototype.RTCIceConnectionStates = [
 	'gathering',
 	'waiting',
 	'checking',
@@ -93,6 +134,12 @@ PeerConnection.prototype.RTCIceConnectionState = [
 	'failed',
 	'disconnected',
 	'closed'
+];
+
+PeerConnection.prototype.RTCSipccStates = [
+	'idle',
+	'starting',
+	'started'
 ];
 
 PeerConnection.prototype._getPC = function _getPC() {
@@ -160,15 +207,19 @@ PeerConnection.prototype.getSignalingState = function getSignalingState() {
 	if(this._closed) {
 		return 'closed';
 	}
-	return this.RTCSignalingStateMap[this._getPC().signalingState];
+	return this.signalingState;
 };
 
 PeerConnection.prototype.getIceGatheringState = function getIceGatheringState() {
-	return this._iceGatheringState;
+	return this.iceGatheringState;
 };
 
 PeerConnection.prototype.getIceConnectionState = function getIceConnectionState() {
-	return this._iceConnectionState;
+	return this.iceConnectionState;
+};
+
+PeerConnection.prototype.getReadyState = function getReadyState() {
+	return this.readyState;
 };
 
 PeerConnection.prototype.getOnSignalingStateChange = function() {
@@ -259,6 +310,11 @@ function RTCPeerConnection() {
 		'signalingState': {
 			get: function getSignalingState() {
 				return pc.getSignalingState();
+			}
+		},
+		'readyState': {
+			get: function getReadyState() {
+				return pc.getReadyState();
 			}
 		},
 		'iceGatheringState': {
