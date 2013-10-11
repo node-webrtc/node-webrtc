@@ -37,19 +37,8 @@ pc.onsignalingstatechange = function(state)
 {
   console.info('state change', state);
 }
-var mediaOptions = {
-  video: false,
-  audio: true,
-  fake: true
-};
-navigator.mozGetUserMedia(mediaOptions,
-  function(stream)
-  {
-    pc.addStream(stream);
-    doCreateDataChannels(doComplete);
-  },
-  doHandleError
-  );
+
+doCreateDataChannels(doComplete);
 
 function doCreateDataChannels(cb)
 {

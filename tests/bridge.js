@@ -3,7 +3,6 @@ var webrtc = require('../index');
 
 var MAX_REQUEST_LENGHT = 1024;
 var pc = null;
-pc = new webrtc.RTCPeerConnection();
 
 var dataChannelSettings = {
   'unreliable': {
@@ -121,6 +120,7 @@ function request_handler(req, res)
     }
 
     var offer = new webrtc.RTCSessionDescription(JSON.parse(data));
+    pc = new webrtc.RTCPeerConnection();
     doHandleDataChannels();
 
     pc.onsignalingstatechange = function(state)

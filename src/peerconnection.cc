@@ -404,9 +404,12 @@ void PeerConnection::Init_m()
   _pco = new PeerConnectionObserver(this);
   _pc->Initialize(_pco, nullptr, cfg,
                  PeerConnectionSingleton::Instance()->main_thread());
+
+  /*
   _fs = new DOMMediaStream();
   _fs->SetHintContents(DOMMediaStream::HINT_CONTENTS_VIDEO | DOMMediaStream::HINT_CONTENTS_AUDIO);
   _pc->AddStream(_fs);
+  */
 }
 
 void PeerConnection::QueueEvent(AsyncEventType type, void* data)
