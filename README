@@ -11,3 +11,23 @@ python make-archives.py <path to mozilla-central obj dir>
 For example:
 
 python make-archives.py /home/you/mozilla/central/obj-x86_64-unknown-linux-gnu
+
+
+
+
+###
+
+Google webrtc stuff
+----------
+
+To build libjingle (from top-level directory):
+
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git tools/depot_tools
+export PATH=`pwd`/tools/depot_tools:$PATH
+
+mkdir -p lib/libwebrtc
+cd lib/libwebrtc
+gclient config http://webrtc.googlecode.com/svn/trunk
+gclient sync
+gclient runhooks
+ninja -C trunk/out/Release
