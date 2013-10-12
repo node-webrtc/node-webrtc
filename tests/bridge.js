@@ -97,12 +97,15 @@ function request_handler(req, res)
         pendingDataChannels[label] = channel;
         channel.binaryType = 'arraybuffer';
         channel.onopen = function() {
-          console.error('onopen');
+          console.info('onopen');
           dataChannels[label] = channel;
           delete pendingDataChannels[label];
           if(Object.keys(dataChannels).length === labels.length) {
             doComplete();
           }
+        };
+        channel.onclose = function() {
+          console.info('onclose');
         };
         channel.onerror = doHandleError;
       };

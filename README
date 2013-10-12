@@ -30,4 +30,4 @@ cd lib/libwebrtc
 gclient config http://webrtc.googlecode.com/svn/trunk
 gclient sync
 gclient runhooks
-ninja -C trunk/out/Release
+ninja -C trunk/out/Release peerconnection_client

@@ -48,13 +48,16 @@ function doCreateDataChannels(cb)
     var channel = pendingDataChannels[label] = pc.createDataChannel(label, channelOptions);
     channel.binaryType = 'arraybuffer';
     channel.onopen = function() {
-      console.error('onopen');
+      console.info('onopen');
       dataChannels[label] = channel;
       delete pendingDataChannels[label];
       if(Object.keys(dataChannels).length === labels.length) {
         cb.apply(undefined, []);
       }
     };
+    channel.onclose = function() {
+      console.info('onclose');
+    }
     channel.onerror = doHandleError;
   });
   doCreateOffer();
