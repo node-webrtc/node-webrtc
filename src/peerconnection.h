@@ -1,23 +1,80 @@
 #include <queue>
+#include <string>
+
 #include <v8.h>
 #include <node.h>
 #include <uv.h>
 
-#undef STATIC_ASSERT  // Node defines this and so do we.
+#include "talk/app/webrtc/jsep.h"
+#include "talk/app/webrtc/peerconnectioninterface.h"
+#include "talk/base/thread.h"
+#include "talk/base/scoped_ptr.h"
+#include "webrtc/system_wrappers/interface/ref_count.h"
+#include "utils.h"
 
-#include "nsAutoPtr.h"
-#include "FakeMediaStreams.h"
+#include "common.h"
 
 using namespace node;
 using namespace v8;
 
-// forward decl
-namespace sipcc { class PeerConnectionImpl; }
+class PeerConnection;
 
-class PeerConnectionObserver;
+struct ErrorEvent {
+  ErrorEvent(const uint32_t code, const char* message)
+  : code(code)
+  {
+    size_t msglen = strlen(message);
+    this->message = new char[msglen+1];
+    this->message[msglen] = 0;
+    strncpy(this->message, message, msglen);
+  }
+  uint32_t code;
+  char* message;
+};
+
+struct SdpEvent
+{
+  SdpEvent(webrtc::SessionDescriptionInterface* sdp)
+  {
+    if(!sdp->ToString(&desc))
+    {
+      desc = "";
+    }
+    type = sdp->type();
+  }
+
+  std::string type;
+  std::string desc;
+};
+
+// CreateSessionDescriptionObserver is required for Jsep callbacks.
+class CreateSessionDescriptionObserver :
+  public webrtc::CreateSessionDescriptionObserver
+{
+  private:
+    PeerConnection* parent;
+  public:
+    CreateSessionDescriptionObserver( PeerConnection* connection ): parent(connection) {};
+
+    virtual void OnSuccess( webrtc::SessionDescriptionInterface* sdp );
+    virtual void OnFailure( const std::string& msg );
+};
+
+class SetRemoteDescriptionObserver :
+  public webrtc::SetSessionDescriptionObserver
+{
+  private:
+    PeerConnection* parent;
+  public:
+    SetRemoteDescriptionObserver( PeerConnection* connection): parent(connection) {};
+
+    virtual void OnSuccess() {};
+    virtual void OnFailure( const std::string& msg ) {};
+};
 
 class PeerConnection
-: public ObjectWrap
+: public ObjectWrap,
+  public webrtc::PeerConnectionObserver
 {
 
 public:
@@ -57,11 +114,23 @@ public:
   PeerConnection();
   ~PeerConnection();
 
-  // FIXME: clean these up
-  void _GetReadyState(uint32_t* state);
-  void _GetIceState(uint32_t* state);
-  void _GetSignalingState(uint32_t* state);
-  void _GetSipccState(uint32_t* state);
+  //
+  // PeerConnectionObserver implementation.
+  //
+
+  virtual void OnError();
+
+  virtual void OnSignalingChange( webrtc::PeerConnectionInterface::SignalingState new_state );
+  virtual void OnIceConnectionChange( webrtc::PeerConnectionInterface::IceConnectionState new_state );
+  virtual void OnIceGatheringChange( webrtc::PeerConnectionInterface::IceGatheringState new_state );
+  virtual void OnIceStateChange( webrtc::PeerConnectionInterface::IceState new_state );
+
+  virtual void OnStateChange(StateType state_changed);
+
+  virtual void OnAddStream( webrtc::MediaStreamInterface* stream );
+  virtual void OnRemoveStream( webrtc::MediaStreamInterface* stream );
+
+  virtual void OnIceCandidate(const webrtc::IceCandidateInterface* candidate );
 
   //
   // Nodejs wrapping.
@@ -88,8 +157,6 @@ public:
   void QueueEvent(AsyncEventType type, void* data);
 
 private:
-  // Private initializer.
-  void Init_m();
   static void Run(uv_async_t* handle, int status);
 
   struct AsyncEvent {
@@ -100,9 +167,13 @@ private:
   uv_mutex_t lock;
   uv_async_t async;
   std::queue<AsyncEvent> _events;
+  talk_base::Thread* _signalThread;
+  talk_base::Thread* _workerThread;
+  webrtc::PeerConnectionInterface::IceServers _iceServers;
+  talk_base::scoped_refptr<CreateSessionDescriptionObserver> _createSessionDescriptionObserver;
+  talk_base::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
-  nsRefPtr<sipcc::PeerConnectionImpl> _pc;
-  nsRefPtr<PeerConnectionObserver> _pco;
 
-  mozilla::DOMMediaStream* _fs;
+  talk_base::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _peerConnectionFactory;
+  talk_base::scoped_refptr<webrtc::PeerConnectionInterface> _internalPeerConnection;
 };

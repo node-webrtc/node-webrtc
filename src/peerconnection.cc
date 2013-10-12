@@ -4,98 +4,36 @@
 
 #include <node_buffer.h>
 
-
-#undef STATIC_ASSERT  // Node defines this and so do we.
-
-#define USE_FAKE_MEDIA_STREAMS
-
 #include <stdint.h>
 #include <iostream>
 #include <string>
 
-#include "nspr.h"
-#include "nss.h"
-#include "ssl.h"
-
-#include "FakeMediaStreams.h"
-#include "FakeMediaStreamsImpl.h"
-#include "PeerConnectionImpl.h"
-#include "PeerConnectionCtx.h"
-#include "nsCOMPtr.h"
-#include "nsNetCID.h"
-#include "nsNetUtil.h"
-#include "nsXPCOMGlue.h"
-#include "nsXPCOM.h"
-#include "nsIIOService.h"
-#include "nsWeakReference.h"
-#include "nsISocketTransportService.h"
-#include "nsPISocketTransportService.h"
-#include "nsServiceManagerUtils.h"
-#include "TestHarness.h"
-#include "runnable_utils.h"
+#include "talk/app/webrtc/jsep.h"
+#include "webrtc/system_wrappers/interface/ref_count.h"
 
 #include "common.h"
 #include "peerconnection.h"
 
 using namespace node;
 using namespace v8;
-using namespace mozilla;
 
 Persistent<Function> PeerConnection::constructor;
 
-// Singleton to hold XPCOM and the PC main thread.
-class PeerConnectionSingleton {
- public:
-  ~PeerConnectionSingleton() {
-    if (sts_)
-      sts_->Shutdown();
-  }
+void CreateSessionDescriptionObserver::OnSuccess( webrtc::SessionDescriptionInterface* sdp )
+{
+  TRACE_CALL;
+  SdpEvent* data = new SdpEvent(sdp);
+  parent->QueueEvent(PeerConnection::CREATE_OFFER_SUCCESS, static_cast<void*>(data));
+  TRACE_END;
+}
 
-  static PeerConnectionSingleton* Instance() {
-    if (!instance_) {
-      instance_ = Create();
-    }
-    return instance_;
-  }
+void CreateSessionDescriptionObserver::OnFailure( const std::string& msg )
+{
+  TRACE_CALL;
+  TRACE_END;
+}
 
-  nsCOMPtr<nsIThread> main_thread() { return main_thread_; }
-
- private:
-  PeerConnectionSingleton() : xpcom_("") {}
-
-  static PeerConnectionSingleton* Create() {
-    ScopedDeletePtr<PeerConnectionSingleton> instance(new PeerConnectionSingleton());
-    if (!instance->InitServices())
-      return nullptr;
-
-    return instance.forget();
-  }
-
-  bool InitServices() {
-    nsresult rv;
-    nsIThread *thread;
-    rv = NS_NewNamedThread("pseudo-main",&thread);
-    if (NS_FAILED(rv))
-      return false;
-
-    main_thread_ = thread;
-
-    NSS_NoDB_Init(NULL);
-    NSS_SetDomesticPolicy();
-
-    return true;
-  }
-
-  ScopedXPCOM xpcom_;
-  nsCOMPtr<nsIIOService> ioservice_;
-  nsCOMPtr<nsIEventTarget> sts_target_;
-  nsCOMPtr<nsPISocketTransportService> sts_;
-  nsCOMPtr<nsIThread> main_thread_;
-
-  static PeerConnectionSingleton* instance_;
-};
-PeerConnectionSingleton* PeerConnectionSingleton::instance_;
-
+#if 0
 //
 // PeerConnectionObserver class
 //
@@ -377,6 +315,7 @@ NS_IMETHODIMP PeerConnectionObserver::OnIceCandidate(uint16_t level, const char 
     TRACE_END;
     return NS_OK;
 }
+#endif
 
 //
 // PeerConnection
@@ -386,30 +325,25 @@ PeerConnection::PeerConnection()
 {
   uv_mutex_init(&lock);
   uv_async_init(uv_default_loop(), &async, Run);
-  RUN_ON_THREAD(PeerConnectionSingleton::Instance()->main_thread(),
-              WrapRunnable(this, &PeerConnection::Init_m),
-              NS_DISPATCH_SYNC);
+
   async.data = this;
+
+  _createSessionDescriptionObserver = new talk_base::RefCountedObject<CreateSessionDescriptionObserver>( this );
+  _setRemoteDescriptionObserver = new talk_base::RefCountedObject<SetRemoteDescriptionObserver>( this );
+
+  _signalThread = new talk_base::Thread;
+  _workerThread = new talk_base::Thread;
+
+  _signalThread->Start();
+  _workerThread->Start();
+
+  _peerConnectionFactory = webrtc::CreatePeerConnectionFactory(
+      _signalThread, _workerThread, NULL, NULL, NULL );
+  _internalPeerConnection = _peerConnectionFactory->CreatePeerConnection(_iceServers, NULL, NULL, this);
 }
 
 PeerConnection::~PeerConnection()
 {
-}
-
-void PeerConnection::Init_m()
-{
-  _pc = sipcc::PeerConnectionImpl::CreatePeerConnection();
-  sipcc::IceConfiguration cfg;
-
-  _pco = new PeerConnectionObserver(this);
-  _pc->Initialize(_pco, nullptr, cfg,
-                 PeerConnectionSingleton::Instance()->main_thread());
-
-  /*
-  _fs = new DOMMediaStream();
-  _fs->SetHintContents(DOMMediaStream::HINT_CONTENTS_VIDEO | DOMMediaStream::HINT_CONTENTS_AUDIO);
-  _pc->AddStream(_fs);
-  */
 }
 
 void PeerConnection::QueueEvent(AsyncEventType type, void* data)
@@ -447,21 +381,21 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     self->_events.pop();
     uv_mutex_unlock(&self->lock);
 
-    if(PeerConnection::ERROR_EVENT & evt.type)
+    /*if(PeerConnection::ERROR_EVENT & evt.type)
     {
       PeerConnectionObserver::ErrorEvent* data = static_cast<PeerConnectionObserver::ErrorEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onerror")));
       v8::Local<v8::Value> argv[1];
       argv[0] = Exception::Error(String::New(data->message));
       callback->Call(pc, 1, argv);
-    } else if(PeerConnection::SDP_EVENT & evt.type)
+    } else*/ if(PeerConnection::SDP_EVENT & evt.type)
     {
-      PeerConnectionObserver::SDPEvent* data = static_cast<PeerConnectionObserver::SDPEvent*>(evt.data);
+      SdpEvent* data = static_cast<SdpEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsuccess")));
       v8::Local<v8::Value> argv[1];
-      argv[0] = String::New(data->sdp);
+      argv[0] = String::New(data->desc.c_str());
       callback->Call(pc, 1, argv);
-    } else if(PeerConnection::VOID_EVENT & evt.type)
+    } /*else if(PeerConnection::VOID_EVENT & evt.type)
     {
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsuccess")));
       v8::Local<v8::Value> argv[0];
@@ -487,9 +421,55 @@ void PeerConnection::Run(uv_async_t* handle, int status)
         argv[0] = String::New(data->candidate);
         callback->Call(pc, 1, argv);
       }
-    }
+    }*/
+
   }
 
+  TRACE_END;
+}
+
+void PeerConnection::OnError() {
+  TRACE_CALL;
+  TRACE_END;
+}
+
+void PeerConnection::OnSignalingChange( webrtc::PeerConnectionInterface::SignalingState new_state ) {
+  TRACE_CALL;
+  TRACE_END;
+}
+
+void PeerConnection::OnIceConnectionChange( webrtc::PeerConnectionInterface::IceConnectionState new_state ) {
+  TRACE_CALL;
+  TRACE_END;
+}
+
+void PeerConnection::OnIceGatheringChange( webrtc::PeerConnectionInterface::IceGatheringState new_state ) {
+  TRACE_CALL;
+  TRACE_END;
+}
+
+void PeerConnection::OnIceStateChange( webrtc::PeerConnectionInterface::IceState new_state ) {
+  TRACE_CALL;
+  TRACE_END;
+}
+
+void PeerConnection::OnStateChange( StateType state_changed ) {
+  TRACE_CALL;
+  TRACE_END;
+}
+
+void PeerConnection::OnAddStream( webrtc::MediaStreamInterface* stream ) {
+  TRACE_CALL;
+  TRACE_END;
+}
+
+void PeerConnection::OnRemoveStream( webrtc::MediaStreamInterface* stream ) {
+  TRACE_CALL;
+  TRACE_END;
+}
+
+void PeerConnection::OnIceCandidate( const webrtc::IceCandidateInterface* candidate ) {
+  TRACE_CALL;
   TRACE_END;
 }
 
@@ -509,34 +489,13 @@ Handle<Value> PeerConnection::New( const Arguments& args ) {
   return scope.Close( args.This() );
 }
 
-void PeerConnection::_GetReadyState(uint32_t* state)
-{
-  _pc->GetReadyState(state);
-}
-
-void PeerConnection::_GetIceState(uint32_t* state)
-{
-  _pc->GetIceState(state);
-}
-
-void PeerConnection::_GetSignalingState(uint32_t* state)
-{
-  _pc->GetSignalingState(state);
-}
-
-void PeerConnection::_GetSipccState(uint32_t* state)
-{
-  _pc->GetSipccState(state);
-}
-
 Handle<Value> PeerConnection::CreateOffer( const Arguments& args ) {
   TRACE_CALL;
   HandleScope scope;
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
 
-  sipcc::MediaConstraints constraints;
-  self->_pc->CreateOffer(constraints);
+  self->_internalPeerConnection->CreateOffer(self->_createSessionDescriptionObserver, NULL);
 
   TRACE_END;
   return scope.Close(Undefined());
@@ -547,9 +506,6 @@ Handle<Value> PeerConnection::CreateAnswer( const Arguments& args ) {
   HandleScope scope;
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
-
-  sipcc::MediaConstraints constraints;
-  self->_pc->CreateAnswer(constraints);
 
   TRACE_END;
   return scope.Close(Undefined());
@@ -580,7 +536,7 @@ Handle<Value> PeerConnection::SetLocalDescription( const Arguments& args ) {
           String::New("Unknown SDP type.")));
   }
 
-  self->_pc->SetLocalDescription(action, sdp.c_str());
+  // self->_pc->SetLocalDescription(action, sdp.c_str());
 
   TRACE_END;
   return scope.Close(Undefined());
@@ -611,7 +567,7 @@ Handle<Value> PeerConnection::SetRemoteDescription( const Arguments& args ) {
           String::New("Unknown SDP type.")));
   }
 
-  self->_pc->SetRemoteDescription(action, sdp.c_str());
+  // self->_pc->SetRemoteDescription(action, sdp.c_str());
 
   TRACE_END;
   return scope.Close(Undefined());
@@ -644,7 +600,7 @@ Handle<Value> PeerConnection::GetLocalDescription( Local<String> property, const
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
   char* sdp = NULL;
-  self->_pc->GetLocalDescription(&sdp);
+  // self->_pc->GetLocalDescription(&sdp);
 
   Handle<Value> value;
   if(!sdp) {
@@ -663,7 +619,7 @@ Handle<Value> PeerConnection::GetRemoteDescription( Local<String> property, cons
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
   char* sdp = NULL;
-  self->_pc->GetRemoteDescription(&sdp);
+  // self->_pc->GetRemoteDescription(&sdp);
 
   Handle<Value> value;
   if(!sdp) {
@@ -683,7 +639,7 @@ Handle<Value> PeerConnection::GetSignalingState( Local<String> property, const A
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
 
   uint32_t state;
-  self->_pc->GetSignalingState(&state);
+  // self->_pc->GetSignalingState(&state);
 
   TRACE_END;
   return scope.Close(Number::New(state));
@@ -696,7 +652,7 @@ Handle<Value> PeerConnection::GetReadyState( Local<String> property, const Acces
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
 
   uint32_t state;
-  self->_pc->GetReadyState(&state);
+  // self->_pc->GetReadyState(&state);
 
   TRACE_END;
   return scope.Close(Number::New(state));
@@ -709,7 +665,7 @@ Handle<Value> PeerConnection::GetIceConnectionState( Local<String> property, con
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
 
   uint32_t state;
-  self->_pc->GetIceState(&state);
+  // self->_pc->GetIceState(&state);
 
   TRACE_END;
   return scope.Close(Number::New(state));
