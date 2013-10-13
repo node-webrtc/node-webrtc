@@ -47,28 +47,27 @@ function PeerConnection(configuration, constraints) {
 	this._pending = null;
 
 	this._pc.onerror = function onerror() {
-		if(null !== that._pending && that._pending.onError) {
+		if(that._pending && that._pending.onError) {
 			that._pending.onError.apply(that, arguments);
 		}
 		that._executeNext();
 	};
 
 	this._pc.onsuccess = function onsuccess() {
-		if(null !== that._pending && that._pending.onSuccess) {
+		if(that._pending && that._pending.onSuccess) {
 			that._pending.onSuccess.apply(that, arguments);
 		}
 		that._executeNext();
 	};
 
 	this._pc.onicecandidate = function onicecandidate(candidate, sdpMid, sdpMLineIndex) {
-		if(null !== that._pending && that._pending.onSuccess) {
-			that._pending.onSuccess.apply(that, [new RTCIceCandidate({
+		if(that.onicecandidate && typeof that.onicecandidate == 'function') {
+			that.onicecandidate.apply(that, [new RTCIceCandidate({
 				'candidate': candidate,
 				'sdpMid': sdpMid,
 				'sdpMLineIndex': sdpMLineIndex
 			})]);
 		}
-		that._executeNext();
 	};
 
 	this._pc.onstatechange = function onstatechange(type, state) {
@@ -100,8 +99,15 @@ function PeerConnection(configuration, constraints) {
 		}
 	};
 
+	this._pc.ondatachannel = function ondatachannel() {
+		if(that.ondatachannel && typeof that.ondatachannel == 'function') {
+			that.ondatachannel.apply(that, []);
+		}
+	};
+
 	this.onicecandidate = null;
 	this.onsignalingstatechange = null;
+	this.ondatachannel = null;
 };
 
 PeerConnection.prototype.RTCStateTypes = [
@@ -245,6 +251,15 @@ PeerConnection.prototype.setOnIceCandidate = function(cb) {
 	this.onicecandidate = cb;
 };
 
+PeerConnection.prototype.getOnDataChannel = function() {
+	return this.ondatachannel;
+};
+
+PeerConnection.prototype.setOnDataChannel = function(cb) {
+	// FIXME: throw an exception if cb isn't callable
+	this.ondatachannel = cb;
+};
+
 PeerConnection.prototype.createOffer = function createOffer(onSuccess, onError, constraints) {
 	constraints = constraints || {};
 	// FIXME: complain if onError is undefined
@@ -357,6 +372,14 @@ function RTCPeerConnection(configuration, constraints) {
 			},
 			set: function(cb) {
 				pc.setOnIceCandidate(cb);
+			}
+		},
+		'ondatachannel': {
+			get: function() {
+				return pc.getOnDataChannel();
+			},
+			set: function(cb) {
+				pc.setOnDataChannel(cb);
 			}
 		}
 	});

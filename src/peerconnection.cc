@@ -82,114 +82,6 @@ void SetRemoteDescriptionObserver::OnFailure(const std::string& msg)
   TRACE_END;
 }
 
-#if 0
-//
-// PeerConnectionObserver class
-//
-class PeerConnectionObserver
-: public IPeerConnectionObserver,
-  public nsSupportsWeakReference
-{
-public:
-  NS_DECL_THREADSAFE_ISUPPORTS
-  NS_DECL_IPEERCONNECTIONOBSERVER
-
-  PeerConnectionObserver(PeerConnection* pc);
-
-  struct ErrorEvent {
-    ErrorEvent(const uint32_t code, const char* message)
-    : code(code)
-    {
-      size_t msglen = strlen(message);
-      this->message = new char[msglen+1];
-      this->message[msglen] = 0;
-      strncpy(this->message, message, msglen);
-    }
-    uint32_t code;
-    char* message;
-  };
-
-  struct SDPEvent {
-    SDPEvent(const char* sdp)
-    {
-      size_t sdplen = strlen(sdp);
-      this->sdp = new char[sdplen+1];
-      this->sdp[sdplen] = 0;
-      strncpy(this->sdp, sdp, sdplen);
-    }
-    char* sdp;
-  };
-
-  struct StateEvent {
-    StateEvent(uint32_t type, uint32_t state)
-    : type(type), state(state) {}
-    uint32_t type;
-    uint32_t state;
-  };
-
-  struct ICEEvent {
-    ICEEvent(uint32_t level, const char* mid, const char* candidate)
-    : level(level)
-    {
-      size_t len;
-
-      len = strlen(mid);
-      this->mid = new char[len+1];
-      this->mid[len] = 0;
-      strncpy(this->mid, mid, len);
-
-      len = strlen(candidate);
-      this->candidate = new char[len+1];
-      this->candidate[len] = 0;
-      strncpy(this->candidate, candidate, len);
-    }
-    uint32_t level;
-    char* mid;
-    char* candidate;
-  };
-
-private:
-  PeerConnection* _pc;
-  virtual ~PeerConnectionObserver();
-
-protected:
-  /* additional members */
-};
-
-/* Implementation file */
-NS_IMPL_ISUPPORTS2(PeerConnectionObserver, IPeerConnectionObserver,
-                                           nsISupportsWeakReference)
-
-NS_IMETHODIMP PeerConnectionObserver::OnStateChange(uint32_t type)
-{
-  TRACE_CALL;
-  uint32_t state;
-  StateEvent* data;
-  switch(type)
-  {
-    case IPeerConnectionObserver::kReadyState:
-      _pc->_GetReadyState(&state);
-      break;
-    case IPeerConnectionObserver::kIceState:
-      _pc->_GetIceState(&state);
-      break;
-    case IPeerConnectionObserver::kSdpState:
-      // don't care
-      break;
-    case IPeerConnectionObserver::kSipccState:
-      _pc->_GetSipccState(&state);
-      break;
-    case IPeerConnectionObserver::kSignalingState:
-      _pc->_GetSignalingState(&state);
-      break;
-  }
-  data = new StateEvent(type, state);
-  _pc->QueueEvent(PeerConnection::STATE_CHANGE, (void*)data);
-  TRACE_END;
-  return NS_OK;
-}
-#endif
-
 //
 // PeerConnection
 //
@@ -308,6 +200,14 @@ void PeerConnection::Run(uv_async_t* handle, int status)
         argv[2] = Integer::New(data->sdpMLineIndex);
         callback->Call(pc, 3, argv);
       }
+    } else if(PeerConnection::NOTIFY_DATA_CHANNEL & evt.type)
+    {
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("ondatachannel")));
+      if(!callback.IsEmpty())
+      {
+        v8::Local<v8::Value> argv[0];
+        callback->Call(pc, 0, argv);
+      }
     }
 
   }
@@ -364,7 +264,7 @@ void PeerConnection::OnIceCandidate( const webrtc::IceCandidateInterface* candid
 
 void PeerConnection::OnDataChannel( webrtc::DataChannelInterface* data_channel ) {
   TRACE_CALL;
-
+  QueueEvent(PeerConnection::NOTIFY_DATA_CHANNEL, static_cast<void*>(NULL));
   TRACE_END;
 }
 
