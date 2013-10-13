@@ -6,6 +6,7 @@ var MAX_REQUEST_LENGHT = 1024;
 var pc = null;
 var offer = null;
 var answer = null;
+var remoteReceived = false;
 
 var dataChannelSettings = {
   'unreliable': {
@@ -41,6 +42,11 @@ wss.on('connection', function(ws)
 
   function doCreateAnswer()
   {
+    remoteReceived = true;
+    pendingCandidates.forEach(function(candidate)
+    {
+      pc.addIceCandidate(new webrtc.RTCIceCandidate(candidate));
+    });
     pc.createAnswer(
       doSetLocalDesc,
       doHandleError
@@ -106,7 +112,16 @@ wss.on('connection', function(ws)
     {
       offer = new webrtc.RTCSessionDescription(data);
       answer = null;
-      pc = new webrtc.RTCPeerConnection();
+      remoteReceived = false;
+
+      pc = new webrtc.RTCPeerConnection(
+        {
+          iceServers: [{url:'stun:stun.l.google.com:19302'}]
+        },
+        {
+          'optional': [{DtlsSrtpKeyAgreement: true}]
+        }
+      );
       pc.onsignalingstatechange = function(state)
       {
         console.info('signaling state change:', state);
@@ -121,15 +136,10 @@ wss.on('connection', function(ws)
         );
       }
 
-      pendingCandidates.forEach(function(candidate)
-      {
-        pc.addIceCandidate(new webrtc.RTCIceCandidate(candidate));
-      });
-
       doHandleDataChannels();
     } else if('ice' == data.type)
     {
-      if(offer)
+      if(remoteReceived)
       {
         pc.addIceCandidate(new webrtc.RTCIceCandidate(data.sdp));
       } else

@@ -126,7 +126,7 @@ public:
     NOTIFY_CONNECTION = 0x1 << 11, // 2048
     NOTIFY_CLOSED_CONNECTION = 0x1 << 12, // 4096
     STATE_CHANGE = 0x1 << 13, // 8092
-    ICE_CANDIDATE = 0x1 << 14,
+    ICE_CANDIDATE = 0x1 << 14, // 16384
 
     ERROR_EVENT = CREATE_OFFER_ERROR | CREATE_ANSWER_ERROR |
                   SET_LOCAL_DESCRIPTION_ERROR | SET_REMOTE_DESCRIPTION_ERROR | ADD_ICE_CANDIDATE_ERROR,
@@ -194,6 +194,7 @@ private:
   talk_base::Thread* _signalThread;
   talk_base::Thread* _workerThread;
   webrtc::PeerConnectionInterface::IceServers _iceServers;
+  webrtc::MediaConstraintsInterface* _mediaConstraints;
 
   talk_base::scoped_refptr<CreateOfferObserver> _createOfferObserver;
   talk_base::scoped_refptr<CreateAnswerObserver> _createAnswerObserver;

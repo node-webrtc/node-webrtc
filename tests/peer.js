@@ -70,12 +70,12 @@ var pc = new RTCPeerConnection(
     iceServers: [{url:'stun:stun.l.google.com:19302'}]
   },
   {
-    'optional': [{ 'RtpDataChannels': true }]
+    'optional': [{DtlsSrtpKeyAgreement: true},
+                 {RtpDataChannels: true}]
   }
 );
 pc.onsignalingstatechange = function(event)
 {
-  console.info('signaling state change', event);
 }
 pc.onicecandidate = function(event)
 {

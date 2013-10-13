@@ -31,9 +31,9 @@ RTCError.prototype.reasonName = [
 ];
 
 
-function PeerConnection() {
+function PeerConnection(configuration, constraints) {
 	var that = this;
-	this._pc = new _webrtc.PeerConnection();
+	this._pc = new _webrtc.PeerConnection(configuration, constraints);
 
 	this._localType = null;
 	this._remoteType = null;
@@ -61,13 +61,14 @@ function PeerConnection() {
 	};
 
 	this._pc.onicecandidate = function onicecandidate(candidate, sdpMid, sdpMLineIndex) {
-		if(that.onicecandidate) {
-			that.onicecandidate.apply(that, [new RTCIceCandidate({
+		if(null !== that._pending && that._pending.onSuccess) {
+			that._pending.onSuccess.apply(that, [new RTCIceCandidate({
 				'candidate': candidate,
 				'sdpMid': sdpMid,
 				'sdpMLineIndex': sdpMLineIndex
 			})]);
 		}
+		that._executeNext();
 	};
 
 	this._pc.onstatechange = function onstatechange(type, state) {
@@ -301,15 +302,15 @@ PeerConnection.prototype.addIceCandidate = function addIceCandidate(candidate) {
 	this._queueOrRun({
 		func: 'addIceCandidate',
 		args: [candidate.candidate, candidate.sdpMid, candidate.sdpMLineIndex],
-		wait: false,
+		wait: true,
 		onSuccess: undefined,
 		onError: undefined
 	});
 };
 
 
-function RTCPeerConnection() {
-	var pc = new PeerConnection();
+function RTCPeerConnection(configuration, constraints) {
+	var pc = new PeerConnection(configuration, constraints);
 
 	Object.defineProperties(this, {
 		'localDescription': {

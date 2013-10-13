@@ -10,6 +10,7 @@
 
 #include "talk/app/webrtc/jsep.h"
 #include "webrtc/system_wrappers/interface/ref_count.h"
+#include "talk/app/webrtc/test/fakeconstraints.h"
 
 #include "common.h"
 #include "peerconnection.h"
@@ -211,9 +212,18 @@ PeerConnection::PeerConnection()
   _signalThread->Start();
   _workerThread->Start();
 
+  webrtc::PeerConnectionInterface::IceServer iceServer;
+  iceServer.uri = "stun:stun.l.google.com:19302";
+  _iceServers.push_back(iceServer);
+
+  webrtc::FakeConstraints constraints;
+  constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, true);
+  // constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableSctpDataChannels, true);
+  constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableRtpDataChannels, true);
+
   _peerConnectionFactory = webrtc::CreatePeerConnectionFactory(
       _signalThread, _workerThread, NULL, NULL, NULL );
-  _internalPeerConnection = _peerConnectionFactory->CreatePeerConnection(_iceServers, NULL, NULL, this);
+  _internalPeerConnection = _peerConnectionFactory->CreatePeerConnection(_iceServers, &constraints, NULL, this);
 }
 
 PeerConnection::~PeerConnection()
@@ -354,6 +364,7 @@ void PeerConnection::OnIceCandidate( const webrtc::IceCandidateInterface* candid
 
 void PeerConnection::OnDataChannel( webrtc::DataChannelInterface* data_channel ) {
   TRACE_CALL;
+
   TRACE_END;
 }
 
@@ -450,9 +461,13 @@ Handle<Value> PeerConnection::AddIceCandidate( const Arguments& args ) {
 
   webrtc::IceCandidateInterface* candidate = webrtc::CreateIceCandidate(sdp, sdp_mline_index, sdp_mid);
 
-  if(!self->_internalPeerConnection->AddIceCandidate(candidate))
+  if(self->_internalPeerConnection->AddIceCandidate(candidate))
   {
-    INFO("AddIceCandidate failed!\n");
+    self->QueueEvent(PeerConnection::ADD_ICE_CANDIDATE_SUCCESS, static_cast<void*>(NULL));
+  } else
+  {
+    ErrorEvent* data = new ErrorEvent(std::string("Failed to set ICE candidate."));
+    self->QueueEvent(PeerConnection::ADD_ICE_CANDIDATE_ERROR, static_cast<void*>(data));
   }
 
   TRACE_END;
