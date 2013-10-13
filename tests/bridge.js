@@ -133,7 +133,7 @@ function request_handler(req, res)
     }
     pc.onicecandidate = function(candidate)
     {
-      console.info('candidate:', candidate);
+      console.info('ice candidate:', candidate);
     }
   });
 }

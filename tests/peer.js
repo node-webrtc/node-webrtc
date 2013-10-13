@@ -1,9 +1,40 @@
 (function() {
 
+var webrtcSupported = true;
+
+var RTCPeerConnection;
+if(window.mozRTCPeerConnection)
+  RTCPeerConnection = window.mozRTCPeerConnection;
+else if(window.webkitRTCPeerConnection)
+  RTCPeerConnection = window.webkitRTCPeerConnection;
+else if(window.RTCPeerConnection)
+  RTCPeerConnection = window.RTCPeerConnection
+else
+  webrtcSupported = false;
+
+var RTCSessionDescription;
+if(window.mozRTCSessionDescription)
+  RTCSessionDescription = window.mozRTCSessionDescription;
+else if(window.webkitRTCSessionDescription)
+  RTCSessionDescription = window.webkitRTCSessionDescription;
+else if(window.RTCSessionDescription)
+  RTCSessionDescription = window.RTCSessionDescription
+else
+  webrtcSupported = false;
+
+var RTCIceCandidate;
+if(window.mozRTCIceCandidate)
+  RTCIceCandidate = window.mozRTCIceCandidate;
+else if(window.webkitRTCIceCandidate)
+  RTCIceCandidate = window.webkitRTCIceCandidate;
+else if(window.RTCIceCandidate)
+  RTCIceCandidate = window.RTCIceCandidate;
+else
+  webrtcSupported = false;
+
 var dataChannelSettings = {
   'unreliable': {
-        ordered: false,
-        maxRetransmits: 0
+        reliable: false
       },
   /*
   'reliable': {},
@@ -32,10 +63,21 @@ function doNothing()
   console.log('awaiting data channels')
 }
 
-var pc = new mozRTCPeerConnection();
+var pc = new RTCPeerConnection(
+  {
+    iceServers: [{url:'stun:stun.l.google.com:19302'}]
+  },
+  {
+    'optional': [{ 'RtpDataChannels': true }]
+  }
+);
 pc.onsignalingstatechange = function(state)
 {
   console.info('state change', state);
+}
+pc.onicecandidate = function(candidate)
+{
+  console.info('ice candidate', candidate);
 }
 
 doCreateDataChannels(doComplete);
@@ -74,7 +116,7 @@ function doCreateOffer()
 function doSetLocalDesc(desc)
 {
   pc.setLocalDescription(
-    new mozRTCSessionDescription(desc),
+    new RTCSessionDescription(desc),
     doSendOffer.bind(undefined, desc),
     doHandleError
   );
@@ -98,7 +140,7 @@ function doSendOffer(offer)
 function doSetRemoteDesc(desc)
 {
   pc.setRemoteDescription(
-    new mozRTCSessionDescription(desc),
+    new RTCSessionDescription(desc),
     doNothing,
     doHandleError
   );

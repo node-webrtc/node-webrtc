@@ -20,16 +20,10 @@ using namespace v8;
 class PeerConnection;
 
 struct ErrorEvent {
-  ErrorEvent(const uint32_t code, const char* message)
-  : code(code)
-  {
-    size_t msglen = strlen(message);
-    this->message = new char[msglen+1];
-    this->message[msglen] = 0;
-    strncpy(this->message, message, msglen);
-  }
-  uint32_t code;
-  char* message;
+  ErrorEvent(const std::string& msg)
+  : msg(msg) {}
+
+  std::string msg;
 };
 
 struct SdpEvent
@@ -47,16 +41,54 @@ struct SdpEvent
   std::string desc;
 };
 
+struct IceEvent {
+  IceEvent(const webrtc::IceCandidateInterface* ice_candidate)
+  : sdpMLineIndex(ice_candidate->sdp_mline_index()),
+    sdpMid(ice_candidate->sdp_mid())
+  {
+    ice_candidate->ToString(&candidate);
+  }
+  uint32_t sdpMLineIndex;
+  std::string sdpMid;
+  std::string candidate;
+};
+
 // CreateSessionDescriptionObserver is required for Jsep callbacks.
-class CreateSessionDescriptionObserver :
-  public webrtc::CreateSessionDescriptionObserver
+class CreateOfferObserver
+  : public webrtc::CreateSessionDescriptionObserver
+{
+  private:
+    PeerConnection* parent;
+
+  public:
+    CreateOfferObserver( PeerConnection* connection ): parent(connection) {};
+
+    virtual void OnSuccess( webrtc::SessionDescriptionInterface* sdp );
+    virtual void OnFailure( const std::string& msg );
+};
+
+class CreateAnswerObserver
+  : public webrtc::CreateSessionDescriptionObserver
+{
+  private:
+    PeerConnection* parent;
+
+  public:
+    CreateAnswerObserver( PeerConnection* connection ): parent(connection) {};
+
+    virtual void OnSuccess( webrtc::SessionDescriptionInterface* sdp );
+    virtual void OnFailure( const std::string& msg );
+};
+
+class SetLocalDescriptionObserver :
+  public webrtc::SetSessionDescriptionObserver
 {
   private:
     PeerConnection* parent;
   public:
-    CreateSessionDescriptionObserver( PeerConnection* connection ): parent(connection) {};
+    SetLocalDescriptionObserver( PeerConnection* connection): parent(connection) {};
 
-    virtual void OnSuccess( webrtc::SessionDescriptionInterface* sdp );
+    virtual void OnSuccess();
     virtual void OnFailure( const std::string& msg );
 };
 
@@ -68,8 +100,8 @@ class SetRemoteDescriptionObserver :
   public:
     SetRemoteDescriptionObserver( PeerConnection* connection): parent(connection) {};
 
-    virtual void OnSuccess() {};
-    virtual void OnFailure( const std::string& msg ) {};
+    virtual void OnSuccess();
+    virtual void OnFailure( const std::string& msg );
 };
 
 class PeerConnection
@@ -78,14 +110,6 @@ class PeerConnection
 {
 
 public:
-
-  // From IPeerConnection.idl
-  enum Action {
-    NONE = -1,
-    OFFER = 0,
-    ANSWER = 1,
-    PFANSWER = 2
-  };
 
   enum AsyncEventType {
     CREATE_OFFER_SUCCESS = 0x1 << 0, // 1
@@ -124,13 +148,13 @@ public:
   virtual void OnIceConnectionChange( webrtc::PeerConnectionInterface::IceConnectionState new_state );
   virtual void OnIceGatheringChange( webrtc::PeerConnectionInterface::IceGatheringState new_state );
   virtual void OnIceStateChange( webrtc::PeerConnectionInterface::IceState new_state );
+  virtual void OnIceCandidate(const webrtc::IceCandidateInterface* candidate );
 
   virtual void OnStateChange(StateType state_changed);
 
   virtual void OnAddStream( webrtc::MediaStreamInterface* stream );
   virtual void OnRemoveStream( webrtc::MediaStreamInterface* stream );
-
-  virtual void OnIceCandidate(const webrtc::IceCandidateInterface* candidate );
+  virtual void OnDataChannel( webrtc::DataChannelInterface* data_channel );
 
   //
   // Nodejs wrapping.
@@ -170,10 +194,16 @@ private:
   talk_base::Thread* _signalThread;
   talk_base::Thread* _workerThread;
   webrtc::PeerConnectionInterface::IceServers _iceServers;
-  talk_base::scoped_refptr<CreateSessionDescriptionObserver> _createSessionDescriptionObserver;
-  talk_base::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
+  talk_base::scoped_refptr<CreateOfferObserver> _createOfferObserver;
+  talk_base::scoped_refptr<CreateAnswerObserver> _createAnswerObserver;
+  talk_base::scoped_refptr<SetLocalDescriptionObserver> _setLocalDescriptionObserver;
+  talk_base::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
   talk_base::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _peerConnectionFactory;
   talk_base::scoped_refptr<webrtc::PeerConnectionInterface> _internalPeerConnection;
+
+  webrtc::PeerConnectionInterface::SignalingState _signalingState;
+  webrtc::PeerConnectionInterface::IceConnectionState _iceConnectionState;
+  webrtc::PeerConnectionInterface::IceGatheringState _iceGatheringState;
 };

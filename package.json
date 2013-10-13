@@ -14,6 +14,7 @@
     "node": "0.10.x"
   },
   "dependencies": {
-    "bindings": "~1.1.1"
+    "bindings": "~1.1.1",
+    "ws": "~0.4.31"
   }
 }

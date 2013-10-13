@@ -3,7 +3,7 @@ var _webrtc = require('bindings')('webrtc.node');
 function RTCIceCandidate(dict) {
 	this.candidate = dict.candidate;
 	this.sdpMid = dict.sdpMid;
-	this.sdpMLineIndex = ('sdpMLineIndex' in dict) ? dict.sdpMLineIndex + 1 : null;
+	this.sdpMLineIndex = dict.hasOwnProperty('sdpMLineIndex') ? dict.sdpMLineIndex : 0;
 };
 
 function RTCSessionDescription(dict) {
@@ -60,9 +60,13 @@ function PeerConnection() {
 		that._executeNext();
 	};
 
-	this._pc.onicecandidate = function onicecandidate() {
+	this._pc.onicecandidate = function onicecandidate(candidate, sdpMid, sdpMLineIndex) {
 		if(that.onicecandidate) {
-			that.onicecandidate.apply(that, arguments);
+			that.onicecandidate.apply(that, [new RTCIceCandidate({
+				'candidate': candidate,
+				'sdpMid': sdpMid,
+				'sdpMLineIndex': sdpMLineIndex
+			})]);
 		}
 	};
 

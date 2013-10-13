@@ -19,7 +19,7 @@ using namespace v8;
 
 Persistent<Function> PeerConnection::constructor;
 
-void CreateSessionDescriptionObserver::OnSuccess( webrtc::SessionDescriptionInterface* sdp )
+void CreateOfferObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp)
 {
   TRACE_CALL;
   SdpEvent* data = new SdpEvent(sdp);
@@ -27,9 +27,57 @@ void CreateSessionDescriptionObserver::OnSuccess( webrtc::SessionDescriptionInte
   TRACE_END;
 }
 
-void CreateSessionDescriptionObserver::OnFailure( const std::string& msg )
+void CreateOfferObserver::OnFailure(const std::string& msg)
 {
   TRACE_CALL;
+  ErrorEvent* data = new ErrorEvent(msg);
+  parent->QueueEvent(PeerConnection::CREATE_OFFER_ERROR, (void*)data);
+  TRACE_END;
+}
+
+void CreateAnswerObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp)
+{
+  TRACE_CALL;
+  SdpEvent* data = new SdpEvent(sdp);
+  parent->QueueEvent(PeerConnection::CREATE_ANSWER_SUCCESS, static_cast<void*>(data));
+  TRACE_END;
+}
+
+void CreateAnswerObserver::OnFailure(const std::string& msg)
+{
+  TRACE_CALL;
+  ErrorEvent* data = new ErrorEvent(msg);
+  parent->QueueEvent(PeerConnection::CREATE_ANSWER_ERROR, (void*)data);
+  TRACE_END;
+}
+
+void SetLocalDescriptionObserver::OnSuccess()
+{
+  TRACE_CALL;
+  parent->QueueEvent(PeerConnection::SET_LOCAL_DESCRIPTION_SUCCESS, static_cast<void*>(NULL));
+  TRACE_END;
+}
+
+void SetLocalDescriptionObserver::OnFailure(const std::string& msg)
+{
+  TRACE_CALL;
+  ErrorEvent* data = new ErrorEvent(msg);
+  parent->QueueEvent(PeerConnection::SET_LOCAL_DESCRIPTION_ERROR, (void*)data);
+  TRACE_END;
+}
+
+void SetRemoteDescriptionObserver::OnSuccess()
+{
+  TRACE_CALL;
+  parent->QueueEvent(PeerConnection::SET_REMOTE_DESCRIPTION_SUCCESS, static_cast<void*>(NULL));
+  TRACE_END;
+}
+
+void SetRemoteDescriptionObserver::OnFailure(const std::string& msg)
+{
+  TRACE_CALL;
+  ErrorEvent* data = new ErrorEvent(msg);
+  parent->QueueEvent(PeerConnection::SET_REMOTE_DESCRIPTION_ERROR, (void*)data);
   TRACE_END;
 }
 
@@ -111,140 +159,6 @@ protected:
 NS_IMPL_ISUPPORTS2(PeerConnectionObserver, IPeerConnectionObserver,
                                            nsISupportsWeakReference)
 
-PeerConnectionObserver::PeerConnectionObserver(PeerConnection* pc)
- : _pc(pc)
-{
-  /* member initializers and constructor code */
-  TRACE_CALL;
-  TRACE_END;
-}
-
-PeerConnectionObserver::~PeerConnectionObserver()
-{
-  /* destructor code */
-  TRACE_CALL;
-  TRACE_END;
-}
-
-/* void onCreateOfferSuccess (in string offer); */
-NS_IMETHODIMP PeerConnectionObserver::OnCreateOfferSuccess(const char * offer)
-{
-  TRACE_CALL;
-  SDPEvent* data = new SDPEvent(offer);
-  _pc->QueueEvent(PeerConnection::CREATE_OFFER_SUCCESS, (void*)data);
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void onCreateOfferError (in unsigned long name, in string message); */
-NS_IMETHODIMP PeerConnectionObserver::OnCreateOfferError(uint32_t code, const char * message)
-{
-  TRACE_CALL;
-  ErrorEvent* data = new ErrorEvent(code, message);
-  _pc->QueueEvent(PeerConnection::CREATE_OFFER_ERROR, (void*)data);
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void onCreateAnswerSuccess (in string answer); */
-NS_IMETHODIMP PeerConnectionObserver::OnCreateAnswerSuccess(const char * answer)
-{
-  TRACE_CALL;
-  SDPEvent* data = new SDPEvent(answer);
-  _pc->QueueEvent(PeerConnection::CREATE_ANSWER_SUCCESS, (void*)data);
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void onCreateAnswerError (in unsigned long name, in string message); */
-NS_IMETHODIMP PeerConnectionObserver::OnCreateAnswerError(uint32_t code, const char * message)
-{
-  TRACE_CALL;
-  ErrorEvent* data = new ErrorEvent(code, message);
-  _pc->QueueEvent(PeerConnection::CREATE_ANSWER_ERROR, (void*)data);
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void onSetLocalDescriptionSuccess (); */
-NS_IMETHODIMP PeerConnectionObserver::OnSetLocalDescriptionSuccess()
-{
-  TRACE_CALL;
-  _pc->QueueEvent(PeerConnection::SET_LOCAL_DESCRIPTION_SUCCESS, (void*)NULL);
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void onSetRemoteDescriptionSuccess (); */
-NS_IMETHODIMP PeerConnectionObserver::OnSetRemoteDescriptionSuccess()
-{
-  TRACE_CALL;
-  _pc->QueueEvent(PeerConnection::SET_REMOTE_DESCRIPTION_SUCCESS, (void*)NULL);
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void onSetLocalDescriptionError (in unsigned long name, in string message); */
-NS_IMETHODIMP PeerConnectionObserver::OnSetLocalDescriptionError(uint32_t code, const char * message)
-{
-  TRACE_CALL;
-  ErrorEvent* data = new ErrorEvent(code, message);
-  _pc->QueueEvent(PeerConnection::SET_LOCAL_DESCRIPTION_ERROR, (void*)data);
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void onSetRemoteDescriptionError (in unsigned long name, in string message); */
-NS_IMETHODIMP PeerConnectionObserver::OnSetRemoteDescriptionError(uint32_t code, const char * message)
-{
-  TRACE_CALL;
-  ErrorEvent* data = new ErrorEvent(code, message);
-  _pc->QueueEvent(PeerConnection::SET_REMOTE_DESCRIPTION_ERROR, (void*)data);
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void onAddIceCandidateSuccess (); */
-NS_IMETHODIMP PeerConnectionObserver::OnAddIceCandidateSuccess()
-{
-  TRACE_CALL;
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void onAddIceCandidateError (in unsigned long name, in string message); */
-NS_IMETHODIMP PeerConnectionObserver::OnAddIceCandidateError(uint32_t code, const char * message)
-{
-  TRACE_CALL;
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void notifyDataChannel (in nsIDOMDataChannel channel); */
-NS_IMETHODIMP PeerConnectionObserver::NotifyDataChannel(nsIDOMDataChannel *channel)
-{
-  TRACE_CALL;
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void notifyConnection (); */
-NS_IMETHODIMP PeerConnectionObserver::NotifyConnection()
-{
-  TRACE_CALL;
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void notifyClosedConnection (); */
-NS_IMETHODIMP PeerConnectionObserver::NotifyClosedConnection()
-{
-  TRACE_CALL;
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void onStateChange (in unsigned long state); */
 NS_IMETHODIMP PeerConnectionObserver::OnStateChange(uint32_t type)
 {
   TRACE_CALL;
@@ -273,48 +187,6 @@ NS_IMETHODIMP PeerConnectionObserver::OnStateChange(uint32_t type)
   TRACE_END;
   return NS_OK;
 }
-
-/* void onAddStream (in nsIDOMMediaStream stream); */
-NS_IMETHODIMP PeerConnectionObserver::OnAddStream(nsIDOMMediaStream *stream)
-{
-  TRACE_CALL;
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void onRemoveStream (); */
-NS_IMETHODIMP PeerConnectionObserver::OnRemoveStream()
-{
-  TRACE_CALL;
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void onAddTrack (); */
-NS_IMETHODIMP PeerConnectionObserver::OnAddTrack()
-{
-  TRACE_CALL;
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void onRemoveTrack (); */
-NS_IMETHODIMP PeerConnectionObserver::OnRemoveTrack()
-{
-  TRACE_CALL;
-  TRACE_END;
-  return NS_OK;
-}
-
-/* void foundIceCandidate (in string candidate); */
-NS_IMETHODIMP PeerConnectionObserver::OnIceCandidate(uint16_t level, const char * mid, const char * candidate)
-{
-    TRACE_CALL;
-    ICEEvent* data = new ICEEvent(level, mid, candidate);
-    _pc->QueueEvent(PeerConnection::ICE_CANDIDATE, (void*)data);
-    TRACE_END;
-    return NS_OK;
-}
 #endif
 
 //
@@ -328,7 +200,9 @@ PeerConnection::PeerConnection()
 
   async.data = this;
 
-  _createSessionDescriptionObserver = new talk_base::RefCountedObject<CreateSessionDescriptionObserver>( this );
+  _createOfferObserver = new talk_base::RefCountedObject<CreateOfferObserver>( this );
+  _createAnswerObserver = new talk_base::RefCountedObject<CreateAnswerObserver>( this );
+  _setLocalDescriptionObserver = new talk_base::RefCountedObject<SetLocalDescriptionObserver>( this );
   _setRemoteDescriptionObserver = new talk_base::RefCountedObject<SetRemoteDescriptionObserver>( this );
 
   _signalThread = new talk_base::Thread;
@@ -381,26 +255,27 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     self->_events.pop();
     uv_mutex_unlock(&self->lock);
 
-    /*if(PeerConnection::ERROR_EVENT & evt.type)
+    TRACE_U("evt.type", evt.type);
+    if(PeerConnection::ERROR_EVENT & evt.type)
     {
-      PeerConnectionObserver::ErrorEvent* data = static_cast<PeerConnectionObserver::ErrorEvent*>(evt.data);
+      ErrorEvent* data = static_cast<ErrorEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onerror")));
       v8::Local<v8::Value> argv[1];
-      argv[0] = Exception::Error(String::New(data->message));
+      argv[0] = Exception::Error(String::New(data->msg.c_str()));
       callback->Call(pc, 1, argv);
-    } else*/ if(PeerConnection::SDP_EVENT & evt.type)
+    } else if(PeerConnection::SDP_EVENT & evt.type)
     {
       SdpEvent* data = static_cast<SdpEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsuccess")));
       v8::Local<v8::Value> argv[1];
       argv[0] = String::New(data->desc.c_str());
       callback->Call(pc, 1, argv);
-    } /*else if(PeerConnection::VOID_EVENT & evt.type)
+    } else if(PeerConnection::VOID_EVENT & evt.type)
     {
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsuccess")));
       v8::Local<v8::Value> argv[0];
       callback->Call(pc, 0, argv);
-    } else if(PeerConnection::STATE_CHANGE & evt.type)
+    } /*else if(PeerConnection::STATE_CHANGE & evt.type)
     {
       PeerConnectionObserver::StateEvent* data = static_cast<PeerConnectionObserver::StateEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onstatechange")));
@@ -411,17 +286,19 @@ void PeerConnection::Run(uv_async_t* handle, int status)
         argv[1] = Number::New(data->state);
         callback->Call(pc, 2, argv);
       }
-    } else if(PeerConnection::ICE_CANDIDATE & evt.type)
+    }*/ else if(PeerConnection::ICE_CANDIDATE & evt.type)
     {
-      PeerConnectionObserver::ICEEvent* data = static_cast<PeerConnectionObserver::ICEEvent*>(evt.data);
+      IceEvent* data = static_cast<IceEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onicecandidate")));
       if(!callback.IsEmpty())
       {
-        v8::Local<v8::Value> argv[1];
-        argv[0] = String::New(data->candidate);
-        callback->Call(pc, 1, argv);
+        v8::Local<v8::Value> argv[3];
+        argv[0] = String::New(data->candidate.c_str());
+        argv[1] = String::New(data->sdpMid.c_str());
+        argv[2] = Integer::New(data->sdpMLineIndex);
+        callback->Call(pc, 3, argv);
       }
-    }*/
+    }
 
   }
 
@@ -470,6 +347,13 @@ void PeerConnection::OnRemoveStream( webrtc::MediaStreamInterface* stream ) {
 
 void PeerConnection::OnIceCandidate( const webrtc::IceCandidateInterface* candidate ) {
   TRACE_CALL;
+  IceEvent* data = new IceEvent(candidate);
+  QueueEvent(PeerConnection::ICE_CANDIDATE, static_cast<void*>(data));
+  TRACE_END;
+}
+
+void PeerConnection::OnDataChannel( webrtc::DataChannelInterface* data_channel ) {
+  TRACE_CALL;
   TRACE_END;
 }
 
@@ -495,7 +379,7 @@ Handle<Value> PeerConnection::CreateOffer( const Arguments& args ) {
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
 
-  self->_internalPeerConnection->CreateOffer(self->_createSessionDescriptionObserver, NULL);
+  self->_internalPeerConnection->CreateOffer(self->_createOfferObserver, NULL);
 
   TRACE_END;
   return scope.Close(Undefined());
@@ -506,6 +390,8 @@ Handle<Value> PeerConnection::CreateAnswer( const Arguments& args ) {
   HandleScope scope;
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+
+  self->_internalPeerConnection->CreateAnswer(self->_createAnswerObserver, NULL);
 
   TRACE_END;
   return scope.Close(Undefined());
@@ -522,21 +408,9 @@ Handle<Value> PeerConnection::SetLocalDescription( const Arguments& args ) {
 
   std::string type = *_type;
   std::string sdp = *_sdp;
+  webrtc::SessionDescriptionInterface* sdi = webrtc::CreateSessionDescription(type, sdp);
 
-  PeerConnection::Action action;
-  if("offer" == type)
-  {
-    action = PeerConnection::OFFER;
-  } else if("answer" == type)
-  {
-    action = PeerConnection::ANSWER;
-  } else
-  {
-    return ThrowException(Exception::TypeError(
-          String::New("Unknown SDP type.")));
-  }
-
-  // self->_pc->SetLocalDescription(action, sdp.c_str());
+  self->_internalPeerConnection->SetLocalDescription(self->_setLocalDescriptionObserver, sdi);
 
   TRACE_END;
   return scope.Close(Undefined());
@@ -553,21 +427,9 @@ Handle<Value> PeerConnection::SetRemoteDescription( const Arguments& args ) {
 
   std::string type = *_type;
   std::string sdp = *_sdp;
+  webrtc::SessionDescriptionInterface* sdi = webrtc::CreateSessionDescription(type, sdp);
 
-  PeerConnection::Action action;
-  if("offer" == type)
-  {
-    action = PeerConnection::OFFER;
-  } else if("answer" == type)
-  {
-    action = PeerConnection::ANSWER;
-  } else
-  {
-    return ThrowException(Exception::TypeError(
-          String::New("Unknown SDP type.")));
-  }
-
-  // self->_pc->SetRemoteDescription(action, sdp.c_str());
+  self->_internalPeerConnection->SetRemoteDescription(self->_setRemoteDescriptionObserver, sdi);
 
   TRACE_END;
   return scope.Close(Undefined());
