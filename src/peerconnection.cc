@@ -438,6 +438,23 @@ Handle<Value> PeerConnection::SetRemoteDescription( const Arguments& args ) {
 Handle<Value> PeerConnection::AddIceCandidate( const Arguments& args ) {
   TRACE_CALL;
   HandleScope scope;
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  v8::String::Utf8Value _candidate(args[0]);
+  v8::String::Utf8Value _sipMid(args[1]);
+  v8::Local<v8::Integer> _sipMLineIndex = v8::Local<v8::Integer>::Cast(args[2]);
+
+  std::string sdp = *_candidate;
+  std::string sdp_mid = *_sipMid;
+  uint32_t sdp_mline_index = _sipMLineIndex->Value();
+
+  webrtc::IceCandidateInterface* candidate = webrtc::CreateIceCandidate(sdp, sdp_mline_index, sdp_mid);
+
+  if(!self->_internalPeerConnection->AddIceCandidate(candidate))
+  {
+    INFO("AddIceCandidate failed!\n");
+  }
+
   TRACE_END;
   return scope.Close(Undefined());
 }

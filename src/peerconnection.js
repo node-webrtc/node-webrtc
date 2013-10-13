@@ -296,6 +296,17 @@ PeerConnection.prototype.setRemoteDescription = function setRemoteDescription(sd
 	});
 };
 
+PeerConnection.prototype.addIceCandidate = function addIceCandidate(candidate) {
+	candidate = candidate || {};
+	this._queueOrRun({
+		func: 'addIceCandidate',
+		args: [candidate.candidate, candidate.sdpMid, candidate.sdpMLineIndex],
+		wait: false,
+		onSuccess: undefined,
+		onError: undefined
+	});
+};
+
 
 function RTCPeerConnection() {
 	var pc = new PeerConnection();
@@ -363,6 +374,10 @@ function RTCPeerConnection() {
 
 	this.setRemoteDescription = function setRemoteDescription() {
 		pc.setRemoteDescription.apply(pc, arguments);
+	};
+
+	this.addIceCandidate = function addIceCandidate() {
+		pc.addIceCandidate.apply(pc, arguments);
 	};
 };
 

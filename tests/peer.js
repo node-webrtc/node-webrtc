@@ -47,6 +47,7 @@ var dataChannelSettings = {
 
 var pendingDataChannels = {};
 var dataChannels = {}
+var pendingCandidates = [];
 
 function doHandleError(error)
 {
@@ -58,11 +59,12 @@ function doComplete()
   console.log('complete');
 }
 
-function doNothing()
+function doWaitforDataChannels()
 {
   console.log('awaiting data channels')
 }
 
+var ws = null;
 var pc = new RTCPeerConnection(
   {
     iceServers: [{url:'stun:stun.l.google.com:19302'}]
@@ -71,13 +73,25 @@ var pc = new RTCPeerConnection(
     'optional': [{ 'RtpDataChannels': true }]
   }
 );
-pc.onsignalingstatechange = function(state)
+pc.onsignalingstatechange = function(event)
 {
-  console.info('state change', state);
+  console.info('signaling state change', event);
 }
-pc.onicecandidate = function(candidate)
+pc.onicecandidate = function(event)
 {
-  console.info('ice candidate', candidate);
+  var candidate = event.candidate;
+  if(!candidate) return;
+  if(WebSocket.OPEN == ws.readyState)
+  {
+    ws.send(JSON.stringify(
+      {'type': 'ice',
+       'sdp': {'candidate': candidate.candidate, 'sdpMid': candidate.sdpMid, 'sdpMLineIndex': candidate.sdpMLineIndex}
+      })
+    );
+  } else
+  {
+    pendingCandidates.push(candidate);
+  }
 }
 
 doCreateDataChannels(doComplete);
@@ -97,7 +111,7 @@ function doCreateDataChannels(cb)
         cb.apply(undefined, []);
       }
     };
-    channel.onclose = function() {
+    channel.onclose = function(event) {
       console.info('onclose');
     }
     channel.onerror = doHandleError;
@@ -124,24 +138,39 @@ function doSetLocalDesc(desc)
 
 function doSendOffer(offer)
 {
-  var xhr = new XMLHttpRequest();
-  xhr.onload = function()
+  ws = new WebSocket("ws://localhost:9001");
+  ws.onopen = function()
   {
-    if(200 == xhr.status)
+    pendingCandidates.forEach(function(candidate)
     {
-      doSetRemoteDesc(JSON.parse(xhr.responseText));
+      ws.send(JSON.stringify(
+        {'type': 'ice',
+         'sdp': {'candidate': candidate.candidate, 'sdpMid': candidate.sdpMid, 'sdpMLineIndex': candidate.sdpMLineIndex}
+        })
+      );
+    });
+    ws.send(JSON.stringify(
+      {'type': offer.type, 'sdp': offer.sdp})
+    );
+  }
+  ws.onmessage = function(event)
+  {
+    data = JSON.parse(event.data);
+    if('answer' == data.type)
+    {
+      doSetRemoteDesc(data);
+    } else if('ice' == data.type)
+    {
+      pc.addIceCandidate(new RTCIceCandidate(data.sdp));
     }
   }
-  // xhr.setRequestHeader('Content-Type', "application/json");
-  xhr.open('POST', 'http://localhost:9001', true);
-  xhr.send(JSON.stringify({type: offer.type, sdp: offer.sdp}));
 }
 
 function doSetRemoteDesc(desc)
 {
   pc.setRemoteDescription(
     new RTCSessionDescription(desc),
-    doNothing,
+    doWaitforDataChannels,
     doHandleError
   );
 }
