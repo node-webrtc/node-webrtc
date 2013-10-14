@@ -34,7 +34,7 @@ else
 
 var dataChannelSettings = {
   'unreliable': {
-        reliable: false
+        reliable: true
       },
   /*
   'reliable': {},
@@ -76,6 +76,15 @@ var pc = new RTCPeerConnection(
 );
 pc.onsignalingstatechange = function(event)
 {
+  console.info("signaling state change: ", event.target.signalingState);
+}
+pc.oniceconnectionstatechange = function(event)
+{
+  console.info("ice connection state change: ", event.target.iceConnectionState);
+}
+pc.onicegatheringstatechange = function(event)
+{
+  console.info("ice gathering state change: ", event.target.iceGatheringState);
 }
 pc.onicecandidate = function(event)
 {
@@ -138,7 +147,7 @@ function doSetLocalDesc(desc)
 
 function doSendOffer(offer)
 {
-  ws = new WebSocket("ws://localhost:9001");
+  ws = new WebSocket("ws://192.168.1.3:9001");
   ws.onopen = function()
   {
     pendingCandidates.forEach(function(candidate)

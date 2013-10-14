@@ -216,7 +216,6 @@ void PeerConnection::Run(uv_async_t* handle, int status)
         callback->Call(pc, 1, argv);
       }
     }
-
   }
 
   TRACE_END;
@@ -229,26 +228,19 @@ void PeerConnection::OnError() {
 
 void PeerConnection::OnSignalingChange( webrtc::PeerConnectionInterface::SignalingState new_state ) {
   TRACE_CALL;
+  printf("signaling state change: %d\n", new_state);
   TRACE_END;
 }
 
 void PeerConnection::OnIceConnectionChange( webrtc::PeerConnectionInterface::IceConnectionState new_state ) {
   TRACE_CALL;
+  printf("ice connection state change: %d\n", new_state);
   TRACE_END;
 }
 
 void PeerConnection::OnIceGatheringChange( webrtc::PeerConnectionInterface::IceGatheringState new_state ) {
   TRACE_CALL;
-  TRACE_END;
-}
-
-void PeerConnection::OnIceStateChange( webrtc::PeerConnectionInterface::IceState new_state ) {
-  TRACE_CALL;
-  TRACE_END;
-}
-
-void PeerConnection::OnStateChange( StateType state_changed ) {
-  TRACE_CALL;
+  printf("ice gathering state change: %d\n", new_state);
   TRACE_END;
 }
 
@@ -359,17 +351,18 @@ Handle<Value> PeerConnection::AddIceCandidate( const Arguments& args ) {
   HandleScope scope;
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
-  v8::String::Utf8Value _candidate(args[0]);
-  v8::String::Utf8Value _sipMid(args[1]);
-  v8::Local<v8::Integer> _sipMLineIndex = v8::Local<v8::Integer>::Cast(args[2]);
+  Handle<Object> sdp = Handle<Object>::Cast(args[0]);
 
-  std::string sdp = *_candidate;
+  v8::String::Utf8Value _candidate(sdp->Get(String::New("candidate"))->ToString());
+  std::string candidate = *_candidate;
+  v8::String::Utf8Value _sipMid(sdp->Get(String::New("sdpMid"))->ToString());
   std::string sdp_mid = *_sipMid;
-  uint32_t sdp_mline_index = _sipMLineIndex->Value();
+  uint32_t sdp_mline_index = sdp->Get(String::New("sdpMLineIndex"))->Uint32Value();
 
-  webrtc::IceCandidateInterface* candidate = webrtc::CreateIceCandidate(sdp, sdp_mline_index, sdp_mid);
+  webrtc::SdpParseError sdpParseError;
+  webrtc::IceCandidateInterface* ci = webrtc::CreateIceCandidate(sdp_mid, sdp_mline_index, candidate, &sdpParseError);
 
-  if(self->_internalPeerConnection->AddIceCandidate(candidate))
+  if(self->_internalPeerConnection->AddIceCandidate(ci))
   {
     self->QueueEvent(PeerConnection::ADD_ICE_CANDIDATE_SUCCESS, static_cast<void*>(NULL));
   } else

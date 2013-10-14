@@ -48,7 +48,7 @@
         ]
       },
       'defines': [
-        'TRACING',
+        #'TRACING',
         'LARGEFILE_SOURCE',
         '_FILE_OFFSET_BITS=64',
         'WEBRTC_TARGET_PC',

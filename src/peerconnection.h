@@ -150,10 +150,7 @@ public:
   virtual void OnSignalingChange( webrtc::PeerConnectionInterface::SignalingState new_state );
   virtual void OnIceConnectionChange( webrtc::PeerConnectionInterface::IceConnectionState new_state );
   virtual void OnIceGatheringChange( webrtc::PeerConnectionInterface::IceGatheringState new_state );
-  virtual void OnIceStateChange( webrtc::PeerConnectionInterface::IceState new_state );
   virtual void OnIceCandidate(const webrtc::IceCandidateInterface* candidate );
-
-  virtual void OnStateChange(StateType state_changed);
 
   virtual void OnAddStream( webrtc::MediaStreamInterface* stream );
   virtual void OnRemoveStream( webrtc::MediaStreamInterface* stream );

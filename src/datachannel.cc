@@ -39,8 +39,10 @@ Handle<Value> DataChannel::New( const Arguments& args ) {
           String::New("Use the new operator to construct the DataChannel.")));
   }
 
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>(args.This());
   v8::Local<v8::External> _dci = v8::Local<v8::External>::Cast(args[0]);
   webrtc::DataChannelInterface* dci = static_cast<webrtc::DataChannelInterface*>(_dci->Value());
+  dci->RegisterObserver(self);
 
   DataChannel* obj = new DataChannel(dci);
   obj->Wrap( args.This() );
@@ -67,7 +69,6 @@ void DataChannel::Run(uv_async_t* handle, int status)
 {
   TRACE_CALL;
   HandleScope scope;
-
   DataChannel* self = static_cast<DataChannel*>(handle->data);
   v8::Persistent<v8::Object> dc = self->handle_;
 
@@ -104,12 +105,14 @@ void DataChannel::Run(uv_async_t* handle, int status)
 
 void DataChannel::OnStateChange()
 {
-
+  TRACE_CALL;
+  TRACE_END;
 }
 
 void DataChannel::OnMessage(const webrtc::DataBuffer& buffer)
 {
-
+  TRACE_CALL;
+  TRACE_END;
 }
 
 Handle<Value> DataChannel::Send( const Arguments& args ) {
@@ -136,7 +139,6 @@ void DataChannel::Init( Handle<Object> exports ) {
   Local<FunctionTemplate> tpl = FunctionTemplate::New( New );
   tpl->SetClassName( String::NewSymbol( "DataChannel" ) );
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "close" ),
     FunctionTemplate::New( Close )->GetFunction() );
 

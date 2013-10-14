@@ -45,7 +45,7 @@ wss.on('connection', function(ws)
     remoteReceived = true;
     pendingCandidates.forEach(function(candidate)
     {
-      pc.addIceCandidate(new webrtc.RTCIceCandidate(candidate));
+      pc.addIceCandidate(new webrtc.RTCIceCandidate(candidate.sdp));
     });
     pc.createAnswer(
       doSetLocalDesc,
@@ -74,7 +74,7 @@ wss.on('connection', function(ws)
   {
     var labels = Object.keys(dataChannelSettings);
     pc.ondatachannel = function(channel) {
-      console.log('ondatachannel', channel);
+      console.log('ondatachannel');
       var label = channel.label;
       pendingDataChannels[label] = channel;
       channel.binaryType = 'arraybuffer';
@@ -124,7 +124,6 @@ wss.on('connection', function(ws)
       pc.onsignalingstatechange = function(state)
       {
         console.info('signaling state change:', state);
-        console.info('ready state:', pc.readyState);
       }
       pc.onicecandidate = function(candidate)
       {
@@ -140,7 +139,16 @@ wss.on('connection', function(ws)
     {
       if(remoteReceived)
       {
-        pc.addIceCandidate(new webrtc.RTCIceCandidate(data.sdp));
+        pc.addIceCandidate(new webrtc.RTCIceCandidate(data.sdp),
+          function()
+          {
+            console.log('ice candidate OK');
+          },
+          function(error)
+          {
+            console.error('ice candidate failed');
+          }
+        );
       } else
       {
         pendingCandidates.push(data);

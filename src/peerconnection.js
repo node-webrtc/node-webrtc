@@ -34,7 +34,68 @@ RTCError.prototype.reasonName = [
 function DataChannel(_dc) {
 	var that = this;
 	this._dc = _dc;
-}
+
+	this._queue = [];
+	this._pending = null;
+
+	this._dc.onerror = function onerror() {
+
+	};
+
+	this._dc.onmessage = function onmessage() {
+
+	};
+
+	this._dc.onopen = function onopen() {
+
+	};
+
+	this._dc.onclose = function onclose() {
+
+	};
+
+	this.onerror = null;
+	this.onmessage = null;
+	this.onopen = null;
+	this.onclose = null;
+};
+
+DataChannel.prototype._getDC = function _getDC() {
+	if(!this._pc) {
+		throw new Error('RTCDataChannel is gone');
+	}
+	return this._dc;
+};
+
+DataChannel.prototype._queueOrRun = function _queueOrRun(obj) {
+	var pc = this._getPC();
+	// this._checkClosed();
+	if(null == this._pending) {
+		pc[obj.func].apply(pc, obj.args);
+		if(obj.wait) {
+			this._pending = obj;
+		}
+	} else {
+		this._queue.push(obj);
+	}
+};
+
+DataChannel.prototype._executeNext = function _executeNext() {
+	var obj, pc;
+	pc = this._getPC();
+	if(this._queue.length > 0) {
+		obj = this._queue.shift();
+		pc[obj.func].apply(pc, obj.args);
+		if(obj.wait)
+		{
+			this._pending = obj;
+		} else {
+			this._executeNext();
+		}
+	} else {
+		this._pending = null;
+	}
+};
 
 
 function PeerConnection(configuration, constraints) {
@@ -107,8 +168,8 @@ function PeerConnection(configuration, constraints) {
 
 	this._pc.ondatachannel = function ondatachannel(dataChannel) {
 		if(that.ondatachannel && typeof that.ondatachannel == 'function') {
-			// FIXME: wrap a datachannel and pass it to the callback
-			that.ondatachannel.apply(that, [dataChannel]);
+			var dc = new DataChannel(dataChannel);
+			that.ondatachannel.apply(that, [dc]);
 		}
 	};
 
@@ -135,11 +196,10 @@ PeerConnection.prototype.RTCReadyStates = [
 ];
 
 PeerConnection.prototype.RTCSignalingStates = [
-	'invalid',
 	'stable',
 	'have-local-offer',
-	'have-remote-offer',
 	'have-local-pranswer',
+	'have-remote-offer',
 	'have-remote-pranswer',
 	'closed'
 ];
@@ -319,14 +379,14 @@ PeerConnection.prototype.setRemoteDescription = function setRemoteDescription(sd
 	});
 };
 
-PeerConnection.prototype.addIceCandidate = function addIceCandidate(candidate) {
-	candidate = candidate || {};
+PeerConnection.prototype.addIceCandidate = function addIceCandidate(sdp, onSuccess, onError) {
+	sdp = sdp || {};
 	this._queueOrRun({
 		func: 'addIceCandidate',
-		args: [candidate.candidate, candidate.sdpMid, candidate.sdpMLineIndex],
+		args: [{'candidate': sdp.candidate, 'sdpMid': sdp.sdpMid, 'sdpMLineIndex': sdp.sdpMLineIndex}],
 		wait: true,
-		onSuccess: undefined,
-		onError: undefined
+		onSuccess: onSuccess,
+		onError: onError
 	});
 };
 
