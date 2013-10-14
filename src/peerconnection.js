@@ -61,7 +61,7 @@ function DataChannel(internalDC) {
 };
 
 DataChannel.prototype._getDC = function _getDC() {
-	if(!this._pc) {
+	if(!this._dc) {
 		throw new Error('RTCDataChannel is gone');
 	}
 	return this._dc;
@@ -117,9 +117,6 @@ DataChannel.prototype.getLabel = function getLabel() {
 };
 
 DataChannel.prototype.getReadyState = function getReadyState() {
-	if(this._closed) {
-		return 'closed';
-	}
 	var state = this._getDC().readyState;
 	return this.RTCDataStates[state];
 };
@@ -274,9 +271,9 @@ function PeerConnection(configuration, constraints) {
 		}
 	};
 
-	this._pc.ondatachannel = function ondatachannel(dataChannel) {
+	this._pc.ondatachannel = function ondatachannel(internalDC) {
 		if(that.ondatachannel && typeof that.ondatachannel == 'function') {
-			var dc = new DataChannel(dataChannel);
+			var dc = new RTCDataChannel(internalDC);
 			that.ondatachannel.apply(that, [dc]);
 		}
 	};
@@ -375,25 +372,16 @@ PeerConnection.prototype.getRemoteDescription = function getRemoteDescription() 
 };
 
 PeerConnection.prototype.getSignalingState = function getSignalingState() {
-	if(this._closed) {
-		return 'closed';
-	}
 	var state = this._getPC().signalingState;
 	return this.RTCSignalingStates[state];
 };
 
 PeerConnection.prototype.getIceGatheringState = function getIceGatheringState() {
-	if(this._closed) {
-		return 'closed';
-	}
 	var state = this._getPC().iceGatheringState;
 	return this.RTCIceGatheringStates[state];
 };
 
 PeerConnection.prototype.getIceConnectionState = function getIceConnectionState() {
-	if(this._closed) {
-		return 'closed';
-	}
 	var state = this._getPC().iceConnectionState;
 	return this.RTCIceConnectionStates[state];
 };
