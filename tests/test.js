@@ -2,15 +2,9 @@ var webrtc = require('../index');
 
 var pc = new webrtc.RTCPeerConnection();
 console.log('\n');
-console.log('pc:', pc);
-console.log('pc Object.keys:' + Object.keys(pc));
-pc.createOffer(
-  function(offer)
-  {
-    console.info(offer);
-  },
-  function(error)
-  {
-    console.error(error);
-  }
-);
+console.info('pc:', pc);
+console.info('pc.localDescription:', pc.localDescription);
+console.info('pc.remoteDescription:', pc.remoteDescription);
+console.info('pc.signalingState:', pc.signalingState);
+console.info('pc.iceConnectionState:', pc.iceConnectionState);
+console.info('pc.iceGatheringState:', pc.iceGatheringState);

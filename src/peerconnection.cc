@@ -394,14 +394,15 @@ Handle<Value> PeerConnection::GetLocalDescription( Local<String> property, const
   HandleScope scope;
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
-  char* sdp = NULL;
-  // self->_pc->GetLocalDescription(&sdp);
+  const webrtc::SessionDescriptionInterface* sdi = self->_internalPeerConnection->local_description();
 
   Handle<Value> value;
-  if(!sdp) {
+  if(NULL == sdi) {
     value = Null();
   } else {
-    value = v8::String::New(sdp);
+    std::string sdp;
+    sdi->ToString(&sdp);
+    value = v8::String::New(sdp.c_str());
   }
 
   TRACE_END;
@@ -413,14 +414,15 @@ Handle<Value> PeerConnection::GetRemoteDescription( Local<String> property, cons
   HandleScope scope;
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
-  char* sdp = NULL;
-  // self->_pc->GetRemoteDescription(&sdp);
+  const webrtc::SessionDescriptionInterface* sdi = self->_internalPeerConnection->remote_description();
 
   Handle<Value> value;
-  if(!sdp) {
+  if(NULL == sdi) {
     value = Null();
   } else {
-    value = v8::String::New(sdp);
+    std::string sdp;
+    sdi->ToString(&sdp);
+    value = v8::String::New(sdp.c_str());
   }
 
   TRACE_END;
@@ -433,21 +435,7 @@ Handle<Value> PeerConnection::GetSignalingState( Local<String> property, const A
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
 
-  uint32_t state;
-  // self->_pc->GetSignalingState(&state);
-
-  TRACE_END;
-  return scope.Close(Number::New(state));
-}
-
-Handle<Value> PeerConnection::GetReadyState( Local<String> property, const AccessorInfo& info ) {
-  TRACE_CALL;
-  HandleScope scope;
-
-  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
-
-  uint32_t state;
-  // self->_pc->GetReadyState(&state);
+  webrtc::PeerConnectionInterface::SignalingState state = self->_internalPeerConnection->signaling_state();
 
   TRACE_END;
   return scope.Close(Number::New(state));
@@ -459,11 +447,22 @@ Handle<Value> PeerConnection::GetIceConnectionState( Local<String> property, con
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
 
-  uint32_t state;
-  // self->_pc->GetIceState(&state);
+  webrtc::PeerConnectionInterface::IceConnectionState state = self->_internalPeerConnection->ice_connection_state();
 
   TRACE_END;
   return scope.Close(Number::New(state));
+}
+
+Handle<Value> PeerConnection::GetIceGatheringState( Local<String> property, const AccessorInfo& info ) {
+  TRACE_CALL;
+  HandleScope scope;
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
+
+  webrtc::PeerConnectionInterface::IceGatheringState state = self->_internalPeerConnection->ice_gathering_state();
+
+  TRACE_END;
+  return scope.Close(Number::New(static_cast<uint32_t>(state)));
 }
 
 void PeerConnection::ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info ) {
@@ -510,6 +509,12 @@ void PeerConnection::Init( Handle<Object> exports ) {
 
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "close" ),
     FunctionTemplate::New( Close )->GetFunction() );
+
+  tpl->InstanceTemplate()->SetAccessor(String::New("localDescription"), GetLocalDescription, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(String::New("remoteDescription"), GetRemoteDescription, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(String::New("signalingState"), GetSignalingState, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(String::New("iceConnectionState"), GetIceConnectionState, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(String::New("iceGatheringState"), GetIceGatheringState, ReadOnly);
 
   constructor = Persistent<Function>::New( tpl->GetFunction() );
   exports->Set( String::NewSymbol("PeerConnection"), constructor );
