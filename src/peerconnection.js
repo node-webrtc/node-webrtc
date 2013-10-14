@@ -31,9 +31,9 @@ RTCError.prototype.reasonName = [
 ];
 
 
-function DataChannel(_dc) {
+function DataChannel(internalDC) {
 	var that = this;
-	this._dc = _dc;
+	this._dc = internalDC;
 
 	this._queue = [];
 	this._pending = null;
@@ -95,6 +95,127 @@ DataChannel.prototype._executeNext = function _executeNext() {
 	} else {
 		this._pending = null;
 	}
+};
+
+DataChannel.prototype.RTCDataStates = [
+	'connecting',
+	'open',
+	'closing',
+	'closed'
+];
+
+DataChannel.prototype.send = function send() {
+
+};
+
+DataChannel.prototype.close = function close() {
+
+};
+
+DataChannel.prototype.getLabel = function getLabel() {
+	return this._getDC().label;
+};
+
+DataChannel.prototype.getReadyState = function getReadyState() {
+	if(this._closed) {
+		return 'closed';
+	}
+	var state = this._getDC().readyState;
+	return this.RTCDataStates[state];
+};
+
+DataChannel.prototype.getOnError = function() {
+	return this.onerror;
+};
+
+DataChannel.prototype.setOnError = function(cb) {
+	// FIXME: throw an exception if cb isn't callable
+	this.onerror = cb;
+};
+
+DataChannel.prototype.getOnOpen = function() {
+	return this.onopen;
+};
+
+DataChannel.prototype.setOnOpen = function(cb) {
+	// FIXME: throw an exception if cb isn't callable
+	this.onopen = cb;
+};
+
+DataChannel.prototype.getOnMessage = function() {
+	return this.onmessage;
+};
+
+DataChannel.prototype.setOnMessage = function(cb) {
+	// FIXME: throw an exception if cb isn't callable
+	this.onmessage = cb;
+};
+
+DataChannel.prototype.getOnClose = function() {
+	return this.onclose;
+};
+
+DataChannel.prototype.setOnClose = function(cb) {
+	// FIXME: throw an exception if cb isn't callable
+	this.onclose = cb;
+};
+
+
+function RTCDataChannel(internalDC) {
+	var dc = new DataChannel(internalDC);
+
+	Object.defineProperties(this, {
+		'label': {
+			get: function getLabel() {
+				return dc.getLabel();
+			}
+		},
+		'readyState': {
+			get: function getReadyState() {
+				return dc.getReadyState();
+			}
+		},
+		'onerror': {
+			get: function() {
+				return dc.getOnError();
+			},
+			set: function(cb) {
+				dc.setOnError(cb);
+			}
+		},
+		'onopen': {
+			get: function() {
+				return dc.getOnOpen();
+			},
+			set: function(cb) {
+				dc.setOnOpen(cb);
+			}
+		},
+		'message': {
+			get: function() {
+				return dc.getOnMessage();
+			},
+			set: function(cb) {
+				dc.setOnMessage(cb);
+			}
+		},
+		'onclose': {
+			get: function() {
+				return dc.getOnClose();
+			},
+			set: function(cb) {
+				dc.setOnClose(cb);
+			}
+		}
+	});
+
+	this.send = function send() {
+		dc.send.apply(dc, arguments);
+	};
+
+	this.close = function close() {
+		dc.close.apply(dc, arguments);
+	};
 };
 
 

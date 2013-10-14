@@ -59,6 +59,11 @@ public:
   static Handle<Value> Send( const Arguments& args );
   static Handle<Value> Close( const Arguments& args );
 
+  static Handle<Value> GetLabel( Local<String> property, const AccessorInfo& info );
+  //static Handle<Value> GetBinaryType( Local<String> property, const AccessorInfo& info );
+  static Handle<Value> GetReadyState( Local<String> property, const AccessorInfo& info );
+  static void ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info );
+
   void QueueEvent(DataChannel::AsyncEventType type, void* data);
 
 private:
