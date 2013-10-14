@@ -73,9 +73,8 @@ wss.on('connection', function(ws)
   function doHandleDataChannels()
   {
     var labels = Object.keys(dataChannelSettings);
-    pc.ondatachannel = function(event) {
-      console.log('ondatachannel');
-      var channel = event.channel;
+    pc.ondatachannel = function(channel) {
+      console.log('ondatachannel', channel);
       var label = channel.label;
       pendingDataChannels[label] = channel;
       channel.binaryType = 'arraybuffer';

@@ -15,8 +15,10 @@ using namespace v8;
 
 Persistent<Function> DataChannel::constructor;
 
-DataChannel::DataChannel()
+DataChannel::DataChannel(webrtc::DataChannelInterface* dci)
+: _internalDataChannel(dci)
 {
+  dci->Release();
   uv_mutex_init(&lock);
   uv_async_init(uv_default_loop(), &async, Run);
 
@@ -37,7 +39,10 @@ Handle<Value> DataChannel::New( const Arguments& args ) {
           String::New("Use the new operator to construct the DataChannel.")));
   }
 
-  DataChannel* obj = new DataChannel();
+  v8::Local<v8::External> _dci = v8::Local<v8::External>::Cast(args[0]);
+  webrtc::DataChannelInterface* dci = static_cast<webrtc::DataChannelInterface*>(_dci->Value());
+
+  DataChannel* obj = new DataChannel(dci);
   obj->Wrap( args.This() );
 
   TRACE_END;
@@ -107,6 +112,26 @@ void DataChannel::OnMessage(const webrtc::DataBuffer& buffer)
 
 }
 
+Handle<Value> DataChannel::Send( const Arguments& args ) {
+  TRACE_CALL;
+  HandleScope scope;
+
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
+
+  TRACE_END;
+  return scope.Close(Undefined());
+}
+
+Handle<Value> DataChannel::Close( const Arguments& args ) {
+  TRACE_CALL;
+  HandleScope scope;
+
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
+
+  TRACE_END;
+  return scope.Close(Undefined());
+}
+
 void DataChannel::Init( Handle<Object> exports ) {
   Local<FunctionTemplate> tpl = FunctionTemplate::New( New );
   tpl->SetClassName( String::NewSymbol( "DataChannel" ) );
@@ -118,6 +143,6 @@ void DataChannel::Init( Handle<Object> exports ) {
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "send" ),
     FunctionTemplate::New( Send )->GetFunction() );
 
-  Persistent<Function> ctor = Persistent<Function>::New( tpl->GetFunction() );
-  exports->Set( String::NewSymbol("DataChannel"), ctor );
+  constructor = Persistent<Function>::New( tpl->GetFunction() );
+  exports->Set( String::NewSymbol("DataChannel"), constructor );
 }

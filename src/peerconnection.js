@@ -31,6 +31,12 @@ RTCError.prototype.reasonName = [
 ];
 
 
+function DataChannel(_dc) {
+	var that = this;
+	this._dc = _dc;
+}
+
+
 function PeerConnection(configuration, constraints) {
 	var that = this;
 	this._pc = new _webrtc.PeerConnection(configuration, constraints);
@@ -99,10 +105,10 @@ function PeerConnection(configuration, constraints) {
 		}
 	};
 
-	this._pc.ondatachannel = function ondatachannel() {
+	this._pc.ondatachannel = function ondatachannel(dataChannel) {
 		if(that.ondatachannel && typeof that.ondatachannel == 'function') {
 			// FIXME: wrap a datachannel and pass it to the callback
-			that.ondatachannel.apply(that, []);
+			that.ondatachannel.apply(that, [dataChannel]);
 		}
 	};
 

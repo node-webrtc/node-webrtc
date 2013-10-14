@@ -39,7 +39,7 @@ public:
     STATE = 0x1 << 2, // 4
   };
 
-  DataChannel();
+  DataChannel(webrtc::DataChannelInterface* dci);
   ~DataChannel();
 
   //

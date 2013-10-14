@@ -108,6 +108,7 @@ public:
     {
       ice_candidate->ToString(&candidate);
     }
+
     uint32_t sdpMLineIndex;
     std::string sdpMid;
     std::string candidate;

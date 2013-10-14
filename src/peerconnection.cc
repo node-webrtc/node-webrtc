@@ -14,6 +14,7 @@
 
 #include "common.h"
 #include "peerconnection.h"
+#include "datachannel.h"
 
 using namespace node;
 using namespace v8;
@@ -202,11 +203,17 @@ void PeerConnection::Run(uv_async_t* handle, int status)
       }
     } else if(PeerConnection::NOTIFY_DATA_CHANNEL & evt.type)
     {
+      webrtc::DataChannelInterface* dci = static_cast<webrtc::DataChannelInterface*>(evt.data);
+      v8::Local<v8::Value> cargv[1];
+      cargv[0] = v8::External::New(static_cast<void*>(dci));
+      v8::Local<v8::Value> dc = DataChannel::constructor->NewInstance(1, cargv);
+
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("ondatachannel")));
       if(!callback.IsEmpty())
       {
-        v8::Local<v8::Value> argv[0];
-        callback->Call(pc, 0, argv);
+        v8::Local<v8::Value> argv[1];
+        argv[0] = dc;
+        callback->Call(pc, 1, argv);
       }
     }
 
@@ -264,7 +271,8 @@ void PeerConnection::OnIceCandidate( const webrtc::IceCandidateInterface* candid
 
 void PeerConnection::OnDataChannel( webrtc::DataChannelInterface* data_channel ) {
   TRACE_CALL;
-  QueueEvent(PeerConnection::NOTIFY_DATA_CHANNEL, static_cast<void*>(NULL));
+  data_channel->AddRef();
+  QueueEvent(PeerConnection::NOTIFY_DATA_CHANNEL, static_cast<void*>(data_channel));
   TRACE_END;
 }
 
@@ -510,6 +518,6 @@ void PeerConnection::Init( Handle<Object> exports ) {
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "close" ),
     FunctionTemplate::New( Close )->GetFunction() );
 
-  Persistent<Function> ctor = Persistent<Function>::New( tpl->GetFunction() );
-  exports->Set( String::NewSymbol("PeerConnection"), ctor );
+  constructor = Persistent<Function>::New( tpl->GetFunction() );
+  exports->Set( String::NewSymbol("PeerConnection"), constructor );
 }
