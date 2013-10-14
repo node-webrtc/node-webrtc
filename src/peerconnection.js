@@ -38,10 +38,10 @@ function PeerConnection(configuration, constraints) {
 	this._localType = null;
 	this._remoteType = null;
 
-	this.iceGatheringState = 'new';
-	this.iceConnectionState = this.RTCIceConnectionStates[this._pc.iceConnectionState];
-	this.signalingState = this.RTCSignalingStates[this._pc.signalingState];
-	this.readyState = this.RTCReadyStates[this._pc.readyState];
+	this.iceGatheringState = '';
+	this.iceConnectionState = '';
+	this.signalingState = '';
+	this.readyState = '';
 
 	this._queue = [];
 	this._pending = null;
@@ -101,6 +101,7 @@ function PeerConnection(configuration, constraints) {
 
 	this._pc.ondatachannel = function ondatachannel() {
 		if(that.ondatachannel && typeof that.ondatachannel == 'function') {
+			// FIXME: wrap a datachannel and pass it to the callback
 			that.ondatachannel.apply(that, []);
 		}
 	};

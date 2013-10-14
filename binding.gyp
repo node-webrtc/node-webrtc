@@ -125,6 +125,7 @@
       'sources': [
         'src/binding.cc',
         'src/peerconnection.cc',
+        'src/datachannel.cc'
       ]
     }
   ]

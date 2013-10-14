@@ -1,3 +1,6 @@
+#ifndef __PEERCONNECTION_H__
+#define __PEERCONNECTION_H__
+
 #include <queue>
 #include <string>
 
@@ -10,7 +13,6 @@
 #include "talk/base/thread.h"
 #include "talk/base/scoped_ptr.h"
 #include "webrtc/system_wrappers/interface/ref_count.h"
-#include "utils.h"
 
 #include "common.h"
 
@@ -18,40 +20,6 @@ using namespace node;
 using namespace v8;
 
 class PeerConnection;
-
-struct ErrorEvent {
-  ErrorEvent(const std::string& msg)
-  : msg(msg) {}
-
-  std::string msg;
-};
-
-struct SdpEvent
-{
-  SdpEvent(webrtc::SessionDescriptionInterface* sdp)
-  {
-    if(!sdp->ToString(&desc))
-    {
-      desc = "";
-    }
-    type = sdp->type();
-  }
-
-  std::string type;
-  std::string desc;
-};
-
-struct IceEvent {
-  IceEvent(const webrtc::IceCandidateInterface* ice_candidate)
-  : sdpMLineIndex(ice_candidate->sdp_mline_index()),
-    sdpMid(ice_candidate->sdp_mid())
-  {
-    ice_candidate->ToString(&candidate);
-  }
-  uint32_t sdpMLineIndex;
-  std::string sdpMid;
-  std::string candidate;
-};
 
 // CreateSessionDescriptionObserver is required for Jsep callbacks.
 class CreateOfferObserver
@@ -110,6 +78,40 @@ class PeerConnection
 {
 
 public:
+
+  struct ErrorEvent {
+    ErrorEvent(const std::string& msg)
+    : msg(msg) {}
+
+    std::string msg;
+  };
+
+  struct SdpEvent
+  {
+    SdpEvent(webrtc::SessionDescriptionInterface* sdp)
+    {
+      if(!sdp->ToString(&desc))
+      {
+        desc = "";
+      }
+      type = sdp->type();
+    }
+
+    std::string type;
+    std::string desc;
+  };
+
+  struct IceEvent {
+    IceEvent(const webrtc::IceCandidateInterface* ice_candidate)
+    : sdpMLineIndex(ice_candidate->sdp_mline_index()),
+      sdpMid(ice_candidate->sdp_mid())
+    {
+      ice_candidate->ToString(&candidate);
+    }
+    uint32_t sdpMLineIndex;
+    std::string sdpMid;
+    std::string candidate;
+  };
 
   enum AsyncEventType {
     CREATE_OFFER_SUCCESS = 0x1 << 0, // 1
@@ -208,3 +210,5 @@ private:
   webrtc::PeerConnectionInterface::IceConnectionState _iceConnectionState;
   webrtc::PeerConnectionInterface::IceGatheringState _iceGatheringState;
 };
+
+#endif

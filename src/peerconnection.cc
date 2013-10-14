@@ -23,7 +23,7 @@ Persistent<Function> PeerConnection::constructor;
 void CreateOfferObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp)
 {
   TRACE_CALL;
-  SdpEvent* data = new SdpEvent(sdp);
+  PeerConnection::SdpEvent* data = new PeerConnection::SdpEvent(sdp);
   parent->QueueEvent(PeerConnection::CREATE_OFFER_SUCCESS, static_cast<void*>(data));
   TRACE_END;
 }
@@ -31,7 +31,7 @@ void CreateOfferObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp)
 void CreateOfferObserver::OnFailure(const std::string& msg)
 {
   TRACE_CALL;
-  ErrorEvent* data = new ErrorEvent(msg);
+  PeerConnection::ErrorEvent* data = new PeerConnection::ErrorEvent(msg);
   parent->QueueEvent(PeerConnection::CREATE_OFFER_ERROR, (void*)data);
   TRACE_END;
 }
@@ -39,7 +39,7 @@ void CreateOfferObserver::OnFailure(const std::string& msg)
 void CreateAnswerObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp)
 {
   TRACE_CALL;
-  SdpEvent* data = new SdpEvent(sdp);
+  PeerConnection::SdpEvent* data = new PeerConnection::SdpEvent(sdp);
   parent->QueueEvent(PeerConnection::CREATE_ANSWER_SUCCESS, static_cast<void*>(data));
   TRACE_END;
 }
@@ -47,7 +47,7 @@ void CreateAnswerObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp)
 void CreateAnswerObserver::OnFailure(const std::string& msg)
 {
   TRACE_CALL;
-  ErrorEvent* data = new ErrorEvent(msg);
+  PeerConnection::ErrorEvent* data = new PeerConnection::ErrorEvent(msg);
   parent->QueueEvent(PeerConnection::CREATE_ANSWER_ERROR, (void*)data);
   TRACE_END;
 }
@@ -62,7 +62,7 @@ void SetLocalDescriptionObserver::OnSuccess()
 void SetLocalDescriptionObserver::OnFailure(const std::string& msg)
 {
   TRACE_CALL;
-  ErrorEvent* data = new ErrorEvent(msg);
+  PeerConnection::ErrorEvent* data = new PeerConnection::ErrorEvent(msg);
   parent->QueueEvent(PeerConnection::SET_LOCAL_DESCRIPTION_ERROR, (void*)data);
   TRACE_END;
 }
@@ -77,7 +77,7 @@ void SetRemoteDescriptionObserver::OnSuccess()
 void SetRemoteDescriptionObserver::OnFailure(const std::string& msg)
 {
   TRACE_CALL;
-  ErrorEvent* data = new ErrorEvent(msg);
+  PeerConnection::ErrorEvent* data = new PeerConnection::ErrorEvent(msg);
   parent->QueueEvent(PeerConnection::SET_REMOTE_DESCRIPTION_ERROR, (void*)data);
   TRACE_END;
 }
@@ -160,14 +160,14 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     TRACE_U("evt.type", evt.type);
     if(PeerConnection::ERROR_EVENT & evt.type)
     {
-      ErrorEvent* data = static_cast<ErrorEvent*>(evt.data);
+      PeerConnection::ErrorEvent* data = static_cast<PeerConnection::ErrorEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onerror")));
       v8::Local<v8::Value> argv[1];
       argv[0] = Exception::Error(String::New(data->msg.c_str()));
       callback->Call(pc, 1, argv);
     } else if(PeerConnection::SDP_EVENT & evt.type)
     {
-      SdpEvent* data = static_cast<SdpEvent*>(evt.data);
+      PeerConnection::SdpEvent* data = static_cast<PeerConnection::SdpEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsuccess")));
       v8::Local<v8::Value> argv[1];
       argv[0] = String::New(data->desc.c_str());
@@ -190,7 +190,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
       }
     }*/ else if(PeerConnection::ICE_CANDIDATE & evt.type)
     {
-      IceEvent* data = static_cast<IceEvent*>(evt.data);
+      PeerConnection::IceEvent* data = static_cast<PeerConnection::IceEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onicecandidate")));
       if(!callback.IsEmpty())
       {
@@ -257,7 +257,7 @@ void PeerConnection::OnRemoveStream( webrtc::MediaStreamInterface* stream ) {
 
 void PeerConnection::OnIceCandidate( const webrtc::IceCandidateInterface* candidate ) {
   TRACE_CALL;
-  IceEvent* data = new IceEvent(candidate);
+  PeerConnection::IceEvent* data = new PeerConnection::IceEvent(candidate);
   QueueEvent(PeerConnection::ICE_CANDIDATE, static_cast<void*>(data));
   TRACE_END;
 }
@@ -366,7 +366,7 @@ Handle<Value> PeerConnection::AddIceCandidate( const Arguments& args ) {
     self->QueueEvent(PeerConnection::ADD_ICE_CANDIDATE_SUCCESS, static_cast<void*>(NULL));
   } else
   {
-    ErrorEvent* data = new ErrorEvent(std::string("Failed to set ICE candidate."));
+    PeerConnection::ErrorEvent* data = new PeerConnection::ErrorEvent(std::string("Failed to set ICE candidate."));
     self->QueueEvent(PeerConnection::ADD_ICE_CANDIDATE_ERROR, static_cast<void*>(data));
   }
 
@@ -509,33 +509,6 @@ void PeerConnection::Init( Handle<Object> exports ) {
 
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "close" ),
     FunctionTemplate::New( Close )->GetFunction() );
-
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("onerror"),
-    Null());
-
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("onsuccess"),
-    Null());
-
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("onnegotiationneeded"),
-    Null());
-
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("onicecandidate"),
-    Null());
-
-  // tpl->PrototypeTemplate()->Set(String::NewSymbol("onaddstream"),
-  //   Null());
-
-  // tpl->PrototypeTemplate()->Set(String::NewSymbol("onremovestream"),
-  //   Null());
-
-  tpl->PrototypeTemplate()->Set(String::NewSymbol("onstatechange"),
-    Null());
-
-  tpl->InstanceTemplate()->SetAccessor(String::New("localDescription"), GetLocalDescription, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("remoteDescription"), GetRemoteDescription, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("readyState"), GetReadyState, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("signalingState"), GetSignalingState, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("iceConnectionState"), GetIceConnectionState, ReadOnly);
 
   Persistent<Function> ctor = Persistent<Function>::New( tpl->GetFunction() );
   exports->Set( String::NewSymbol("PeerConnection"), ctor );
