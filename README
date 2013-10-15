@@ -14,3 +14,9 @@ gclient config http://webrtc.googlecode.com/svn/trunk
 gclient sync
 gclient runhooks
 ninja -C trunk/out/Release peerconnection_client
+
+
+tests
+----------
+
+Once everything is built, try `node tests/test.js` as a sanity check. You can run the data channel demo by `node tests/bridge.js` and browsing to `tests/peer.html` in Chrome.
