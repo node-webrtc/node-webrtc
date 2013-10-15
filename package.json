@@ -5,16 +5,26 @@
   "homepage": "https://github.com/js-platform/webrtc.node",
   "bugs": "https://github.com/js-platform/webrtc.node/issues",
   "license": "BSD",
-  "preinstall": null,
   "repository": {
     "type": "git",
     "url": "http://github.com/js-platform/webrtc.node.git"
   },
+  "scripts": {
+    "preinstall": "make prepare_env",
+    "postinstall": "make build",
+    "test": "make test"
+  },
+  "main": "./build/Release/webrtc.node",
   "engines": {
     "node": "0.10.x"
   },
   "dependencies": {
     "bindings": "~1.1.1",
-    "ws": "~0.4.31"
+    "ws": "~0.4.31",
+    "node-gyp": "~0.10.10"
+  },
+  "devDependencies": {
+    "chai": "~1.8.1",
+    "mocha": "~1.13.0"
   }
 }
