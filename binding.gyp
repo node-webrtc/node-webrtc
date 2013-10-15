@@ -74,8 +74,6 @@
         'conditions': [
           ['OS=="linux"', {
             'libraries': [
-              '-lX11',
-              '-Wl,-Bstatic',
               '../<(libwebrtc_out)/talk/libjingle_peerconnection.a',
               '../<(libwebrtc_out)/talk/libjingle_p2p.a',
               '../<(libwebrtc_out)/talk/libjingle_media.a',
@@ -111,7 +109,10 @@
               '../<(libwebrtc_out)/third_party/opus/libopus.a',
               '../<(libwebrtc_out)/third_party/protobuf/libprotobuf_lite.a',
               '../<(libwebrtc_out)/webrtc/system_wrappers/source/libsystem_wrappers.a',
+              '../<(libwebrtc_out)/third_party/openssl/libopenssl.a',
               '-Wl,-Bdynamic'
+              '-lX11',
+              '-Wl,-Bstatic'
             ]
           }],
           ['OS=="mac"', {
