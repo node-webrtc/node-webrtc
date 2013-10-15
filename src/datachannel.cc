@@ -16,7 +16,8 @@ using namespace v8;
 Persistent<Function> DataChannel::constructor;
 
 DataChannel::DataChannel(webrtc::DataChannelInterface* dci)
-: _internalDataChannel(dci)
+: _internalDataChannel(dci),
+  _binaryType(DataChannel::BLOB)
 {
   dci->Release();
   uv_mutex_init(&lock);
@@ -115,6 +116,7 @@ void DataChannel::OnStateChange()
 void DataChannel::OnMessage(const webrtc::DataBuffer& buffer)
 {
   TRACE_CALL;
+  printf("buffer %d\n", buffer.data.length());
   TRACE_END;
 }
 
@@ -162,6 +164,25 @@ Handle<Value> DataChannel::GetReadyState( Local<String> property, const Accessor
   return scope.Close(Number::New(static_cast<uint32_t>(state)));
 }
 
+Handle<Value> DataChannel::GetBinaryType( Local<String> property, const AccessorInfo& info ) {
+  TRACE_CALL;
+  HandleScope scope;
+
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( info.Holder() );
+
+  TRACE_END;
+  return scope.Close(Number::New(static_cast<uint32_t>(self->_binaryType)));
+}
+
+void DataChannel::SetBinaryType( Local<String> property, Local<Value> value, const AccessorInfo& info ) {
+  TRACE_CALL
+
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( info.Holder() );
+  self->_binaryType = static_cast<BinaryType>(value->Uint32Value());
+
+  TRACE_END
+}
+
 void DataChannel::ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info ) {
   INFO("PeerConnection::ReadOnly");
 }
@@ -177,7 +198,7 @@ void DataChannel::Init( Handle<Object> exports ) {
     FunctionTemplate::New( Send )->GetFunction() );
 
   tpl->InstanceTemplate()->SetAccessor(String::New("label"), GetLabel, ReadOnly);
-  //tpl->InstanceTemplate()->SetAccessor(String::New("binaryType"), GetBinaryType, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(String::New("binaryType"), GetBinaryType, SetBinaryType);
   tpl->InstanceTemplate()->SetAccessor(String::New("readyState"), GetReadyState, ReadOnly);
 
   constructor = Persistent<Function>::New( tpl->GetFunction() );

@@ -109,6 +109,11 @@ DataChannel.prototype.RTCDataStates = [
 	'closed'
 ];
 
+DataChannel.prototype.BinaryTypes = [
+  'blob',
+  'arraybuffer'
+];
+
 DataChannel.prototype.send = function send() {
 
 };
@@ -124,6 +129,18 @@ DataChannel.prototype.getLabel = function getLabel() {
 DataChannel.prototype.getReadyState = function getReadyState() {
 	var state = this._getDC().readyState;
 	return this.RTCDataStates[state];
+};
+
+DataChannel.prototype.getBinaryType = function getBinaryType() {
+	var type = this._getDC().binaryType;
+	return this.BinaryTypes[type];
+};
+
+DataChannel.prototype.setBinaryType = function setBinaryType(type) {
+	var typenum = this.BinaryTypes.indexOf(type);
+	if(typenum >= 0) {
+		this._getDC().binaryType = typenum;
+	}
 };
 
 DataChannel.prototype.getOnError = function() {
@@ -175,6 +192,14 @@ function RTCDataChannel(internalDC) {
 		'readyState': {
 			get: function getReadyState() {
 				return dc.getReadyState();
+			}
+		},
+		'binaryType': {
+			get: function getBinaryType() {
+				return dc.getBinaryType();
+			},
+			set: function(type) {
+				dc.setBinaryType(type);
 			}
 		},
 		'onerror': {
