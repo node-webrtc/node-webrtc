@@ -46,12 +46,17 @@ function DataChannel(internalDC) {
 
 	};
 
-	this._dc.onopen = function onopen() {
-
-	};
-
-	this._dc.onclose = function onclose() {
-
+	this._dc.onstatechange = function onstatechange() {
+		var state = that.getReadyState();
+		if('open' == state) {
+			if(that.onopen && typeof that.onopen == 'function') {
+				that.onopen.apply(that, []);
+			}
+		} else if('closed' == state) {
+			if(that.onclose && typeof that.onclose == 'function') {
+				that.onclose.apply(that, []);
+			}
+		}
 	};
 
 	this.onerror = null;

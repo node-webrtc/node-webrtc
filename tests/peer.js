@@ -33,7 +33,7 @@ else
   webrtcSupported = false;
 
 var dataChannelSettings = {
-  'unreliable': {
+  'reliable': {
         reliable: true
       },
   /*
@@ -57,6 +57,7 @@ function doHandleError(error)
 function doComplete()
 {
   console.log('complete');
+  dataChannels['reliable'].send("Hello world!");
 }
 
 function doWaitforDataChannels()
@@ -103,9 +104,9 @@ pc.onicecandidate = function(event)
   }
 }
 
-doCreateDataChannels(doComplete);
+doCreateDataChannels();
 
-function doCreateDataChannels(cb)
+function doCreateDataChannels()
 {
   var labels = Object.keys(dataChannelSettings);
   labels.forEach(function(label) {
@@ -117,7 +118,7 @@ function doCreateDataChannels(cb)
       dataChannels[label] = channel;
       delete pendingDataChannels[label];
       if(Object.keys(dataChannels).length === labels.length) {
-        cb.apply(undefined, []);
+        doComplete();
       }
     };
     channel.onclose = function(event) {

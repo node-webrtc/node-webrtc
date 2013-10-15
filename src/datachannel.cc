@@ -39,12 +39,11 @@ Handle<Value> DataChannel::New( const Arguments& args ) {
           String::New("Use the new operator to construct the DataChannel.")));
   }
 
-  DataChannel* self = ObjectWrap::Unwrap<DataChannel>(args.This());
   v8::Local<v8::External> _dci = v8::Local<v8::External>::Cast(args[0]);
   webrtc::DataChannelInterface* dci = static_cast<webrtc::DataChannelInterface*>(_dci->Value());
-  dci->RegisterObserver(self);
 
   DataChannel* obj = new DataChannel(dci);
+  dci->RegisterObserver(obj);
   obj->Wrap( args.This() );
 
   TRACE_END;
@@ -95,7 +94,10 @@ void DataChannel::Run(uv_async_t* handle, int status)
       callback->Call(dc, 1, argv);
     } else if(DataChannel::STATE & evt.type)
     {
-
+      DataChannel::ErrorEvent* data = static_cast<DataChannel::ErrorEvent*>(evt.data);
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(String::New("onstatechange")));
+      v8::Local<v8::Value> argv[0];
+      callback->Call(dc, 0, argv);
     }
 
   }
@@ -106,6 +108,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
 void DataChannel::OnStateChange()
 {
   TRACE_CALL;
+  QueueEvent(DataChannel::STATE, static_cast<void*>(NULL));
   TRACE_END;
 }
 
