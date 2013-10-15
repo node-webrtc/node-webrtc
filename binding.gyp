@@ -19,7 +19,7 @@
       'target_name': 'webrtc',
       'dependencies': [],
       'variables': {
-        'libwebrtc_out%': '<(libwebrtc)/out/Release/obj',
+        'libwebrtc_out%': '<(libwebrtc)/out/Release/obj.target',
       },
       'cflags': [
         '-pthread',
@@ -74,8 +74,6 @@
         'conditions': [
           ['OS=="linux"', {
             'libraries': [
-              '-lX11',
-              '-Wl,-Bstatic',
               '../<(libwebrtc_out)/talk/libjingle_peerconnection.a',
               '../<(libwebrtc_out)/talk/libjingle_p2p.a',
               '../<(libwebrtc_out)/talk/libjingle_media.a',
@@ -111,11 +109,47 @@
               '../<(libwebrtc_out)/third_party/opus/libopus.a',
               '../<(libwebrtc_out)/third_party/protobuf/libprotobuf_lite.a',
               '../<(libwebrtc_out)/webrtc/system_wrappers/source/libsystem_wrappers.a',
-              '-Wl,-Bdynamic'
+              '../<(libwebrtc_out)/third_party/openssl/libopenssl.a',
+              '-lX11',
             ]
           }],
           ['OS=="mac"', {
             'libraries': [
+              '../<(libwebrtc_out)/../libCNG.a',
+              '../<(libwebrtc_out)/../libG711.a',
+              '../<(libwebrtc_out)/../libG722.a',
+              '../<(libwebrtc_out)/../libNetEq.a',
+              '../<(libwebrtc_out)/../libNetEq4.a',
+              '../<(libwebrtc_out)/../libPCM16B.a',
+              '../<(libwebrtc_out)/../libacm2.a',
+              '../<(libwebrtc_out)/../libaudio_coding_module.a',
+              '../<(libwebrtc_out)/../libaudio_conference_mixer.a',
+              '../<(libwebrtc_out)/../libaudio_device.a',
+              '../<(libwebrtc_out)/../libaudio_processing.a',
+              '../<(libwebrtc_out)/../libaudio_processing_sse2.a',
+              '../<(libwebrtc_out)/../libaudioproc_debug_proto.a',
+              '../<(libwebrtc_out)/../libcommon_audio.a',
+              '../<(libwebrtc_out)/../libiLBC.a',
+              '../<(libwebrtc_out)/../libiSAC.a',
+              '../<(libwebrtc_out)/../libjingle.a',
+              '../<(libwebrtc_out)/../libjingle_media.a',
+              '../<(libwebrtc_out)/../libjingle_p2p.a',
+              '../<(libwebrtc_out)/../libjingle_peerconnection.a',
+              '../<(libwebrtc_out)/../libjingle_sound.a',
+              '../<(libwebrtc_out)/../libopus.a',
+              '../<(libwebrtc_out)/../libprotobuf_lite.a',
+              '../<(libwebrtc_out)/../librbe_components.a',
+              '../<(libwebrtc_out)/../libremote_bitrate_estimator.a',
+              '../<(libwebrtc_out)/../librtp_rtcp.a',
+              '../<(libwebrtc_out)/../libsrtp.a',
+              '../<(libwebrtc_out)/../libsystem_wrappers.a',
+              '../<(libwebrtc_out)/../libvideo_engine_core.a',
+              '../<(libwebrtc_out)/../libvideo_processing.a',
+              '../<(libwebrtc_out)/../libvideo_processing_sse2.a',
+              '../<(libwebrtc_out)/../libvideo_render_module.a',
+              '../<(libwebrtc_out)/../libvoice_engine.a',
+              '../<(libwebrtc_out)/../libwebrtc_opus.a',
+              '../<(libwebrtc_out)/../libwebrtc_utility.a'
             ]
           }],
         ],
