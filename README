@@ -11,7 +11,7 @@ export PATH=`pwd`/tools/depot_tools:$PATH
 mkdir -p lib/libwebrtc
 cd lib/libwebrtc
 gclient config http://webrtc.googlecode.com/svn/trunk
-gclient sync
+gclient sync --revision r4953
 gclient runhooks
 ninja -C trunk/out/Release peerconnection_client
 
