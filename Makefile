@@ -26,7 +26,7 @@ build:
 	./node_modules/.bin/node-gyp build -v
 
 test:
-	$(NODE) ./node_modules/.bin/_mocha
+	$(NODE) ./node_modules/.bin/_mocha --require blanket tests/*.test.js
 
 clean:
 	rm -rf lib/libwebrtc
