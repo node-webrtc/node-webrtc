@@ -39,6 +39,11 @@ public:
     STATE = 0x1 << 2, // 4
   };
 
+  enum BinaryType {
+    BLOB = 0x0,
+    ARRAY_BUFFER = 0x1
+  };
+
   DataChannel(webrtc::DataChannelInterface* dci);
   ~DataChannel();
 
@@ -59,6 +64,12 @@ public:
   static Handle<Value> Send( const Arguments& args );
   static Handle<Value> Close( const Arguments& args );
 
+  static Handle<Value> GetLabel( Local<String> property, const AccessorInfo& info );
+  static Handle<Value> GetBinaryType( Local<String> property, const AccessorInfo& info );
+  static Handle<Value> GetReadyState( Local<String> property, const AccessorInfo& info );
+  static void SetBinaryType( Local<String> property, Local<Value> value, const AccessorInfo& info );
+  static void ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info );
+
   void QueueEvent(DataChannel::AsyncEventType type, void* data);
 
 private:
@@ -74,6 +85,7 @@ private:
   std::queue<AsyncEvent> _events;
 
   talk_base::scoped_refptr<webrtc::DataChannelInterface> _internalDataChannel;
+  BinaryType _binaryType;
 };
 
 #endif

@@ -31,9 +31,9 @@ RTCError.prototype.reasonName = [
 ];
 
 
-function DataChannel(_dc) {
+function DataChannel(internalDC) {
 	var that = this;
-	this._dc = _dc;
+	this._dc = internalDC;
 
 	this._queue = [];
 	this._pending = null;
@@ -46,12 +46,17 @@ function DataChannel(_dc) {
 
 	};
 
-	this._dc.onopen = function onopen() {
-
-	};
-
-	this._dc.onclose = function onclose() {
-
+	this._dc.onstatechange = function onstatechange() {
+		var state = that.getReadyState();
+		if('open' == state) {
+			if(that.onopen && typeof that.onopen == 'function') {
+				that.onopen.apply(that, []);
+			}
+		} else if('closed' == state) {
+			if(that.onclose && typeof that.onclose == 'function') {
+				that.onclose.apply(that, []);
+			}
+		}
 	};
 
 	this.onerror = null;
@@ -61,7 +66,7 @@ function DataChannel(_dc) {
 };
 
 DataChannel.prototype._getDC = function _getDC() {
-	if(!this._pc) {
+	if(!this._dc) {
 		throw new Error('RTCDataChannel is gone');
 	}
 	return this._dc;
@@ -97,6 +102,149 @@ DataChannel.prototype._executeNext = function _executeNext() {
 	}
 };
 
+DataChannel.prototype.RTCDataStates = [
+	'connecting',
+	'open',
+	'closing',
+	'closed'
+];
+
+DataChannel.prototype.BinaryTypes = [
+  'blob',
+  'arraybuffer'
+];
+
+DataChannel.prototype.send = function send() {
+
+};
+
+DataChannel.prototype.close = function close() {
+
+};
+
+DataChannel.prototype.getLabel = function getLabel() {
+	return this._getDC().label;
+};
+
+DataChannel.prototype.getReadyState = function getReadyState() {
+	var state = this._getDC().readyState;
+	return this.RTCDataStates[state];
+};
+
+DataChannel.prototype.getBinaryType = function getBinaryType() {
+	var type = this._getDC().binaryType;
+	return this.BinaryTypes[type];
+};
+
+DataChannel.prototype.setBinaryType = function setBinaryType(type) {
+	var typenum = this.BinaryTypes.indexOf(type);
+	if(typenum >= 0) {
+		this._getDC().binaryType = typenum;
+	}
+};
+
+DataChannel.prototype.getOnError = function() {
+	return this.onerror;
+};
+
+DataChannel.prototype.setOnError = function(cb) {
+	// FIXME: throw an exception if cb isn't callable
+	this.onerror = cb;
+};
+
+DataChannel.prototype.getOnOpen = function() {
+	return this.onopen;
+};
+
+DataChannel.prototype.setOnOpen = function(cb) {
+	// FIXME: throw an exception if cb isn't callable
+	this.onopen = cb;
+};
+
+DataChannel.prototype.getOnMessage = function() {
+	return this.onmessage;
+};
+
+DataChannel.prototype.setOnMessage = function(cb) {
+	// FIXME: throw an exception if cb isn't callable
+	this.onmessage = cb;
+};
+
+DataChannel.prototype.getOnClose = function() {
+	return this.onclose;
+};
+
+DataChannel.prototype.setOnClose = function(cb) {
+	// FIXME: throw an exception if cb isn't callable
+	this.onclose = cb;
+};
+
+
+function RTCDataChannel(internalDC) {
+	var dc = new DataChannel(internalDC);
+
+	Object.defineProperties(this, {
+		'label': {
+			get: function getLabel() {
+				return dc.getLabel();
+			}
+		},
+		'readyState': {
+			get: function getReadyState() {
+				return dc.getReadyState();
+			}
+		},
+		'binaryType': {
+			get: function getBinaryType() {
+				return dc.getBinaryType();
+			},
+			set: function(type) {
+				dc.setBinaryType(type);
+			}
+		},
+		'onerror': {
+			get: function() {
+				return dc.getOnError();
+			},
+			set: function(cb) {
+				dc.setOnError(cb);
+			}
+		},
+		'onopen': {
+			get: function() {
+				return dc.getOnOpen();
+			},
+			set: function(cb) {
+				dc.setOnOpen(cb);
+			}
+		},
+		'message': {
+			get: function() {
+				return dc.getOnMessage();
+			},
+			set: function(cb) {
+				dc.setOnMessage(cb);
+			}
+		},
+		'onclose': {
+			get: function() {
+				return dc.getOnClose();
+			},
+			set: function(cb) {
+				dc.setOnClose(cb);
+			}
+		}
+	});
+
+	this.send = function send() {
+		dc.send.apply(dc, arguments);
+	};
+
+	this.close = function close() {
+		dc.close.apply(dc, arguments);
+	};
+};
+
 
 function PeerConnection(configuration, constraints) {
 	var that = this;
@@ -104,11 +252,6 @@ function PeerConnection(configuration, constraints) {
 
 	this._localType = null;
 	this._remoteType = null;
-
-	this.iceGatheringState = '';
-	this.iceConnectionState = '';
-	this.signalingState = '';
-	this.readyState = '';
 
 	this._queue = [];
 	this._pending = null;
@@ -137,63 +280,39 @@ function PeerConnection(configuration, constraints) {
 		}
 	};
 
-	this._pc.onstatechange = function onstatechange(type, state) {
-		var typeString = that.RTCStateTypes[type];
-		var stateString = null;
-		var callback = null;
-		switch(typeString)
-		{
-			case 'ready':
-				stateString = that.readyState = that.RTCReadyStates[state];
-				break;
-			case 'ice':
-				stateString = that.iceConnectionState = that.RTCIceConnectionStates[state];
-				callback = that.oniceconnectionstatechange;
-				break;
-			case 'sdp':
-				// don't care
-				break;
-			case 'sipcc':
-				// don't care
-				break;
-			case 'signaling':
-				stateString = that.signalingState = that.RTCSignalingStates[state];
-				callback = that.onsignalingstatechange;
-				break;
-		}
-		if(callback && typeof callback == 'function') {
-			callback.apply(that, [stateString]);
+	this._pc.onsignalingstatchange = function onsignalingstatchange(state) {
+		stateString = that.RTCSignalingStates[state];
+		if(that.onsignalingstatechange && typeof that.onsignalingstatechange == 'function') {
+			onsignalingstatechange.apply(that, [stateString]);
 		}
 	};
 
-	this._pc.ondatachannel = function ondatachannel(dataChannel) {
+	this._pc.oniceconnectionstatechange = function oniceconnectionstatechange(state) {
+		stateString = that.RTCSignalingStates[state];
+		if(that.oniceconnectionstatechange && typeof that.oniceconnectionstatechange == 'function') {
+			oniceconnectionstatechange.apply(that, [stateString]);
+		}
+	};
+
+	this._pc.onicegatheringstatechange = function onicegatheringstatechange(state) {
+		stateString = that.RTCSignalingStates[state];
+		if(that.onicegatheringstatechange && typeof that.onicegatheringstatechange == 'function') {
+			onicegatheringstatechange.apply(that, [stateString]);
+		}
+	};
+
+	this._pc.ondatachannel = function ondatachannel(internalDC) {
 		if(that.ondatachannel && typeof that.ondatachannel == 'function') {
-			var dc = new DataChannel(dataChannel);
+			var dc = new RTCDataChannel(internalDC);
 			that.ondatachannel.apply(that, [dc]);
 		}
 	};
 
 	this.onicecandidate = null;
 	this.onsignalingstatechange = null;
+	this.onicegatheringstatechange = null;
 	this.ondatachannel = null;
 };
-
-PeerConnection.prototype.RTCStateTypes = [
-	undefined,
-	'ready',
-	'ice',
-	'sdp',
-	'sipcc',
-	'signaling'
-];
-
-PeerConnection.prototype.RTCReadyStates = [
-	'new',
-	'negotiating',
-	'active',
-	'closing',
-	'closed'
-];
 
 PeerConnection.prototype.RTCSignalingStates = [
 	'stable',
@@ -205,19 +324,20 @@ PeerConnection.prototype.RTCSignalingStates = [
 ];
 
 PeerConnection.prototype.RTCIceConnectionStates = [
+	'new',
 	'gathering',
 	'waiting',
 	'checking',
 	'connected',
 	'failed',
-	'disconnected',
+	// 'disconnected',
 	'closed'
 ];
 
-PeerConnection.prototype.RTCSipccStates = [
-	'idle',
-	'starting',
-	'started'
+PeerConnection.prototype.RTCIceGatheringStates = [
+	'new',
+	'gathering',
+	'complete'
 ];
 
 PeerConnection.prototype._getPC = function _getPC() {
@@ -265,7 +385,7 @@ PeerConnection.prototype._executeNext = function _executeNext() {
 
 PeerConnection.prototype.getLocalDescription = function getLocalDescription() {
 	var sdp = this._getPC().localDescription;
-	if(0 == sdp.length) {
+	if(!sdp) {
 		return null;
 	}
 	return new RTCSessionDescription({ type: this._localType,
@@ -274,7 +394,7 @@ PeerConnection.prototype.getLocalDescription = function getLocalDescription() {
 
 PeerConnection.prototype.getRemoteDescription = function getRemoteDescription() {
 	var sdp = this._getPC().remoteDescription;
-	if(0 == sdp.length) {
+	if(!sdp) {
 		return null;
 	}
 	return new RTCSessionDescription({ type: this._remoteType,
@@ -282,22 +402,18 @@ PeerConnection.prototype.getRemoteDescription = function getRemoteDescription() 
 };
 
 PeerConnection.prototype.getSignalingState = function getSignalingState() {
-	if(this._closed) {
-		return 'closed';
-	}
-	return this.signalingState;
+	var state = this._getPC().signalingState;
+	return this.RTCSignalingStates[state];
 };
 
 PeerConnection.prototype.getIceGatheringState = function getIceGatheringState() {
-	return this.iceGatheringState;
+	var state = this._getPC().iceGatheringState;
+	return this.RTCIceGatheringStates[state];
 };
 
 PeerConnection.prototype.getIceConnectionState = function getIceConnectionState() {
-	return this.iceConnectionState;
-};
-
-PeerConnection.prototype.getReadyState = function getReadyState() {
-	return this.readyState;
+	var state = this._getPC().iceConnectionState;
+	return this.RTCIceConnectionStates[state];
 };
 
 PeerConnection.prototype.getOnSignalingStateChange = function() {

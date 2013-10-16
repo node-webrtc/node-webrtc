@@ -16,7 +16,8 @@ using namespace v8;
 Persistent<Function> DataChannel::constructor;
 
 DataChannel::DataChannel(webrtc::DataChannelInterface* dci)
-: _internalDataChannel(dci)
+: _internalDataChannel(dci),
+  _binaryType(DataChannel::BLOB)
 {
   dci->Release();
   uv_mutex_init(&lock);
@@ -39,12 +40,11 @@ Handle<Value> DataChannel::New( const Arguments& args ) {
           String::New("Use the new operator to construct the DataChannel.")));
   }
 
-  DataChannel* self = ObjectWrap::Unwrap<DataChannel>(args.This());
   v8::Local<v8::External> _dci = v8::Local<v8::External>::Cast(args[0]);
   webrtc::DataChannelInterface* dci = static_cast<webrtc::DataChannelInterface*>(_dci->Value());
-  dci->RegisterObserver(self);
 
   DataChannel* obj = new DataChannel(dci);
+  dci->RegisterObserver(obj);
   obj->Wrap( args.This() );
 
   TRACE_END;
@@ -95,7 +95,10 @@ void DataChannel::Run(uv_async_t* handle, int status)
       callback->Call(dc, 1, argv);
     } else if(DataChannel::STATE & evt.type)
     {
-
+      DataChannel::ErrorEvent* data = static_cast<DataChannel::ErrorEvent*>(evt.data);
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(String::New("onstatechange")));
+      v8::Local<v8::Value> argv[0];
+      callback->Call(dc, 0, argv);
     }
 
   }
@@ -106,12 +109,14 @@ void DataChannel::Run(uv_async_t* handle, int status)
 void DataChannel::OnStateChange()
 {
   TRACE_CALL;
+  QueueEvent(DataChannel::STATE, static_cast<void*>(NULL));
   TRACE_END;
 }
 
 void DataChannel::OnMessage(const webrtc::DataBuffer& buffer)
 {
   TRACE_CALL;
+
   TRACE_END;
 }
 
@@ -135,6 +140,53 @@ Handle<Value> DataChannel::Close( const Arguments& args ) {
   return scope.Close(Undefined());
 }
 
+Handle<Value> DataChannel::GetLabel( Local<String> property, const AccessorInfo& info ) {
+  TRACE_CALL;
+  HandleScope scope;
+
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( info.Holder() );
+
+  std::string label = self->_internalDataChannel->label();
+
+  TRACE_END;
+  return scope.Close(String::New(label.c_str()));
+}
+
+Handle<Value> DataChannel::GetReadyState( Local<String> property, const AccessorInfo& info ) {
+  TRACE_CALL;
+  HandleScope scope;
+
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( info.Holder() );
+
+  webrtc::DataChannelInterface::DataState state = self->_internalDataChannel->state();
+
+  TRACE_END;
+  return scope.Close(Number::New(static_cast<uint32_t>(state)));
+}
+
+Handle<Value> DataChannel::GetBinaryType( Local<String> property, const AccessorInfo& info ) {
+  TRACE_CALL;
+  HandleScope scope;
+
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( info.Holder() );
+
+  TRACE_END;
+  return scope.Close(Number::New(static_cast<uint32_t>(self->_binaryType)));
+}
+
+void DataChannel::SetBinaryType( Local<String> property, Local<Value> value, const AccessorInfo& info ) {
+  TRACE_CALL
+
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( info.Holder() );
+  self->_binaryType = static_cast<BinaryType>(value->Uint32Value());
+
+  TRACE_END
+}
+
+void DataChannel::ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info ) {
+  INFO("PeerConnection::ReadOnly");
+}
+
 void DataChannel::Init( Handle<Object> exports ) {
   Local<FunctionTemplate> tpl = FunctionTemplate::New( New );
   tpl->SetClassName( String::NewSymbol( "DataChannel" ) );
@@ -144,6 +196,10 @@ void DataChannel::Init( Handle<Object> exports ) {
 
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "send" ),
     FunctionTemplate::New( Send )->GetFunction() );
+
+  tpl->InstanceTemplate()->SetAccessor(String::New("label"), GetLabel, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(String::New("binaryType"), GetBinaryType, SetBinaryType);
+  tpl->InstanceTemplate()->SetAccessor(String::New("readyState"), GetReadyState, ReadOnly);
 
   constructor = Persistent<Function>::New( tpl->GetFunction() );
   exports->Set( String::NewSymbol("DataChannel"), constructor );

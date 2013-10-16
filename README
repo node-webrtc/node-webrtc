@@ -1,33 +1,22 @@
-Mozilla Central:
-----------
-
-The node module links against mozilla-central. Current tested version is a4b06c1c59e30fd1bd66207b8f81f4ec81038bb9.
-
-Build mozilla-central archives:
-----------
-
-python make-archives.py <path to mozilla-central obj dir>
-
-For example:
-
-python make-archives.py /home/you/mozilla/central/obj-x86_64-unknown-linux-gnu
-
-
-
-
-###
-
-Google webrtc stuff
+libwebrtc stuff
 ----------
 
 To build libjingle (from top-level directory):
 
+1. Grab the depot tools (they may already be checked in, so you could skip this)
 git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git tools/depot_tools
 export PATH=`pwd`/tools/depot_tools:$PATH
 
+2. Get/update/build libwebrtc
 mkdir -p lib/libwebrtc
 cd lib/libwebrtc
 gclient config http://webrtc.googlecode.com/svn/trunk
 gclient sync
 gclient runhooks
 ninja -C trunk/out/Release peerconnection_client
+
+
+tests
+----------
+
+Once everything is built, try `node tests/test.js` as a sanity check. You can run the data channel demo by `node tests/bridge.js` and browsing to `tests/peer.html` in Chrome.

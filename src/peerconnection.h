@@ -173,9 +173,9 @@ public:
 
   static Handle<Value> GetLocalDescription( Local<String> property, const AccessorInfo& info );
   static Handle<Value> GetRemoteDescription( Local<String> property, const AccessorInfo& info );
-  static Handle<Value> GetReadyState( Local<String> property, const AccessorInfo& info );
   static Handle<Value> GetIceConnectionState( Local<String> property, const AccessorInfo& info );
   static Handle<Value> GetSignalingState( Local<String> property, const AccessorInfo& info );
+  static Handle<Value> GetIceGatheringState( Local<String> property, const AccessorInfo& info );
   static void ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info );
 
   void QueueEvent(AsyncEventType type, void* data);
