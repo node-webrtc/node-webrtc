@@ -1,5 +1,7 @@
 (function() {
 
+var bridge = window.location.toString().split('?')[1] || 'localhost:9001';
+
 var webrtcSupported = true;
 
 var RTCPeerConnection;
@@ -148,7 +150,7 @@ function doSetLocalDesc(desc)
 
 function doSendOffer(offer)
 {
-  ws = new WebSocket("ws://192.168.1.3:9001");
+  ws = new WebSocket("ws://" + bridge);
   ws.onopen = function()
   {
     pendingCandidates.forEach(function(candidate)

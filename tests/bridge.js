@@ -26,7 +26,10 @@ var pendingDataChannels = {};
 var dataChannels = {}
 var pendingCandidates = [];
 
-var wss = new ws.Server({'port': 9001});
+var args = process.argv;
+var port = args[2] || 9001;
+
+var wss = new ws.Server({'port': port});
 wss.on('connection', function(ws)
 {
   console.info('ws connected');
