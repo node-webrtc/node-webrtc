@@ -23,7 +23,7 @@ ninja -C trunk/out/Release peerconnection_client
 tests
 ----------
 
-Once everything is built, try `node tests/test.js` as a sanity check. You can run the data channel demo by `node tests/bridge.js` and browsing to `tests/peer.html` in `chrome --enable-data-channels`. You can pass an alternate port to the node script by `node tests/bridge.js <port>`. If the bridge and peer are on different machines, you can pass the bridge address to the peer by `http://<yourmachine>/bridge.js?<host:port>`.
+Once everything is built, try `node tests/test.js` as a sanity check. You can run the data channel demo by `node tests/bridge.js` and browsing to `tests/peer.html` in `chrome --enable-data-channels`. You can pass an alternate port to the node script by `node tests/bridge.js <port>`. If the bridge and peer are on different machines, you can pass the bridge address to the peer by `http://<yourmachine>/peer.html?<host:port>`.
 
 The output from `bridge.js` should look like:
 ````
