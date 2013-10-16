@@ -4,16 +4,20 @@ libwebrtc stuff
 To build libjingle (from top-level directory):
 
 1. Grab the depot tools (they may already be checked in, so you could skip this)
+````
 git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git tools/depot_tools
 export PATH=`pwd`/tools/depot_tools:$PATH
+````
 
 2. Get/update/build libwebrtc
+````
 mkdir -p lib/libwebrtc
 cd lib/libwebrtc
 gclient config http://webrtc.googlecode.com/svn/trunk
 gclient sync --revision r4953
 gclient runhooks
 ninja -C trunk/out/Release peerconnection_client
+````
 
 
 tests
