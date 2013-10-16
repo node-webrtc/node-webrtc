@@ -116,7 +116,6 @@ void DataChannel::OnStateChange()
 void DataChannel::OnMessage(const webrtc::DataBuffer& buffer)
 {
   TRACE_CALL;
-
   TRACE_END;
 }
 

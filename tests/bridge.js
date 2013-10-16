@@ -139,16 +139,7 @@ wss.on('connection', function(ws)
     {
       if(remoteReceived)
       {
-        pc.addIceCandidate(new webrtc.RTCIceCandidate(data.sdp),
-          function()
-          {
-            console.log('ice candidate OK');
-          },
-          function(error)
-          {
-            console.error('ice candidate failed');
-          }
-        );
+        pc.addIceCandidate(new webrtc.RTCIceCandidate(data.sdp));
       } else
       {
         pendingCandidates.push(data);
