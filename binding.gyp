@@ -149,7 +149,8 @@
               '../<(libwebrtc_out)/../libvideo_render_module.a',
               '../<(libwebrtc_out)/../libvoice_engine.a',
               '../<(libwebrtc_out)/../libwebrtc_opus.a',
-              '../<(libwebrtc_out)/../libwebrtc_utility.a'
+              '../<(libwebrtc_out)/../libwebrtc_utility.a',
+              '-lssl'
             ]
           }],
         ],
