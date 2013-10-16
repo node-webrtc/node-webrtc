@@ -13,6 +13,7 @@ export PATH=`pwd`/tools/depot_tools:$PATH
 ````
 mkdir -p lib/libwebrtc
 cd lib/libwebrtc
+export GYP_GENERATORS="ninja"
 gclient config http://webrtc.googlecode.com/svn/trunk
 gclient sync --revision r4953
 gclient runhooks
