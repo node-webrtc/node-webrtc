@@ -33,6 +33,18 @@ public:
     std::string msg;
   };
 
+  struct MessageEvent {
+    MessageEvent(const webrtc::DataBuffer* buffer)
+    {
+      size = buffer->size();
+      message = new char[size];
+      memcpy(static_cast<void*>(message), static_cast<const void*>(buffer->data.data()), size);
+    }
+
+    char* message;
+    size_t size;
+  };
+
   enum AsyncEventType {
     MESSAGE = 0x1 << 0, // 1
     ERROR = 0x1 << 1, // 2
@@ -86,6 +98,8 @@ private:
 
   talk_base::scoped_refptr<webrtc::DataChannelInterface> _internalDataChannel;
   BinaryType _binaryType;
+
+  static Persistent<Function> ArrayBufferConstructor;
 };
 
 #endif

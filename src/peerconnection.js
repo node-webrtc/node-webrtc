@@ -42,8 +42,10 @@ function DataChannel(internalDC) {
 
 	};
 
-	this._dc.onmessage = function onmessage() {
-
+	this._dc.onmessage = function onmessage(data) {
+		if(that.onmessage && typeof that.onmessage == 'function') {
+			that.onmessage.apply(that, [data]);
+		}
 	};
 
 	this._dc.onstatechange = function onstatechange() {
@@ -218,7 +220,7 @@ function RTCDataChannel(internalDC) {
 				dc.setOnOpen(cb);
 			}
 		},
-		'message': {
+		'onmessage': {
 			get: function() {
 				return dc.getOnMessage();
 			},

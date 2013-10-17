@@ -89,6 +89,9 @@ wss.on('connection', function(ws)
           doComplete();
         }
       };
+      channel.onmessage = function(message) {
+        console.log('onmessage', message);
+      };
       channel.onclose = function() {
         console.info('onclose');
       };

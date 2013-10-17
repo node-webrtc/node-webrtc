@@ -59,7 +59,7 @@ function doHandleError(error)
 function doComplete()
 {
   console.log('complete');
-  dataChannels['reliable'].send("Hello world!");
+  dataChannels['reliable'].send("abcdef");
 }
 
 function doWaitforDataChannels()
