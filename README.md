@@ -24,7 +24,7 @@ mkdir -p lib/libwebrtc
 cd lib/libwebrtc
 export GYP_GENERATORS="ninja"
 gclient config http://webrtc.googlecode.com/svn/trunk
-gclient sync --revision r4953
+gclient sync --revision r4999
 gclient runhooks
 ninja -C trunk/out/Release peerconnection_client
 ````
