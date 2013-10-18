@@ -93,4 +93,4 @@ onopen peer.js:117
 complete
 ````
 
-Note that the example is sending a string "abcde" because RTP data channels don't support arraybuffers yet. This will change when we get SCTP data channels.
+Note that the example is sending a string "abcdef" because RTP data channels don't support arraybuffers yet. This will change when we get SCTP data channels.
