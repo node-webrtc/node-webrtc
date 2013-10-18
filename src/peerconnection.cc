@@ -216,6 +216,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
         callback->Call(pc, 1, argv);
       }
     }
+    // FIXME: delete event
   }
 
   TRACE_END;

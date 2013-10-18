@@ -115,6 +115,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
       argv[0] = array;
       callback->Call(dc, 1, argv);
     }
+    // FIXME: delete event
   }
   scope.Close(Undefined());
   TRACE_END;
