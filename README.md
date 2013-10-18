@@ -1,7 +1,8 @@
 prerequisites
 ----------
 
-Intended to be all platforms, but works on linux now while it's pre-0.1.
+* Linux (I'm using Arch, but others should also be OK)
+* Latest Chrome dev (32)
 
 libwebrtc stuff
 ----------
