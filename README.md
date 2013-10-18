@@ -1,3 +1,8 @@
+prerequisites
+----------
+
+Intended to be all platforms, but works on linux now while it's pre-0.1.
+
 libwebrtc stuff
 ----------
 
