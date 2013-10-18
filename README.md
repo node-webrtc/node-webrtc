@@ -40,8 +40,8 @@ to
 
 3. Build node-webrtc native module and run the sanity test
 ````
-node-gyp rebuild
-node --debug tests/test.js
+node-gyp --debug rebuild
+node tests/test.js
 ````
 
 
