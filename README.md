@@ -25,11 +25,23 @@ gclient sync --revision r4953
 gclient runhooks
 ninja -C trunk/out/Release peerconnection_client
 ````
+Note that you can build with debug symbols and asserts by substituting `Debug` for `Release`:
+````
+ninja -C trunk/out/Debug peerconnection_client
+````
+To link against the debug objects, you will need to edit `binding.gyp` and change this line:
+````
+'libwebrtc_out%': '<(libwebrtc)/out/Release/obj',
+````
+to
+````
+'libwebrtc_out%': '<(libwebrtc)/out/Debug/obj',
+````
 
 3. Build node-webrtc native module and run the sanity test
 ````
 node-gyp rebuild
-node tests/test.js
+node --debug tests/test.js
 ````
 
 
