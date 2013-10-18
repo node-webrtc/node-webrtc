@@ -3,6 +3,9 @@ prerequisites
 
 * Linux (I'm using Arch, but others should also be OK)
 * Latest Chrome dev (32)
+  * Launch with `--enable-data-channels`
+
+Note that we're using RTP data channels because SCTP data channels aren't enabled yet in libjingle due to stability. See this [issue](https://code.google.com/p/webrtc/issues/detail?id=2253).
 
 libwebrtc stuff
 ----------
@@ -69,6 +72,14 @@ ice connection state change: 2
 WARNING: no real random source present!
 onopen
 complete
+onmessage { '0': 97,
+  '1': 98,
+  '2': 99,
+  '3': 100,
+  '4': 101,
+  '5': 102,
+  slice: [Function: slice],
+  byteLength: 6 }
 ````
 
 and from `peer.html` (in the console):
@@ -81,3 +92,5 @@ ice connection state change:  connected peer.js:84
 onopen peer.js:117
 complete
 ````
+
+Note that the example is sending a string "abcde" because RTP data channels don't support arraybuffers yet. This will change when we get SCTP data channels.
