@@ -73,7 +73,7 @@ var pc = new RTCPeerConnection(
     iceServers: [{url:'stun:stun.l.google.com:19302'}]
   },
   {
-    'optional': [{DtlsSrtpKeyAgreement: true},
+    'optional': [{DtlsSrtpKeyAgreement: false},
                  {RtpDataChannels: true}]
   }
 );

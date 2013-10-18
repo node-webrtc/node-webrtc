@@ -124,7 +124,7 @@ wss.on('connection', function(ws)
           iceServers: [{url:'stun:stun.l.google.com:19302'}]
         },
         {
-          'optional': [{DtlsSrtpKeyAgreement: true}]
+          'optional': [{DtlsSrtpKeyAgreement: false}]
         }
       );
       pc.onsignalingstatechange = function(state)

@@ -106,6 +106,10 @@ void DataChannel::Run(uv_async_t* handle, int status)
 
       Local<Object> array = ArrayBufferConstructor->NewInstance();
       array->SetIndexedPropertiesToExternalArrayData(data->message, v8::kExternalByteArray, data->size);
+      Local<String> byteLenghtKey = String::New("byteLength");
+      Local<Integer> byteLengthValue = Uint32::New(data->size);
+      array->ForceSet(byteLenghtKey, byteLengthValue);
+      V8::AdjustAmountOfExternalAllocatedMemory(data->size);
 
       v8::Local<v8::Value> argv[1];
       argv[0] = array;
