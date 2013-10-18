@@ -26,6 +26,12 @@ gclient runhooks
 ninja -C trunk/out/Release peerconnection_client
 ````
 
+3. Build node-webrtc native module and run the sanity test
+````
+node-gyp rebuild
+node tests/test.js
+````
+
 
 tests
 ----------
