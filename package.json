@@ -13,11 +13,6 @@
   "engines": {
     "node": "0.10.x"
   },
-  "scripts": {
-    "blanket": {
-      "pattern": "test/"
-    }
-  },
   "dependencies": {
     "bindings": "~1.1.1",
     "ws": "~0.4.31",
@@ -25,7 +20,6 @@
   },
   "devDependencies": {
     "chai": "~1.8.1",
-    "mocha": "~1.13.0",
-    "blanket": "~1.1.5"
+    "mocha": "~1.13.0"
   }
 }
