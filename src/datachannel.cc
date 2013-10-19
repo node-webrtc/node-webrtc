@@ -14,6 +14,7 @@ using namespace node;
 using namespace v8;
 
 Persistent<Function> DataChannel::constructor;
+Persistent<Function> DataChannel::ArrayBufferConstructor;
 
 DataChannel::DataChannel(webrtc::DataChannelInterface* dci)
 : _internalDataChannel(dci),
@@ -95,14 +96,28 @@ void DataChannel::Run(uv_async_t* handle, int status)
       callback->Call(dc, 1, argv);
     } else if(DataChannel::STATE & evt.type)
     {
-      DataChannel::ErrorEvent* data = static_cast<DataChannel::ErrorEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(String::New("onstatechange")));
       v8::Local<v8::Value> argv[0];
       callback->Call(dc, 0, argv);
+    } else if(DataChannel::MESSAGE & evt.type)
+    {
+      MessageEvent* data = static_cast<MessageEvent*>(evt.data);
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(String::New("onmessage")));
+
+      Local<Object> array = ArrayBufferConstructor->NewInstance();
+      array->SetIndexedPropertiesToExternalArrayData(data->message, v8::kExternalByteArray, data->size);
+      Local<String> byteLenghtKey = String::New("byteLength");
+      Local<Integer> byteLengthValue = Uint32::New(data->size);
+      array->ForceSet(byteLenghtKey, byteLengthValue);
+      V8::AdjustAmountOfExternalAllocatedMemory(data->size);
+
+      v8::Local<v8::Value> argv[1];
+      argv[0] = array;
+      callback->Call(dc, 1, argv);
     }
-
+    // FIXME: delete event
   }
-
+  scope.Close(Undefined());
   TRACE_END;
 }
 
@@ -116,7 +131,8 @@ void DataChannel::OnStateChange()
 void DataChannel::OnMessage(const webrtc::DataBuffer& buffer)
 {
   TRACE_CALL;
-
+  MessageEvent* data = new MessageEvent(&buffer);
+  QueueEvent(DataChannel::MESSAGE, static_cast<void*>(data));
   TRACE_END;
 }
 
@@ -203,4 +219,8 @@ void DataChannel::Init( Handle<Object> exports ) {
 
   constructor = Persistent<Function>::New( tpl->GetFunction() );
   exports->Set( String::NewSymbol("DataChannel"), constructor );
+
+  v8::Local<v8::Object> global = v8::Context::GetCurrent()->Global();
+  v8::Local<v8::Value> obj = global->Get(v8::String::New("ArrayBuffer"));
+  ArrayBufferConstructor = Persistent<Function>::New(obj.As<Function>());
 }

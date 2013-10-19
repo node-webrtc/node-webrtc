@@ -26,7 +26,10 @@ var pendingDataChannels = {};
 var dataChannels = {}
 var pendingCandidates = [];
 
-var wss = new ws.Server({'port': 9001});
+var args = process.argv;
+var port = args[2] || 9001;
+
+var wss = new ws.Server({'port': port});
 wss.on('connection', function(ws)
 {
   console.info('ws connected');
@@ -86,6 +89,9 @@ wss.on('connection', function(ws)
           doComplete();
         }
       };
+      channel.onmessage = function(message) {
+        console.log('onmessage', message);
+      };
       channel.onclose = function() {
         console.info('onclose');
       };
@@ -118,7 +124,7 @@ wss.on('connection', function(ws)
           iceServers: [{url:'stun:stun.l.google.com:19302'}]
         },
         {
-          'optional': [{DtlsSrtpKeyAgreement: true}]
+          'optional': [{DtlsSrtpKeyAgreement: false}]
         }
       );
       pc.onsignalingstatechange = function(state)
@@ -139,16 +145,7 @@ wss.on('connection', function(ws)
     {
       if(remoteReceived)
       {
-        pc.addIceCandidate(new webrtc.RTCIceCandidate(data.sdp),
-          function()
-          {
-            console.log('ice candidate OK');
-          },
-          function(error)
-          {
-            console.error('ice candidate failed');
-          }
-        );
+        pc.addIceCandidate(new webrtc.RTCIceCandidate(data.sdp));
       } else
       {
         pendingCandidates.push(data);
