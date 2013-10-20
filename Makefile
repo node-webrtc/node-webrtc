@@ -16,7 +16,7 @@ prepare_env:
 	mkdir -p lib/libwebrtc; cd lib/libwebrtc; ../../tools/depot_tools/gclient config http://webrtc.googlecode.com/svn/trunk/; ../../tools/depot_tools/gclient sync --force --revision r4999
 
 build_deps:
-	cd lib/libwebrtc; ninja -C out/Release peerconnection_client
+	cd lib/libwebrtc/trunk; ninja -C out/Release peerconnection_client
 
 deps:
 	$(NPM) install
