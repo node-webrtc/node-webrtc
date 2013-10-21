@@ -19,7 +19,9 @@
     "node-gyp": "~0.10.10"
   },
   "devDependencies": {
-    "chai": "~1.8.1",
-    "mocha": "~1.13.0"
+    "tape": "~2.0.0"
+  },
+  "scripts": {
+    "test": "node test/all.js"
   }
 }
