@@ -18,6 +18,10 @@
     "ws": "~0.4.31",
     "node-gyp": "~0.10.10"
   },
+  "scripts": {
+    "preinstall": "make prepare_env build_deps",
+    "postinstall": "make build"
+  },
   "devDependencies": {
     "chai": "~1.8.1",
     "mocha": "~1.13.0"
