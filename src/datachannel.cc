@@ -196,12 +196,12 @@ Handle<Value> DataChannel::GetBinaryType( Local<String> property, const Accessor
 }
 
 void DataChannel::SetBinaryType( Local<String> property, Local<Value> value, const AccessorInfo& info ) {
-  TRACE_CALL
+  TRACE_CALL;
 
   DataChannel* self = ObjectWrap::Unwrap<DataChannel>( info.Holder() );
   self->_binaryType = static_cast<BinaryType>(value->Uint32Value());
 
-  TRACE_END
+  TRACE_END;
 }
 
 void DataChannel::ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info ) {
