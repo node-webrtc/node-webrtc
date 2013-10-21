@@ -1,5 +1,4 @@
-var webrtc = require('./src/peerconnection');
-
-exports.RTCPeerConnection = webrtc.RTCPeerConnection;
-exports.RTCSessionDescription = webrtc.RTCSessionDescription;
-exports.RTCIceCandidate = webrtc.RTCIceCandidate;
+exports.RTCIceCandidate = require('./icecandidate');
+exports.RTCSessionDescription = require('./sessiondescription');
+exports.RTCPeerConnection = require('./peerconnection');
+exports.RTCDataChannel = require('./datachannel');
