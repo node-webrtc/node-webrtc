@@ -96,3 +96,9 @@ complete
 ````
 
 Note that the example is sending a string "abcdef" because RTP data channels don't support arraybuffers yet. This will change when we get SCTP data channels.
+
+
+contributing
+----------
+
+Test your patch to make sure it does what you expect, then add youself to the `AUTHORS` file and make a pull request.
