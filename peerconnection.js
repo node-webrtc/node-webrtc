@@ -3,6 +3,7 @@ var _webrtc = require('bindings')('webrtc.node');
 var RTCSessionDescription = require('./sessiondescription');
 var RTCIceCandidate = require('./icecandidate');
 var RTCError = require('./error');
+var RTCDataChannel = require('./datachannel');
 
 
 function PeerConnection(configuration, constraints) {

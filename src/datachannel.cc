@@ -141,6 +141,11 @@ Handle<Value> DataChannel::Send( const Arguments& args ) {
   HandleScope scope;
 
   DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
+  v8::Local<v8::String> _data = v8::Local<v8::String>::Cast(args[0]);
+  std::string data = *v8::String::Utf8Value(_data);
+
+  webrtc::DataBuffer buffer(data);
+  self->_internalDataChannel->Send(buffer);
 
   TRACE_END;
   return scope.Close(Undefined());

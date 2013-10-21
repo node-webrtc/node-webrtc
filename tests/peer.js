@@ -123,6 +123,9 @@ function doCreateDataChannels()
         doComplete();
       }
     };
+    channel.onmessage = function(message) {
+      console.log('onmessage', message);
+    };
     channel.onclose = function(event) {
       console.info('onclose');
     }

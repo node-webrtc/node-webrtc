@@ -81,12 +81,12 @@ DataChannel.prototype.RTCDataStates = [
 ];
 
 DataChannel.prototype.BinaryTypes = [
-  'blob',
+  'blob', // Note: not sure what to do about this, since node doesn't have a Blob API
   'arraybuffer'
 ];
 
-DataChannel.prototype.send = function send() {
-
+DataChannel.prototype.send = function send(data) {
+  this._getDC().send(data);
 };
 
 DataChannel.prototype.close = function close() {

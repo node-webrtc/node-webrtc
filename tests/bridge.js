@@ -9,7 +9,7 @@ var answer = null;
 var remoteReceived = false;
 
 var dataChannelSettings = {
-  'unreliable': {
+  'reliable': {
         ordered: false,
         maxRetransmits: 0
       },
@@ -36,6 +36,7 @@ wss.on('connection', function(ws)
   function doComplete()
   {
     console.info('complete');
+    dataChannels['reliable'].send("fedcba");
   }
 
   function doHandleError(error)
