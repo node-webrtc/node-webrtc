@@ -24,6 +24,6 @@
     "postinstall": "make build"
   },
   "devDependencies": {
-    "ws": "~0.4.31",
+    "ws": "~0.4.31"
   }
 }
