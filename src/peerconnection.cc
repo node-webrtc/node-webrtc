@@ -110,9 +110,9 @@ PeerConnection::PeerConnection()
   _iceServers.push_back(iceServer);
 
   webrtc::FakeConstraints constraints;
-  constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, false);
+  constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, webrtc::MediaConstraintsInterface::kValueFalse);
   // constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableSctpDataChannels, true);
-  constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableRtpDataChannels, true);
+  constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableRtpDataChannels, webrtc::MediaConstraintsInterface::kValueTrue);
 
   _peerConnectionFactory = webrtc::CreatePeerConnectionFactory(
       _signalThread, _workerThread, NULL, NULL, NULL );
@@ -178,18 +178,37 @@ void PeerConnection::Run(uv_async_t* handle, int status)
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsuccess")));
       v8::Local<v8::Value> argv[0];
       callback->Call(pc, 0, argv);
-    } /*else if(PeerConnection::STATE_CHANGE & evt.type)
+    } else if(PeerConnection::SIGNALING_STATE_CHANGE & evt.type)
     {
-      PeerConnectionObserver::StateEvent* data = static_cast<PeerConnectionObserver::StateEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onstatechange")));
+      PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsignalingstatechange")));
       if(!callback.IsEmpty())
       {
-        v8::Local<v8::Value> argv[2];
-        argv[0] = Number::New(data->type);
-        argv[1] = Number::New(data->state);
-        callback->Call(pc, 2, argv);
+        v8::Local<v8::Value> argv[1];
+        argv[0] = Uint32::New(data->state);
+        callback->Call(pc, 1, argv);
       }
-    }*/ else if(PeerConnection::ICE_CANDIDATE & evt.type)
+    } else if(PeerConnection::ICE_CONNECTION_STATE_CHANGE & evt.type)
+    {
+      PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("oniceconnectionstatechange")));
+      if(!callback.IsEmpty())
+      {
+        v8::Local<v8::Value> argv[1];
+        argv[0] = Uint32::New(data->state);
+        callback->Call(pc, 1, argv);
+      }
+    } else if(PeerConnection::ICE_GATHERING_STATE_CHANGE & evt.type)
+    {
+      PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onicegatheringstatechange")));
+      if(!callback.IsEmpty())
+      {
+        v8::Local<v8::Value> argv[1];
+        argv[0] = Uint32::New(data->state);
+        callback->Call(pc, 1, argv);
+      }
+    } else if(PeerConnection::ICE_CANDIDATE & evt.type)
     {
       PeerConnection::IceEvent* data = static_cast<PeerConnection::IceEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onicecandidate")));
@@ -229,19 +248,22 @@ void PeerConnection::OnError() {
 
 void PeerConnection::OnSignalingChange( webrtc::PeerConnectionInterface::SignalingState new_state ) {
   TRACE_CALL;
-  printf("signaling state change: %d\n", new_state);
+  StateEvent* data = new StateEvent(static_cast<uint32_t>(new_state));
+  QueueEvent(PeerConnection::SIGNALING_STATE_CHANGE, static_cast<void*>(data));
   TRACE_END;
 }
 
 void PeerConnection::OnIceConnectionChange( webrtc::PeerConnectionInterface::IceConnectionState new_state ) {
   TRACE_CALL;
-  printf("ice connection state change: %d\n", new_state);
+  StateEvent* data = new StateEvent(static_cast<uint32_t>(new_state));
+  QueueEvent(PeerConnection::ICE_CONNECTION_STATE_CHANGE, static_cast<void*>(data));
   TRACE_END;
 }
 
 void PeerConnection::OnIceGatheringChange( webrtc::PeerConnectionInterface::IceGatheringState new_state ) {
   TRACE_CALL;
-  printf("ice gathering state change: %d\n", new_state);
+  StateEvent* data = new StateEvent(static_cast<uint32_t>(new_state));
+  QueueEvent(PeerConnection::ICE_GATHERING_STATE_CHANGE, static_cast<void*>(data));
   TRACE_END;
 }
 

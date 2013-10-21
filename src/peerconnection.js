@@ -283,23 +283,24 @@ function PeerConnection(configuration, constraints) {
 	};
 
 	this._pc.onsignalingstatchange = function onsignalingstatchange(state) {
-		stateString = that.RTCSignalingStates[state];
+		console.log("@@@");
 		if(that.onsignalingstatechange && typeof that.onsignalingstatechange == 'function') {
-			onsignalingstatechange.apply(that, [stateString]);
+			var stateString = that.RTCSignalingStates[state];
+			that.onsignalingstatechange.apply(that, [stateString]);
 		}
 	};
 
 	this._pc.oniceconnectionstatechange = function oniceconnectionstatechange(state) {
-		stateString = that.RTCSignalingStates[state];
 		if(that.oniceconnectionstatechange && typeof that.oniceconnectionstatechange == 'function') {
-			oniceconnectionstatechange.apply(that, [stateString]);
+			var stateString = that.RTCIceConnectionStates[state];
+			that.oniceconnectionstatechange.apply(that, [stateString]);
 		}
 	};
 
 	this._pc.onicegatheringstatechange = function onicegatheringstatechange(state) {
-		stateString = that.RTCSignalingStates[state];
 		if(that.onicegatheringstatechange && typeof that.onicegatheringstatechange == 'function') {
-			onicegatheringstatechange.apply(that, [stateString]);
+			var stateString = that.RTCIceGatheringStates[state];
+			that.onicegatheringstatechange.apply(that, [stateString]);
 		}
 	};
 

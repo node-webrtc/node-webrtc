@@ -131,6 +131,14 @@ wss.on('connection', function(ws)
       {
         console.info('signaling state change:', state);
       }
+      pc.oniceconnectionstatechange = function(state)
+      {
+        console.info('ice connection state change:', state);
+      }
+      pc.onicegatheringstatechange = function(state)
+      {
+        console.info('ice gathering state change:', state);
+      }
       pc.onicecandidate = function(candidate)
       {
         ws.send(JSON.stringify(
