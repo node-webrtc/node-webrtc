@@ -1,7 +1,9 @@
 {
   "name": "webrtc-p2p",
+  "description": "Standards-compliant WebRTC implementation for Node",
+  "keywords": ["webrtc", "p2p", "peer"],
   "version": "0.0.1",
-  "author": "Alan K <ack@modeswitch.org>",
+  "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "https://github.com/modeswitch/node-webrtc",
   "bugs": "https://github.com/modeswitch/node-webrtc/issues",
   "license": "BSD",
