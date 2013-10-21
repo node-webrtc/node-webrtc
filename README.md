@@ -1,3 +1,5 @@
+[![NPM](https://nodei.co/npm/webrtc-p2p.png?stars=true)](https://nodei.co/npm/webrtc-p2p/)
+
 prerequisites
 ----------
 
