@@ -1,13 +1,13 @@
 {
-  "name": "webrtc",
+  "name": "webrtc-p2p",
   "version": "0.0.1",
   "author": "Alan K <ack@modeswitch.org>",
-  "homepage": "https://github.com/js-platform/webrtc.node",
-  "bugs": "https://github.com/js-platform/webrtc.node/issues",
+  "homepage": "https://github.com/modeswitch/node-webrtc",
+  "bugs": "https://github.com/modeswitch/node-webrtc/issues",
   "license": "BSD",
   "repository": {
     "type": "git",
-    "url": "http://github.com/js-platform/webrtc.node.git"
+    "url": "http://github.com/modeswitch/node-webrtc.git"
   },
   "main": "./build/Release/webrtc.node",
   "engines": {
@@ -23,7 +23,5 @@
     "postinstall": "make build"
   },
   "devDependencies": {
-    "chai": "~1.8.1",
-    "mocha": "~1.13.0"
   }
 }
