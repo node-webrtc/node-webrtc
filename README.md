@@ -101,4 +101,4 @@ Note that the example is sending a string "abcdef" because RTP data channels don
 contributing
 ----------
 
-Test your patch to make sure it does what you expect, then add youself to the `AUTHORS` file and make a pull request.
+Test your patch to make sure it does what you expect and doesn't do what you don't expect, then add youself to the `AUTHORS` file and make a pull request.
