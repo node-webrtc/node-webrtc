@@ -1,5 +1,5 @@
 {
-  "name": "webrtc-p2p",
+  "name": "wrtc",
   "description": "Standards-compliant WebRTC implementation for Node",
   "keywords": ["webrtc", "p2p", "peer"],
   "version": "0.0.1",

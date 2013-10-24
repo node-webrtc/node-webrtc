@@ -1,4 +1,4 @@
-[![NPM](https://nodei.co/npm/webrtc-p2p.png?stars=true)](https://nodei.co/npm/webrtc-p2p/)
+[![NPM](https://nodei.co/npm/wrtc.png?stars=true)](https://nodei.co/npm/wrtc/)
 
 prerequisites
 ----------
