@@ -36,7 +36,8 @@ else
 
 var dataChannelSettings = {
   'reliable': {
-        reliable: true
+        outOfOrderAllowed: false,
+        maxRetransmitNum: 10
       },
   /*
   'reliable': {},
