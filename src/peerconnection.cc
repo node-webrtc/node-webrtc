@@ -140,10 +140,10 @@ void PeerConnection::QueueEvent(AsyncEventType type, void* data)
 void PeerConnection::Run(uv_async_t* handle, int status)
 {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
   PeerConnection* self = static_cast<PeerConnection*>(handle->data);
-  v8::Persistent<v8::Object> pc = self->handle_;
+  v8::Local<v8::Object> lpc = NanObjectWrapHandle(self);
 
   while(true)
   {
@@ -162,77 +162,77 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     if(PeerConnection::ERROR_EVENT & evt.type)
     {
       PeerConnection::ErrorEvent* data = static_cast<PeerConnection::ErrorEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onerror")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("onerror")));
       v8::Local<v8::Value> argv[1];
       argv[0] = Exception::Error(String::New(data->msg.c_str()));
-      callback->Call(pc, 1, argv);
+      callback->Call(lpc, 1, argv);
     } else if(PeerConnection::SDP_EVENT & evt.type)
     {
       PeerConnection::SdpEvent* data = static_cast<PeerConnection::SdpEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsuccess")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("onsuccess")));
       v8::Local<v8::Value> argv[1];
       argv[0] = String::New(data->desc.c_str());
-      callback->Call(pc, 1, argv);
+      callback->Call(lpc, 1, argv);
     } else if(PeerConnection::VOID_EVENT & evt.type)
     {
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsuccess")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("onsuccess")));
       v8::Local<v8::Value> argv[0];
-      callback->Call(pc, 0, argv);
+      callback->Call(lpc, 0, argv);
     } else if(PeerConnection::SIGNALING_STATE_CHANGE & evt.type)
     {
       PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsignalingstatechange")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("onsignalingstatechange")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
         argv[0] = Uint32::New(data->state);
-        callback->Call(pc, 1, argv);
+        callback->Call(lpc, 1, argv);
       }
     } else if(PeerConnection::ICE_CONNECTION_STATE_CHANGE & evt.type)
     {
       PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("oniceconnectionstatechange")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("oniceconnectionstatechange")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
         argv[0] = Uint32::New(data->state);
-        callback->Call(pc, 1, argv);
+        callback->Call(lpc, 1, argv);
       }
     } else if(PeerConnection::ICE_GATHERING_STATE_CHANGE & evt.type)
     {
       PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onicegatheringstatechange")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("onicegatheringstatechange")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
         argv[0] = Uint32::New(data->state);
-        callback->Call(pc, 1, argv);
+        callback->Call(lpc, 1, argv);
       }
     } else if(PeerConnection::ICE_CANDIDATE & evt.type)
     {
       PeerConnection::IceEvent* data = static_cast<PeerConnection::IceEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onicecandidate")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("onicecandidate")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[3];
         argv[0] = String::New(data->candidate.c_str());
         argv[1] = String::New(data->sdpMid.c_str());
         argv[2] = Integer::New(data->sdpMLineIndex);
-        callback->Call(pc, 3, argv);
+        callback->Call(lpc, 3, argv);
       }
     } else if(PeerConnection::NOTIFY_DATA_CHANNEL & evt.type)
     {
       webrtc::DataChannelInterface* dci = static_cast<webrtc::DataChannelInterface*>(evt.data);
       v8::Local<v8::Value> cargv[1];
       cargv[0] = v8::External::New(static_cast<void*>(dci));
-      v8::Local<v8::Value> dc = DataChannel::constructor->NewInstance(1, cargv);
+      v8::Local<v8::Value> dc = NanPersistentToLocal(DataChannel::constructor)->NewInstance(1, cargv);
 
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("ondatachannel")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("ondatachannel")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
         argv[0] = dc;
-        callback->Call(pc, 1, argv);
+        callback->Call(lpc, 1, argv);
       }
     }
     // FIXME: delete event
@@ -291,49 +291,48 @@ void PeerConnection::OnDataChannel( webrtc::DataChannelInterface* data_channel )
   TRACE_END;
 }
 
-Handle<Value> PeerConnection::New( const Arguments& args ) {
+NAN_METHOD(PeerConnection::New) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
   if(!args.IsConstructCall()) {
-    return ThrowException(Exception::TypeError(
-          String::New("Use the new operator to construct the PeerConnection.")));
+    return NanThrowTypeError("Use the new operator to construct the PeerConnection.");
   }
 
   PeerConnection* obj = new PeerConnection();
   obj->Wrap( args.This() );
 
   TRACE_END;
-  return scope.Close( args.This() );
+  NanReturnValue( args.This() );
 }
 
-Handle<Value> PeerConnection::CreateOffer( const Arguments& args ) {
+NAN_METHOD(PeerConnection::CreateOffer) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
 
   self->_internalPeerConnection->CreateOffer(self->_createOfferObserver, NULL);
 
   TRACE_END;
-  return scope.Close(Undefined());
+  NanReturnValue(Undefined());
 }
 
-Handle<Value> PeerConnection::CreateAnswer( const Arguments& args ) {
+NAN_METHOD(PeerConnection::CreateAnswer) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
 
   self->_internalPeerConnection->CreateAnswer(self->_createAnswerObserver, NULL);
 
   TRACE_END;
-  return scope.Close(Undefined());
+  NanReturnValue(Undefined());
 }
 
-Handle<Value> PeerConnection::SetLocalDescription( const Arguments& args ) {
+NAN_METHOD(PeerConnection::SetLocalDescription) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
   v8::Local<v8::Object> desc = v8::Local<v8::Object>::Cast(args[0]);
@@ -347,12 +346,12 @@ Handle<Value> PeerConnection::SetLocalDescription( const Arguments& args ) {
   self->_internalPeerConnection->SetLocalDescription(self->_setLocalDescriptionObserver, sdi);
 
   TRACE_END;
-  return scope.Close(Undefined());
+  NanReturnValue(Undefined());
 }
 
-Handle<Value> PeerConnection::SetRemoteDescription( const Arguments& args ) {
+NAN_METHOD(PeerConnection::SetRemoteDescription) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
   v8::Local<v8::Object> desc = v8::Local<v8::Object>::Cast(args[0]);
@@ -366,12 +365,12 @@ Handle<Value> PeerConnection::SetRemoteDescription( const Arguments& args ) {
   self->_internalPeerConnection->SetRemoteDescription(self->_setRemoteDescriptionObserver, sdi);
 
   TRACE_END;
-  return scope.Close(Undefined());
+  NanReturnValue(Undefined());
 }
 
-Handle<Value> PeerConnection::AddIceCandidate( const Arguments& args ) {
+NAN_METHOD(PeerConnection::AddIceCandidate) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
   Handle<Object> sdp = Handle<Object>::Cast(args[0]);
@@ -395,28 +394,28 @@ Handle<Value> PeerConnection::AddIceCandidate( const Arguments& args ) {
   }
 
   TRACE_END;
-  return scope.Close(Undefined());
+  NanReturnValue(Undefined());
 }
 
-Handle<Value> PeerConnection::UpdateIce( const Arguments& args ) {
+NAN_METHOD(PeerConnection::UpdateIce) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
   TRACE_END;
-  return scope.Close(Undefined());
+  NanReturnValue(Undefined());
 }
 
-Handle<Value> PeerConnection::Close( const Arguments& args ) {
+NAN_METHOD(PeerConnection::Close) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
   TRACE_END;
-  return scope.Close(Undefined());
+  NanReturnValue(Undefined());
 }
 
-Handle<Value> PeerConnection::GetLocalDescription( Local<String> property, const AccessorInfo& info ) {
+NAN_GETTER(PeerConnection::GetLocalDescription) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
-  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.Holder() );
   const webrtc::SessionDescriptionInterface* sdi = self->_internalPeerConnection->local_description();
 
   Handle<Value> value;
@@ -429,14 +428,14 @@ Handle<Value> PeerConnection::GetLocalDescription( Local<String> property, const
   }
 
   TRACE_END;
-  return scope.Close(value);
+  NanReturnValue(value);
 }
 
-Handle<Value> PeerConnection::GetRemoteDescription( Local<String> property, const AccessorInfo& info ) {
+NAN_GETTER(PeerConnection::GetRemoteDescription) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
-  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.Holder() );
   const webrtc::SessionDescriptionInterface* sdi = self->_internalPeerConnection->remote_description();
 
   Handle<Value> value;
@@ -449,46 +448,46 @@ Handle<Value> PeerConnection::GetRemoteDescription( Local<String> property, cons
   }
 
   TRACE_END;
-  return scope.Close(value);
+  NanReturnValue(value);
 }
 
-Handle<Value> PeerConnection::GetSignalingState( Local<String> property, const AccessorInfo& info ) {
+NAN_GETTER(PeerConnection::GetSignalingState) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
-  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.Holder() );
 
   webrtc::PeerConnectionInterface::SignalingState state = self->_internalPeerConnection->signaling_state();
 
   TRACE_END;
-  return scope.Close(Number::New(state));
+  NanReturnValue(Number::New(state));
 }
 
-Handle<Value> PeerConnection::GetIceConnectionState( Local<String> property, const AccessorInfo& info ) {
+NAN_GETTER(PeerConnection::GetIceConnectionState) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
-  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.Holder() );
 
   webrtc::PeerConnectionInterface::IceConnectionState state = self->_internalPeerConnection->ice_connection_state();
 
   TRACE_END;
-  return scope.Close(Number::New(state));
+  NanReturnValue(Number::New(state));
 }
 
-Handle<Value> PeerConnection::GetIceGatheringState( Local<String> property, const AccessorInfo& info ) {
+NAN_GETTER(PeerConnection::GetIceGatheringState) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
-  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( info.Holder() );
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.Holder() );
 
   webrtc::PeerConnectionInterface::IceGatheringState state = self->_internalPeerConnection->ice_gathering_state();
 
   TRACE_END;
-  return scope.Close(Number::New(static_cast<uint32_t>(state)));
+  NanReturnValue(Number::New(static_cast<uint32_t>(state)));
 }
 
-void PeerConnection::ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info ) {
+NAN_SETTER(PeerConnection::ReadOnly) {
   INFO("PeerConnection::ReadOnly");
 }
 
@@ -539,6 +538,6 @@ void PeerConnection::Init( Handle<Object> exports ) {
   tpl->InstanceTemplate()->SetAccessor(String::New("iceConnectionState"), GetIceConnectionState, ReadOnly);
   tpl->InstanceTemplate()->SetAccessor(String::New("iceGatheringState"), GetIceGatheringState, ReadOnly);
 
-  constructor = Persistent<Function>::New( tpl->GetFunction() );
-  exports->Set( String::NewSymbol("PeerConnection"), constructor );
+  NanAssignPersistent(Function, constructor,  tpl->GetFunction() );
+  exports->Set( String::NewSymbol("PeerConnection"), tpl->GetFunction() );
 }

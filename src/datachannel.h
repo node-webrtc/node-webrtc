@@ -4,8 +4,9 @@
 #include <queue>
 #include <string>
 
-#include <v8.h>
 #include <node.h>
+#include <v8.h>
+#include <node_object_wrap.h>
 #include <uv.h>
 
 #include "talk/app/webrtc/jsep.h"
@@ -15,6 +16,7 @@
 #include "webrtc/system_wrappers/interface/ref_count.h"
 
 #include "common.h"
+#include "nan.h"
 
 using namespace node;
 using namespace v8;
@@ -71,16 +73,16 @@ public:
   //
   static void Init( Handle<Object> exports );
   static Persistent<Function> constructor;
-  static Handle<Value> New( const Arguments& args );
+  static NAN_METHOD(New);
 
-  static Handle<Value> Send( const Arguments& args );
-  static Handle<Value> Close( const Arguments& args );
+  static NAN_METHOD(Send);
+  static NAN_METHOD(Close);
 
-  static Handle<Value> GetLabel( Local<String> property, const AccessorInfo& info );
-  static Handle<Value> GetBinaryType( Local<String> property, const AccessorInfo& info );
-  static Handle<Value> GetReadyState( Local<String> property, const AccessorInfo& info );
-  static void SetBinaryType( Local<String> property, Local<Value> value, const AccessorInfo& info );
-  static void ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info );
+  static NAN_GETTER(GetLabel);
+  static NAN_GETTER(GetBinaryType);
+  static NAN_GETTER(GetReadyState);
+  static NAN_SETTER(SetBinaryType);
+  static NAN_SETTER(ReadOnly);
 
   void QueueEvent(DataChannel::AsyncEventType type, void* data);
 

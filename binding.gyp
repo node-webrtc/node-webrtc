@@ -63,6 +63,7 @@
         'DYNAMIC_ANNOTATIONS_ENABLED=0'
       ],
       'include_dirs': [
+        "<!(node -p -e \"require('path').relative('.', require('path').dirname(require.resolve('nan')))\")",
         '<(libwebrtc)',
         '<(libwebrtc)/third_party/webrtc',
         '<(libwebrtc)/third_party/webrtc/system_wrappers/interface',

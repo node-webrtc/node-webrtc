@@ -17,7 +17,8 @@
   },
   "dependencies": {
     "bindings": "~1.1.1",
-    "node-gyp": "~0.10.10"
+    "node-gyp": "~0.10.10",
+    "nan": "~0.4.1"
   },
   "scripts": {
     "preinstall": "make prepare_env build_deps",
