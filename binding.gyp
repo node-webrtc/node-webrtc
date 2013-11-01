@@ -110,7 +110,8 @@
               '../<(libwebrtc_out)/third_party/opus/libopus.a',
               '../<(libwebrtc_out)/third_party/protobuf/libprotobuf_lite.a',
               '../<(libwebrtc_out)/webrtc/system_wrappers/source/libsystem_wrappers.a',
-              '../<(libwebrtc_out)/third_party/openssl/libopenssl.a',
+              #'../<(libwebrtc_out)/third_party/openssl/libopenssl.a',
+              '-lssl',
               #'-Wl,-Bdynamic',
               '-lX11',
             ]
