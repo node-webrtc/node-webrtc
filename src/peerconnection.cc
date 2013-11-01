@@ -143,7 +143,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
   NanScope();
 
   PeerConnection* self = static_cast<PeerConnection*>(handle->data);
-  v8::Local<v8::Object> lpc = NanObjectWrapHandle(self);
+  v8::Local<v8::Object> pc = NanObjectWrapHandle(self);
 
   while(true)
   {
@@ -162,63 +162,63 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     if(PeerConnection::ERROR_EVENT & evt.type)
     {
       PeerConnection::ErrorEvent* data = static_cast<PeerConnection::ErrorEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("onerror")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onerror")));
       v8::Local<v8::Value> argv[1];
       argv[0] = Exception::Error(String::New(data->msg.c_str()));
-      callback->Call(lpc, 1, argv);
+      callback->Call(pc, 1, argv);
     } else if(PeerConnection::SDP_EVENT & evt.type)
     {
       PeerConnection::SdpEvent* data = static_cast<PeerConnection::SdpEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("onsuccess")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsuccess")));
       v8::Local<v8::Value> argv[1];
       argv[0] = String::New(data->desc.c_str());
-      callback->Call(lpc, 1, argv);
+      callback->Call(pc, 1, argv);
     } else if(PeerConnection::VOID_EVENT & evt.type)
     {
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("onsuccess")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsuccess")));
       v8::Local<v8::Value> argv[0];
-      callback->Call(lpc, 0, argv);
+      callback->Call(pc, 0, argv);
     } else if(PeerConnection::SIGNALING_STATE_CHANGE & evt.type)
     {
       PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("onsignalingstatechange")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsignalingstatechange")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
         argv[0] = Uint32::New(data->state);
-        callback->Call(lpc, 1, argv);
+        callback->Call(pc, 1, argv);
       }
     } else if(PeerConnection::ICE_CONNECTION_STATE_CHANGE & evt.type)
     {
       PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("oniceconnectionstatechange")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("oniceconnectionstatechange")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
         argv[0] = Uint32::New(data->state);
-        callback->Call(lpc, 1, argv);
+        callback->Call(pc, 1, argv);
       }
     } else if(PeerConnection::ICE_GATHERING_STATE_CHANGE & evt.type)
     {
       PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("onicegatheringstatechange")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onicegatheringstatechange")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
         argv[0] = Uint32::New(data->state);
-        callback->Call(lpc, 1, argv);
+        callback->Call(pc, 1, argv);
       }
     } else if(PeerConnection::ICE_CANDIDATE & evt.type)
     {
       PeerConnection::IceEvent* data = static_cast<PeerConnection::IceEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("onicecandidate")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onicecandidate")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[3];
         argv[0] = String::New(data->candidate.c_str());
         argv[1] = String::New(data->sdpMid.c_str());
         argv[2] = Integer::New(data->sdpMLineIndex);
-        callback->Call(lpc, 3, argv);
+        callback->Call(pc, 3, argv);
       }
     } else if(PeerConnection::NOTIFY_DATA_CHANNEL & evt.type)
     {
@@ -227,12 +227,12 @@ void PeerConnection::Run(uv_async_t* handle, int status)
       cargv[0] = v8::External::New(static_cast<void*>(dci));
       v8::Local<v8::Value> dc = NanPersistentToLocal(DataChannel::constructor)->NewInstance(1, cargv);
 
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(lpc->Get(String::New("ondatachannel")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("ondatachannel")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
         argv[0] = dc;
-        callback->Call(lpc, 1, argv);
+        callback->Call(pc, 1, argv);
       }
     }
     // FIXME: delete event

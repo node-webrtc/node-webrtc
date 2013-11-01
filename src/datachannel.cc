@@ -70,7 +70,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
   TRACE_CALL;
   NanScope();
   DataChannel* self = static_cast<DataChannel*>(handle->data);
-  v8::Local<v8::Object> ldc = NanObjectWrapHandle(self);
+  v8::Local<v8::Object> dc = NanObjectWrapHandle(self);
 
   while(true)
   {
@@ -89,19 +89,19 @@ void DataChannel::Run(uv_async_t* handle, int status)
     if(DataChannel::ERROR & evt.type)
     {
       DataChannel::ErrorEvent* data = static_cast<DataChannel::ErrorEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ldc->Get(String::New("onerror")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(String::New("onerror")));
       v8::Local<v8::Value> argv[1];
       argv[0] = Exception::Error(String::New(data->msg.c_str()));
-      callback->Call(ldc, 1, argv);
+      callback->Call(dc, 1, argv);
     } else if(DataChannel::STATE & evt.type)
     {
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ldc->Get(String::New("onstatechange")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(String::New("onstatechange")));
       v8::Local<v8::Value> argv[0];
-      callback->Call(ldc, 0, argv);
+      callback->Call(dc, 0, argv);
     } else if(DataChannel::MESSAGE & evt.type)
     {
       MessageEvent* data = static_cast<MessageEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ldc->Get(String::New("onmessage")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(String::New("onmessage")));
 
       Local<Object> array = NanPersistentToLocal(ArrayBufferConstructor)->NewInstance();
       array->SetIndexedPropertiesToExternalArrayData(data->message, v8::kExternalByteArray, data->size);
@@ -112,7 +112,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
 
       v8::Local<v8::Value> argv[1];
       argv[0] = array;
-      callback->Call(ldc, 1, argv);
+      callback->Call(dc, 1, argv);
     }
     // FIXME: delete event
   }

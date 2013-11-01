@@ -74,7 +74,9 @@ class SetRemoteDescriptionObserver :
     virtual void OnFailure( const std::string& msg );
 };
 
-class PeerConnection : public ObjectWrap, public webrtc::PeerConnectionObserver
+class PeerConnection
+: public ObjectWrap,
+  public webrtc::PeerConnectionObserver
 {
 
 public:
