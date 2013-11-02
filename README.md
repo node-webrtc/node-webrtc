@@ -93,6 +93,9 @@ ice connection state change:  checking peer.js:84
 ice connection state change:  connected peer.js:84
 onopen peer.js:117
 complete
+onmessage 
+MessageEvent {ports: Array[0], data: "fedcba", source: null, lastEventId: "", origin: ""…}
+ peer.js:128
 ````
 
 Note that the example is sending a string "abcdef" because RTP data channels don't support arraybuffers yet. This will change when we get SCTP data channels.
