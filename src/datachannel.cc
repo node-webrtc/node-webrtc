@@ -70,7 +70,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
   TRACE_CALL;
   NanScope();
   DataChannel* self = static_cast<DataChannel*>(handle->data);
-  v8::Local<v8::Object> dc = NanObjectWrapHandle(self);
+  v8::Handle<v8::Object> dc = NanObjectWrapHandle(self);
 
   while(true)
   {

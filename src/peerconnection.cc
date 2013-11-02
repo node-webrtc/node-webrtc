@@ -143,7 +143,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
   NanScope();
 
   PeerConnection* self = static_cast<PeerConnection*>(handle->data);
-  v8::Local<v8::Object> pc = NanObjectWrapHandle(self);
+  v8::Handle<v8::Object> pc = NanObjectWrapHandle(self);
 
   while(true)
   {
