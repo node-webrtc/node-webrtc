@@ -4,8 +4,9 @@
 #include <queue>
 #include <string>
 
-#include <v8.h>
 #include <node.h>
+#include <v8.h>
+#include <node_object_wrap.h>
 #include <uv.h>
 
 #include "talk/app/webrtc/jsep.h"
@@ -15,6 +16,7 @@
 #include "webrtc/system_wrappers/interface/ref_count.h"
 
 #include "common.h"
+#include "nan.h"
 
 using namespace node;
 using namespace v8;
@@ -173,22 +175,22 @@ public:
   //
   static void Init( Handle<Object> exports );
   static Persistent<Function> constructor;
-  static Handle<Value> New( const Arguments& args );
+  static NAN_METHOD(New);
 
-  static Handle<Value> CreateOffer( const Arguments& args );
-  static Handle<Value> CreateAnswer( const Arguments& args );
-  static Handle<Value> SetLocalDescription( const Arguments& args );
-  static Handle<Value> SetRemoteDescription( const Arguments& args );
-  static Handle<Value> UpdateIce( const Arguments& args );
-  static Handle<Value> AddIceCandidate( const Arguments& args );
-  static Handle<Value> Close( const Arguments& args );
+  static NAN_METHOD(CreateOffer);
+  static NAN_METHOD(CreateAnswer);
+  static NAN_METHOD(SetLocalDescription);
+  static NAN_METHOD(SetRemoteDescription);
+  static NAN_METHOD(UpdateIce);
+  static NAN_METHOD(AddIceCandidate);
+  static NAN_METHOD(Close);
 
-  static Handle<Value> GetLocalDescription( Local<String> property, const AccessorInfo& info );
-  static Handle<Value> GetRemoteDescription( Local<String> property, const AccessorInfo& info );
-  static Handle<Value> GetIceConnectionState( Local<String> property, const AccessorInfo& info );
-  static Handle<Value> GetSignalingState( Local<String> property, const AccessorInfo& info );
-  static Handle<Value> GetIceGatheringState( Local<String> property, const AccessorInfo& info );
-  static void ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info );
+  static NAN_GETTER(GetLocalDescription);
+  static NAN_GETTER(GetRemoteDescription);
+  static NAN_GETTER(GetIceConnectionState);
+  static NAN_GETTER(GetSignalingState);
+  static NAN_GETTER(GetIceGatheringState);
+  static NAN_SETTER(ReadOnly);
 
   void QueueEvent(AsyncEventType type, void* data);
 
