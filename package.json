@@ -2,7 +2,7 @@
   "name": "wrtc",
   "description": "Standards-compliant WebRTC implementation for Node",
   "keywords": ["webrtc", "p2p", "peer"],
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "https://github.com/modeswitch/node-webrtc",
   "bugs": "https://github.com/modeswitch/node-webrtc/issues",
@@ -22,5 +22,8 @@
   },
   "devDependencies": {
     "ws": "~0.4.31"
+  },
+  "scripts": {
+    "install": "node build.js"
   }
 }
