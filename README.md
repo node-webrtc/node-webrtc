@@ -34,20 +34,6 @@ npm install
 
 * Firefox is not yet supported due to lack of SCTP data channel support (see above).
 
-* You can build with debug symbols and asserts by substituting `Debug` for `Release`:
-
-        ````
-        ninja -C trunk/out/Debug peerconnection_client
-        ````
-        To link against the debug objects, you will need to edit `binding.gyp` and change this line:
-        ````
-        'libwebrtc_out%': '<(libwebrtc)/out/Release/obj',
-        ````
-        to
-        ````
-        'libwebrtc_out%': '<(libwebrtc)/out/Debug/obj',
-        ````
-
 ### Tests
 
 Once everything is built, try `node tests/test.js` as a sanity check. You can run the data channel demo by `node tests/bridge.js` and browsing to `tests/peer.html` in `chrome --enable-data-channels`. You can pass an alternate port to the node script by `node tests/bridge.js <port>`. If the bridge and peer are on different machines, you can pass the bridge address to the peer by `http://<yourmachine>/peer.html?<host:port>`.
