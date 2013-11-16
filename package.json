@@ -2,7 +2,7 @@
   "name": "wrtc",
   "description": "Standards-compliant WebRTC implementation for Node",
   "keywords": ["webrtc", "p2p", "peer"],
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "http://modeswitch.github.io/node-webrtc/",
   "bugs": "https://github.com/modeswitch/node-webrtc/issues",
