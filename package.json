@@ -19,7 +19,9 @@
     "node-gyp": "~0.10.10"
   },
   "devDependencies": {
-    "tape": "~2.0.0"
+    "tape": "~2.0.0",
+    "rtc": "~0.5.5",
+    "messenger-memory": "~0.1.1"
   },
   "scripts": {
     "test": "node test/all.js"
