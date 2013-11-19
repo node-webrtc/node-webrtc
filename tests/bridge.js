@@ -9,7 +9,7 @@ var answer = null;
 var remoteReceived = false;
 
 var dataChannelSettings = {
-  'unreliable': {
+  'reliable': {
         ordered: false,
         maxRetransmits: 0
       },
@@ -36,6 +36,7 @@ wss.on('connection', function(ws)
   function doComplete()
   {
     console.info('complete');
+    dataChannels['reliable'].send("fedcba");
   }
 
   function doHandleError(error)
@@ -130,6 +131,14 @@ wss.on('connection', function(ws)
       pc.onsignalingstatechange = function(state)
       {
         console.info('signaling state change:', state);
+      }
+      pc.oniceconnectionstatechange = function(state)
+      {
+        console.info('ice connection state change:', state);
+      }
+      pc.onicegatheringstatechange = function(state)
+      {
+        console.info('ice gathering state change:', state);
       }
       pc.onicecandidate = function(candidate)
       {

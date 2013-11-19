@@ -36,7 +36,8 @@ else
 
 var dataChannelSettings = {
   'reliable': {
-        reliable: true
+        outOfOrderAllowed: false,
+        maxRetransmitNum: 10
       },
   /*
   'reliable': {},
@@ -73,7 +74,7 @@ var pc = new RTCPeerConnection(
     iceServers: [{url:'stun:stun.l.google.com:19302'}]
   },
   {
-    'optional': [{DtlsSrtpKeyAgreement: false},
+    'optional': [{DtlsSrtpKeyAgreement: true},
                  {RtpDataChannels: true}]
   }
 );
@@ -122,6 +123,9 @@ function doCreateDataChannels()
       if(Object.keys(dataChannels).length === labels.length) {
         doComplete();
       }
+    };
+    channel.onmessage = function(message) {
+      console.log('onmessage', message);
     };
     channel.onclose = function(event) {
       console.info('onclose');

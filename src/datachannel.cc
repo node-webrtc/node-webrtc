@@ -32,13 +32,12 @@ DataChannel::~DataChannel()
 
 }
 
-Handle<Value> DataChannel::New( const Arguments& args ) {
+NAN_METHOD(DataChannel::New) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
   if(!args.IsConstructCall()) {
-    return ThrowException(Exception::TypeError(
-          String::New("Use the new operator to construct the DataChannel.")));
+    return NanThrowTypeError("Use the new operator to construct the DataChannel.");
   }
 
   v8::Local<v8::External> _dci = v8::Local<v8::External>::Cast(args[0]);
@@ -49,7 +48,7 @@ Handle<Value> DataChannel::New( const Arguments& args ) {
   obj->Wrap( args.This() );
 
   TRACE_END;
-  return scope.Close( args.This() );
+  NanReturnValue( args.This() );
 }
 
 void DataChannel::QueueEvent(AsyncEventType type, void* data)
@@ -69,9 +68,9 @@ void DataChannel::QueueEvent(AsyncEventType type, void* data)
 void DataChannel::Run(uv_async_t* handle, int status)
 {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
   DataChannel* self = static_cast<DataChannel*>(handle->data);
-  v8::Persistent<v8::Object> dc = self->handle_;
+  v8::Handle<v8::Object> dc = NanObjectWrapHandle(self);
 
   while(true)
   {
@@ -104,7 +103,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
       MessageEvent* data = static_cast<MessageEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(String::New("onmessage")));
 
-      Local<Object> array = ArrayBufferConstructor->NewInstance();
+      Local<Object> array = NanPersistentToLocal(ArrayBufferConstructor)->NewInstance();
       array->SetIndexedPropertiesToExternalArrayData(data->message, v8::kExternalByteArray, data->size);
       Local<String> byteLenghtKey = String::New("byteLength");
       Local<Integer> byteLengthValue = Uint32::New(data->size);
@@ -136,70 +135,75 @@ void DataChannel::OnMessage(const webrtc::DataBuffer& buffer)
   TRACE_END;
 }
 
-Handle<Value> DataChannel::Send( const Arguments& args ) {
+NAN_METHOD(DataChannel::Send) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
+
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
+  v8::Local<v8::String> _data = v8::Local<v8::String>::Cast(args[0]);
+  std::string data = *v8::String::Utf8Value(_data);
+
+  webrtc::DataBuffer buffer(data);
+  self->_internalDataChannel->Send(buffer);
+
+  TRACE_END;
+  NanReturnValue(Undefined());
+}
+
+NAN_METHOD(DataChannel::Close) {
+  TRACE_CALL;
+  NanScope();
 
   DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
 
   TRACE_END;
-  return scope.Close(Undefined());
+  NanReturnValue(Undefined());
 }
 
-Handle<Value> DataChannel::Close( const Arguments& args ) {
+NAN_GETTER(DataChannel::GetLabel) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
-  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
-
-  TRACE_END;
-  return scope.Close(Undefined());
-}
-
-Handle<Value> DataChannel::GetLabel( Local<String> property, const AccessorInfo& info ) {
-  TRACE_CALL;
-  HandleScope scope;
-
-  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( info.Holder() );
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.Holder() );
 
   std::string label = self->_internalDataChannel->label();
 
   TRACE_END;
-  return scope.Close(String::New(label.c_str()));
+  NanReturnValue(String::New(label.c_str()));
 }
 
-Handle<Value> DataChannel::GetReadyState( Local<String> property, const AccessorInfo& info ) {
+NAN_GETTER(DataChannel::GetReadyState) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
-  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( info.Holder() );
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.Holder() );
 
   webrtc::DataChannelInterface::DataState state = self->_internalDataChannel->state();
 
   TRACE_END;
-  return scope.Close(Number::New(static_cast<uint32_t>(state)));
+  NanReturnValue(Number::New(static_cast<uint32_t>(state)));
 }
 
-Handle<Value> DataChannel::GetBinaryType( Local<String> property, const AccessorInfo& info ) {
+NAN_GETTER(DataChannel::GetBinaryType) {
   TRACE_CALL;
-  HandleScope scope;
+  NanScope();
 
-  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( info.Holder() );
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.Holder() );
 
   TRACE_END;
-  return scope.Close(Number::New(static_cast<uint32_t>(self->_binaryType)));
+  NanReturnValue(Number::New(static_cast<uint32_t>(self->_binaryType)));
 }
 
-void DataChannel::SetBinaryType( Local<String> property, Local<Value> value, const AccessorInfo& info ) {
-  TRACE_CALL
+NAN_SETTER(DataChannel::SetBinaryType) {
+  TRACE_CALL;
 
-  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( info.Holder() );
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.Holder() );
   self->_binaryType = static_cast<BinaryType>(value->Uint32Value());
 
-  TRACE_END
+  TRACE_END;
 }
 
-void DataChannel::ReadOnly( Local<String> property, Local<Value> value, const AccessorInfo& info ) {
+NAN_SETTER(DataChannel::ReadOnly) {
   INFO("PeerConnection::ReadOnly");
 }
 
@@ -217,10 +221,10 @@ void DataChannel::Init( Handle<Object> exports ) {
   tpl->InstanceTemplate()->SetAccessor(String::New("binaryType"), GetBinaryType, SetBinaryType);
   tpl->InstanceTemplate()->SetAccessor(String::New("readyState"), GetReadyState, ReadOnly);
 
-  constructor = Persistent<Function>::New( tpl->GetFunction() );
-  exports->Set( String::NewSymbol("DataChannel"), constructor );
+  NanAssignPersistent(Function, constructor, tpl->GetFunction());
+  exports->Set( String::NewSymbol("DataChannel"), tpl->GetFunction() );
 
   v8::Local<v8::Object> global = v8::Context::GetCurrent()->Global();
   v8::Local<v8::Value> obj = global->Get(v8::String::New("ArrayBuffer"));
-  ArrayBufferConstructor = Persistent<Function>::New(obj.As<Function>());
+  NanAssignPersistent(Function, ArrayBufferConstructor, obj.As<Function>());
 }

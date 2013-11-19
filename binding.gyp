@@ -63,6 +63,7 @@
         'DYNAMIC_ANNOTATIONS_ENABLED=0'
       ],
       'include_dirs': [
+        "<!(node -p -e \"require('path').relative('.', require('path').dirname(require.resolve('nan')))\")",
         '<(libwebrtc)',
         '<(libwebrtc)/third_party/webrtc',
         '<(libwebrtc)/third_party/webrtc/system_wrappers/interface',
@@ -110,7 +111,8 @@
               '../<(libwebrtc_out)/third_party/opus/libopus.a',
               '../<(libwebrtc_out)/third_party/protobuf/libprotobuf_lite.a',
               '../<(libwebrtc_out)/webrtc/system_wrappers/source/libsystem_wrappers.a',
-              '../<(libwebrtc_out)/third_party/openssl/libopenssl.a',
+              #'../<(libwebrtc_out)/third_party/openssl/libopenssl.a',
+              '-lssl',
               #'-Wl,-Bdynamic',
               '-lX11',
             ]
@@ -151,7 +153,8 @@
               '../<(libwebrtc_out)/../libvideo_render_module.a',
               '../<(libwebrtc_out)/../libvoice_engine.a',
               '../<(libwebrtc_out)/../libwebrtc_opus.a',
-              '../<(libwebrtc_out)/../libwebrtc_utility.a'
+              '../<(libwebrtc_out)/../libwebrtc_utility.a',
+              '-lssl'
             ]
           }],
         ],

@@ -3,6 +3,7 @@ var _webrtc = require('bindings')('webrtc.node');
 var RTCSessionDescription = require('./sessiondescription');
 var RTCIceCandidate = require('./icecandidate');
 var RTCError = require('./error');
+var RTCDataChannel = require('./datachannel');
 
 
 function PeerConnection(configuration, constraints) {
@@ -40,22 +41,22 @@ function PeerConnection(configuration, constraints) {
   };
 
   this._pc.onsignalingstatchange = function onsignalingstatchange(state) {
-    stateString = that.RTCSignalingStates[state];
     if(that.onsignalingstatechange && typeof that.onsignalingstatechange == 'function') {
+      stateString = that.RTCSignalingStates[state];
       onsignalingstatechange.apply(that, [stateString]);
     }
   };
 
   this._pc.oniceconnectionstatechange = function oniceconnectionstatechange(state) {
-    stateString = that.RTCSignalingStates[state];
     if(that.oniceconnectionstatechange && typeof that.oniceconnectionstatechange == 'function') {
+      stateString = that.RTCSignalingStates[state];
       oniceconnectionstatechange.apply(that, [stateString]);
     }
   };
 
   this._pc.onicegatheringstatechange = function onicegatheringstatechange(state) {
-    stateString = that.RTCSignalingStates[state];
     if(that.onicegatheringstatechange && typeof that.onicegatheringstatechange == 'function') {
+      stateString = that.RTCSignalingStates[state];
       onicegatheringstatechange.apply(that, [stateString]);
     }
   };

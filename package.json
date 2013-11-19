@@ -1,13 +1,15 @@
 {
-  "name": "webrtc",
-  "version": "0.0.1",
-  "author": "Alan K <ack@modeswitch.org>",
-  "homepage": "https://github.com/js-platform/webrtc.node",
-  "bugs": "https://github.com/js-platform/webrtc.node/issues",
+  "name": "wrtc",
+  "description": "Standards-compliant WebRTC implementation for Node",
+  "keywords": ["webrtc", "p2p", "peer"],
+  "version": "0.0.4",
+  "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
+  "homepage": "http://modeswitch.github.io/node-webrtc/",
+  "bugs": "https://github.com/modeswitch/node-webrtc/issues",
   "license": "BSD",
   "repository": {
     "type": "git",
-    "url": "http://github.com/js-platform/webrtc.node.git"
+    "url": "http://github.com/modeswitch/node-webrtc.git"
   },
   "main": "./build/Release/webrtc.node",
   "engines": {
@@ -15,15 +17,17 @@
   },
   "dependencies": {
     "bindings": "~1.1.1",
-    "ws": "~0.4.31",
-    "node-gyp": "~0.10.10"
+    "node-gyp": "~0.10.10",
+    "nan": "~0.4.4"
   },
   "devDependencies": {
     "tape": "~2.0.0",
     "rtc": "~0.5.5",
+    "ws": "~0.4.31",
     "messenger-memory": "~0.1.1"
   },
   "scripts": {
-    "test": "node test/all.js"
+    "test": "node test/all.js",
+    "install": "node build.js"
   }
 }

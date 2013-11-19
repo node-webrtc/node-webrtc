@@ -1,55 +1,40 @@
-prerequisites
-----------
+[![NPM](https://nodei.co/npm/wrtc.png?stars=true)](https://nodei.co/npm/wrtc/)
 
-* Linux (I'm using Arch, but others should also be OK)
-* Latest Chrome dev (32)
-  * Launch with `--enable-data-channels`
+### Contributing
 
-Note that we're using RTP data channels because SCTP data channels aren't enabled yet in libjingle due to stability. See this [issue](https://code.google.com/p/webrtc/issues/detail?id=2253).
+The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/modeswitch/node-webrtc/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet.
 
-libwebrtc stuff
-----------
+Once you've done some hacking and you'd like to have your work merged, you'll need to make a pull request. If you're patch includes code, make sure to check that all the unit tests pass, including any new tests you wrote. Finally, make sure you add yourself to the `AUTHORS` file.
 
-To build libjingle (from top-level directory):
+### Getting Started
 
-1. Grab the depot tools (they may already be checked in, so you could skip this)
+You will need to set up `depot_tools` on your machine before you begin. Instructions are [here](http://www.chromium.org/developers/how-tos/install-depot-tools).
+
+The easiest way to install is via npm:
+
 ````
-git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git tools/depot_tools
-export PATH=`pwd`/tools/depot_tools:$PATH
+npm install wrtc
 ````
 
-2. Get/update/build libwebrtc
+If you want to work from source:
+
 ````
-mkdir -p lib/libwebrtc
-cd lib/libwebrtc
-export GYP_GENERATORS="ninja"
-gclient config http://webrtc.googlecode.com/svn/trunk
-gclient sync --revision r4999
-gclient runhooks
-ninja -C trunk/out/Release peerconnection_client
-````
-Note that you can build with debug symbols and asserts by substituting `Debug` for `Release`:
-````
-ninja -C trunk/out/Debug peerconnection_client
-````
-To link against the debug objects, you will need to edit `binding.gyp` and change this line:
-````
-'libwebrtc_out%': '<(libwebrtc)/out/Release/obj',
-````
-to
-````
-'libwebrtc_out%': '<(libwebrtc)/out/Debug/obj',
+git clone git@github.com:modeswitch/node-webrtc.git
+cd node-webrtc
+npm install
 ````
 
-3. Build node-webrtc native module and run the sanity test
-````
-node-gyp --debug rebuild
-node tests/test.js
-````
+#### Notes
 
+* Development is focused on Linux and OSX at the moment. If you're on another platform, but build process may not work for you. Feel free to comment on existing issues or open new issues and add the specific problems you're having.
 
-tests
-----------
+* Only RTP data channels are supported at the moment. There's an open issue in `libjingle` and I'm working on fixing it so that I can enable SCTP data channels. See [#5](https://github.com/modeswitch/node-webrtc/issues/5) for more details.
+
+* You will need to use the latest version of Chrome and launch it with `--enable-data-channels`.
+
+* Firefox is not yet supported due to lack of SCTP data channel support (see above).
+
+### Tests
 
 Once everything is built, try `node tests/test.js` as a sanity check. You can run the data channel demo by `node tests/bridge.js` and browsing to `tests/peer.html` in `chrome --enable-data-channels`. You can pass an alternate port to the node script by `node tests/bridge.js <port>`. If the bridge and peer are on different machines, you can pass the bridge address to the peer by `http://<yourmachine>/peer.html?<host:port>`.
 
@@ -91,6 +76,9 @@ ice connection state change:  checking peer.js:84
 ice connection state change:  connected peer.js:84
 onopen peer.js:117
 complete
+onmessage
+MessageEvent {ports: Array[0], data: "fedcba", source: null, lastEventId: "", origin: ""…}
+ peer.js:128
 ````
 
 Note that the example is sending a string "abcdef" because RTP data channels don't support arraybuffers yet. This will change when we get SCTP data channels.
