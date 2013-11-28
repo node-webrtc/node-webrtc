@@ -1,7 +1,11 @@
 {
   "name": "wrtc",
   "description": "Standards-compliant WebRTC implementation for Node",
-  "keywords": ["webrtc", "p2p", "peer"],
+  "keywords": [
+    "webrtc",
+    "p2p",
+    "peer"
+  ],
   "version": "0.0.4",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "http://modeswitch.github.io/node-webrtc/",
@@ -21,10 +25,11 @@
     "nan": "~0.4.4"
   },
   "devDependencies": {
-    "tape": "~2.0.0",
-    "rtc": "~0.5.5",
+    "tape": "~2.3.0",
+    "rtc": "~0.10.3",
     "ws": "~0.4.31",
-    "messenger-memory": "~0.1.1"
+    "messenger-memory": "~0.1.1",
+    "rtc-signaller": "~0.9.0"
   },
   "scripts": {
     "test": "node test/all.js",
