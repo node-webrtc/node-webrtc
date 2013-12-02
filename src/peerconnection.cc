@@ -110,7 +110,7 @@ PeerConnection::PeerConnection()
   _iceServers.push_back(iceServer);
 
   webrtc::FakeConstraints constraints;
-  constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, webrtc::MediaConstraintsInterface::kValueFalse);
+  constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, webrtc::MediaConstraintsInterface::kValueTrue);
   // constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableSctpDataChannels, true);
   constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableRtpDataChannels, webrtc::MediaConstraintsInterface::kValueTrue);
 
