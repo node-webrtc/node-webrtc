@@ -2,14 +2,14 @@
   "name": "wrtc",
   "description": "Standards-compliant WebRTC implementation for Node",
   "keywords": ["webrtc", "p2p", "peer"],
-  "version": "0.0.5",
+  "version": "0.0.6",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
-  "homepage": "http://modeswitch.github.io/node-webrtc/",
-  "bugs": "https://github.com/modeswitch/node-webrtc/issues",
+  "homepage": "http://js-platform.github.io/node-webrtc/",
+  "bugs": "https://github.com/js-platform/node-webrtc/issues",
   "license": "BSD",
   "repository": {
     "type": "git",
-    "url": "http://github.com/modeswitch/node-webrtc.git"
+    "url": "http://github.com/js-platform/node-webrtc.git"
   },
   "main": "./build/Release/webrtc.node",
   "engines": {
