@@ -1,5 +1,6 @@
 var test = require('tape');
 var RTCPeerConnection = require('../peerconnection');
+var RTCSessionDescription = require('../sessiondescription');
 var peer;
 var localDesc;
 
@@ -9,12 +10,7 @@ test('create a peer connection', function(t) {
   t.ok(peer instanceof RTCPeerConnection, 'created');
 });
 
-test('createOffer function implemented', function(t) {
-  t.plan(1);
-  t.equal(typeof peer.createOffer, 'function', 'implemented');
-});
-
-test('can call createOffer', function(t) {
+test('createOffer', function(t) {
 
   var fail = t.ifError.bind(t);
 
@@ -32,12 +28,7 @@ test('can call createOffer', function(t) {
   peer.createOffer(pass, fail);
 });
 
-test('setLocalDescription function implemented', function(t) {
-  t.plan(1);
-  t.equal(typeof peer.setLocalDescription, 'function', 'implemented');
-});
-
-test('can call setLocalDescription', function(t) {
+test('setLocalDescription with a created RTCSessionDescription', function(t) {
   var fail = t.ifError.bind(t);
 
   function pass() {
@@ -46,7 +37,11 @@ test('can call setLocalDescription', function(t) {
   }
 
   t.plan(2);
-  peer.setLocalDescription(localDesc, pass, fail);
+  peer.setLocalDescription(
+    new RTCSessionDescription({ sdp: localDesc.sdp, type: 'offer' }),
+    pass,
+    fail
+  );
 });
 
 test('TODO: cleanup connection', function(t) {
