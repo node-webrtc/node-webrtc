@@ -397,6 +397,18 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
   NanReturnValue(Undefined());
 }
 
+NAN_METHOD(PeerConnection::CreateDataChannel) {
+  TRACE_CALL;
+  NanScope();
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  v8::String::Utf8Value label(args[0]->ToString());
+  Handle<Object> dataChannelDict = Handle<Object>::Cast(args[1]);
+
+  TRACE_END;
+  NanReturnValue(Undefined());
+}
+
 NAN_METHOD(PeerConnection::UpdateIce) {
   TRACE_CALL;
   NanScope();

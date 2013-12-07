@@ -266,6 +266,15 @@ PeerConnection.prototype.addIceCandidate = function addIceCandidate(sdp, onSucce
   });
 };
 
+PeerConnection.prototype.createDataChannel = function createDataChannel(label, dataChannelDict) {
+  dataChannelDict = dataChannelDict || {};
+  this._queueOrRun({
+    func: 'createDataChannel',
+    args: [label, dataChannelDict],
+    wait: false
+  });
+};
+
 function RTCPeerConnection(configuration, constraints) {
   var pc = new PeerConnection(configuration, constraints);
 
@@ -344,6 +353,10 @@ function RTCPeerConnection(configuration, constraints) {
 
   this.addIceCandidate = function addIceCandidate() {
     pc.addIceCandidate.apply(pc, arguments);
+  };
+
+  this.createDataChannel = function createDataChannel() {
+    pc.createDataChannel.apply(pc, arguments);
   };
 };
 
