@@ -8,3 +8,5 @@ var channel = pc.createDataChannel("test", {
 });
 
 console.log("channel:", channel);
+
+pc.close();

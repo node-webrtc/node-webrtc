@@ -589,6 +589,10 @@ NAN_METHOD(PeerConnection::UpdateIce) {
 NAN_METHOD(PeerConnection::Close) {
   TRACE_CALL;
   NanScope();
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  self->_internalPeerConnection->Close();
+
   TRACE_END;
   NanReturnValue(Undefined());
 }
