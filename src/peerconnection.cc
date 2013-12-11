@@ -397,6 +397,66 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
   NanReturnValue(Undefined());
 }
 
+NAN_METHOD(PeerConnection::CreateDataChannel) {
+  TRACE_CALL;
+  NanScope();
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  v8::String::Utf8Value label(args[0]->ToString());
+  Handle<Object> dataChannelDict = Handle<Object>::Cast(args[1]);
+
+  webrtc::DataChannelInit dataChannelInit;
+  if(dataChannelDict->Has(String::New("id"))) {
+    Local<Value> value = dataChannelDict->Get(String::New("id"));
+    if(value->IsInt32()) {
+      dataChannelInit.id = value->Int32Value();
+    }
+  }
+  if(dataChannelDict->Has(String::New("maxRetransmitTime"))) {
+    Local<Value> value = dataChannelDict->Get(String::New("maxRetransmitTime"));
+    if(value->IsInt32()) {
+      dataChannelInit.maxRetransmitTime = value->Int32Value();
+    }
+  }
+  if(dataChannelDict->Has(String::New("maxRetransmits"))) {
+    Local<Value> value = dataChannelDict->Get(String::New("maxRetransmits"));
+    if(value->IsInt32()) {
+      dataChannelInit.maxRetransmits = value->Int32Value();
+    }
+  }
+  if(dataChannelDict->Has(String::New("negotiated"))) {
+    Local<Value> value = dataChannelDict->Get(String::New("negotiated"));
+    if(value->IsBoolean()) {
+      dataChannelInit.negotiated = value->BooleanValue();
+    }
+  }
+  if(dataChannelDict->Has(String::New("ordered"))) {
+    Local<Value> value = dataChannelDict->Get(String::New("ordered"));
+    if(value->IsBoolean()) {
+      dataChannelInit.ordered = value->BooleanValue();
+    }
+  }
+  if(dataChannelDict->Has(String::New("protocol"))) {
+    Local<Value> value = dataChannelDict->Get(String::New("protocol"));
+    if(value->IsString()) {
+      dataChannelInit.protocol = *String::Utf8Value(value->ToString());
+    }
+  }
+
+  talk_base::scoped_refptr<webrtc::DataChannelInterface> dciPtr = self->_internalPeerConnection->CreateDataChannel(*label, &dataChannelInit);
+  webrtc::DataChannelInterface* dci = dciPtr.get();
+  TRACE_PTR("dci", dci);
+  dci->AddRef();
+  dciPtr = NULL;
+
+  v8::Local<v8::Value> cargv[1];
+  cargv[0] = v8::External::New(static_cast<void*>(dci));
+  v8::Local<v8::Value> dc = NanPersistentToLocal(DataChannel::constructor)->NewInstance(1, cargv);
+
+  TRACE_END;
+  NanReturnValue(dc);
+}
+
 NAN_METHOD(PeerConnection::UpdateIce) {
   TRACE_CALL;
   NanScope();
@@ -513,6 +573,9 @@ void PeerConnection::Init( Handle<Object> exports ) {
 
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "addIceCandidate" ),
     FunctionTemplate::New( AddIceCandidate )->GetFunction() );
+
+  tpl->PrototypeTemplate()->Set( String::NewSymbol( "createDataChannel" ),
+    FunctionTemplate::New( CreateDataChannel )->GetFunction() );
 
   // tpl->PrototypeTemplate()->Set( String::NewSymbol( "getLocalStreams" ),
   //     FunctionTemplate::New( GetLocalStreams )->GetFunction() );

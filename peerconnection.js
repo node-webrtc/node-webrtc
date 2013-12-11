@@ -113,6 +113,12 @@ PeerConnection.prototype._checkClosed = function _checkClosed() {
   }
 };
 
+PeerConnection.prototype._runImmediately = function _runImmediately(obj) {
+  var pc = this._getPC();
+  this._checkClosed();
+  return pc[obj.func].apply(pc, obj.args);
+}
+
 PeerConnection.prototype._queueOrRun = function _queueOrRun(obj) {
   var pc = this._getPC();
   this._checkClosed();
@@ -266,6 +272,14 @@ PeerConnection.prototype.addIceCandidate = function addIceCandidate(sdp, onSucce
   });
 };
 
+PeerConnection.prototype.createDataChannel = function createDataChannel(label, dataChannelDict) {
+  dataChannelDict = dataChannelDict || {};
+  return this._runImmediately({
+    func: 'createDataChannel',
+    args: [label, dataChannelDict]
+  });
+};
+
 function RTCPeerConnection(configuration, constraints) {
   var pc = new PeerConnection(configuration, constraints);
 
@@ -344,6 +358,10 @@ function RTCPeerConnection(configuration, constraints) {
 
   this.addIceCandidate = function addIceCandidate() {
     pc.addIceCandidate.apply(pc, arguments);
+  };
+
+  this.createDataChannel = function createDataChannel() {
+    return pc.createDataChannel.apply(pc, arguments);
   };
 };
 
