@@ -19,7 +19,7 @@
       'target_name': 'webrtc',
       'dependencies': [],
       'variables': {
-        'libwebrtc_out%': '<(libwebrtc)/out/Release/obj',
+        'libwebrtc_out%': '<(libwebrtc)/out/Debug/obj',
       },
       'cflags': [
         '-pthread',
@@ -107,6 +107,7 @@
               '../<(libwebrtc_out)/webrtc/modules/libG722.a',
               '../<(libwebrtc_out)/webrtc/modules/libPCM16B.a',
               '../<(libwebrtc_out)/webrtc/common_audio/libcommon_audio.a',
+              '../<(libwebrtc_out)/webrtc/common_audio/libcommon_audio_sse2.a',
               '../<(libwebrtc_out)/third_party/libsrtp/libsrtp.a',
               '../<(libwebrtc_out)/third_party/opus/libopus.a',
               '../<(libwebrtc_out)/third_party/protobuf/libprotobuf_lite.a',

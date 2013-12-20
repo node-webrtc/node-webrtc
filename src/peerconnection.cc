@@ -110,9 +110,11 @@ PeerConnection::PeerConnection()
   _iceServers.push_back(iceServer);
 
   webrtc::FakeConstraints constraints;
-  constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, webrtc::MediaConstraintsInterface::kValueTrue);
+  constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, webrtc::MediaConstraintsInterface::kValueFalse);
   // constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableSctpDataChannels, true);
   constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableRtpDataChannels, webrtc::MediaConstraintsInterface::kValueTrue);
+  constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveAudio, webrtc::MediaConstraintsInterface::kValueFalse);
+  constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveVideo, webrtc::MediaConstraintsInterface::kValueFalse);
 
   _peerConnectionFactory = webrtc::CreatePeerConnectionFactory(
       _signalThread, _workerThread, NULL, NULL, NULL );
@@ -445,7 +447,6 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
 
   talk_base::scoped_refptr<webrtc::DataChannelInterface> dciPtr = self->_internalPeerConnection->CreateDataChannel(*label, &dataChannelInit);
   webrtc::DataChannelInterface* dci = dciPtr.get();
-  TRACE_PTR("dci", dci);
   dci->AddRef();
   dciPtr = NULL;
 
