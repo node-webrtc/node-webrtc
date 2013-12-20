@@ -1,4 +1,4 @@
-[![NPM](https://nodei.co/npm/wrtc.png?stars=true)](https://nodei.co/npm/wrtc/)
+[![NPM](https://nodei.co/npm/wrtc.png?downloads=true&stars=true)](https://nodei.co/npm/wrtc/)
 
 ### Contributing
 
