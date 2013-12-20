@@ -89,9 +89,10 @@ void SetRemoteDescriptionObserver::OnFailure(const std::string& msg)
 //
 
 PeerConnection::PeerConnection()
+: loop(uv_default_loop())
 {
   uv_mutex_init(&lock);
-  uv_async_init(uv_default_loop(), &async, Run);
+  uv_async_init(loop, &async, Run);
 
   async.data = this;
 
@@ -592,6 +593,8 @@ NAN_METHOD(PeerConnection::Close) {
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
   self->_internalPeerConnection->Close();
+  self->_internalPeerConnection = NULL;
+  uv_close((uv_handle_t*)(&self->async), NULL);
 
   TRACE_END;
   NanReturnValue(Undefined());
