@@ -505,6 +505,37 @@ NAN_METHOD(PeerConnection::AddStream) {
   NanReturnValue(Undefined());
 }
 
+NAN_METHOD(PeerConnection::RemoveStream) {
+  TRACE_CALL;
+  NanScope();
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  MediaStream* ms = ObjectWrap::Unwrap<MediaStream>( args[0]->ToObject() );
+  
+  self->_internalPeerConnection->RemoveStream(ms->GetInterface());
+
+  TRACE_END;
+  NanReturnValue(Undefined());
+}
+
+NAN_METHOD(PeerConnection::GetLocalStreams) {
+  TRACE_CALL;
+  NanScope();
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  talk_base::scoped_refptr<webrtc::StreamCollectionInterface> _streams = self->_internalPeerConnection->local_streams();
+  
+  v8::Local<v8::Array> array = v8::Array::New(_streams->count());
+  for (unsigned int index = 0; index < _streams->count(); index++) {
+    v8::Local<v8::Value> cargv[1];
+    cargv[0] = v8::External::New(static_cast<void*>(_streams->at(index)));
+    array->Set(index, NanPersistentToLocal(MediaStream::constructor)->NewInstance(1, cargv));
+  }
+  
+  TRACE_END;
+  NanReturnValue(array);
+}
+
 NAN_METHOD(PeerConnection::GetRemoteStreams) {
   TRACE_CALL;
   NanScope();
