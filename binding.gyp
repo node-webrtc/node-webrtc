@@ -165,7 +165,9 @@
       'sources': [
         'src/binding.cc',
         'src/peerconnection.cc',
-        'src/datachannel.cc'
+        'src/datachannel.cc',
+        'src/mediastream.cc',
+        'src/mediastreamtrack.cc'
       ]
     }
   ]
