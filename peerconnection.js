@@ -321,10 +321,10 @@ PeerConnection.prototype.addIceCandidate = function addIceCandidate(sdp, onSucce
 
 PeerConnection.prototype.createDataChannel = function createDataChannel(label, dataChannelDict) {
   dataChannelDict = dataChannelDict || {};
-  return this._runImmediately({
+  return new RTCDataChannel(this._runImmediately({
     func: 'createDataChannel',
     args: [label, dataChannelDict]
-  });
+  }));
 };
 
 <<<<<<< HEAD

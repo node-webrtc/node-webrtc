@@ -125,6 +125,8 @@ PeerConnection::PeerConnection()
 
 PeerConnection::~PeerConnection()
 {
+  TRACE_CALL;
+  TRACE_END;
 }
 
 void PeerConnection::QueueEvent(AsyncEventType type, void* data)
