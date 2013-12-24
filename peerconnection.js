@@ -4,6 +4,7 @@ var RTCSessionDescription = require('./sessiondescription');
 var RTCIceCandidate = require('./icecandidate');
 var RTCError = require('./error');
 var RTCDataChannel = require('./datachannel');
+var RTCMediaStream = require('./mediastream');
 
 
 function PeerConnection(configuration, constraints) {
@@ -68,10 +69,26 @@ function PeerConnection(configuration, constraints) {
     }
   };
 
+  this._pc.onaddstream = function onaddstream(internalMS) {
+    if(that.onaddstream && typeof that.onaddstream == 'function') {
+      var ms = new RTCMediaStream(internalMS);
+      that.onaddstream.apply(that, [ms]);
+    }
+  };
+
+  this._pc.onremovestream = function onremovestream(internalMS) {
+    if(that.onremovestream && typeof that.onremovestream == 'function') {
+      var ms = new RTCMediaStream(internalMS);
+      that.onremovestream.apply(that, [ms]);
+    }
+  };
+
   this.onicecandidate = null;
   this.onsignalingstatechange = null;
   this.onicegatheringstatechange = null;
   this.ondatachannel = null;
+  this.onaddstream = null;
+  this.onremovestream = null;
 };
 
 PeerConnection.prototype.RTCSignalingStates = [
@@ -182,6 +199,18 @@ PeerConnection.prototype.getIceConnectionState = function getIceConnectionState(
   return this.RTCIceConnectionStates[state];
 };
 
+PeerConnection.prototype.getLocalStreams = function getLocalStreams() {
+  return this._getPC().getLocalStreams();
+};
+
+PeerConnection.prototype.getRemoteStreams = function getRemoteStreams() {
+  return this._getPC().getRemoteStreams();
+};
+
+PeerConnection.prototype.getStreamById = function getStreamById(id) {
+  return this._getPC().getStreamById(id);
+};
+
 PeerConnection.prototype.getOnSignalingStateChange = function() {
   return this.onsignalingstatechange;
 };
@@ -207,6 +236,24 @@ PeerConnection.prototype.getOnDataChannel = function() {
 PeerConnection.prototype.setOnDataChannel = function(cb) {
   // FIXME: throw an exception if cb isn't callable
   this.ondatachannel = cb;
+};
+
+PeerConnection.prototype.getOnAddStream = function() {
+  return this.onaddstream;
+};
+
+PeerConnection.prototype.setOnAddStream = function(cb) {
+  // FIXME: throw an exception if cb isn't callable
+  this.onaddstream = cb;
+};
+
+PeerConnection.prototype.getOnRemoveStream = function() {
+  return this.onremovestream;
+};
+
+PeerConnection.prototype.setOnRemoveStream = function(cb) {
+  // FIXME: throw an exception if cb isn't callable
+  this.onremovestream = cb;
 };
 
 PeerConnection.prototype.createOffer = function createOffer(onSuccess, onError, constraints) {
@@ -280,6 +327,21 @@ PeerConnection.prototype.createDataChannel = function createDataChannel(label, d
   });
 };
 
+PeerConnection.prototype.addStream = function addStream(stream, constraintsDict) {
+  constraintsDict = constraintsDict || {};
+  return this._runImmediately({
+    func: 'addStream',
+    args: [stream, constraintsDict]
+  });
+};
+
+PeerConnection.prototype.removeStream = function removeStream(stream) {
+  return this._runImmediately({
+    func: 'removeStream',
+    args: [stream]
+  });
+};
+
 function RTCPeerConnection(configuration, constraints) {
   var pc = new PeerConnection(configuration, constraints);
 
@@ -337,6 +399,22 @@ function RTCPeerConnection(configuration, constraints) {
       set: function(cb) {
         pc.setOnDataChannel(cb);
       }
+    },
+    'onaddstream': {
+      get: function() {
+        return pc.getOnAddStream();
+      },
+      set: function(cb) {
+        pc.setOnAddStream(cb);
+      }
+    },
+    'onremovestream': {
+      get: function() {
+        return pc.getOnRemoveStream();
+      },
+      set: function(cb) {
+        pc.setOnRemoveStream(cb);
+      }
     }
   });
 
@@ -362,6 +440,26 @@ function RTCPeerConnection(configuration, constraints) {
 
   this.createDataChannel = function createDataChannel() {
     return pc.createDataChannel.apply(pc, arguments);
+  };
+
+  this.addStream = function addStream() {
+    pc.addStream.apply(pc, arguments);
+  };
+
+  this.removeStream = function removeStream() {
+    pc.removeStream.apply(pc, arguments);
+  };
+
+  this.getLocalStreams = function getLocalStreams() {
+    return pc.getLocalStreams.apply(pc, arguments);
+  };
+
+  this.getRemoteStreams = function getRemoteStreams() {
+    return pc.getRemoteStreams.apply(pc, arguments);
+  };
+
+  this.getStreamById = function getStreamById() {
+    return pc.getStreamById.apply(pc, arguments);
   };
 };
 
