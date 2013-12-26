@@ -1,10 +1,11 @@
 var RTCPeerConnection;
+var window = window || undefined;
 
-if(window.mozRTCPeerConnection)
+if(window && window.mozRTCPeerConnection)
   RTCPeerConnection = window.mozRTCPeerConnection;
-else if(window.webkitRTCPeerConnection)
+else if(window && window.webkitRTCPeerConnection)
   RTCPeerConnection = window.webkitRTCPeerConnection;
-else if(window.RTCPeerConnection)
+else if(window && window.RTCPeerConnection)
   RTCPeerConnection = window.RTCPeerConnection
 else
   RTCPeerConnection = require('../index').RTCPeerConnection;
@@ -18,6 +19,7 @@ var pc = new RTCPeerConnection({
   });
 console.log('\n');
 
+/*
 var channel = pc.createDataChannel("test", {
   ordered: false
 });
@@ -28,6 +30,9 @@ channel.onopen = function() {
 channel.onclose = function() {
   console.log('channel close');
 }
+*/
 
 pc.close();
+
+setInterval(function() {}, 0);
 //pc = null;
