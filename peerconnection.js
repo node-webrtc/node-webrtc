@@ -327,7 +327,6 @@ PeerConnection.prototype.createDataChannel = function createDataChannel(label, d
   }));
 };
 
-<<<<<<< HEAD
 PeerConnection.prototype.addStream = function addStream(stream, constraintsDict) {
   constraintsDict = constraintsDict || {};
   return this._runImmediately({
@@ -342,14 +341,12 @@ PeerConnection.prototype.removeStream = function removeStream(stream) {
     args: [stream]
   });
 };
-=======
 PeerConnection.prototype.close = function close() {
   return this._runImmediately({
     func: 'close',
     args: []
   });
 }
->>>>>>> close implemented
 
 function RTCPeerConnection(configuration, constraints) {
   var pc = new PeerConnection(configuration, constraints);
