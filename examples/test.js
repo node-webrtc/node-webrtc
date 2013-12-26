@@ -1,6 +1,21 @@
-var webrtc = require('../index');
+var RTCPeerConnection;
 
-var pc = new webrtc.RTCPeerConnection();
+if(window.mozRTCPeerConnection)
+  RTCPeerConnection = window.mozRTCPeerConnection;
+else if(window.webkitRTCPeerConnection)
+  RTCPeerConnection = window.webkitRTCPeerConnection;
+else if(window.RTCPeerConnection)
+  RTCPeerConnection = window.RTCPeerConnection
+else
+  RTCPeerConnection = require('../index').RTCPeerConnection;
+
+var pc = new RTCPeerConnection({
+    iceServers: [{url:'stun:stun.l.google.com:19302'}]
+  },
+  {
+    'optional': [{DtlsSrtpKeyAgreement: false},
+                 {RtpDataChannels: true}]
+  });
 console.log('\n');
 
 var channel = pc.createDataChannel("test", {
