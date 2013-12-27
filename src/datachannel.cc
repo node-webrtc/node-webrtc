@@ -17,19 +17,21 @@ Persistent<Function> DataChannel::constructor;
 Persistent<Function> DataChannel::ArrayBufferConstructor;
 
 DataChannel::DataChannel(webrtc::DataChannelInterface* dci)
-: _internalDataChannel(dci),
+: loop(uv_default_loop()),
+  _internalDataChannel(dci),
   _binaryType(DataChannel::BLOB)
 {
   dci->Release();
   uv_mutex_init(&lock);
-  uv_async_init(uv_default_loop(), &async, Run);
+  uv_async_init(loop, &async, Run);
 
   async.data = this;
 }
 
 DataChannel::~DataChannel()
 {
-
+  TRACE_CALL;
+  TRACE_END;
 }
 
 NAN_METHOD(DataChannel::New) {
@@ -155,6 +157,9 @@ NAN_METHOD(DataChannel::Close) {
   NanScope();
 
   DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
+  self->_internalDataChannel->Close();
+  self->_internalDataChannel = NULL;
+  uv_close((uv_handle_t*)(&self->async), NULL);
 
   TRACE_END;
   NanReturnValue(Undefined());

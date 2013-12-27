@@ -19,7 +19,6 @@ var pc = new RTCPeerConnection({
   });
 console.log('\n');
 
-/*
 var channel = pc.createDataChannel("test", {
   ordered: false
 });
@@ -30,9 +29,7 @@ channel.onopen = function() {
 channel.onclose = function() {
   console.log('channel close');
 }
-*/
 
+channel.close();
 pc.close();
-
-setInterval(function() {}, 0);
-//pc = null;
+pc = null;

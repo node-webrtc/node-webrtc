@@ -90,7 +90,7 @@ DataChannel.prototype.send = function send(data) {
 };
 
 DataChannel.prototype.close = function close() {
-
+  this._getDC().close();
 };
 
 DataChannel.prototype.getLabel = function getLabel() {

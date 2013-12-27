@@ -96,6 +96,7 @@ private:
 
   uv_mutex_t lock;
   uv_async_t async;
+  uv_loop_t *loop;
   std::queue<AsyncEvent> _events;
 
   talk_base::scoped_refptr<webrtc::DataChannelInterface> _internalDataChannel;
