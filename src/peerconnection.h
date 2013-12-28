@@ -140,7 +140,7 @@ public:
     ICE_CANDIDATE = 0x1 << 13, // 8092
     SIGNALING_STATE_CHANGE = 0x1 << 14, // 16384
     ICE_CONNECTION_STATE_CHANGE = 0x1 << 15, // 32768
-    ICE_GATHERING_STATE_CHANGE = 0x1 << 16, // 65536    
+    ICE_GATHERING_STATE_CHANGE = 0x1 << 16, // 65536
     NOTIFY_ADD_STREAM = 0x1 << 17, // 131072
     NOTIFY_REMOVE_STREAM = 0x1 << 18, // 262144
 
@@ -226,10 +226,6 @@ private:
 
   talk_base::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _peerConnectionFactory;
   talk_base::scoped_refptr<webrtc::PeerConnectionInterface> _internalPeerConnection;
-
-  webrtc::PeerConnectionInterface::SignalingState _signalingState;
-  webrtc::PeerConnectionInterface::IceConnectionState _iceConnectionState;
-  webrtc::PeerConnectionInterface::IceGatheringState _iceGatheringState;
 };
 
 #endif

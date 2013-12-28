@@ -11,6 +11,7 @@
 #include "talk/app/webrtc/jsep.h"
 #include "webrtc/system_wrappers/interface/ref_count.h"
 #include "talk/app/webrtc/test/fakeconstraints.h"
+#include "talk/app/webrtc/peerconnectioninterface.h"
 
 #include "common.h"
 #include "peerconnection.h"
@@ -150,6 +151,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
 
   PeerConnection* self = static_cast<PeerConnection*>(handle->data);
   v8::Handle<v8::Object> pc = NanObjectWrapHandle(self);
+  bool do_shutdown = false;
 
   while(true)
   {
@@ -193,6 +195,9 @@ void PeerConnection::Run(uv_async_t* handle, int status)
         v8::Local<v8::Value> argv[1];
         argv[0] = Uint32::New(data->state);
         callback->Call(pc, 1, argv);
+      }
+      if(webrtc::PeerConnectionInterface::kClosed == data->state) {
+        do_shutdown = true;
       }
     } else if(PeerConnection::ICE_CONNECTION_STATE_CHANGE & evt.type)
     {
@@ -272,6 +277,12 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     // FIXME: delete event
   }
 
+  if(do_shutdown) {
+    self->_signalThread->Stop();
+    self->_workerThread->Stop();
+    uv_close((uv_handle_t*)(&self->async), NULL);
+  }
+
   TRACE_END;
 }
 
@@ -339,6 +350,7 @@ NAN_METHOD(PeerConnection::New) {
 
   PeerConnection* obj = new PeerConnection();
   obj->Wrap( args.This() );
+  // V8::AdjustAmountOfExternalAllocatedMemory(1024 * 1024);
 
   TRACE_END;
   NanReturnValue( args.This() );
@@ -595,11 +607,6 @@ NAN_METHOD(PeerConnection::Close) {
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
   self->_internalPeerConnection->Close();
-  self->_internalPeerConnection = NULL;
-  uv_close((uv_handle_t*)(&self->async), NULL);
-
-  self->_signalThread->Stop();
-  self->_workerThread->Stop();
 
   TRACE_END;
   NanReturnValue(Undefined());
