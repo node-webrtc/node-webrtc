@@ -41,24 +41,24 @@ function PeerConnection(configuration, constraints) {
     }
   };
 
-  this._pc.onsignalingstatchange = function onsignalingstatchange(state) {
+  this._pc.onsignalingstatechange = function onsignalingstatechange(state) {
     if(that.onsignalingstatechange && typeof that.onsignalingstatechange == 'function') {
       stateString = that.RTCSignalingStates[state];
-      onsignalingstatechange.apply(that, [stateString]);
+      that.onsignalingstatechange.apply(that, [stateString]);
     }
   };
 
   this._pc.oniceconnectionstatechange = function oniceconnectionstatechange(state) {
     if(that.oniceconnectionstatechange && typeof that.oniceconnectionstatechange == 'function') {
       stateString = that.RTCSignalingStates[state];
-      oniceconnectionstatechange.apply(that, [stateString]);
+      that.oniceconnectionstatechange.apply(that, [stateString]);
     }
   };
 
   this._pc.onicegatheringstatechange = function onicegatheringstatechange(state) {
     if(that.onicegatheringstatechange && typeof that.onicegatheringstatechange == 'function') {
       stateString = that.RTCSignalingStates[state];
-      onicegatheringstatechange.apply(that, [stateString]);
+      that.onicegatheringstatechange.apply(that, [stateString]);
     }
   };
 
