@@ -11,7 +11,8 @@ var io = socketio.listen(server);
 
 router.use(express.static(__dirname + '/.'));
 
-var configuration = { "iceServers": [{ "url": "stun:stun.example.org" }] };
+var config1 = { iceServers: [{url:'stun:stun.l.google.com:19302'}] };
+var config2 = { 'optional': [{DtlsSrtpKeyAgreement: false}] };
 
 io.set('transports',['xhr-polling']);
 
@@ -31,33 +32,40 @@ io.on('connection', function (socket) {
     
     function logError(error) {
         logMessage("Error: " + error);
+        throw error;
     }
     
     function start() {
         logMessage('rtc peer connection object initializing');
-        pc = new webrtc.RTCPeerConnection(configuration);
+        pc = new webrtc.RTCPeerConnection(config1,config2);
     
         pc.onicecandidate = function (evt) {
             if (evt.candidate) {
+                logMessage('ice candidate found');
                 socket.emit('message', JSON.stringify({ "candidate": evt.candidate }));
             }
         };
     
         pc.onnegotiationneeded = function () {
+            logMessage('creating offer');
             pc.createOffer(localDescCreated, logError);
         };
     
         pc.onaddstream = function (evt) {
             logMessage('rtc remote stream added successfully');
+            console.log(evt);
+            pc.addStream(evt);
         };
         
         /*if (isHost) {
             console.log('local stream added to rtc connection for broadcast');
             pc.addStream(media);
         }*/
+        logMessage('rtc peer connection created');
     }
         
     function localDescCreated(desc) {
+        logMessage('setting local description');
         pc.setLocalDescription(desc, function () {
             socket.emit('message', JSON.stringify({ "sdp": pc.localDescription }));
         }, logError);
@@ -71,13 +79,17 @@ io.on('connection', function (socket) {
         
         var message = JSON.parse(data);
         if (message.sdp) {
+            logMessage('sdp message: setting remote description');
             pc.setRemoteDescription(new webrtc.RTCSessionDescription(message.sdp), function () {
                 // if we received an offer, we need to answer
+                logMessage('remote description set');
                 if (pc.remoteDescription.type == "offer") {
+                    logMessage('creating answer');
                     pc.createAnswer(localDescCreated, logError);
                 }
             }, logError);
         } else if (message.candidate) {
+            logMessage('candidate message: adding ice candidate');
             pc.addIceCandidate(new webrtc.RTCIceCandidate(message.candidate));
         }
     });
