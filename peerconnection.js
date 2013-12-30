@@ -331,14 +331,14 @@ PeerConnection.prototype.addStream = function addStream(stream, constraintsDict)
   constraintsDict = constraintsDict || {};
   return this._runImmediately({
     func: 'addStream',
-    args: [stream, constraintsDict]
+    args: [stream._ms, constraintsDict]
   });
 };
 
 PeerConnection.prototype.removeStream = function removeStream(stream) {
   return this._runImmediately({
     func: 'removeStream',
-    args: [stream]
+    args: [stream._ms]
   });
 };
 
