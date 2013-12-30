@@ -78,31 +78,52 @@ MediaStream.prototype._executeNext = function _executeNext() {
 };
 
 MediaStream.prototype.getId = function getId() {
-  return this._getMS().id;
+  return this._runImmediately({
+    func: 'getId',
+    args: []
+  });
 };
 
 MediaStream.prototype.isInactive = function isInactive() {
-  return this._getMS().inactive;
+  return this._runImmediately({
+    func: 'isInactive',
+    args: []
+  });
 };
 
 MediaStream.prototype.getaudiotracks = function getaudiotracks() {
-  return this._getMS().getaudiotracks();
+  return this._runImmediately({
+    func: 'getAudioTracks',
+    args: []
+  });
 };
 
 MediaStream.prototype.getvideotracks = function getvideotracks() {
-  return this._getMS().getvideotracks();
+  return this._runImmediately({
+    func: 'getVideoTracks',
+    args: []
+  });
 };
 
 MediaStream.prototype.gettrackbyid = function gettrackbyid(id) {
-  return this._getMS().gettrackbyid(id);
+  return this._runImmediately({
+    func: 'getTrackById',
+    args: [id]
+  });
 };
 
 MediaStream.prototype.addtrack = function addtrack(track) {
-  this._getMS().addtrack(track);
+  this._queueOrRun({
+    func: 'addTrack',
+    args: [track._getMST()]
+  });
 };
 
 MediaStream.prototype.removetrack = function removetrack(track) {
-  this._getMS().removetrack(track);
+  this._queueOrRun({
+    func: 'removeTrack',
+    args: [track._getMST()]
+  });
 };
 
 // FIXME: implement clone

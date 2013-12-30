@@ -329,16 +329,16 @@ PeerConnection.prototype.createDataChannel = function createDataChannel(label, d
 
 PeerConnection.prototype.addStream = function addStream(stream, constraintsDict) {
   constraintsDict = constraintsDict || {};
-  return this._runImmediately({
+  this._queueOrRun({
     func: 'addStream',
-    args: [stream._ms, constraintsDict]
+    args: [stream._getMS(), constraintsDict]
   });
 };
 
 PeerConnection.prototype.removeStream = function removeStream(stream) {
-  return this._runImmediately({
+  this._queueOrRun({
     func: 'removeStream',
-    args: [stream._ms]
+    args: [stream._getMS()]
   });
 };
 
