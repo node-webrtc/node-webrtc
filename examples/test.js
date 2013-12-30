@@ -17,12 +17,10 @@ var pc = new RTCPeerConnection({
     'optional': [{DtlsSrtpKeyAgreement: false},
                  {RtpDataChannels: true}]
   });
-console.log('\n');
 
 var channel = pc.createDataChannel("test", {
   ordered: false
 });
-console.log("channel:", channel);
 channel.onopen = function() {
   console.log('channel open');
 }
@@ -30,6 +28,9 @@ channel.onclose = function() {
   console.log('channel close');
 }
 
-channel.close();
-pc.close();
-pc = null;
+setTimeout(function() {
+  // channel.close();
+  // channel = null;
+  pc.close();
+  // pc = null;
+}, 1);

@@ -77,6 +77,7 @@ public:
 
   static NAN_METHOD(Send);
   static NAN_METHOD(Close);
+  static NAN_METHOD(Shutdown);
 
   static NAN_GETTER(GetLabel);
   static NAN_GETTER(GetBinaryType);

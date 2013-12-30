@@ -93,6 +93,10 @@ DataChannel.prototype.close = function close() {
   this._getDC().close();
 };
 
+DataChannel.prototype._shutdown = function _shutdown() {
+  this._getDC().shutdown();
+};
+
 DataChannel.prototype.getLabel = function getLabel() {
   return this._getDC().label;
 };

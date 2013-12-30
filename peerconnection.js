@@ -17,6 +17,8 @@ function PeerConnection(configuration, constraints) {
   this._queue = [];
   this._pending = null;
 
+  this._dataChannels = {};  // open data channels, indexed by label
+
   this._pc.onerror = function onerror() {
     if(that._pending && that._pending.onError) {
       that._pending.onError.apply(that, arguments);
@@ -42,8 +44,14 @@ function PeerConnection(configuration, constraints) {
   };
 
   this._pc.onsignalingstatechange = function onsignalingstatechange(state) {
+    stateString = that.RTCSignalingStates[state];
+    if('closed' == stateString) {
+      Object.keys(that._dataChannels).forEach(function(label) {
+        that._dataChannels[label].shutdown();
+        delete that._dataChannels[label];
+      });
+    }
     if(that.onsignalingstatechange && typeof that.onsignalingstatechange == 'function') {
-      stateString = that.RTCSignalingStates[state];
       that.onsignalingstatechange.apply(that, [stateString]);
     }
   };
@@ -64,6 +72,7 @@ function PeerConnection(configuration, constraints) {
 
   this._pc.ondatachannel = function ondatachannel(internalDC) {
     if(that.ondatachannel && typeof that.ondatachannel == 'function') {
+      that._dataChannels[internalDC.label] = internalDC;
       var dc = new RTCDataChannel(internalDC);
       that.ondatachannel.apply(that, [dc]);
     }
@@ -321,10 +330,12 @@ PeerConnection.prototype.addIceCandidate = function addIceCandidate(sdp, onSucce
 
 PeerConnection.prototype.createDataChannel = function createDataChannel(label, dataChannelDict) {
   dataChannelDict = dataChannelDict || {};
-  return new RTCDataChannel(this._runImmediately({
+  var channel = this._runImmediately({
     func: 'createDataChannel',
     args: [label, dataChannelDict]
-  }));
+  });
+  this._dataChannels[label] = channel;
+  return new RTCDataChannel(channel);
 };
 
 PeerConnection.prototype.addStream = function addStream(stream, constraintsDict) {

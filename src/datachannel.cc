@@ -48,6 +48,7 @@ NAN_METHOD(DataChannel::New) {
   DataChannel* obj = new DataChannel(dci);
   dci->RegisterObserver(obj);
   obj->Wrap( args.This() );
+  V8::AdjustAmountOfExternalAllocatedMemory(1024 * 1024);
 
   TRACE_END;
   NanReturnValue( args.This() );
@@ -73,6 +74,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
   NanScope();
   DataChannel* self = static_cast<DataChannel*>(handle->data);
   v8::Handle<v8::Object> dc = NanObjectWrapHandle(self);
+  bool do_shutdown = false;
 
   while(true)
   {
@@ -100,6 +102,10 @@ void DataChannel::Run(uv_async_t* handle, int status)
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(String::New("onstatechange")));
       v8::Local<v8::Value> argv[0];
       callback->Call(dc, 0, argv);
+
+      if(webrtc::DataChannelInterface::kClosed == self->_internalDataChannel->state()) {
+        do_shutdown = true;
+      }
     } else if(DataChannel::MESSAGE & evt.type)
     {
       MessageEvent* data = static_cast<MessageEvent*>(evt.data);
@@ -118,7 +124,11 @@ void DataChannel::Run(uv_async_t* handle, int status)
     }
     // FIXME: delete event
   }
-  scope.Close(Undefined());
+
+  if(do_shutdown) {
+    uv_close((uv_handle_t*)(&self->async), NULL);
+  }
+
   TRACE_END;
 }
 
@@ -158,7 +168,16 @@ NAN_METHOD(DataChannel::Close) {
 
   DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
   self->_internalDataChannel->Close();
-  self->_internalDataChannel = NULL;
+
+  TRACE_END;
+  NanReturnValue(Undefined());
+}
+
+NAN_METHOD(DataChannel::Shutdown) {
+  TRACE_CALL;
+  NanScope();
+
+  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
   uv_close((uv_handle_t*)(&self->async), NULL);
 
   TRACE_END;
@@ -218,6 +237,8 @@ void DataChannel::Init( Handle<Object> exports ) {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "close" ),
     FunctionTemplate::New( Close )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( String::NewSymbol( "shutdown" ),
+    FunctionTemplate::New( Shutdown )->GetFunction() );
 
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "send" ),
     FunctionTemplate::New( Send )->GetFunction() );
