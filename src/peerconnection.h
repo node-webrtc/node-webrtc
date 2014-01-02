@@ -141,6 +141,8 @@ public:
     SIGNALING_STATE_CHANGE = 0x1 << 14, // 16384
     ICE_CONNECTION_STATE_CHANGE = 0x1 << 15, // 32768
     ICE_GATHERING_STATE_CHANGE = 0x1 << 16, // 65536
+    NOTIFY_ADD_STREAM = 0x1 << 17, // 131072
+    NOTIFY_REMOVE_STREAM = 0x1 << 18, // 262144
 
     ERROR_EVENT = CREATE_OFFER_ERROR | CREATE_ANSWER_ERROR |
                   SET_LOCAL_DESCRIPTION_ERROR | SET_REMOTE_DESCRIPTION_ERROR |
@@ -184,6 +186,11 @@ public:
   static NAN_METHOD(UpdateIce);
   static NAN_METHOD(AddIceCandidate);
   static NAN_METHOD(CreateDataChannel);
+  static NAN_METHOD(GetLocalStreams);
+  static NAN_METHOD(GetRemoteStreams);
+  static NAN_METHOD(GetStreamById);
+  static NAN_METHOD(AddStream);
+  static NAN_METHOD(RemoveStream);
   static NAN_METHOD(Close);
 
   static NAN_GETTER(GetLocalDescription);
@@ -205,6 +212,7 @@ private:
 
   uv_mutex_t lock;
   uv_async_t async;
+  uv_loop_t *loop;
   std::queue<AsyncEvent> _events;
   talk_base::Thread* _signalThread;
   talk_base::Thread* _workerThread;
@@ -218,10 +226,6 @@ private:
 
   talk_base::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _peerConnectionFactory;
   talk_base::scoped_refptr<webrtc::PeerConnectionInterface> _internalPeerConnection;
-
-  webrtc::PeerConnectionInterface::SignalingState _signalingState;
-  webrtc::PeerConnectionInterface::IceConnectionState _iceConnectionState;
-  webrtc::PeerConnectionInterface::IceGatheringState _iceGatheringState;
 };
 
 #endif

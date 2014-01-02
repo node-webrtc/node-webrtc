@@ -11,10 +11,12 @@
 #include "talk/app/webrtc/jsep.h"
 #include "webrtc/system_wrappers/interface/ref_count.h"
 #include "talk/app/webrtc/test/fakeconstraints.h"
+#include "talk/app/webrtc/peerconnectioninterface.h"
 
 #include "common.h"
 #include "peerconnection.h"
 #include "datachannel.h"
+#include "mediastream.h"
 
 using namespace node;
 using namespace v8;
@@ -88,9 +90,10 @@ void SetRemoteDescriptionObserver::OnFailure(const std::string& msg)
 //
 
 PeerConnection::PeerConnection()
+: loop(uv_default_loop())
 {
   uv_mutex_init(&lock);
-  uv_async_init(uv_default_loop(), &async, Run);
+  uv_async_init(loop, &async, Run);
 
   async.data = this;
 
@@ -110,9 +113,11 @@ PeerConnection::PeerConnection()
   _iceServers.push_back(iceServer);
 
   webrtc::FakeConstraints constraints;
-  constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, webrtc::MediaConstraintsInterface::kValueTrue);
+  constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, webrtc::MediaConstraintsInterface::kValueFalse);
   // constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableSctpDataChannels, true);
   constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableRtpDataChannels, webrtc::MediaConstraintsInterface::kValueTrue);
+  constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveAudio, webrtc::MediaConstraintsInterface::kValueFalse);
+  constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveVideo, webrtc::MediaConstraintsInterface::kValueFalse);
 
   _peerConnectionFactory = webrtc::CreatePeerConnectionFactory(
       _signalThread, _workerThread, NULL, NULL, NULL );
@@ -121,6 +126,8 @@ PeerConnection::PeerConnection()
 
 PeerConnection::~PeerConnection()
 {
+  TRACE_CALL;
+  TRACE_END;
 }
 
 void PeerConnection::QueueEvent(AsyncEventType type, void* data)
@@ -144,6 +151,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
 
   PeerConnection* self = static_cast<PeerConnection*>(handle->data);
   v8::Handle<v8::Object> pc = NanObjectWrapHandle(self);
+  bool do_shutdown = false;
 
   while(true)
   {
@@ -187,6 +195,9 @@ void PeerConnection::Run(uv_async_t* handle, int status)
         v8::Local<v8::Value> argv[1];
         argv[0] = Uint32::New(data->state);
         callback->Call(pc, 1, argv);
+      }
+      if(webrtc::PeerConnectionInterface::kClosed == data->state) {
+        do_shutdown = true;
       }
     } else if(PeerConnection::ICE_CONNECTION_STATE_CHANGE & evt.type)
     {
@@ -234,8 +245,42 @@ void PeerConnection::Run(uv_async_t* handle, int status)
         argv[0] = dc;
         callback->Call(pc, 1, argv);
       }
+    } else if(PeerConnection::NOTIFY_ADD_STREAM & evt.type)
+    {
+      webrtc::MediaStreamInterface* msi = static_cast<webrtc::MediaStreamInterface*>(evt.data);
+      v8::Local<v8::Value> cargv[1];
+      cargv[0] = v8::External::New(static_cast<void*>(msi));
+      v8::Local<v8::Value> ms = NanPersistentToLocal(MediaStream::constructor)->NewInstance(1, cargv);
+
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onaddstream")));
+      if(!callback.IsEmpty())
+      {
+        v8::Local<v8::Value> argv[1];
+        argv[0] = ms;
+        callback->Call(pc, 1, argv);
+      }
+    } else if(PeerConnection::NOTIFY_REMOVE_STREAM & evt.type)
+    {
+      webrtc::MediaStreamInterface* msi = static_cast<webrtc::MediaStreamInterface*>(evt.data);
+      v8::Local<v8::Value> cargv[1];
+      cargv[0] = v8::External::New(static_cast<void*>(msi));
+      v8::Local<v8::Value> ms = NanPersistentToLocal(MediaStream::constructor)->NewInstance(1, cargv);
+
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onremovestream")));
+      if(!callback.IsEmpty())
+      {
+        v8::Local<v8::Value> argv[1];
+        argv[0] = ms;
+        callback->Call(pc, 1, argv);
+      }
     }
     // FIXME: delete event
+  }
+
+  if(do_shutdown) {
+    self->_signalThread->Stop();
+    self->_workerThread->Stop();
+    uv_close((uv_handle_t*)(&self->async), NULL);
   }
 
   TRACE_END;
@@ -267,13 +312,17 @@ void PeerConnection::OnIceGatheringChange( webrtc::PeerConnectionInterface::IceG
   TRACE_END;
 }
 
-void PeerConnection::OnAddStream( webrtc::MediaStreamInterface* stream ) {
+void PeerConnection::OnAddStream( webrtc::MediaStreamInterface* media_stream ) {
   TRACE_CALL;
+  media_stream->AddRef();
+  QueueEvent(PeerConnection::NOTIFY_ADD_STREAM, static_cast<void*>(media_stream));
   TRACE_END;
 }
 
-void PeerConnection::OnRemoveStream( webrtc::MediaStreamInterface* stream ) {
+void PeerConnection::OnRemoveStream( webrtc::MediaStreamInterface* media_stream ) {
   TRACE_CALL;
+  media_stream->AddRef();
+  QueueEvent(PeerConnection::NOTIFY_REMOVE_STREAM, static_cast<void*>(media_stream));
   TRACE_END;
 }
 
@@ -301,6 +350,7 @@ NAN_METHOD(PeerConnection::New) {
 
   PeerConnection* obj = new PeerConnection();
   obj->Wrap( args.This() );
+  // V8::AdjustAmountOfExternalAllocatedMemory(1024 * 1024);
 
   TRACE_END;
   NanReturnValue( args.This() );
@@ -445,7 +495,6 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
 
   talk_base::scoped_refptr<webrtc::DataChannelInterface> dciPtr = self->_internalPeerConnection->CreateDataChannel(*label, &dataChannelInit);
   webrtc::DataChannelInterface* dci = dciPtr.get();
-  TRACE_PTR("dci", dci);
   dci->AddRef();
   dciPtr = NULL;
 
@@ -455,6 +504,94 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
 
   TRACE_END;
   NanReturnValue(dc);
+}
+
+NAN_METHOD(PeerConnection::AddStream) {
+  TRACE_CALL;
+  NanScope();
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  MediaStream* ms = ObjectWrap::Unwrap<MediaStream>( args[0]->ToObject() );
+  Handle<Object> constraintsDict = Handle<Object>::Cast(args[1]);
+
+  self->_internalPeerConnection->AddStream(ms->GetInterface(),NULL);
+
+  TRACE_END;
+  NanReturnValue(Undefined());
+}
+
+NAN_METHOD(PeerConnection::RemoveStream) {
+  TRACE_CALL;
+  NanScope();
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  MediaStream* ms = ObjectWrap::Unwrap<MediaStream>( args[0]->ToObject() );
+
+  self->_internalPeerConnection->RemoveStream(ms->GetInterface());
+
+  TRACE_END;
+  NanReturnValue(Undefined());
+}
+
+NAN_METHOD(PeerConnection::GetLocalStreams) {
+  TRACE_CALL;
+  NanScope();
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  talk_base::scoped_refptr<webrtc::StreamCollectionInterface> _streams = self->_internalPeerConnection->local_streams();
+
+  v8::Local<v8::Array> array = v8::Array::New(_streams->count());
+  for (unsigned int index = 0; index < _streams->count(); index++) {
+    v8::Local<v8::Value> cargv[1];
+    cargv[0] = v8::External::New(static_cast<void*>(_streams->at(index)));
+    array->Set(index, NanPersistentToLocal(MediaStream::constructor)->NewInstance(1, cargv));
+  }
+
+  TRACE_END;
+  NanReturnValue(array);
+}
+
+NAN_METHOD(PeerConnection::GetRemoteStreams) {
+  TRACE_CALL;
+  NanScope();
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  talk_base::scoped_refptr<webrtc::StreamCollectionInterface> _streams = self->_internalPeerConnection->remote_streams();
+
+  v8::Local<v8::Array> array = v8::Array::New(_streams->count());
+  for (unsigned int index = 0; index < _streams->count(); index++) {
+    v8::Local<v8::Value> cargv[1];
+    cargv[0] = v8::External::New(static_cast<void*>(_streams->at(index)));
+    array->Set(index, NanPersistentToLocal(MediaStream::constructor)->NewInstance(1, cargv));
+  }
+
+  TRACE_END;
+  NanReturnValue(array);
+}
+
+NAN_METHOD(PeerConnection::GetStreamById) {
+  TRACE_CALL;
+  NanScope();
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  v8::String::Utf8Value param1(args[0]->ToString());
+  std::string _id = std::string(*param1);
+  talk_base::scoped_refptr<webrtc::StreamCollectionInterface> _local = self->_internalPeerConnection->local_streams();
+  talk_base::scoped_refptr<webrtc::StreamCollectionInterface> _remote = self->_internalPeerConnection->remote_streams();
+  webrtc::MediaStreamInterface* stream = _local->find(_id);
+  if (!stream) {
+      stream = _remote->find(_id);
+  }
+
+  TRACE_END;
+  if (stream) {
+    v8::Local<v8::Value> cargv[1];
+    cargv[0] = v8::External::New(static_cast<void*>(stream));
+    v8::Local<v8::Value> ms = NanPersistentToLocal(MediaStream::constructor)->NewInstance(1, cargv);
+    NanReturnValue(ms);
+  } else {
+    NanReturnValue(Undefined());
+  }
 }
 
 NAN_METHOD(PeerConnection::UpdateIce) {
@@ -467,6 +604,10 @@ NAN_METHOD(PeerConnection::UpdateIce) {
 NAN_METHOD(PeerConnection::Close) {
   TRACE_CALL;
   NanScope();
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+  self->_internalPeerConnection->Close();
+
   TRACE_END;
   NanReturnValue(Undefined());
 }
@@ -577,20 +718,20 @@ void PeerConnection::Init( Handle<Object> exports ) {
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "createDataChannel" ),
     FunctionTemplate::New( CreateDataChannel )->GetFunction() );
 
-  // tpl->PrototypeTemplate()->Set( String::NewSymbol( "getLocalStreams" ),
-  //     FunctionTemplate::New( GetLocalStreams )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( String::NewSymbol( "getLocalStreams" ),
+    FunctionTemplate::New( GetLocalStreams )->GetFunction() );
 
-  // tpl->PrototypeTemplate()->Set( String::NewSymbol( "getRemoteStreams" ),
-  //     FunctionTemplate::New( GetRemtoeStreams )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( String::NewSymbol( "getRemoteStreams" ),
+    FunctionTemplate::New( GetRemoteStreams )->GetFunction() );
 
-  // tpl->PrototypeTemplate()->Set( String::NewSymbol( "getStreamById" ),
-  //     FunctionTemplate::New( GetStreamById )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( String::NewSymbol( "getStreamById" ),
+    FunctionTemplate::New( GetStreamById )->GetFunction() );
 
-  // tpl->PrototypeTemplate()->Set( String::NewSymbol( "addStream" ),
-  //     FunctionTemplate::New( AddStream )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( String::NewSymbol( "addStream" ),
+    FunctionTemplate::New( AddStream )->GetFunction() );
 
-  // tpl->PrototypeTemplate()->Set( String::NewSymbol( "removeStream" ),
-  //     FunctionTemplate::New( RemoveStream )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( String::NewSymbol( "removeStream" ),
+    FunctionTemplate::New( RemoveStream )->GetFunction() );
 
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "close" ),
     FunctionTemplate::New( Close )->GetFunction() );
