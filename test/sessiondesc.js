@@ -46,5 +46,6 @@ test('setLocalDescription with a created RTCSessionDescription', function(t) {
 
 test('TODO: cleanup connection', function(t) {
   t.plan(1);
-  t.pass('TODO');
+  peer.close();
+  t.pass('connection closed');
 });

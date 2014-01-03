@@ -94,3 +94,12 @@ test('setRemoteDescription for peer:0', function(t) {
   t.plan(1);
   peers[0].setRemoteDescription(peers[1].localDescription, pass, fail);
 });
+
+test('close the connections', function(t) {
+  t.plan(1);
+  peers[0].close();
+  peers[1].close();
+  t.pass('closed connections');
+
+  peers = [];
+});
