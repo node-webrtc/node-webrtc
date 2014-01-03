@@ -1,7 +1,10 @@
 var test = require('tape');
+// var detect = require('rtc-core/detect');
+// var RTCPeerConnection = detect('RTCPeerConnection');
 var RTCPeerConnection = require('../peerconnection');
-var RTCDataChannel = require('../datachannel');
+var captureCandidates = require('./helpers/capture-candidates');
 var peers = [];
+var candidates = [ [], [] ];
 var dcs = [];
 var localDesc;
 
@@ -54,12 +57,27 @@ test('setLocalDescription for peer:0', function(t) {
   peers[0].setLocalDescription(localDesc, pass, fail);
 });
 
+test('capture ice candidates for peer:0', function(t) {
+  t.plan(1);
+  captureCandidates(peers[0], candidates[0], function() {
+    t.ok(candidates[0].length > 0, 'have candidates for peer:0');
+  });
+});
+
 test('setRemoteDescription for peer:1', function(t) {
   var fail = t.ifError.bind(t);
   var pass = t.pass.bind(t, 'ok');
 
   t.plan(1);
   peers[1].setRemoteDescription(peers[0].localDescription, pass, fail);
+});
+
+test('provide peer:1 with the peer:0 gathered ice candidates', function(t) {
+  t.plan(candidates[0].length);
+
+  candidates[0].forEach(function(candidate) {
+
+  });
 });
 
 test('createAnswer for peer:1', function(t) {
@@ -87,6 +105,13 @@ test('setLocalDescription for peer:1', function(t) {
   peers[1].setLocalDescription(localDesc, pass, fail);
 });
 
+test('capture ice candidates for peer:1', function(t) {
+  t.plan(1);
+  captureCandidates(peers[1], candidates[1], function() {
+    t.ok(candidates[1].length > 0, 'have candidates for peer:1');
+  });
+});
+
 test('setRemoteDescription for peer:0', function(t) {
   var fail = t.ifError.bind(t);
   var pass = t.pass.bind(t, 'ok');
@@ -95,11 +120,15 @@ test('setRemoteDescription for peer:0', function(t) {
   peers[0].setRemoteDescription(peers[1].localDescription, pass, fail);
 });
 
-test('close the connections', function(t) {
-  t.plan(1);
-  peers[0].close();
-  peers[1].close();
-  t.pass('closed connections');
+test('monitor the ice connection state of peer:0', function(t) {
 
-  peers = [];
 });
+
+// test('close the connections', function(t) {
+//   t.plan(1);
+//   peers[0].close();
+//   peers[1].close();
+//   t.pass('closed connections');
+
+//   peers = [];
+// });
