@@ -340,6 +340,11 @@ void PeerConnection::OnDataChannel( webrtc::DataChannelInterface* data_channel )
   TRACE_END;
 }
 
+void PeerConnection::OnRenegotiationNeeded() {
+  TRACE_CALL;
+  TRACE_END;
+}
+
 NAN_METHOD(PeerConnection::New) {
   TRACE_CALL;
   NanScope();
