@@ -12,6 +12,7 @@
     "url": "http://github.com/js-platform/node-webrtc.git"
   },
   "main": "./build/Release/webrtc.node",
+  "browser": "lib/browser.js",
   "engines": {
     "node": "0.10.x"
   },
@@ -24,6 +25,7 @@
     "ws": "~0.4.31"
   },
   "scripts": {
-    "install": "node build.js"
+    "install": "node bin/build.js",
+    "test": "node examples/test.js"
   }
 }

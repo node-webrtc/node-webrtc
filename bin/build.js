@@ -6,7 +6,7 @@ var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
 
 var PROJECT_DIR = process.cwd();
-var LIB_DIR = PROJECT_DIR + '/lib';
+var LIB_DIR = PROJECT_DIR + '/third_party';
 var LIB_WEBRTC_DIR = LIB_DIR + '/libwebrtc';
 
 function read_stream(stream)

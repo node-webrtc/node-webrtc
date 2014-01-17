@@ -1,6 +1,6 @@
 {
   'variables': {
-    'libwebrtc%': 'lib/libwebrtc/trunk',
+    'libwebrtc%': 'third_party/libwebrtc/trunk',
   },
   'conditions': [
     ['OS=="linux"', {

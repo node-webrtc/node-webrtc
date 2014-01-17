@@ -1,5 +1,5 @@
 var http = require('http');
-var webrtc = require('../index');
+var webrtc = require('../lib/index');
 var ws = require('ws');
 
 var MAX_REQUEST_LENGHT = 1024;
