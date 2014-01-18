@@ -1,3 +1,5 @@
+#!/usr/bin/sh
+
 var path = require('path');
 var os = require('os');
 var fs = require('fs');
@@ -58,7 +60,7 @@ function depot_tools(callback)
         console.error('depot_tools failed:', code, signal);
       }
     });
-  }
+  };
 }
 
 function gclient_config(callback)

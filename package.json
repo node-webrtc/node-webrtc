@@ -26,7 +26,7 @@
   },
   "scripts": {
     "install": "node bin/build.js",
-    "uninstall": "sh bin/clean.sh",
+    "uninstall": "node bin/clean.js",
     "test": "node examples/test.js"
   }
 }
