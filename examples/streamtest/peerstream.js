@@ -1,47 +1,15 @@
-var webrtcSupported = true;
-var webrtc = {};
+var RTCPeerConnection     = wrtc.RTCPeerConnection;
+var RTCSessionDescription = wrtc.RTCSessionDescription;
+var RTCIceCandidate       = wrtc.RTCIceCandidate;
 
-if(window.mozRTCPeerConnection)
-  webrtc.RTCPeerConnection = window.mozRTCPeerConnection;
-else if(window.webkitRTCPeerConnection)
-  webrtc.RTCPeerConnection = window.webkitRTCPeerConnection;
-else if(window.RTCPeerConnection)
-  webrtc.RTCPeerConnection = window.RTCPeerConnection;
-else
-  webrtcSupported = false;
-
-if(window.mozRTCSessionDescription)
-  webrtc.RTCSessionDescription = window.mozRTCSessionDescription;
-else if(window.webkitRTCSessionDescription)
-  webrtc.RTCSessionDescription = window.webkitRTCSessionDescription;
-else if(window.RTCSessionDescription)
-  webrtc.RTCSessionDescription = window.RTCSessionDescription;
-else
-  webrtcSupported = false;
-
-if(window.mozRTCIceCandidate)
-  webrtc.RTCIceCandidate = window.mozRTCIceCandidate;
-else if(window.webkitRTCIceCandidate)
-  webrtc.RTCIceCandidate = window.webkitRTCIceCandidate;
-else if(window.RTCIceCandidate)
-  webrtc.RTCIceCandidate = window.RTCIceCandidate;
-else
-  webrtcSupported = false;
-  
-var userMediaSupported = true;
-  
 navigator.getMedia = ( navigator.getUserMedia ||
                        navigator.webkitGetUserMedia ||
                        navigator.mozGetUserMedia ||
                        navigator.msGetUserMedia);
-if (!navigator.getMedia)
-  userMediaSupported = false;
 
-if (!webrtcSupported) {
-    console.log('Error: WebRTC is not supported on this browser');
-} else if (!userMediaSupported) {
+if (!navigator.getMedia)
     console.log('Error: getUserMedia is not supported on this browser');
-} else {
+else {
     var socket = io.connect();
     
     socket.on('connected', function(){
@@ -64,14 +32,14 @@ if (!webrtcSupported) {
         
         var message = JSON.parse(data);
         if (message.sdp) {
-            pc.setRemoteDescription(new webrtc.RTCSessionDescription(message.sdp), function () {
+            pc.setRemoteDescription(new RTCSessionDescription(message.sdp), function () {
                 // if we received an offer, we need to answer
                 if (pc.remoteDescription.type == "offer") {
                     pc.createAnswer(localDescCreated, logError);
                 }
             }, logError);
         } else if (message.candidate) {
-            pc.addIceCandidate(new webrtc.RTCIceCandidate(message.candidate));
+            pc.addIceCandidate(new RTCIceCandidate(message.candidate));
         }
     });
     
@@ -97,7 +65,7 @@ if (!webrtcSupported) {
     
     var start = function () {
         logMessage('rtc peer connection object initializing');
-        pc = new webrtc.RTCPeerConnection(configuration);
+        pc = new RTCPeerConnection(configuration);
     
         pc.onicecandidate = function (evt) {
             if (evt.candidate) {

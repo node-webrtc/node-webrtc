@@ -2,37 +2,9 @@
 
 var bridge = window.location.toString().split('?')[1] || 'localhost:9001';
 
-var webrtcSupported = true;
-
-var RTCPeerConnection;
-if(window.mozRTCPeerConnection)
-  RTCPeerConnection = window.mozRTCPeerConnection;
-else if(window.webkitRTCPeerConnection)
-  RTCPeerConnection = window.webkitRTCPeerConnection;
-else if(window.RTCPeerConnection)
-  RTCPeerConnection = window.RTCPeerConnection
-else
-  webrtcSupported = false;
-
-var RTCSessionDescription;
-if(window.mozRTCSessionDescription)
-  RTCSessionDescription = window.mozRTCSessionDescription;
-else if(window.webkitRTCSessionDescription)
-  RTCSessionDescription = window.webkitRTCSessionDescription;
-else if(window.RTCSessionDescription)
-  RTCSessionDescription = window.RTCSessionDescription
-else
-  webrtcSupported = false;
-
-var RTCIceCandidate;
-if(window.mozRTCIceCandidate)
-  RTCIceCandidate = window.mozRTCIceCandidate;
-else if(window.webkitRTCIceCandidate)
-  RTCIceCandidate = window.webkitRTCIceCandidate;
-else if(window.RTCIceCandidate)
-  RTCIceCandidate = window.RTCIceCandidate;
-else
-  webrtcSupported = false;
+var RTCPeerConnection     = wrtc.RTCPeerConnection;
+var RTCSessionDescription = wrtc.RTCSessionDescription;
+var RTCIceCandidate       = wrtc.RTCIceCandidate;
 
 var dataChannelSettings = {
   'reliable': {
@@ -49,7 +21,7 @@ var dataChannelSettings = {
 };
 
 var pendingDataChannels = {};
-var dataChannels = {}
+var dataChannels = {};
 var pendingCandidates = [];
 
 function doHandleError(error)
@@ -65,7 +37,7 @@ function doComplete()
 
 function doWaitforDataChannels()
 {
-  console.log('awaiting data channels')
+  console.log('awaiting data channels');
 }
 
 var ws = null;
@@ -81,15 +53,15 @@ var pc = new RTCPeerConnection(
 pc.onsignalingstatechange = function(event)
 {
   console.info("signaling state change: ", event.target.signalingState);
-}
+};
 pc.oniceconnectionstatechange = function(event)
 {
   console.info("ice connection state change: ", event.target.iceConnectionState);
-}
+};
 pc.onicegatheringstatechange = function(event)
 {
   console.info("ice gathering state change: ", event.target.iceGatheringState);
-}
+};
 pc.onicecandidate = function(event)
 {
   var candidate = event.candidate;
@@ -105,7 +77,7 @@ pc.onicecandidate = function(event)
   {
     pendingCandidates.push(candidate);
   }
-}
+};
 
 doCreateDataChannels();
 
@@ -129,7 +101,7 @@ function doCreateDataChannels()
     };
     channel.onclose = function(event) {
       console.info('onclose');
-    }
+    };
     channel.onerror = doHandleError;
   });
   doCreateOffer();
@@ -168,7 +140,7 @@ function doSendOffer(offer)
     ws.send(JSON.stringify(
       {'type': offer.type, 'sdp': offer.sdp})
     );
-  }
+  };
   ws.onmessage = function(event)
   {
     data = JSON.parse(event.data);
@@ -179,7 +151,7 @@ function doSendOffer(offer)
     {
       pc.addIceCandidate(new RTCIceCandidate(data.sdp));
     }
-  }
+  };
 }
 
 function doSetRemoteDesc(desc)

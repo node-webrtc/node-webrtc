@@ -1,7 +1,7 @@
 var http = require('http');
 var path = require('path');
 
-var webrtc = require('../../index');
+var webrtc = require('../../lib/index');
 var express = require('express');
 var socketio = require('socket.io');
 
