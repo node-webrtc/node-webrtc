@@ -1,5 +1,9 @@
 #!/usr/bin/sh
 
+var exec  = require('child_process').exec;
+var fs    = require('fs');
+var spawn = require('child_process').spawn;
+
 
 var PROJECT_DIR = process.cwd();
 
