@@ -8,6 +8,8 @@ Once you've done some hacking and you'd like to have your work merged, you'll ne
 
 ### Getting Started
 
+**Important**: Make sure you have all the prerequisite libraries installed for your platform, as described [here](http://www.webrtc.org/reference/getting-started/prerequisite-sw).
+
 The easiest way to install is via npm:
 
 ````
