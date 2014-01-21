@@ -35,17 +35,16 @@ function depot_tools(callback)
   console.info("depot_tools");
   process.stdout.write('.');
 
-  // Directory for depot tools
-  if(!fs.existsSync(TOOLS_DEPOT_TOOLS_DIR))
+  // Directory for tools
+  if(!fs.existsSync(TOOLS_DIR))
   {
-    // Directory for tools
-    if(!fs.existsSync(TOOLS_DIR))
-    {
-      fs.mkdirSync(TOOLS_DIR);
-    }
-    process.chdir(TOOLS_DIR);
+    fs.mkdirSync(TOOLS_DIR);
+  }
+  process.chdir(TOOLS_DIR);
 
-    // Download depot tools
+  // Download depot tools
+  if(!fs.existsSync(TOOLS_DIR))
+  {
     var child = exec("git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git");
     child.on('exit', function(code, signal)
     {
@@ -60,7 +59,12 @@ function depot_tools(callback)
         console.error('depot_tools failed:', code, signal);
       }
     });
-  };
+  }
+  else
+  {
+    console.log('depot_tools not required');
+    gclient_config(callback);
+  }
 }
 
 function gclient_config(callback)
@@ -149,6 +153,8 @@ function ninja_build(callback)
 {
   console.info("ninja_build");
   process.stdout.write('.');
+
+  process.chdir(LIB_WEBRTC_DIR);
 
   var args = ["-C", "trunk/out/Release"];
   if('linux' == os.platform())
