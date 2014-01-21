@@ -19,7 +19,7 @@ npm install wrtc
 If you want to work from source:
 
 ````
-git clone git@github.com:modeswitch/node-webrtc.git
+git clone https://github.com/js-platform/node-webrtc.git
 cd node-webrtc
 npm install
 ````
