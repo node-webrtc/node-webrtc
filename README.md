@@ -8,8 +8,6 @@ Once you've done some hacking and you'd like to have your work merged, you'll ne
 
 ### Getting Started
 
-You will need to set up `depot_tools` on your machine before you begin. Instructions are [here](http://www.chromium.org/developers/how-tos/install-depot-tools).
-
 The easiest way to install is via npm:
 
 ````
