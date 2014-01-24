@@ -1,0 +1,4 @@
+[Project]
+Name=wrtc
+Manager=KDevCMakeManager
+VersionControl=kdevgit

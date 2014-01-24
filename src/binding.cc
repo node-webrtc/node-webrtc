@@ -7,6 +7,7 @@
 #include "datachannel.h"
 #include "mediastream.h"
 #include "mediastreamtrack.h"
+#include "mediastreamtrackinterface.h"
 
 using namespace v8;
 
@@ -16,6 +17,7 @@ void init(Handle<Object> exports) {
   DataChannel::Init(exports);
   MediaStream::Init(exports);
   MediaStreamTrack::Init(exports);
+  MediaStreamTrackInterface::Init(exports);
 }
 
 NODE_MODULE(webrtc, init)
