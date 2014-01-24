@@ -316,16 +316,16 @@ void MediaStream::Init( Handle<Object> exports ) {
   Local<FunctionTemplate> tpl = FunctionTemplate::New( New );
   tpl->SetClassName( String::NewSymbol( "MediaStream" ) );
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "getaudiotracks" ),
+  tpl->PrototypeTemplate()->Set( String::NewSymbol( "getAudioTracks" ),
     FunctionTemplate::New( getAudioTracks )->GetFunction() );
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "getvideotracks" ),
+  tpl->PrototypeTemplate()->Set( String::NewSymbol( "getVideoTracks" ),
     FunctionTemplate::New( getVideoTracks )->GetFunction() );
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "gettrackbyid" ),
+  tpl->PrototypeTemplate()->Set( String::NewSymbol( "getTrackById" ),
     FunctionTemplate::New( getTrackById )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "addtrack" ),
+  tpl->PrototypeTemplate()->Set( String::NewSymbol( "addTrack" ),
     FunctionTemplate::New( addTrack )->GetFunction() );
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "removetrack" ),
+  tpl->PrototypeTemplate()->Set( String::NewSymbol( "removeTrack" ),
     FunctionTemplate::New( removeTrack )->GetFunction() );
     
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "clone" ),
