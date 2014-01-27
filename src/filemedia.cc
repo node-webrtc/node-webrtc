@@ -42,7 +42,7 @@ NAN_METHOD(FileMedia::New) {
   }
 
   v8::Local<v8::External> _fme = v8::Local<v8::External>::Cast(args[0]);
-  cricket::FileMediaEngine* fme = static_cast<cricket::FileMediaEngine*>(_fme->Value());
+  cricket::FileMediaEngine* fme = new cricket::FileMediaEngine();
 
   FileMedia* obj = new FileMedia(fme);
   obj->Wrap( args.This() );
@@ -155,8 +155,8 @@ NAN_METHOD(FileMedia::setVoiceInputFilename) {
   NanScope();
 
   FileMedia* self = ObjectWrap::Unwrap<FileMedia>( args.This() );
-  v8::String::Utf8Value arg0(args[0]->ToString());
-  const char* filepath = *arg0;
+  v8::String::Utf8Value param1(args[0]->ToString());
+  std::string filepath = std::string(*param1);
 
   self->_internalFileMediaEngine->set_voice_input_filename(filepath);
 
@@ -232,4 +232,4 @@ void FileMedia::Init( Handle<Object> exports ) {
   exports->Set( String::NewSymbol("FileMedia"), tpl->GetFunction() );
 }
 
-/* ex: set tabstop=2 expandtab: */
+/* ex: set tabstop=2 softtabstop=2 shiftwidth=2 expandtab: */

@@ -61,7 +61,7 @@ NAN_METHOD(VoiceMediaChannel::SetLocalRenderer) {
 void VoiceMediaChannel::Init( Handle<Object> exports ) {
   Local<FunctionTemplate> tpl = FunctionTemplate::New( New );
   tpl->SetClassName( String::NewSymbol( "VoiceMediaChannel" ) );
-  tpl->InstanceTemplate()->SetInternalFieldCount(0);
+  tpl->InstanceTemplate()->SetInternalFieldCount(1);
     
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "setLocalRenderer" ),
     FunctionTemplate::New( SetLocalRenderer )->GetFunction() );
