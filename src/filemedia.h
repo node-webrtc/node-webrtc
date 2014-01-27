@@ -9,6 +9,7 @@
 #include <node_object_wrap.h>
 #include <uv.h>
 
+#include "talk/media/base/mediachannel.h"
 #include "talk/media/base/filemediaengine.h"
 //#include "talk/base/thread.h"
 //#include "talk/base/scoped_ptr.h"
@@ -31,7 +32,7 @@ public:
   };
 
   FileMedia(cricket::FileMediaEngine* FileMediaEngine);
-  ~MediaStream();
+  ~FileMedia();
   
   //
   // ObserverInterface implementation.
@@ -46,7 +47,7 @@ public:
   static NAN_METHOD(New);
   virtual void Terminate() {}
 
-  webrtc::FileMediaEngine* GetInterface();
+  cricket::FileMediaEngine* GetInterface();
 
   static NAN_METHOD(createChannel);
   static NAN_METHOD(createVideoChannel);
@@ -56,9 +57,11 @@ public:
   static NAN_METHOD(setVideoInputFilename);
   static NAN_METHOD(setVideoOutputFilename);
 
+  void QueueEvent(FileMedia::AsyncEventType type, void* data);
+
 private:
-  VoiceMediaChannel voice_channel_;
-  VideoMediaChannel video_channel_;
+  cricket::VoiceMediaChannel* voice_channel_;
+  cricket::VideoMediaChannel* video_channel_;
 
   static void Run(uv_async_t* handle, int status);
 
@@ -71,9 +74,8 @@ private:
   uv_async_t async;
   std::queue<AsyncEvent> _events;
 
-  talk_base::scoped_refptr<webrtc::FileMediaEngine> _internalFileMediaEngine;
+  cricket::FileMediaEngine* _internalFileMediaEngine;
 };
 
 #endif
-
 /* ex: set tabstop=2 expandtab: */

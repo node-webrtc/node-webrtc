@@ -10,16 +10,19 @@
 #include "common.h"
 #include "mediastream.h"
 #include "mediastreamtrack.h"
+#include "filemedia.h"
+#include "voicemediachannel.h"
+#include "videomediachannel.h"
+#include "talk/media/base/mediachannel.h"
 
 using namespace node;
 using namespace v8;
 
 Persistent<Function> FileMedia::constructor;
 
-FileMedia::FileMedia(webrtc::FileMediaEngine* fme)
+FileMedia::FileMedia(cricket::FileMediaEngine* fme)
 : _internalFileMediaEngine(fme)
 {
-  fme->Release();
   uv_mutex_init(&lock);
   uv_async_init(uv_default_loop(), &async, Run);
 
@@ -39,9 +42,9 @@ NAN_METHOD(FileMedia::New) {
   }
 
   v8::Local<v8::External> _fme = v8::Local<v8::External>::Cast(args[0]);
-  webrtc::FileMediaInterface* fme = static_cast<webrtc::FileMediaEngine*>(_fme->Value());
+  cricket::FileMediaEngine* fme = static_cast<cricket::FileMediaEngine*>(_fme->Value());
 
-  FileMediaEngine* obj = new FileMedia(fme);
+  FileMedia* obj = new FileMedia(fme);
   obj->Wrap( args.This() );
 
   TRACE_END;
@@ -93,7 +96,7 @@ void FileMedia::Run(uv_async_t* handle, int status)
       }
     }
     
-    if(MediaStream::MESSAGE & evt.type) 
+    if(FileMedia::MESSAGE & evt.type) 
     {
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ms->Get(String::New("message")));
       if(!callback.IsEmpty())
@@ -107,7 +110,7 @@ void FileMedia::Run(uv_async_t* handle, int status)
   TRACE_END;
 }
 
-webrtc::FileMediaEngine* FileMedia::GetInterface() {
+cricket::FileMediaEngine* FileMedia::GetInterface() {
     return _internalFileMediaEngine;
 }
 
@@ -116,12 +119,13 @@ NAN_METHOD(FileMedia::createChannel) {
   NanScope();
 
   FileMedia* self = ObjectWrap::Unwrap<FileMedia>( args.This() );
-  v8::String::Utf8Value filepath = v8::Local<v8::String::Utf8Value>::Cast(args[0]);
+  v8::String::Utf8Value filepath(args[0]->ToString());
 
-  *VoiceMediaChannel channel = self->_internalFileMediaEngine->CreateChannel();
+  cricket::VoiceMediaChannel* channel = self->_internalFileMediaEngine->CreateChannel();
 
-  v8::Local<v8::Value> wrapped[1];
-  wrapped[0] = v8::External::New(static_cast<void*>(channel));
+  v8::Local<v8::Value> cargv[1];
+  cargv[0] = v8::External::New(static_cast<void*>(channel));
+  v8::Local<v8::Value> wrapped = NanPersistentToLocal(VoiceMediaChannel::constructor)->NewInstance(1, cargv);
 
   TRACE_END;
   NanReturnValue(wrapped);
@@ -132,12 +136,15 @@ NAN_METHOD(FileMedia::createVideoChannel) {
   NanScope();
 
   FileMedia* self = ObjectWrap::Unwrap<FileMedia>( args.This() );
-  v8::String::Utf8Value filepath = v8::Local<v8::String::Utf8Value>::Cast(args[0]);
+  v8::String::Utf8Value filepath(args[0]->ToString());
 
-  *VideoMediaChannel channel = self->_internalFileMediaEngine->CreateVideoChannel();
 
-  v8::Local<v8::Value> wrapped[1];
-  wrapped[0] = v8::External::New(static_cast<void*>(channel));
+  cricket::VoiceMediaChannel* voiceChannel = self->_internalFileMediaEngine->CreateChannel();
+  cricket::VideoMediaChannel* channel = self->_internalFileMediaEngine->CreateVideoChannel(voiceChannel);
+
+  v8::Local<v8::Value> cargv[1];
+  cargv[0] = v8::External::New(static_cast<void*>(channel));
+  v8::Local<v8::Value> wrapped = NanPersistentToLocal(VideoMediaChannel::constructor)->NewInstance(1, cargv);
 
   TRACE_END;
   NanReturnValue(wrapped);
@@ -148,9 +155,10 @@ NAN_METHOD(FileMedia::setVoiceInputFilename) {
   NanScope();
 
   FileMedia* self = ObjectWrap::Unwrap<FileMedia>( args.This() );
-  v8::String::Utf8Value filepath = v8::Local<v8::String::Utf8Value>::Cast(args[0]);
+  v8::String::Utf8Value arg0(args[0]->ToString());
+  const char* filepath = *arg0;
 
-  self->_internalFileMediaEngine->set_voice_input_filename(filepath->ToString());
+  self->_internalFileMediaEngine->set_voice_input_filename(filepath);
 
   TRACE_END;
   NanReturnValue(Undefined());
@@ -161,9 +169,10 @@ NAN_METHOD(FileMedia::setVoiceOutputFilename) {
   NanScope();
 
   FileMedia* self = ObjectWrap::Unwrap<FileMedia>( args.This() );
-  v8::String::Utf8Value filepath = v8::Local<v8::String::Utf8Value>::Cast(args[0]);
+  v8::String::Utf8Value arg0(args[0]->ToString());
+  const char* filepath = *arg0;
 
-  self->_internalFileMediaEngine->set_voice_output_filename(filepath->ToString());
+  self->_internalFileMediaEngine->set_voice_output_filename(filepath);
 
   TRACE_END;
   NanReturnValue(Undefined());
@@ -174,9 +183,10 @@ NAN_METHOD(FileMedia::setVideoInputFilename) {
   NanScope();
 
   FileMedia* self = ObjectWrap::Unwrap<FileMedia>( args.This() );
-  v8::String::Utf8Value filepath = v8::Local<v8::String::Utf8Value>::Cast(args[0]);
+  v8::String::Utf8Value arg0(args[0]->ToString());
+  const char* filepath = *arg0;
 
-  self->_internalFileMediaEngine->set_video_input_filename(filepath->ToString());
+  self->_internalFileMediaEngine->set_video_input_filename(filepath);
 
   TRACE_END;
   NanReturnValue(Undefined());
@@ -187,23 +197,24 @@ NAN_METHOD(FileMedia::setVideoOutputFilename) {
   NanScope();
 
   FileMedia* self = ObjectWrap::Unwrap<FileMedia>( args.This() );
-  v8::String::Utf8Value filepath = v8::Local<v8::String::Utf8Value>::Cast(args[0]);
+  v8::String::Utf8Value arg0(args[0]->ToString());
+  const char* filepath = *arg0;
 
-  self->_internalFileMediaEngine->set_video_output_filename(filepath->ToString());
+  self->_internalFileMediaEngine->set_video_output_filename(filepath);
 
   TRACE_END;
   NanReturnValue(Undefined());
 }
 
-void MediaStream::Init( Handle<Object> exports ) {
+void FileMedia::Init( Handle<Object> exports ) {
   Local<FunctionTemplate> tpl = FunctionTemplate::New( New );
   tpl->SetClassName( String::NewSymbol( "FileMedia" ) );
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "createChannel" ),
-    FunctionTemplate::New( getAudioTracks )->GetFunction() );
+    FunctionTemplate::New( createChannel )->GetFunction() );
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "createVideoChannel" ),
-    FunctionTemplate::New( getVideoTracks )->GetFunction() );
+    FunctionTemplate::New( createVideoChannel )->GetFunction() );
 
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "setVoiceInputFilename" ),
     FunctionTemplate::New( setVoiceInputFilename )->GetFunction() );

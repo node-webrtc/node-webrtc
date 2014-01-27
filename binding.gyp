@@ -201,7 +201,9 @@
         'src/datachannel.cc',
         'src/mediastream.cc',
         'src/mediastreamtrack.cc',
-        'src/filemediaengine.h'
+        'src/filemedia.cc',
+        'src/voicemediachannel.cc',
+        'src/videomediachannel.cc',
       ]
     }
   ]
