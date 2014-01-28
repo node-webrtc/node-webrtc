@@ -5,9 +5,11 @@
 #include <string>
 
 #include "talk/app/webrtc/jsep.h"
+#include "talk/app/webrtc/mediastream.h"
 #include "webrtc/system_wrappers/interface/ref_count.h"
 
 #include "common.h"
+#include "mediastream.h"
 #include "mediastream.h"
 #include "mediastreamtrack.h"
 
@@ -44,6 +46,7 @@ NAN_METHOD(MediaStream::New) {
   webrtc::MediaStreamInterface* msi = static_cast<webrtc::MediaStreamInterface*>(_msi->Value());
 
   MediaStream* obj = new MediaStream(msi);
+
   msi->RegisterObserver(obj);
   obj->Wrap( args.This() );
 

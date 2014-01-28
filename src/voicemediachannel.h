@@ -37,6 +37,7 @@ public:
   static NAN_METHOD(New);
 
   static NAN_METHOD(SetLocalRenderer);
+  static NAN_METHOD(addSendStream);
 
 private:
   cricket::VoiceMediaChannel* _internalVoiceMediaChannel;

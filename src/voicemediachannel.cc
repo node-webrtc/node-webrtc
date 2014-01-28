@@ -58,6 +58,21 @@ NAN_METHOD(VoiceMediaChannel::SetLocalRenderer) {
   NanReturnValue(Boolean::New(true));
 }
 
+NAN_METHOD(VoiceMediaChannel::addSendStream) {
+  TRACE_CALL;
+  NanScope();
+
+  VoiceMediaChannel* self = ObjectWrap::Unwrap<VoiceMediaChannel>( args.This() );
+  uint32 ssrc = args[0]->Uint32Value();
+
+  cricket::StreamParams params = cricket::StreamParams::CreateLegacy(ssrc);
+
+  bool ret = self->_internalVoiceMediaChannel->AddSendStream(params);
+
+  TRACE_END;
+  NanReturnValue(Boolean::New(ret));
+}
+
 void VoiceMediaChannel::Init( Handle<Object> exports ) {
   Local<FunctionTemplate> tpl = FunctionTemplate::New( New );
   tpl->SetClassName( String::NewSymbol( "VoiceMediaChannel" ) );

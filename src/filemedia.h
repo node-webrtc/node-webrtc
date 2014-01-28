@@ -51,6 +51,7 @@ public:
 
   static NAN_METHOD(createChannel);
   static NAN_METHOD(createVideoChannel);
+  static NAN_METHOD(createStream);
 
   static NAN_METHOD(setVoiceInputFilename);
   static NAN_METHOD(setVoiceOutputFilename);

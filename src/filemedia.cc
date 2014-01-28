@@ -150,6 +150,24 @@ NAN_METHOD(FileMedia::createVideoChannel) {
   NanReturnValue(wrapped);
 }
 
+NAN_METHOD(FileMedia::createStream) {
+  TRACE_CALL;
+  NanScope();
+
+  FileMedia* self = ObjectWrap::Unwrap<FileMedia>( args.This() );
+  v8::String::Utf8Value tmp(args[0]->ToString());
+  std::string label = *tmp;
+
+  MediaStream* mediastream = webrtc::MediaStream::Create(label);
+
+  v8::Local<v8::Value> cargv[1];
+  cargv[0] = v8::External::New(static_cast<void*>(mediastream));
+  v8::Local<v8::Value> wrapped = NanPersistentToLocal(MediaStream::constructor)->NewInstance(1, cargv);
+
+  TRACE_END;
+  NanReturnValue(wrapped);
+}
+
 NAN_METHOD(FileMedia::setVoiceInputFilename) {
   TRACE_CALL;
   NanScope();
