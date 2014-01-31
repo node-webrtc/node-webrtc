@@ -138,14 +138,31 @@ test('provide peer:0 with the peer:1 gathered ice candidates', function(t) {
 });
 
 test('monitor the ice connection state of peer:0', function(t) {
-  console.log(peers[0].iceConnectionState);
-  peers[0].oniceconnectionstatechange = function() {
-    console.log('ice connection state changed: ' + peers[0].iceConnectionState);
+  t.plan(1);
+
+  function checkState() {
+    if (peers[0].iceConnectionState === 'connected') {
+      t.pass('peer:0 in connected state');
+      peers[0].oniceconnectionstatechange = null;
+    }
   }
 
-  setInterval(function() {
-    console.log('connection state: ' + peers[0].iceConnectionState);
-  }, 1000);
+  peers[0].oniceconnectionstatechange = checkState;
+  checkState();
+});
+
+test('monitor the ice connection state of peer:1', function(t) {
+  t.plan(1);
+
+  function checkState() {
+    if (peers[1].iceConnectionState === 'connected') {
+      t.pass('peer:1 in connected state');
+      peers[1].oniceconnectionstatechange = null;
+    }
+  }
+
+  peers[1].oniceconnectionstatechange = checkState;
+  checkState();
 });
 
 // test('close the connections', function(t) {
