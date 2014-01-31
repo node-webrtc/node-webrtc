@@ -8,7 +8,7 @@ Once you've done some hacking and you'd like to have your work merged, you'll ne
 
 ### Getting Started
 
-You will need to set up `depot_tools` on your machine before you begin. Instructions are [here](http://www.chromium.org/developers/how-tos/install-depot-tools).
+**Important**: Make sure you have all the prerequisite libraries installed for your platform, as described [here](http://www.webrtc.org/reference/getting-started/prerequisite-sw).
 
 The easiest way to install is via npm:
 
@@ -19,7 +19,7 @@ npm install wrtc
 If you want to work from source:
 
 ````
-git clone git@github.com:modeswitch/node-webrtc.git
+git clone https://github.com/js-platform/node-webrtc.git
 cd node-webrtc
 npm install
 ````
@@ -36,7 +36,7 @@ npm install
 
 ### Tests
 
-Once everything is built, try `node tests/test.js` as a sanity check. You can run the data channel demo by `node tests/bridge.js` and browsing to `tests/peer.html` in `chrome --enable-data-channels`. You can pass an alternate port to the node script by `node tests/bridge.js <port>`. If the bridge and peer are on different machines, you can pass the bridge address to the peer by `http://<yourmachine>/peer.html?<host:port>`.
+Once everything is built, try `npm test` as a sanity check. You can run the data channel demo by `node tests/bridge.js` and browsing to `tests/peer.html` in `chrome --enable-data-channels`. You can pass an alternate port to the node script by `node tests/bridge.js <port>`. If the bridge and peer are on different machines, you can pass the bridge address to the peer by `http://<yourmachine>/peer.html?<host:port>`.
 
 The output from `bridge.js` should look like:
 ````

@@ -1,7 +1,7 @@
 var http = require('http');
 var path = require('path');
 
-var webrtc = require('../../index');
+var webrtc = require('../../lib/index');
 var express = require('express');
 var socketio = require('socket.io');
 
@@ -9,7 +9,8 @@ var router = express();
 var server = http.createServer(router);
 var io = socketio.listen(server);
 
-router.use(express.static(__dirname + '/.'));
+router.use('/dist', express.static(__dirname + '/../../dist/'));
+router.use('/', express.static(__dirname + '/.'));
 
 var config1 = { iceServers: [{url:'stun:stun.l.google.com:19302'}] };
 var config2 = { 'optional': [{DtlsSrtpKeyAgreement: false}] };

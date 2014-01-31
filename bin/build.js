@@ -1,3 +1,5 @@
+#!/usr/bin/sh
+
 var path = require('path');
 var os = require('os');
 var fs = require('fs');
@@ -5,9 +7,18 @@ var sys = require('sys');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
 
+
 var PROJECT_DIR = process.cwd();
-var LIB_DIR = PROJECT_DIR + '/lib';
+
+var LIB_DIR = PROJECT_DIR + '/third_party';
 var LIB_WEBRTC_DIR = LIB_DIR + '/libwebrtc';
+
+var TOOLS_DIR = PROJECT_DIR + '/tools';
+var TOOLS_DEPOT_TOOLS_DIR = TOOLS_DIR + '/depot_tools';
+
+
+var GCLIENT = TOOLS_DEPOT_TOOLS_DIR+"/gclient";
+
 
 function read_stream(stream)
 {
@@ -15,26 +26,66 @@ function read_stream(stream)
   process.stdout.write('.');
 }
 
-var child;
-
-if(!fs.existsSync(LIB_DIR))
-{
-  fs.mkdirSync(LIB_DIR);
-}
-
-if(!fs.existsSync(LIB_WEBRTC_DIR))
-{
-  fs.mkdirSync(LIB_WEBRTC_DIR);
-}
 
 process.env['GYP_GENERATORS'] = 'ninja';
+
+
+function depot_tools(callback)
+{
+  console.info("depot_tools");
+  process.stdout.write('.');
+
+  // Directory for tools
+  if(!fs.existsSync(TOOLS_DIR))
+  {
+    fs.mkdirSync(TOOLS_DIR);
+  }
+  process.chdir(TOOLS_DIR);
+
+  // Download depot tools
+  if(!fs.existsSync(TOOLS_DIR))
+  {
+    var child = exec("git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git");
+    child.on('exit', function(code, signal)
+    {
+      process.stdout.write('\n');
+      if(0 === code && !signal)
+      {
+        console.log('depot_tools complete');
+        gclient_config(callback);
+      }
+      else
+      {
+        console.error('depot_tools failed:', code, signal);
+      }
+    });
+  }
+  else
+  {
+    console.log('depot_tools not required');
+    gclient_config(callback);
+  }
+}
 
 function gclient_config(callback)
 {
   console.info("gclient_config");
   process.stdout.write('.');
+
+  // Directory for libwebrtc
+  if(!fs.existsSync(LIB_WEBRTC_DIR))
+  {
+    if(!fs.existsSync(LIB_DIR))
+    {
+      fs.mkdirSync(LIB_DIR);
+    }
+
+    fs.mkdirSync(LIB_WEBRTC_DIR);
+  }
   process.chdir(LIB_WEBRTC_DIR);
-  child = exec("gclient config http://webrtc.googlecode.com/svn/trunk");
+
+  // Download libwebrtc
+  var child = exec(GCLIENT+" config http://webrtc.googlecode.com/svn/trunk");
   child.on('exit', function(code, signal)
   {
     process.stdout.write('\n');
@@ -54,9 +105,13 @@ function gclient_sync(callback)
 {
   console.info("gclient_sync");
   process.stdout.write('.');
-  child = spawn("gclient", ["sync"]);
+
+  process.chdir(LIB_WEBRTC_DIR);
+
+  var child = spawn(GCLIENT, ["sync"]);
   child.stdout.on('readable', read_stream.bind(undefined, child.stdout));
-  child.on('exit', function(code, signal) {
+  child.on('exit', function(code, signal)
+  {
     process.stdout.write('\n');
     if(0 === code && !signal)
     {
@@ -74,9 +129,13 @@ function gclient_runhooks(callback)
 {
   console.info("gclient_runhooks");
   process.stdout.write('.');
-  child = spawn("gclient", ["runhooks"]);
+
+  process.chdir(LIB_WEBRTC_DIR);
+
+  var child = spawn(GCLIENT, ["runhooks"]);
   child.stdout.on('readable', read_stream.bind(undefined, child.stdout));
-  child.on('exit', function(code, signal) {
+  child.on('exit', function(code, signal)
+  {
     process.stdout.write('\n');
     if(0 === code && !signal)
     {
@@ -94,14 +153,19 @@ function ninja_build(callback)
 {
   console.info("ninja_build");
   process.stdout.write('.');
+
+  process.chdir(LIB_WEBRTC_DIR);
+
   var args = ["-C", "trunk/out/Release"];
   if('linux' == os.platform())
   {
     args.push("peerconnection_client");
   }
-  child = spawn("ninja", args);
+
+  var child = spawn("ninja", args);
   child.stdout.on('readable', read_stream.bind(undefined, child.stdout));
-  child.on('exit', function(code, signal) {
+  child.on('exit', function(code, signal)
+  {
     process.stdout.write('\n');
     if(0 === code && !signal)
     {
@@ -119,10 +183,13 @@ function nodegyp_build(callback)
 {
   console.info("nodegyp_build");
   process.stdout.write('.');
+
   process.chdir(PROJECT_DIR);
-  child = spawn("node-gyp", ["rebuild"]);
+
+  var child = spawn("node-gyp", ["rebuild"]);
   child.stdout.on('readable', read_stream.bind(undefined, child.stdout));
-  child.on('exit', function(code, signal) {
+  child.on('exit', function(code, signal)
+  {
     process.stdout.write('\n');
     if(0 === code && !signal)
     {
@@ -136,8 +203,7 @@ function nodegyp_build(callback)
   });
 }
 
-gclient_config(function()
+depot_tools(function()
 {
   console.log('wrtc build complete');
-})
-
+});
