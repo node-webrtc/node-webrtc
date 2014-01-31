@@ -26,11 +26,11 @@ test('peers are created and in the expected connection state', function(t) {
   t.equal(peers[1].iceConnectionState, 'new');
 });
 
-test('create a datachannel on peer:0', function(t) {
-  t.plan(2);
-  t.ok(dcs[0] = peers[0].createDataChannel('test'));
-  t.equal(dcs[0].label, 'test', 'created with correct label');
-});
+// test('create a datachannel on peer:0', function(t) {
+//   t.plan(2);
+//   t.ok(dcs[0] = peers[0].createDataChannel('test'));
+//   t.equal(dcs[0].label, 'test', 'created with correct label');
+// });
 
 test('createOffer for peer:0', function(t) {
 
@@ -165,11 +165,11 @@ test('monitor the ice connection state of peer:1', function(t) {
   checkState();
 });
 
-// test('close the connections', function(t) {
-//   t.plan(1);
-//   peers[0].close();
-//   peers[1].close();
-//   t.pass('closed connections');
+test('close the connections', function(t) {
+  t.plan(1);
+  peers[0].close();
+  peers[1].close();
+  t.pass('closed connections');
 
-//   peers = [];
-// });
+  peers = [];
+});
