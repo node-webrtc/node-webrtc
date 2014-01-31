@@ -1,6 +1,6 @@
 var test = require('tape');
-var RTCPeerConnection = require('../peerconnection');
-var RTCSessionDescription = require('../sessiondescription');
+var RTCPeerConnection = require('../lib/peerconnection');
+var RTCSessionDescription = require('../lib/sessiondescription');
 var peer;
 var localDesc;
 
