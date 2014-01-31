@@ -1,7 +1,8 @@
 var test = require('tape');
 // var detect = require('rtc-core/detect');
 // var RTCPeerConnection = detect('RTCPeerConnection');
-var RTCPeerConnection = require('../peerconnection');
+var RTCPeerConnection = require('../lib/peerconnection');
+var RTCIceCandidate = require('../lib/icecandidate');
 var captureCandidates = require('./helpers/capture-candidates');
 var peers = [];
 var candidates = [ [], [] ];
@@ -76,7 +77,11 @@ test('provide peer:1 with the peer:0 gathered ice candidates', function(t) {
   t.plan(candidates[0].length);
 
   candidates[0].forEach(function(candidate) {
-
+    peers[1].addIceCandidate(
+      new RTCIceCandidate(candidate),
+      t.pass.bind(t, 'added candidate'),
+      t.ifError.bind(t)
+    );
   });
 });
 
@@ -120,8 +125,27 @@ test('setRemoteDescription for peer:0', function(t) {
   peers[0].setRemoteDescription(peers[1].localDescription, pass, fail);
 });
 
-test('monitor the ice connection state of peer:0', function(t) {
+test('provide peer:0 with the peer:1 gathered ice candidates', function(t) {
+  t.plan(candidates[1].length);
 
+  candidates[1].forEach(function(candidate) {
+    peers[0].addIceCandidate(
+      new RTCIceCandidate(candidate),
+      t.pass.bind(t, 'added candidate'),
+      t.ifError.bind(t)
+    );
+  });
+});
+
+test('monitor the ice connection state of peer:0', function(t) {
+  console.log(peers[0].iceConnectionState);
+  peers[0].oniceconnectionstatechange = function() {
+    console.log('ice connection state changed: ' + peers[0].iceConnectionState);
+  }
+
+  setInterval(function() {
+    console.log('connection state: ' + peers[0].iceConnectionState);
+  }, 1000);
 });
 
 // test('close the connections', function(t) {
