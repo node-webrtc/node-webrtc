@@ -43,7 +43,7 @@ function depot_tools(callback)
   process.chdir(TOOLS_DIR);
 
   // Download depot tools
-  if(!fs.existsSync(TOOLS_DIR))
+  if(!fs.existsSync(TOOLS_DEPOT_TOOLS_DIR))
   {
     var child = exec("git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git");
     child.on('exit', function(code, signal)
