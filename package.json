@@ -22,9 +22,8 @@
     "nan": "~0.4.4"
   },
   "devDependencies": {
-    "tape": "~2.3.0",
-    "ws": "~0.4.31",
-    "peerpair": "~0.3.2"
+    "tape": "~2.4.1",
+    "ws": "~0.4.31"
   },
   "scripts": {
     "install": "node bin/build.js",
