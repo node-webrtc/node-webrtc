@@ -36,7 +36,6 @@ wss.on('connection', function(ws)
   function doComplete()
   {
     console.info('complete');
-    dataChannels['reliable'].send("fedcba");
   }
 
   function doHandleError(error)
@@ -92,6 +91,7 @@ wss.on('connection', function(ws)
       };
       channel.onmessage = function(message) {
         console.log('onmessage', message);
+        channel.send(message);
       };
       channel.onclose = function() {
         console.info('onclose');
@@ -154,7 +154,7 @@ wss.on('connection', function(ws)
     {
       if(remoteReceived)
       {
-        pc.addIceCandidate(new webrtc.RTCIceCandidate(data.sdp));
+        pc.addIceCandidate(new webrtc.RTCIceCandidate(data.sdp.candidate));
       } else
       {
         pendingCandidates.push(data);

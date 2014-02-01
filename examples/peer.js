@@ -32,7 +32,8 @@ function doHandleError(error)
 function doComplete()
 {
   console.log('complete');
-  dataChannels['reliable'].send("abcdef");
+  var data = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7]);
+  dataChannels['reliable'].send(data.buffer);
 }
 
 function doWaitforDataChannels()
@@ -46,8 +47,7 @@ var pc = new RTCPeerConnection(
     iceServers: [{url:'stun:stun.l.google.com:19302'}]
   },
   {
-    'optional': [{DtlsSrtpKeyAgreement: false},
-                 {RtpDataChannels: true}]
+    'optional': []
   }
 );
 pc.onsignalingstatechange = function(event)
@@ -96,8 +96,8 @@ function doCreateDataChannels()
         doComplete();
       }
     };
-    channel.onmessage = function(message) {
-      console.log('onmessage', message);
+    channel.onmessage = function(event) {
+      console.log('onmessage', event.data);
     };
     channel.onclose = function(event) {
       console.info('onclose');
@@ -149,7 +149,8 @@ function doSendOffer(offer)
       doSetRemoteDesc(data);
     } else if('ice' == data.type)
     {
-      pc.addIceCandidate(new RTCIceCandidate(data.sdp));
+      var candidate = new RTCIceCandidate(data.sdp.candidate);
+      pc.addIceCandidate(candidate);
     }
   };
 }

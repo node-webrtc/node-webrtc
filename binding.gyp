@@ -130,7 +130,10 @@
               '../<(libwebrtc_out)/third_party/libvpx/libvpx_intrinsics_ssse3.a',
               '-Wl,--end-group',
               #'../<(libwebrtc_out)/third_party/openssl/libopenssl.a',
+              '../<(libwebrtc_out)/net/third_party/nss/libcrssl.a',
+              '../<(libwebrtc_out)/third_party/usrsctp/libusrsctplib.a',
               '-lssl',
+              '-lnss3',
               #'-Wl,-Bdynamic',
               '-lX11',
             ]
