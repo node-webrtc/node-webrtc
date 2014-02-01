@@ -1,10 +1,27 @@
-var webrtc = require('../index');
+var RTCPeerConnection = require('../lib/index').RTCPeerConnection;
 
-var pc = new webrtc.RTCPeerConnection();
-console.log('\n');
+
+var pc = new RTCPeerConnection({
+    iceServers: [{url:'stun:stun.l.google.com:19302'}]
+  },
+  {
+    'optional': [{DtlsSrtpKeyAgreement: false},
+                 {RtpDataChannels: true}]
+  });
 
 var channel = pc.createDataChannel("test", {
   ordered: false
 });
+channel.onopen = function() {
+  console.log('channel open');
+}
+channel.onclose = function() {
+  console.log('channel close');
+}
 
-console.log("channel:", channel);
+setTimeout(function() {
+  // channel.close();
+  // channel = null;
+  pc.close();
+  // pc = null;
+}, 1);

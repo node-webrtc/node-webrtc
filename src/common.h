@@ -26,6 +26,7 @@
 #define TRACE_I(msg, i)
 #define TRACE_U(msg, u)
 #define TRACE_X(msg, x)
+#define TRACE_PTR(msg, x)
 #define TRACE_CALL
 #define TRACE_CALL_I(p1)
 #define TRACE_END

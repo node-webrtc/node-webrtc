@@ -1,12 +1,8 @@
 {
   "name": "wrtc",
   "description": "Standards-compliant WebRTC implementation for Node",
-  "keywords": [
-    "webrtc",
-    "p2p",
-    "peer"
-  ],
-  "version": "0.0.6",
+  "keywords": ["webrtc", "p2p", "peer"],
+  "version": "0.0.7",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "http://js-platform.github.io/node-webrtc/",
   "bugs": "https://github.com/js-platform/node-webrtc/issues",
@@ -16,6 +12,7 @@
     "url": "http://github.com/js-platform/node-webrtc.git"
   },
   "main": "./build/Release/webrtc.node",
+  "browser": "lib/browser.js",
   "engines": {
     "node": "0.10.x"
   },
@@ -25,12 +22,12 @@
     "nan": "~0.4.4"
   },
   "devDependencies": {
-    "tape": "~2.3.0",
-    "ws": "~0.4.31",
-    "peerpair": "~0.3.2"
+    "tape": "~2.4.1",
+    "ws": "~0.4.31"
   },
   "scripts": {
-    "test": "node test/all.js",
-    "install": "node build.js"
+    "install": "node bin/build.js",
+    "uninstall": "node bin/clean.js",
+    "test": "node test/all.js"
   }
 }

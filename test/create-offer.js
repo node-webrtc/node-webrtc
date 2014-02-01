@@ -1,5 +1,5 @@
 var test = require('tape');
-var RTCPeerConnection = require('../peerconnection');
+var RTCPeerConnection = require('../lib/peerconnection');
 var peer;
 var localDesc;
 
@@ -51,5 +51,6 @@ test('can call setLocalDescription', function(t) {
 
 test('TODO: cleanup connection', function(t) {
   t.plan(1);
-  t.pass('TODO');
+  peer.close();
+  t.pass('connection closed');
 });

@@ -1,6 +1,6 @@
 var test = require('tape');
-var RTCPeerConnection = require('../peerconnection');
-var RTCSessionDescription = require('../sessiondescription');
+var RTCPeerConnection = require('../lib/peerconnection');
+var RTCSessionDescription = require('../lib/sessiondescription');
 var peer;
 var localDesc;
 
@@ -46,5 +46,6 @@ test('setLocalDescription with a created RTCSessionDescription', function(t) {
 
 test('TODO: cleanup connection', function(t) {
   t.plan(1);
-  t.pass('TODO');
+  peer.close();
+  t.pass('connection closed');
 });
