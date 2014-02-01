@@ -28,6 +28,6 @@
   "scripts": {
     "install": "node bin/build.js",
     "uninstall": "node bin/clean.js",
-    "test": "node examples/test.js"
+    "test": "node test/all.js"
   }
 }
