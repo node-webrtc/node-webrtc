@@ -91,7 +91,8 @@ wss.on('connection', function(ws)
       };
       channel.onmessage = function(message) {
         console.log('onmessage', message);
-        channel.send(message);
+        var response = new  Uint8Array([107, 99, 97, 0]);
+        channel.send(response.buffer);
       };
       channel.onclose = function() {
         console.info('onclose');

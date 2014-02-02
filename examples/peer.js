@@ -98,7 +98,7 @@ function doCreateDataChannels()
     };
     channel.onmessage = function(event) {
       var data = event.data;
-      console.log('onmessage', data.byteLength, data[0]);
+      console.log('onmessage', data);
     };
     channel.onclose = function(event) {
       console.info('onclose');
