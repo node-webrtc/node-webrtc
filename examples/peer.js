@@ -32,7 +32,7 @@ function doHandleError(error)
 function doComplete()
 {
   console.log('complete');
-  var data = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7]);
+  var data = new Uint8Array([97, 99, 107, 0]);
   dataChannels['reliable'].send(data.buffer);
 }
 
@@ -97,7 +97,8 @@ function doCreateDataChannels()
       }
     };
     channel.onmessage = function(event) {
-      console.log('onmessage', event.data);
+      var data = event.data;
+      console.log('onmessage', data.byteLength, data[0]);
     };
     channel.onclose = function(event) {
       console.info('onclose');

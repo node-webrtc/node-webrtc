@@ -152,11 +152,14 @@ NAN_METHOD(DataChannel::Send) {
   NanScope();
 
   DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
-  v8::Local<v8::String> _data = v8::Local<v8::String>::Cast(args[0]);
-  std::string data = *v8::String::Utf8Value(_data);
+  v8::Local<v8::Object> arraybuffer = v8::Local<v8::Object>::Cast(args[0]);
 
-  webrtc::DataBuffer buffer(data);
-  self->_internalDataChannel->Send(buffer);
+  void* data = arraybuffer->GetIndexedPropertiesExternalArrayData();
+  uint32_t data_len = arraybuffer->GetIndexedPropertiesExternalArrayDataLength();
+
+  talk_base::Buffer buffer(data, data_len);
+  webrtc::DataBuffer data_buffer(buffer, true);
+  self->_internalDataChannel->Send(data_buffer);
 
   TRACE_END;
   NanReturnValue(Undefined());
