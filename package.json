@@ -22,11 +22,12 @@
     "nan": "~0.4.4"
   },
   "devDependencies": {
-    "ws": "~0.4.31"
+    "ws": "~0.4.31",
+    "tape": "~2.4.2"
   },
   "scripts": {
     "install": "node bin/build.js",
     "uninstall": "node bin/clean.js",
-    "test": "node examples/test.js"
+    "test": "node test/all.js"
   }
 }
