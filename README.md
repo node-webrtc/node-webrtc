@@ -28,11 +28,11 @@ npm install
 
 * Development is focused on Linux and OSX at the moment. If you're on another platform, but build process may not work for you. Feel free to comment on existing issues or open new issues and add the specific problems you're having.
 
-* Only RTP data channels are supported at the moment. There's an open issue in `libjingle` and I'm working on fixing it so that I can enable SCTP data channels. See [#5](https://github.com/modeswitch/node-webrtc/issues/5) for more details.
+* ~~Only RTP data channels are supported at the moment. There's an open issue in `libjingle` and I'm working on fixing it so that I can enable SCTP data channels. See [#5](https://github.com/modeswitch/node-webrtc/issues/5) for more details.~~ SCTP data channels are supported now!
 
 * You will need to use the latest version of Chrome and launch it with `--enable-data-channels`.
 
-* Firefox is not yet supported due to lack of SCTP data channel support (see above).
+* ~~Firefox is not yet supported due to lack of SCTP data channel support (see above).~~ Both Firefox and newer versions of Chrome are supported.
 
 ### Tests
 
