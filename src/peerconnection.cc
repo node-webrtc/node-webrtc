@@ -118,7 +118,7 @@ PeerConnection::PeerConnection()
   constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveVideo, webrtc::MediaConstraintsInterface::kValueFalse);
 
   _peerConnectionFactory = webrtc::CreatePeerConnectionFactory(
-      _signalThread, _workerThread, NULL, NULL, NULL );
+      _workerThread, _signalThread, NULL, NULL, NULL );
   _internalPeerConnection = _peerConnectionFactory->CreatePeerConnection(_iceServers, &constraints, NULL, this);
 }
 
