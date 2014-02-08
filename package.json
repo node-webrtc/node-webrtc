@@ -19,7 +19,8 @@
   "dependencies": {
     "bindings": "~1.1.1",
     "node-gyp": "~0.10.10",
-    "nan": "~0.4.4"
+    "nan": "~0.4.4",
+    "rsvp": "~3.0.3"
   },
   "devDependencies": {
     "ws": "~0.4.31",
