@@ -140,10 +140,10 @@ var processOutput = function(spawnedProcess, processType) {
 removeAll().then(function() {
 
   return runNodeGypClean();
-}).then(function() {
+})/*.then(function() {
 
   return removeNodeModulesFolder();
-}).then(function() {
+})*/.then(function() {
 
   process.stdout.write('wrtc module clean complete\r\n');
   process.exit(0);

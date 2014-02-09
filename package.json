@@ -27,7 +27,7 @@
     "tape": "~2.4.2"
   },
   "scripts": {
-    "install": "node bin/build.js",
+    "install": "node bin/build.js -v",
     "uninstall": "node bin/clean.js",
     "test": "node test/all.js"
   }

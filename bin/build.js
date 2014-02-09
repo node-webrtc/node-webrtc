@@ -13,11 +13,10 @@ var PROJECT_DIR = process.cwd()
   , TOOLS_DIR = PROJECT_DIR + '/tools'
   , TOOLS_DEPOT_TOOLS_DIR = TOOLS_DIR + '/depot_tools'
   , GCLIENT = TOOLS_DEPOT_TOOLS_DIR + '/gclient'
-  , NINJA = TOOLS_DEPOT_TOOLS_DIR + '/ninja'
   , NODE_GYP = PROJECT_DIR + '/node_modules/node-gyp/bin/node-gyp.js'
   , VERBOSE = false;
 
-process.env['GYP_GENERATORS'] = NINJA;
+process.env['GYP_GENERATORS'] = 'make';
 
 var arguments = process.argv.slice(2);
 arguments.include = function(obj) {
@@ -58,7 +57,13 @@ var processOutput = function(spawnedProcess, processType) {
         })
         .on('error', function(error) {
 
-          reject('Error during ' + processType + '\r\n' + error + '\r\n');
+          if (VERBOSE) {
+
+            process.stdout.write(error);
+          } else {
+
+            process.stdout.write('[failure]');
+          }
         })
         .on('end', function() {
 
@@ -69,8 +74,6 @@ var processOutput = function(spawnedProcess, processType) {
 
             process.stdout.write('.\r\n');
           }
-
-          resolve();
         });
 
       spawnedProcess.stderr
@@ -89,7 +92,10 @@ var processOutput = function(spawnedProcess, processType) {
           if (code !== undefined &&
             code !== 0) {
 
-            reject('Something went wrong.\r\n\tTry to run build script with --verbose option to find the possible problem.')
+            reject('For ' + processType + ' Something went wrong.\r\n\tTry to run build script with --verbose option to find the possible problem.\r\n')
+          } else {
+
+            resolve();
           }
         });
       });
@@ -166,12 +172,12 @@ var processOutput = function(spawnedProcess, processType) {
       return new RSVP.Promise(function(resolve, reject) {
 
         process.stdout.write('Going to run the depot tools command: '+
-          GCLIENT + ' sync in folder '+ LIB_WEBRTC_DIR + '\r\n');
+          GCLIENT + ' sync -D in folder '+ LIB_WEBRTC_DIR + '\r\n');
 
         process.chdir(LIB_WEBRTC_DIR);
-        var gclientSync = spawn(GCLIENT, ['sync']);
+        var gclientSync = spawn(GCLIENT, ['sync', '-D']);
 
-        var processName = GCLIENT + ' sync';
+        var processName = GCLIENT + ' sync -D';
         processOutput(gclientSync, processName).then(function(){
 
             resolve();
@@ -188,7 +194,7 @@ var processOutput = function(spawnedProcess, processType) {
           GCLIENT + ' runhooks in folder '+ LIB_WEBRTC_DIR + '\r\n');
 
         process.chdir(LIB_WEBRTC_DIR);
-        var gclientRunHooks = spawn(GCLIENT, ['runhooks']);
+        var gclientRunHooks = spawn(GCLIENT, ['runhooks', '--force']);
 
         var processName = GCLIENT + ' runhooks';
         processOutput(gclientRunHooks, processName).then(function(){
@@ -200,7 +206,7 @@ var processOutput = function(spawnedProcess, processType) {
           });
       });
     }
-  , runNinja = function() {
+  , runMake = function() {
       return new RSVP.Promise(function(resolve, reject) {
 
         var buildedName = ''
@@ -209,14 +215,13 @@ var processOutput = function(spawnedProcess, processType) {
           buildedName = 'peerconnection_client';
         }
 
-        process.stdout.write('Going to run the depot tools command: ' +
-          NINJA + ' -C trunk/out/Release ' + buildedName + ' in folder '+ LIB_WEBRTC_DIR + '\r\n');
+        process.stdout.write('Going to run the depot tools command: make -C trunk ' + buildedName + ' in folder '+ LIB_WEBRTC_DIR + '\r\n');
 
         process.chdir(LIB_WEBRTC_DIR);
-        var ninja = spawn(NINJA, ['-C', 'trunk/out/Release', buildedName]);
+        var make = spawn('make', ['BUILDTYPE=Release', '-C', 'trunk', buildedName]);
 
-        var processName = NINJA;
-        processOutput(ninja, processName).then(function(){
+        var processName = 'make';
+        processOutput(make, processName).then(function(){
 
             resolve();
           }, function(rejectionInfo) {
@@ -255,7 +260,7 @@ downloadDepotTools().then(function() {
   return runGlientRunHooks();
 }).then(function() {
 
-  return runNinja();
+  return runMake();
 }).then(function() {
 
   return runNodeGypBuild();
