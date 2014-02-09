@@ -1,51 +1,55 @@
-var test = require('tape');
-var RTCPeerConnection = require('../lib/peerconnection');
-var RTCSessionDescription = require('../lib/sessiondescription');
-var peer;
-var localDesc;
+(function() {
+  'use strict';
 
-test('create a peer connection', function(t) {
-  t.plan(1);
-  peer = new RTCPeerConnection({ iceServers: [] });
-  t.ok(peer instanceof RTCPeerConnection, 'created');
-});
+  var test = require('tape');
+  var RTCPeerConnection = require('../lib/peerconnection');
+  var RTCSessionDescription = require('../lib/sessiondescription');
+  var peer;
+  var localDesc;
 
-test('createOffer', function(t) {
+  test('create a peer connection', function(t) {
+    t.plan(1);
+    peer = new RTCPeerConnection({ iceServers: [] });
+    t.ok(peer instanceof RTCPeerConnection, 'created');
+  });
 
-  var fail = t.ifError.bind(t);
+  test('createOffer', function(t) {
 
-  function pass(desc) {
-    // save the local description
-    localDesc = desc;
+    var fail = t.ifError.bind(t);
 
-    // run the checks
-    t.ok(desc, 'createOffer succeeded');
-    t.equal(desc.type, 'offer', 'type === offer');
-    t.ok(desc.sdp, 'got sdp');
-  }
+    function pass(desc) {
+      // save the local description
+      localDesc = desc;
 
-  t.plan(3);
-  peer.createOffer(pass, fail);
-});
+      // run the checks
+      t.ok(desc, 'createOffer succeeded');
+      t.equal(desc.type, 'offer', 'type === offer');
+      t.ok(desc.sdp, 'got sdp');
+    }
 
-test('setLocalDescription with a created RTCSessionDescription', function(t) {
-  var fail = t.ifError.bind(t);
+    t.plan(3);
+    peer.createOffer(pass, fail);
+  });
 
-  function pass() {
-    t.ok(peer.localDescription, 'local description set');
-    t.ok(peer.localDescription.sdp, 'we have local sdp');
-  }
+  test('setLocalDescription with a created RTCSessionDescription', function(t) {
+    var fail = t.ifError.bind(t);
 
-  t.plan(2);
-  peer.setLocalDescription(
-    new RTCSessionDescription({ sdp: localDesc.sdp, type: 'offer' }),
-    pass,
-    fail
-  );
-});
+    function pass() {
+      t.ok(peer.localDescription, 'local description set');
+      t.ok(peer.localDescription.sdp, 'we have local sdp');
+    }
 
-test('TODO: cleanup connection', function(t) {
-  t.plan(1);
-  peer.close();
-  t.pass('connection closed');
-});
+    t.plan(2);
+    peer.setLocalDescription(
+      new RTCSessionDescription({ sdp: localDesc.sdp, type: 'offer' }),
+      pass,
+      fail
+    );
+  });
+
+  test('TODO: cleanup connection', function(t) {
+    t.plan(1);
+    peer.close();
+    t.pass('connection closed');
+  });
+})();
