@@ -35,7 +35,7 @@
     "grunt-tape": "~0.0.2"
   },
   "scripts": {
-    "install": "node bin/build.js -v",
+    "install": "node bin/build.js",
     "uninstall": "node bin/clean.js",
     "test": "node test/all.js"
   }
