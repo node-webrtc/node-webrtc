@@ -26,11 +26,11 @@ test('peers are created and in the expected connection state', function(t) {
   t.equal(peers[1].iceConnectionState, 'new');
 });
 
-// test('create a datachannel on peer:0', function(t) {
-//   t.plan(2);
-//   t.ok(dcs[0] = peers[0].createDataChannel('test'));
-//   t.equal(dcs[0].label, 'test', 'created with correct label');
-// });
+test('create a datachannel on peer:0', function(t) {
+  t.plan(2);
+  t.ok(dcs[0] = peers[0].createDataChannel('test'));
+  t.equal(dcs[0].label, 'test', 'created with correct label');
+});
 
 test('createOffer for peer:0', function(t) {
 
@@ -137,6 +137,15 @@ test('provide peer:0 with the peer:1 gathered ice candidates', function(t) {
   });
 });
 
+test('peer:1 triggers data channel event', function(t) {
+  t.plan(2);
+  peers[1].ondatachannel = function(evt) {
+    dcs[1] = evt.channel;
+    t.ok(dcs[1], 'got data channel');
+    t.equal(dcs[1].label, 'test', 'data channel has correct label');
+  };
+});
+
 test('monitor the ice connection state of peer:0', function(t) {
   t.plan(1);
 
@@ -163,6 +172,16 @@ test('monitor the ice connection state of peer:1', function(t) {
 
   peers[1].oniceconnectionstatechange = checkState;
   checkState();
+});
+
+test('data channel connectivity', function(t) {
+  t.plan(2);
+  dcs[1].onmessage = function(evt) {
+    t.equal(evt.data, 'hello', 'dc:1 received message correctly');
+  };
+
+  dcs[0].send('hello');
+  t.pass('successfully called send on dc:0');
 });
 
 test('close the connections', function(t) {
