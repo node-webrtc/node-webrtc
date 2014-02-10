@@ -175,12 +175,18 @@ test('monitor the ice connection state of peer:1', function(t) {
 });
 
 test('data channel connectivity', function(t) {
-  t.plan(2);
+  t.plan(5);
   dcs[1].onmessage = function(evt) {
-    t.equal(evt.data, 'hello', 'dc:1 received message correctly');
+    var data = evt.data && new Uint8Array(evt.data);
+
+    t.ok(data && typeof data.length != 'undefined', 'got valid data');
+    t.equal(data.length, 2, 'two bytes sent');
+    t.equal(data[0], 10, 'byte:0 matches expected');
+    t.equal(data[1], 11, 'byte:1 matches expected');
+    // t.equal(evt.data, 'hello', 'dc:1 received message correctly');
   };
 
-  dcs[0].send('hello');
+  dcs[0].send(new Uint8Array([10, 11]));
   t.pass('successfully called send on dc:0');
 });
 
