@@ -89,8 +89,8 @@ wss.on('connection', function(ws)
           doComplete();
         }
       };
-      channel.onmessage = function(message) {
-        console.log('onmessage', message);
+      channel.onmessage = function(evt) {
+        console.log('onmessage', evt.message);
         var response = new  Uint8Array([107, 99, 97, 0]);
         channel.send(response.buffer);
       };
