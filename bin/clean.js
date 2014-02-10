@@ -87,9 +87,9 @@
     , removeAll = function() {
         return new RSVP.Promise(function(resolve, reject) {
 
-          process.stdout.write('Going to remove build, docs, third_party folders.\r\n');
+          process.stdout.write('Going to remove build, docs, third_party, tools folders.\r\n');
 
-          var remove = spawn('rm', ['-Rf', 'build', 'docs', 'third_party']);
+          var remove = spawn('rm', ['-Rf', 'build', 'docs', 'third_party', 'tools']);
 
           var processName = 'remove all';
           processOutput(remove, processName).then(function(){

@@ -62,7 +62,7 @@ module.exports = function(grunt) {
 
   // Default tasks (when type grunt on terminal).
   grunt.registerTask('default', [
-    'jshint',
+    //'jshint', uncomment for start linting
     'tape'
   ]);
 };
