@@ -1,7 +1,11 @@
 {
   "name": "wrtc",
   "description": "Standards-compliant WebRTC implementation for Node",
-  "keywords": ["webrtc", "p2p", "peer"],
+  "keywords": [
+    "webrtc",
+    "p2p",
+    "peer"
+  ],
   "version": "0.0.9",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "http://js-platform.github.io/node-webrtc/",
@@ -19,7 +23,10 @@
   "dependencies": {
     "bindings": "~1.1.1",
     "node-gyp": "~0.10.10",
-    "nan": "~0.4.4"
+    "nan": "~0.4.4",
+    "mkdirp": "~0.3.5",
+    "async": "~0.2.10",
+    "depot_tools": "0.0.4"
   },
   "devDependencies": {
     "ws": "~0.4.31",
