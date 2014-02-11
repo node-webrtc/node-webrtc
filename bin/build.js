@@ -14,10 +14,11 @@
     , LIB_WEBRTC_DIR = LIB_DIR + '/libwebrtc'
     , TOOLS_DIR = PROJECT_DIR + '/tools'
     , TOOLS_DEPOT_TOOLS_DIR = TOOLS_DIR + '/depot_tools'
-    , GCLIENT = TOOLS_DEPOT_TOOLS_DIR + '/gclient'
+    , GCLIENT = 'gclient'
     , NODE_GYP = PROJECT_DIR + '/node_modules/node-gyp/bin/node-gyp.js'
     , VERBOSE = false;
 
+  process.env.PATH = process.env.PATH + ':' + TOOLS_DEPOT_TOOLS_DIR;
   process.env.GYP_GENERATORS = 'make';
 
   var argz = process.argv.slice(2);
@@ -176,12 +177,12 @@
         return new RSVP.Promise(function(resolve, reject) {
 
           process.stdout.write('Going to run the depot tools command: '+
-            GCLIENT + ' sync -D in folder '+ LIB_WEBRTC_DIR + '\r\n');
+            GCLIENT + ' sync -D --force --verbose -j1 in folder '+ LIB_WEBRTC_DIR + '\r\n');
 
           process.chdir(LIB_WEBRTC_DIR);
-          var gclientSync = spawn(GCLIENT, ['sync', '-D']);
+          var gclientSync = spawn(GCLIENT, ['sync', '-D', '--force', '--verbose', '-j1']);
 
-          var processName = GCLIENT + ' sync -D';
+          var processName = GCLIENT + ' sync -D --force --verbose -j1';
           processOutput(gclientSync, processName).then(function(){
 
               resolve();
