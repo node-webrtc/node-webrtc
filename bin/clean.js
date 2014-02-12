@@ -1,100 +1,135 @@
-#!/usr/bin/sh
+#!/usr/bin/env node
+(function() {
+  'use strict';
+  var spawn = require('child_process').spawn
+    , RSVP = require('rsvp');
 
-var exec  = require('child_process').exec;
-var fs    = require('fs');
-var spawn = require('child_process').spawn;
+  var PROJECT_DIR = process.cwd()
+    , SRC_DIR = PROJECT_DIR + '/src'
+    , NODE_GYP = PROJECT_DIR + '/node_modules/node-gyp/bin/node-gyp.js'
+    , VERBOSE = false;
 
+  var argz = process.argv.slice(2);
+  argz.include = function(obj) {
+    return (this.indexOf(obj) !== -1);
+  };
 
-var PROJECT_DIR = process.cwd();
+  if(argz.length > 0) {
 
-var SRC_DIR = PROJECT_DIR+'/src';
-var NODE_MODULES = PROJECT_DIR+'/node_modules';
+    if (argz.include('-v') ||
+      argz.include('--verbose')) {
 
-
-function read_stream(stream)
-{
-  stream.read();
-  process.stdout.write('.');
-}
-
-
-function rm_rf(callback)
-{
-  console.info("rm_rf");
-  process.stdout.write('.');
-
-  // Download depot tools
-  var child = exec("rm -rf build docs third_party");
-  child.on('exit', function(code, signal)
-  {
-    process.stdout.write('\n');
-    if(0 === code && !signal)
-    {
-      console.log('rm_rf complete');
-      nodegyp_clean(callback);
+      VERBOSE = true;
     }
-    else
-    {
-      console.error('rm_rf failed:', code, signal);
+
+    if (argz.include('-h') ||
+      argz.include('--help')) {
+
+      process.stdout.write('node-webrtc clean script usage:\r\n' +
+        '\t-v, --verbose: switch on verbose mode (suggested on build failure);\r\n' +
+        '\t-h, --help: print this help.' +
+        '\r\n');
+      process.exit();
     }
-  });
-}
-
-function nodegyp_clean(callback)
-{
-  console.info("nodegyp_clean");
-  process.stdout.write('.');
-
-  if(fs.existsSync(NODE_MODULES))
-  {
-    process.chdir(SRC_DIR);
-
-    var child = spawn("node-gyp", ["clean"]);
-    child.stdout.on('readable', read_stream.bind(undefined, child.stdout));
-    child.on('exit', function(code, signal)
-    {
-      process.stdout.write('\n');
-      if(0 === code && !signal)
-      {
-        console.log('nodegyp_clean complete');
-        nodegyp_clean();
-      }
-      else
-      {
-        console.error('nodegyp_clean failed:', code, signal);
-      }
-    });
   }
-  else
-    callback();
-};
 
-function rm_rf_nodemodules(callback)
-{
-  console.info("rm_rf_nodemodules");
-  process.stdout.write('.');
+  var processOutput = function(spawnedProcess, processType) {
+        return new RSVP.Promise(function(resolve, reject) {
+          spawnedProcess.stdout
+            .on('data', function(data) {
 
-  process.chdir(PROJECT_DIR);
+              if (VERBOSE) {
 
-  // Download depot tools
-  var child = exec("rm -rf node_modules");
-  child.on('exit', function(code, signal)
-  {
-    process.stdout.write('\n');
-    if(0 === code && !signal)
-    {
-      console.log('rm_rf_nodemodules complete');
-      callback(callback);
-    }
-    else
-    {
-      console.error('rm_rf_nodemodules failed:', code, signal);
-    }
+                process.stdout.write(data);
+              } else {
+
+                process.stdout.write('.');
+              }
+            })
+            .on('error', function(error) {
+
+              reject('Error during ' + processType + '\r\n' + error + '\r\n');
+            })
+            .on('end', function() {
+
+              if (VERBOSE) {
+
+                process.stdout.write('\r\n' + processType + ' finished\r\n');
+              } else {
+
+                process.stdout.write('.\r\n');
+              }
+
+              resolve();
+            });
+
+          spawnedProcess.stderr
+            .on('data', function(data) {
+
+              if (VERBOSE) {
+
+                process.stdout.write(data);
+              } else {
+
+                process.stdout.write('.');
+              }
+            });
+
+          spawnedProcess.on('exit', function(code, signal) {
+            if (code !== undefined &&
+              code !== 0) {
+
+              reject('For ' + processType + ' something went wrong: error code '+ code + ', signal ' + signal + '.\r\n\tTry to run build script with --verbose option to find the possible problem.\r\n');
+            }
+          });
+        });
+      }
+    , removeAll = function() {
+        return new RSVP.Promise(function(resolve, reject) {
+
+          process.stdout.write('Going to remove build, docs, third_party, tools folders.\r\n');
+
+          var remove = spawn('rm', ['-Rf', 'build', 'docs', 'third_party', 'tools']);
+
+          var processName = 'remove all';
+          processOutput(remove, processName).then(function(){
+
+              resolve();
+            }, function(rejectionInfo) {
+
+              reject(rejectionInfo);
+            });
+        });
+      }
+    , runNodeGypClean = function() {
+        return new RSVP.Promise(function(resolve, reject) {
+
+          process.stdout.write('Going to run commnad: ' + NODE_GYP + ' clean in folder '+ SRC_DIR + '\r\n');
+
+          process.chdir(SRC_DIR);
+          var nodeGyp = spawn(NODE_GYP, ['clean']);
+
+          var processName = NODE_GYP;
+          processOutput(nodeGyp, processName).then(function(){
+
+              resolve();
+            }, function(rejectionInfo) {
+
+              reject(rejectionInfo);
+            });
+        });
+      };
+
+  removeAll().then(function() {
+
+    return runNodeGypClean();
+  }).then(function() {
+
+    process.stdout.write('wrtc module clean complete\r\n');
+    process.exit(0);
+  }).catch(function(rejectionInfo) {
+
+    process.stderr.write(rejectionInfo);
+    process.exit(1);
   });
-}
-
-
-rm_rf(function()
-{
-  console.log('wrtc uninstall complete');
-});
+})();

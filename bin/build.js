@@ -1,209 +1,280 @@
-#!/usr/bin/sh
+#!/usr/bin/env node
+(function() {
+  'use strict';
 
-var path = require('path');
-var os = require('os');
-var fs = require('fs');
-var sys = require('sys');
-var exec = require('child_process').exec;
-var spawn = require('child_process').spawn;
+  var os = require('os')
+    , fs = require('fs')
+    , spawn = require('child_process').spawn
+    , RSVP = require('rsvp');
 
+  var PROJECT_DIR = process.cwd()
+    , DEPOT_TOOLS_REPO = 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'
+    , LIB_WEBRTC_DIR_REPO = 'http://webrtc.googlecode.com/svn/trunk'
+    , LIB_DIR = PROJECT_DIR + '/third_party'
+    , LIB_WEBRTC_DIR = LIB_DIR + '/libwebrtc'
+    , TOOLS_DIR = PROJECT_DIR + '/tools'
+    , TOOLS_DEPOT_TOOLS_DIR = TOOLS_DIR + '/depot_tools'
+    , GCLIENT = TOOLS_DEPOT_TOOLS_DIR + '/gclient'
+    , NODE_GYP = PROJECT_DIR + '/node_modules/node-gyp/bin/node-gyp.js'
+    , VERBOSE = false;
 
-var PROJECT_DIR = process.cwd();
+  process.env.GYP_GENERATORS = 'make';
 
-var LIB_DIR = PROJECT_DIR + '/third_party';
-var LIB_WEBRTC_DIR = LIB_DIR + '/libwebrtc';
+  var argz = process.argv.slice(2);
+  argz.include = function(obj) {
+    return (this.indexOf(obj) !== -1);
+  };
 
-var TOOLS_DIR = PROJECT_DIR + '/tools';
-var TOOLS_DEPOT_TOOLS_DIR = TOOLS_DIR + '/depot_tools';
+  if(argz.length > 0) {
 
+    if (argz.include('-v') ||
+      argz.include('--verbose')) {
 
-var GCLIENT = TOOLS_DEPOT_TOOLS_DIR+"/gclient";
+      VERBOSE = true;
+    }
 
+    if (argz.include('-h') ||
+      argz.include('--help')) {
 
-function read_stream(stream)
-{
-  stream.read();
-  process.stdout.write('.');
-}
-
-
-process.env['GYP_GENERATORS'] = 'ninja';
-
-
-function depot_tools(callback)
-{
-  console.info("depot_tools");
-  process.stdout.write('.');
-
-  // Directory for tools
-  if(!fs.existsSync(TOOLS_DIR))
-  {
-    fs.mkdirSync(TOOLS_DIR);
+      process.stdout.write('node-webrtc build script usage:\r\n' +
+        '\t-v, --verbose: switch on verbose mode (suggested on build failure);\r\n' +
+        '\t-h, --help: print this help.' +
+        '\r\n');
+      process.exit();
+    }
   }
-  process.chdir(TOOLS_DIR);
 
-  // Download depot tools
-  if(!fs.existsSync(TOOLS_DEPOT_TOOLS_DIR))
-  {
-    var child = exec("git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git");
-    child.on('exit', function(code, signal)
-    {
-      process.stdout.write('\n');
-      if(0 === code && !signal)
-      {
-        console.log('depot_tools complete');
-        gclient_config(callback);
+  var processOutput = function(spawnedProcess, processType) {
+        return new RSVP.Promise(function(resolve, reject) {
+          spawnedProcess.stdout
+            .on('data', function(data) {
+
+              if (VERBOSE) {
+
+                process.stdout.write(data);
+              } else {
+
+                process.stdout.write('.');
+              }
+            })
+            .on('error', function(error) {
+
+              if (VERBOSE) {
+
+                process.stdout.write(error);
+              } else {
+
+                process.stdout.write('[failure]');
+              }
+            })
+            .on('end', function() {
+
+              if (VERBOSE) {
+
+                process.stdout.write('\r\n' + processType + ' finished\r\n');
+              } else {
+
+                process.stdout.write('.\r\n');
+              }
+            });
+
+          spawnedProcess.stderr
+            .on('data', function(data) {
+
+              if (VERBOSE) {
+
+                process.stdout.write(data);
+              } else {
+
+                process.stdout.write('.');
+              }
+            });
+
+          spawnedProcess.on('exit', function(code, signal) {
+            if (code !== undefined &&
+              code !== 0) {
+
+              reject('For ' + processType + ' something went wrong: error code '+ code + ', signal ' + signal + '.\r\n\tTry to run build script with --verbose option to find the possible problem.\r\n');
+            } else {
+
+              resolve();
+            }
+          });
+        });
       }
-      else
-      {
-        console.error('depot_tools failed:', code, signal);
+    , downloadDepotTools = function() {
+        return new RSVP.Promise(function(resolve, reject) {
+
+          process.stdout.write('Going to eventually download depot tools from ' +
+            DEPOT_TOOLS_REPO + ' in ' + TOOLS_DEPOT_TOOLS_DIR + '\r\n');
+
+          if (!fs.existsSync(TOOLS_DIR)) {
+
+            fs.mkdirSync(TOOLS_DIR);
+          }
+
+          process.chdir(TOOLS_DIR);
+          if(!fs.existsSync(TOOLS_DEPOT_TOOLS_DIR)) {
+
+            var gitCloneDepotTools = spawn('git', [
+              'clone', '-v', '--progress', DEPOT_TOOLS_REPO
+            ]);
+
+            processOutput(gitCloneDepotTools, 'cloning depot tools').then(function(){
+
+              resolve();
+            }, function(rejectionInfo) {
+
+              reject(rejectionInfo);
+            });
+          } else {
+
+            if (VERBOSE) {
+
+              process.stdout.write('You already have depot tools, going on...\r\n');
+            } else {
+
+              process.stdout.write('.');
+            }
+            resolve();
+          }
+        });
       }
-    });
-  }
-  else
-  {
-    console.log('depot_tools not required');
-    gclient_config(callback);
-  }
-}
+    , runGclientConfig = function() {
+        return new RSVP.Promise(function(resolve, reject) {
 
-function gclient_config(callback)
-{
-  console.info("gclient_config");
-  process.stdout.write('.');
+          process.stdout.write('Going to run the depot tools command: ' +
+            GCLIENT + ' config ' + LIB_WEBRTC_DIR_REPO + ' in folder ' + LIB_WEBRTC_DIR + ' \r\n');
 
-  // Directory for libwebrtc
-  if(!fs.existsSync(LIB_WEBRTC_DIR))
-  {
-    if(!fs.existsSync(LIB_DIR))
-    {
-      fs.mkdirSync(LIB_DIR);
-    }
+          if(!fs.existsSync(LIB_WEBRTC_DIR)) {
 
-    fs.mkdirSync(LIB_WEBRTC_DIR);
-  }
-  process.chdir(LIB_WEBRTC_DIR);
+            if(!fs.existsSync(LIB_DIR)) {
 
-  // Download libwebrtc
-  var child = exec(GCLIENT+" config http://webrtc.googlecode.com/svn/trunk");
-  child.on('exit', function(code, signal)
-  {
-    process.stdout.write('\n');
-    if(0 === code && !signal)
-    {
-      console.log('gclient_config complete');
-      gclient_sync(callback);
-    }
-    else
-    {
-      console.error('gclient_config failed:', code, signal);
-    }
+              fs.mkdirSync(LIB_DIR);
+            }
+
+            fs.mkdirSync(LIB_WEBRTC_DIR);
+          }
+          process.chdir(LIB_WEBRTC_DIR);
+
+          var gclientConfig = spawn(GCLIENT, [
+            'config',
+            LIB_WEBRTC_DIR_REPO
+          ]);
+
+          var processName = GCLIENT + ' config ' + LIB_WEBRTC_DIR_REPO;
+          processOutput(gclientConfig, processName).then(function(){
+
+              resolve();
+            }, function(rejectionInfo) {
+
+              reject(rejectionInfo);
+            });
+        });
+      }
+    , runGclientSync = function() {
+        return new RSVP.Promise(function(resolve, reject) {
+
+          process.stdout.write('Going to run the depot tools command: '+
+            GCLIENT + ' sync -D in folder '+ LIB_WEBRTC_DIR + '\r\n');
+
+          process.chdir(LIB_WEBRTC_DIR);
+          var gclientSync = spawn(GCLIENT, ['sync', '-D']);
+
+          var processName = GCLIENT + ' sync -D';
+          processOutput(gclientSync, processName).then(function(){
+
+              resolve();
+            }, function(rejectionInfo) {
+
+              reject(rejectionInfo);
+            });
+        });
+      }
+    , runGlientRunHooks = function() {
+        return new RSVP.Promise(function(resolve, reject) {
+
+          process.stdout.write('Going to run the depot tools command: '+
+            GCLIENT + ' runhooks in folder '+ LIB_WEBRTC_DIR + '\r\n');
+
+          process.chdir(LIB_WEBRTC_DIR);
+          var gclientRunHooks = spawn(GCLIENT, ['runhooks', '--force']);
+
+          var processName = GCLIENT + ' runhooks';
+          processOutput(gclientRunHooks, processName).then(function(){
+
+              resolve();
+            }, function(rejectionInfo) {
+
+              reject(rejectionInfo);
+            });
+        });
+      }
+    , runMake = function() {
+        return new RSVP.Promise(function(resolve, reject) {
+
+          var buildedName = '';
+          if('linux' === os.platform()) {
+
+            buildedName = 'peerconnection_client';
+          }
+
+          process.stdout.write('Going to run the depot tools command: make BUILDTYPE=Release -C trunk ' + buildedName + ' in folder '+ LIB_WEBRTC_DIR + '\r\n');
+
+          process.chdir(LIB_WEBRTC_DIR);
+          var make = spawn('make', ['BUILDTYPE=Release', '-C', 'trunk', buildedName]);
+
+          var processName = 'make';
+          processOutput(make, processName).then(function(){
+
+              resolve();
+            }, function(rejectionInfo) {
+
+              reject(rejectionInfo);
+            });
+        });
+      }
+    , runNodeGypBuild = function() {
+        return new RSVP.Promise(function(resolve, reject) {
+
+          process.stdout.write('Going to run commnad: ' + NODE_GYP + ' rebuild in folder '+ PROJECT_DIR + '\r\n');
+
+          process.chdir(PROJECT_DIR);
+          var nodeGyp = spawn(NODE_GYP, ['rebuild']);
+
+          var processName = NODE_GYP;
+          processOutput(nodeGyp, processName).then(function(){
+
+              resolve();
+            }, function(rejectionInfo) {
+
+              reject(rejectionInfo);
+            });
+        });
+      };
+
+  downloadDepotTools().then(function() {
+
+    return runGclientConfig();
+  }).then(function() {
+
+    return runGclientSync();
+  }).then(function() {
+
+    return runGlientRunHooks();
+  }).then(function() {
+
+    return runMake();
+  }).then(function() {
+
+    return runNodeGypBuild();
+  }).then(function() {
+
+    process.stdout.write('wrtc module build complete\r\n');
+    process.exit(0);
+  }).catch(function(rejectionInfo) {
+
+    process.stderr.write(rejectionInfo);
+    process.exit(1);
   });
-}
-
-function gclient_sync(callback)
-{
-  console.info("gclient_sync");
-  process.stdout.write('.');
-
-  process.chdir(LIB_WEBRTC_DIR);
-
-  var child = spawn(GCLIENT, ["sync"]);
-  child.stdout.on('readable', read_stream.bind(undefined, child.stdout));
-  child.on('exit', function(code, signal)
-  {
-    process.stdout.write('\n');
-    if(0 === code && !signal)
-    {
-      console.log('gclient_sync complete');
-      gclient_runhooks(callback);
-    }
-    else
-    {
-      console.error('gclient_sync failed:', code, signal);
-    }
-  });
-}
-
-function gclient_runhooks(callback)
-{
-  console.info("gclient_runhooks");
-  process.stdout.write('.');
-
-  process.chdir(LIB_WEBRTC_DIR);
-
-  var child = spawn(GCLIENT, ["runhooks"]);
-  child.stdout.on('readable', read_stream.bind(undefined, child.stdout));
-  child.on('exit', function(code, signal)
-  {
-    process.stdout.write('\n');
-    if(0 === code && !signal)
-    {
-      console.log('gclient_runhooks complete');
-      ninja_build(callback);
-    }
-    else
-    {
-      console.error('gclient_runhooks failed:', code, signal);
-    }
-  });
-}
-
-function ninja_build(callback)
-{
-  console.info("ninja_build");
-  process.stdout.write('.');
-
-  process.chdir(LIB_WEBRTC_DIR);
-
-  var args = ["-C", "trunk/out/Release"];
-  if('linux' == os.platform())
-  {
-    args.push("peerconnection_client");
-  }
-
-  var child = spawn("ninja", args);
-  child.stdout.on('readable', read_stream.bind(undefined, child.stdout));
-  child.on('exit', function(code, signal)
-  {
-    process.stdout.write('\n');
-    if(0 === code && !signal)
-    {
-      console.log('ninja_build complete');
-      nodegyp_build(callback);
-    }
-    else
-    {
-      console.error('ninja_build failed:', code, signal);
-    }
-  });
-}
-
-function nodegyp_build(callback)
-{
-  console.info("nodegyp_build");
-  process.stdout.write('.');
-
-  process.chdir(PROJECT_DIR);
-
-  var child = spawn("node-gyp", ["rebuild"]);
-  child.stdout.on('readable', read_stream.bind(undefined, child.stdout));
-  child.on('exit', function(code, signal)
-  {
-    process.stdout.write('\n');
-    if(0 === code && !signal)
-    {
-      console.log('nodegyp_build complete');
-      callback();
-    }
-    else
-    {
-      console.error('nodegyp_build failed:', code, signal);
-    }
-  });
-}
-
-depot_tools(function()
-{
-  console.log('wrtc build complete');
-});
+})();

@@ -33,7 +33,7 @@
         exports.RTCIceCandidate = RTCIceCandidate;
         exports.RTCPeerConnection = RTCPeerConnection;
         exports.RTCSessionDescription = RTCSessionDescription;
-        
+
         global.wrtc = exports;
       }, {}
     ]
