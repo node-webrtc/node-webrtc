@@ -19,7 +19,7 @@
       'target_name': 'webrtc',
       'dependencies': [],
       'variables': {
-        'libwebrtc_out%': '<(libwebrtc)/out/Release/obj',
+        'libwebrtc_out%': '<(libwebrtc)/out/Release/obj.target',
       },
       'cflags': [
         '-pthread',
