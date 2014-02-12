@@ -203,7 +203,10 @@
         'src/peerconnection.cc',
         'src/datachannel.cc',
         'src/mediastream.cc',
-        'src/mediastreamtrack.cc'
+        'src/mediastreamtrack.cc',
+        'src/filemedia.cc',
+        'src/voicemediachannel.cc',
+        'src/videomediachannel.cc',
       ]
     }
   ]

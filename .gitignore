@@ -1,4 +1,5 @@
 build
+cscope.out
 .DS_Store
 node_modules
 third_party

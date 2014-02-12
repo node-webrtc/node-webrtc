@@ -39,7 +39,18 @@ io.on('connection', function (socket) {
     function start() {
         logMessage('rtc peer connection object initializing');
         pc = new webrtc.RTCPeerConnection(config1,config2);
-    
+        fm = new webrtc.FileMedia({
+          voiceInput: "/tmp/foo.rtp"
+        });
+
+        console.log("FM?", fm);
+
+        var channel = fm.createChannel();
+        console.log("FM channel??", channel);
+
+        var ms = new webrtc.RTCMediaStream("labelsathoeusnah");
+        console.log("?", ms);
+
         pc.onicecandidate = function (evt) {
             if (evt.candidate) {
                 logMessage('ice candidate found');
@@ -100,3 +111,5 @@ server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
   var addr = server.address();
   console.log("Stream management server listening at", addr.address + ":" + addr.port);
 });
+
+/* ex: set tabstop=2 softtabstop=2 shiftwidth=2 expandtab: */

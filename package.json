@@ -15,7 +15,7 @@
     "type": "git",
     "url": "http://github.com/js-platform/node-webrtc.git"
   },
-  "main": "./build/Release/webrtc.node",
+  "main": "./lib/index.js",
   "browser": "lib/browser.js",
   "engines": {
     "node": "0.10.x"
