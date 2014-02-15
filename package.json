@@ -15,7 +15,7 @@
     "type": "git",
     "url": "http://github.com/js-platform/node-webrtc.git"
   },
-  "main": "./build/Release/webrtc.node",
+  "main": "lib/index.js",
   "browser": "lib/browser.js",
   "engines": {
     "node": "0.10.x"
@@ -31,7 +31,6 @@
     "ws": "~0.4.31",
     "grunt": "~0.4.2",
     "grunt-contrib-jshint": "~0.6.*",
-    "grunt-contrib-uglify": "~0.2.4",
     "grunt-tape": "~0.0.2"
   },
   "scripts": {
