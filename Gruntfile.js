@@ -38,31 +38,15 @@ module.exports = function(grunt) {
         output: 'console'
       },
       files: ['test/all.js']
-    },
-    uglify: {
-      options: {
-        report: 'gzip',
-        banner: banner
-      },
-      minifyTarget: {
-        files: {
-          'dist/node-webrtc.min.js': [
-            'first.js',
-            'second.js',
-            '....'
-          ]
-        }
-      }
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-tape');
-  grunt.loadNpmTasks('grunt-contrib-uglify');
 
   // Default tasks (when type grunt on terminal).
   grunt.registerTask('default', [
-    //'jshint', uncomment for start linting
+    'jshint',
     'tape'
   ]);
 };
