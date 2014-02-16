@@ -30,7 +30,7 @@
     "tape": "~2.4.2",
     "ws": "~0.4.31",
     "grunt": "~0.4.2",
-    "grunt-contrib-jshint": "~0.6.*",
+    "grunt-contrib-jshint": "~0.8.0",
     "grunt-tape": "~0.0.2"
   },
   "scripts": {

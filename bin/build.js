@@ -15,11 +15,12 @@
     , TOOLS_DIR = PROJECT_DIR + '/tools'
     , TOOLS_DEPOT_TOOLS_DIR = TOOLS_DIR + '/depot_tools'
     , GCLIENT = 'gclient'
+    , NINJA = 'ninja'
     , NODE_GYP = PROJECT_DIR + '/node_modules/node-gyp/bin/node-gyp.js'
     , VERBOSE = false;
 
   process.env.PATH = process.env.PATH + ':' + TOOLS_DEPOT_TOOLS_DIR;
-  process.env.GYP_GENERATORS = 'make';
+  process.env.GYP_GENERATORS = NINJA;
 
   var argz = process.argv.slice(2);
   argz.include = function(obj) {
@@ -177,12 +178,12 @@
         return new RSVP.Promise(function(resolve, reject) {
 
           process.stdout.write('Going to run the depot tools command: '+
-            GCLIENT + ' sync -D --force --verbose -j1 in folder '+ LIB_WEBRTC_DIR + '\r\n');
+            GCLIENT + ' sync -D --verbose -j1 in folder '+ LIB_WEBRTC_DIR + '\r\n');
 
           process.chdir(LIB_WEBRTC_DIR);
-          var gclientSync = spawn(GCLIENT, ['sync', '-D', '--force', '--verbose', '-j1']);
+          var gclientSync = spawn(GCLIENT, ['sync', '-D', '--verbose', '-j1']);
 
-          var processName = GCLIENT + ' sync -D --force --verbose -j1';
+          var processName = GCLIENT + ' sync -D --verbose -j1';
           processOutput(gclientSync, processName).then(function(){
 
               resolve();
@@ -211,19 +212,22 @@
             });
         });
       }
-    , runMake = function() {
+    , runNinja = function() {
         return new RSVP.Promise(function(resolve, reject) {
 
-          var buildedName = '';
+          process.stdout.write('Going to run the depot tools command: ' + NINJA + 
+            ' -C trunk/out/Release ' + buildedName + ' in folder '+ LIB_WEBRTC_DIR + '\r\n');
+
+          var ninjaArguments = [];
+          ninjaArguments.push('-C');
+          ninjaArguments.push('trunk/out/Release');
           if('linux' === os.platform()) {
 
-            buildedName = 'peerconnection_client';
+            ninjaArguments.push('peerconnection_client');
           }
 
-          process.stdout.write('Going to run the depot tools command: make BUILDTYPE=Release -C trunk ' + buildedName + ' in folder '+ LIB_WEBRTC_DIR + '\r\n');
-
           process.chdir(LIB_WEBRTC_DIR);
-          var make = spawn('make', ['BUILDTYPE=Release', '-C', 'trunk', buildedName]);
+          var make = spawn(NINJA, ninjaArguments);
 
           var processName = 'make';
           processOutput(make, processName).then(function(){
@@ -254,6 +258,8 @@
         });
       };
 
+      runNinja();
+/*
   downloadDepotTools().then(function() {
 
     return runGclientConfig();
@@ -265,7 +271,7 @@
     return runGlientRunHooks();
   }).then(function() {
 
-    return runMake();
+    return runNinja();
   }).then(function() {
 
     return runNodeGypBuild();
@@ -277,5 +283,5 @@
 
     process.stderr.write(rejectionInfo);
     process.exit(1);
-  });
+  });*/
 })();
