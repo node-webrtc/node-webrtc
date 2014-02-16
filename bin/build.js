@@ -215,8 +215,8 @@
     , runNinja = function() {
         return new RSVP.Promise(function(resolve, reject) {
 
-          process.stdout.write('Going to run the depot tools command: ' + NINJA + 
-            ' -C trunk/out/Release ' + buildedName + ' in folder '+ LIB_WEBRTC_DIR + '\r\n');
+          process.stdout.write('Going to run the depot tools command: ' + NINJA +
+            ' -C trunk/out/Release in folder '+ LIB_WEBRTC_DIR + '\r\n');
 
           var ninjaArguments = [];
           ninjaArguments.push('-C');
@@ -229,7 +229,7 @@
           process.chdir(LIB_WEBRTC_DIR);
           var make = spawn(NINJA, ninjaArguments);
 
-          var processName = 'make';
+          var processName = NINJA;
           processOutput(make, processName).then(function(){
 
               resolve();
@@ -258,8 +258,6 @@
         });
       };
 
-      runNinja();
-/*
   downloadDepotTools().then(function() {
 
     return runGclientConfig();
@@ -283,5 +281,5 @@
 
     process.stderr.write(rejectionInfo);
     process.exit(1);
-  });*/
+  });
 })();
