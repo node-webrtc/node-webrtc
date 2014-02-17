@@ -1,13 +1,21 @@
 var test = require('tape');
+
 // var detect = require('rtc-core/detect');
 // var RTCPeerConnection = detect('RTCPeerConnection');
-var RTCPeerConnection = require('../lib/peerconnection');
-var RTCIceCandidate = require('../lib/icecandidate');
+
+var wrtc = require('..');
+
+var RTCIceCandidate   = wrtc.RTCIceCandidate;
+var RTCPeerConnection = wrtc.RTCPeerConnection;
+
 var captureCandidates = require('./helpers/capture-candidates');
+
+
 var peers = [];
 var candidates = [ [], [] ];
 var dcs = [];
 var localDesc;
+
 
 test('create the peer connections', function(t) {
   t.plan(2);

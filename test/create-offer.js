@@ -1,7 +1,11 @@
 var test = require('tape');
-var RTCPeerConnection = require('../lib/peerconnection');
+
+var RTCPeerConnection = require('..').RTCPeerConnection;
+
+
 var peer;
 var localDesc;
+
 
 test('create a peer connection', function(t) {
   t.plan(1);
