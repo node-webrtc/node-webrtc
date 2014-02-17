@@ -1,4 +1,4 @@
-var RTCPeerConnection = require('../lib/index').RTCPeerConnection;
+var RTCPeerConnection = require('..').RTCPeerConnection;
 
 
 var pc = new RTCPeerConnection({
