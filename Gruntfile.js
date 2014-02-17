@@ -2,15 +2,6 @@
 
 module.exports = function(grunt) {
 
-  var banner = ['/*!',
-     ' * node-webrtc v<%= pkg.version %>',
-     ' *',
-     ' * Released under the BSD license',
-     ' *',
-     ' * <%= grunt.template.today("yyyy-mm-dd") %>',
-     ' */\n\n'
-   ].join('\n');
-
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     jshint: {
@@ -22,13 +13,13 @@ module.exports = function(grunt) {
       },
       lib: {
         src: [
-          'lib/**.js',
+          /*'lib/**.js',*/
           'bin/**.js'
         ]
       },
       test: {
         src: [
-          'test/**.js'
+          /*'test/**.js'*/
         ]
       }
     },
