@@ -1,14 +1,32 @@
 [![NPM](https://nodei.co/npm/wrtc.png?downloads=true&stars=true)](https://nodei.co/npm/wrtc/)
 
-### Contributing
+# Contributing
 
 The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/modeswitch/node-webrtc/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet.
 
 Once you've done some hacking and you'd like to have your work merged, you'll need to make a pull request. If you're patch includes code, make sure to check that all the unit tests pass, including any new tests you wrote. Finally, make sure you add yourself to the `AUTHORS` file.
 
-### Getting Started
+# Getting Started
+
+## Prerequisites
 
 **Important**: Make sure you have all the prerequisite libraries installed for your platform, as described [here](http://www.webrtc.org/reference/getting-started/prerequisite-sw).
+
+We have experience recently that they have been included in latest revisions of the libWebrtc library some dev dependencies not documented on the link below. For Debian/Ubuntu/LinuxMint based systems, please install them from a command-line with:
+
+````
+sudo apt-get install libudev-dev libdrm-dev libgconf2-dev libgcrypt11-dev libpci-dev libxtst-dev
+````
+
+[It has been reported](https://github.com/js-platform/node-webrtc/pull/75#issuecomment-35166221) that some users would need to install some more dev libraries:
+
+````
+sudo apt-get install g++ python libnss3-dev libasound2-dev libpulse-dev libjpeg62-dev libxv-dev libgtk2.0-dev libexpat1-dev
+````
+
+Maybe some of this dependencies would be removed in future revisions of the library, but to be on the safe side, it's better that you install all of them. If you need to install any other library, please open an issue so we can update the list.
+
+## Install
 
 The easiest way to install is via npm:
 
@@ -24,7 +42,7 @@ cd node-webrtc
 npm install
 ````
 
-#### Notes
+## Notes
 
 * Development is focused on Linux and OSX at the moment. If you're on another platform, but build process may not work for you. Feel free to comment on existing issues or open new issues and add the specific problems you're having.
 
@@ -34,7 +52,7 @@ npm install
 
 * ~~Firefox is not yet supported due to lack of SCTP data channel support (see above).~~ Both Firefox and newer versions of Chrome are supported.
 
-### Tests
+# Tests
 
 Once everything is built, try `npm test` as a sanity check. You can run the data channel demo by `node tests/bridge.js` and browsing to `tests/peer.html` in `chrome --enable-data-channels`. You can pass an alternate port to the node script by `node tests/bridge.js <port>`. If the bridge and peer are on different machines, you can pass the bridge address to the peer by `http://<yourmachine>/peer.html?<host:port>`.
 
