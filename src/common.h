@@ -5,19 +5,22 @@
 #define ERROR(msg) fprintf(stdout, "\033[01;32m native:%s \033[00m\n", msg)
 #define INFO(msg) fprintf(stdout, "\033[01;34m native:%s \033[00m\n", msg)
 
+void setTracing (bool trace);
+void tracePrint (std::string format, ...);
+
 #if defined(TRACING)
 
 #include <stdio.h>
 
-#define TRACE(msg) printf("   TRACE: %s\n", msg)
-#define TRACE_S(msg, s) printf("   TRACE: %s : %s\n", msg, s)
-#define TRACE_I(msg, i) printf("   TRACE: %s : %d\n", msg, i)
-#define TRACE_U(msg, u) printf("   TRACE: %s : %u\n", msg, u)
-#define TRACE_X(msg, x) printf("   TRACE: %s : 0x%x\n", msg, x)
-#define TRACE_PTR(msg, p) printf("   TRACE: %s : %p\n", msg, p)
-#define TRACE_CALL printf("-> TRACE: Call::%s\n", __PRETTY_FUNCTION__)
-#define TRACE_CALL_I(p1) printf("-> TRACE: Call::%s(%d)\n", __PRETTY_FUNCTION__, p1)
-#define TRACE_END printf("<- Call::%s\n", __PRETTY_FUNCTION__)
+#define TRACE(msg) tracePrint("   TRACE: %s\n", msg)
+#define TRACE_S(msg, s) tracePrint("   TRACE: %s : %s\n", msg, s)
+#define TRACE_I(msg, i) tracePrint("   TRACE: %s : %d\n", msg, i)
+#define TRACE_U(msg, u) tracePrint("   TRACE: %s : %u\n", msg, u)
+#define TRACE_X(msg, x) tracePrint("   TRACE: %s : 0x%x\n", msg, x)
+#define TRACE_PTR(msg, p) tracePrint("   TRACE: %s : %p\n", msg, p)
+#define TRACE_CALL tracePrint("-> TRACE: Call::%s\n", __PRETTY_FUNCTION__)
+#define TRACE_CALL_I(p1) tracePrint("-> TRACE: Call::%s(%d)\n", __PRETTY_FUNCTION__, p1)
+#define TRACE_END tracePrint("<- Call::%s\n", __PRETTY_FUNCTION__)
 
 #else
 
