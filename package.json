@@ -22,16 +22,17 @@
   },
   "dependencies": {
     "bindings": "~1.1.1",
-    "node-gyp": "~0.10.10",
+    "eventtarget": "~0.0.1",
     "nan": "~0.4.4",
+    "node-gyp": "~0.10.10",
     "rsvp": "~3.0.3"
   },
   "devDependencies": {
-    "tape": "~2.4.2",
-    "ws": "~0.4.31",
     "grunt": "~0.4.2",
     "grunt-contrib-jshint": "~0.8.0",
-    "grunt-tape": "~0.0.2"
+    "grunt-tape": "~0.0.2",
+    "tape": "~2.4.2",
+    "ws": "~0.4.31"
   },
   "scripts": {
     "install": "node bin/build.js",
