@@ -19,7 +19,7 @@
     , NODE_GYP = PROJECT_DIR + '/node_modules/node-gyp/bin/node-gyp.js'
     , VERBOSE = false;
 
-  process.env.PATH = process.env.PATH + ':' + TOOLS_DEPOT_TOOLS_DIR;
+  process.env.PATH = TOOLS_DEPOT_TOOLS_DIR + ':' + process.env.PATH;
   process.env.GYP_GENERATORS = NINJA;
 
   var argz = process.argv.slice(2);
