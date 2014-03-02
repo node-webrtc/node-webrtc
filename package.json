@@ -25,7 +25,8 @@
     "eventtarget": "~0.0.1",
     "nan": "~0.4.4",
     "node-gyp": "~0.10.10",
-    "rsvp": "~3.0.3"
+    "rsvp": "~3.0.3",
+    "node-pre-gyp": "~0.5.0-alpha"
   },
   "devDependencies": {
     "grunt": "~0.4.2",

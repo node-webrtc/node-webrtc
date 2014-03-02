@@ -16,7 +16,7 @@
     , TOOLS_DEPOT_TOOLS_DIR = TOOLS_DIR + '/depot_tools'
     , GCLIENT = 'gclient'
     , NINJA = 'ninja'
-    , NODE_GYP = PROJECT_DIR + '/node_modules/node-gyp/bin/node-gyp.js'
+    , NODE_GYP = PROJECT_DIR + '/node_modules/.bin/node-gyp'
     , VERBOSE = false;
 
   process.env.PATH = TOOLS_DEPOT_TOOLS_DIR + ':' + process.env.PATH;
