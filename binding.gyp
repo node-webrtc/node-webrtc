@@ -191,6 +191,14 @@
               '../<(libwebrtc_out)/../libvpx_intrinsics_mmx.a',
               '../<(libwebrtc_out)/../libvpx_intrinsics_sse2.a',
               '../<(libwebrtc_out)/../libvpx_intrinsics_ssse3.a',
+              '../<(libwebrtc_out)/../libusrsctplib.a',
+              '../<(libwebrtc_out)/../libcommon_audio_sse2.a',
+              '../<(libwebrtc_out)/../libcrssl.a',
+              '../<(libwebrtc_out)/../libnss_static.a',
+              '../<(libwebrtc_out)/../libcrnspr.a',
+              '../<(libwebrtc_out)/../libcrnss.a',
+              '-framework AppKit',
+              '-framework QTKit',
               '-lssl'
             ]
           }],
