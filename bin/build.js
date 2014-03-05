@@ -22,9 +22,10 @@
   process.env.PATH = TOOLS_DEPOT_TOOLS_DIR + ':' + process.env.PATH;
   process.env.GYP_GENERATORS = NINJA;
 
-  if (process.platform === 'darwin')
+  if (process.platform === 'darwin') {
     process.env.GYP_DEFINES = process.env.GYP_DEFINES ||
       ('host_arch=' + process.arch + ' target_arch=' + process.arch);
+  }
 
   var argz = process.argv.slice(2);
   argz.include = function(obj) {
