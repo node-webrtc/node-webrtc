@@ -111,16 +111,24 @@ void DataChannel::Run(uv_async_t* handle, int status)
       MessageEvent* data = static_cast<MessageEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(String::New("onmessage")));
 
-      Local<Object> array = NanPersistentToLocal(ArrayBufferConstructor)->NewInstance();
-      array->SetIndexedPropertiesToExternalArrayData(data->message, v8::kExternalByteArray, data->size);
-      Local<String> byteLenghtKey = String::New("byteLength");
-      Local<Integer> byteLengthValue = Uint32::New(data->size);
-      array->ForceSet(byteLenghtKey, byteLengthValue);
-      V8::AdjustAmountOfExternalAllocatedMemory(data->size);
-
       v8::Local<v8::Value> argv[1];
-      argv[0] = array;
-      callback->Call(dc, 1, argv);
+
+      if(data->binary) {
+        Local<Object> array = NanPersistentToLocal(ArrayBufferConstructor)->NewInstance();
+        array->SetIndexedPropertiesToExternalArrayData(data->message, v8::kExternalByteArray, data->size);
+        Local<String> byteLenghtKey = String::New("byteLength");
+        Local<Integer> byteLengthValue = Uint32::New(data->size);
+        array->ForceSet(byteLenghtKey, byteLengthValue);
+        V8::AdjustAmountOfExternalAllocatedMemory(data->size);
+
+        argv[0] = array;
+        callback->Call(dc, 1, argv);
+      } else {
+        Local<String> str = String::New(data->message, data->size);
+
+        argv[0] = str;
+        callback->Call(dc, 1, argv);
+      }
     }
     // FIXME: delete event
   }
@@ -152,14 +160,22 @@ NAN_METHOD(DataChannel::Send) {
   NanScope();
 
   DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
-  v8::Local<v8::Object> arraybuffer = v8::Local<v8::Object>::Cast(args[0]);
 
-  void* data = arraybuffer->GetIndexedPropertiesExternalArrayData();
-  uint32_t data_len = arraybuffer->GetIndexedPropertiesExternalArrayDataLength();
+  if(args[0]->IsString()) {
+    v8::Local<v8::String> str = v8::Local<v8::String>::Cast(args[0]);
+    std::string data = *v8::String::Utf8Value(str);
 
-  talk_base::Buffer buffer(data, data_len);
-  webrtc::DataBuffer data_buffer(buffer, true);
-  self->_internalDataChannel->Send(data_buffer);
+    webrtc::DataBuffer buffer(data);
+    self->_internalDataChannel->Send(buffer);
+  } else {
+    v8::Local<v8::Object> arraybuffer = v8::Local<v8::Object>::Cast(args[0]);
+    void* data = arraybuffer->GetIndexedPropertiesExternalArrayData();
+    uint32_t data_len = arraybuffer->GetIndexedPropertiesExternalArrayDataLength();
+
+    talk_base::Buffer buffer(data, data_len);
+    webrtc::DataBuffer data_buffer(buffer, true);
+    self->_internalDataChannel->Send(data_buffer);
+  }
 
   TRACE_END;
   NanReturnValue(Undefined());

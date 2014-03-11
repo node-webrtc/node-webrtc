@@ -92,9 +92,14 @@ wss.on('connection', function(ws)
         }
       };
       channel.onmessage = function(evt) {
-        console.log('onmessage', evt.data);
-        var response = new  Uint8Array([107, 99, 97, 0]);
-        channel.send(response.buffer);
+        var data = evt.data;
+        console.log('onmessage:', evt.data);
+        if('string' == typeof data) {
+          channel.send("Hello peer!");
+        } else {
+          var response = new Uint8Array([107, 99, 97, 0]);
+          channel.send(response.buffer);
+        }
       };
       channel.onclose = function() {
         console.info('onclose');
