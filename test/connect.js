@@ -1,3 +1,4 @@
+'use strict';
 var test = require('tape');
 
 // var detect = require('rtc-core/detect');
@@ -187,7 +188,7 @@ test('data channel connectivity', function(t) {
   dcs[1].onmessage = function(evt) {
     var data = evt.data && new Uint8Array(evt.data);
 
-    t.ok(data && typeof data.length != 'undefined', 'got valid data');
+    t.ok(data && typeof data.length !== 'undefined', 'got valid data');
     t.equal(data.length, 2, 'two bytes sent');
     t.equal(data[0], 10, 'byte:0 matches expected');
     t.equal(data[1], 11, 'byte:1 matches expected');
