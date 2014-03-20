@@ -34,6 +34,7 @@ function doComplete()
   console.log('complete');
   var data = new Uint8Array([97, 99, 107, 0]);
   dataChannels['reliable'].send(data.buffer);
+  dataChannels['reliable'].send("Hello bridge!");
 }
 
 function doWaitforDataChannels()
@@ -98,7 +99,11 @@ function doCreateDataChannels()
     };
     channel.onmessage = function(event) {
       var data = event.data;
-      console.log('onmessage', new Uint8Array(data));
+      if('string' == typeof data) {
+        console.log('onmessage:', data);
+      } else {
+        console.log('onmessage:', new Uint8Array(data));
+      }
     };
     channel.onclose = function(event) {
       console.info('onclose');

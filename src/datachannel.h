@@ -38,11 +38,13 @@ public:
   struct MessageEvent {
     MessageEvent(const webrtc::DataBuffer* buffer)
     {
+      binary = buffer->binary;
       size = buffer->size();
       message = new char[size];
       memcpy(static_cast<void*>(message), static_cast<const void*>(buffer->data.data()), size);
     }
 
+    bool binary;
     char* message;
     size_t size;
   };
