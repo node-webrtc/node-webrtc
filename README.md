@@ -26,6 +26,12 @@ sudo apt-get install g++ python libnss3-dev libasound2-dev libpulse-dev libjpeg6
 
 Maybe some of this dependencies would be removed in future revisions of the library, but to be on the safe side, it's better that you install all of them. If you need to install any other library, please open an issue so we can update the list.
 
+Also make sure a JDK version is installed and that the JAVA_HOME environment variable is present and pointing to the correct jdk version when installing the module. JDK version 1.6.0_45 from Oracle is reported to work. Using a openjdk version may cause failure of compilation. You can check the value of the JAVA_HOME environment variable with the following command:
+
+````
+printenv JAVA_HOME
+````
+
 ## Install
 
 The easiest way to install is via npm:
@@ -54,7 +60,7 @@ npm install
 
 # Tests
 
-Once everything is built, try `npm test` as a sanity check. You can run the data channel demo by `node tests/bridge.js` and browsing to `tests/peer.html` in `chrome --enable-data-channels`. You can pass an alternate port to the node script by `node tests/bridge.js <port>`. If the bridge and peer are on different machines, you can pass the bridge address to the peer by `http://<yourmachine>/peer.html?<host:port>`.
+Once everything is built, try `npm test` as a sanity check. You can run the data channel demo by `node examples/bridge.js` and browsing to `examples/peer.html` in `chrome --enable-data-channels`. You can pass an alternate port to the node script by `node examples/bridge.js <port>`. If the bridge and peer are on different machines, you can pass the bridge address to the peer by `http://<yourmachine>/peer.html?<host:port>`.
 
 The output from `bridge.js` should look like:
 ````
