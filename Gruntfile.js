@@ -13,13 +13,13 @@ module.exports = function(grunt) {
       },
       lib: {
         src: [
-          /*'lib/**.js',*/
+          'lib/**.js',
           'bin/**.js'
         ]
       },
       test: {
         src: [
-          /*'test/**.js'*/
+          'test/**.js'
         ]
       }
     },
