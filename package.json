@@ -22,7 +22,6 @@
   },
   "dependencies": {
     "bindings": "~1.1.1",
-    "eventtarget": "~0.0.1",
     "nan": "~0.4.4",
     "node-gyp": "~0.10.10",
     "rsvp": "~3.0.3",

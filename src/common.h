@@ -17,6 +17,7 @@
 #define TRACE_PTR(msg, p) printf("   TRACE: %s : %p\n", msg, p)
 #define TRACE_CALL printf("-> TRACE: Call::%s\n", __PRETTY_FUNCTION__)
 #define TRACE_CALL_I(p1) printf("-> TRACE: Call::%s(%d)\n", __PRETTY_FUNCTION__, p1)
+#define TRACE_CALL_P(p1) printf("-> TRACE: Call::%s(%lx)\n", __PRETTY_FUNCTION__, p1)
 #define TRACE_END printf("<- Call::%s\n", __PRETTY_FUNCTION__)
 
 #else
@@ -29,6 +30,7 @@
 #define TRACE_PTR(msg, x)
 #define TRACE_CALL
 #define TRACE_CALL_I(p1)
+#define TRACE_CALL_P(p1)
 #define TRACE_END
 
 #endif

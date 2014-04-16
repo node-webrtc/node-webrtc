@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+
+function sanity_test(webrtc) {
+
+}
+
 (function() {
   'use strict';
 
@@ -6,6 +11,7 @@
   var fs = require('fs');
   var spawn = require('child_process').spawn;
   var nopt = require('nopt');
+  var path = require('path');
 
   var knownOpts = {
     'debug': Boolean,
@@ -38,14 +44,18 @@
     process.exit(-1);
   }
 
-  var modPath = [PLATFORM, ARCH, 'v8-' + V8].join('_');
-  console.log(modPath);
+  // var modPath = [PLATFORM, ARCH, 'v8-' + V8].join('_');
+
 
   if(!FORCE) {
-    try {
-
-    } catch(e) {
-
-    }
+    (function() {
+      try {
+        var webrtc = require('bindings')('webrtc.node');
+        console.log('module found');
+        sanity_check(webrtc);
+      } catch(e) {
+        console.error('module not found');
+      }
+    })();
   }
 })();

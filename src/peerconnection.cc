@@ -144,10 +144,10 @@ void PeerConnection::QueueEvent(AsyncEventType type, void* data)
 
 void PeerConnection::Run(uv_async_t* handle, int status)
 {
-  TRACE_CALL;
   NanScope();
 
   PeerConnection* self = static_cast<PeerConnection*>(handle->data);
+  TRACE_CALL_P((uintptr_t)self);
   v8::Handle<v8::Object> pc = NanObjectWrapHandle(self);
   bool do_shutdown = false;
 

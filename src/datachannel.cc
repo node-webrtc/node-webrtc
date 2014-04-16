@@ -70,9 +70,9 @@ void DataChannel::QueueEvent(AsyncEventType type, void* data)
 
 void DataChannel::Run(uv_async_t* handle, int status)
 {
-  TRACE_CALL;
   NanScope();
   DataChannel* self = static_cast<DataChannel*>(handle->data);
+  TRACE_CALL_P((uintptr_t)self);
   v8::Handle<v8::Object> dc = NanObjectWrapHandle(self);
   bool do_shutdown = false;
 
