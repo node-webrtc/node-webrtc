@@ -197,7 +197,8 @@ NAN_METHOD(DataChannel::Shutdown) {
   NanScope();
 
   DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
-  uv_close((uv_handle_t*)(&self->async), NULL);
+  if(!uv_is_closing((uv_handle_t*)(&self->async)))
+    uv_close((uv_handle_t*)(&self->async), NULL);
 
   TRACE_END;
   NanReturnValue(Undefined());
