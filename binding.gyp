@@ -16,8 +16,26 @@
   ],
   'targets': [
     {
-      'target_name': 'webrtc',
+      'target_name': 'action_before_build',
       'dependencies': [],
+      'type': 'none',
+      'hard_dependency': 1,
+      'actions': [
+        {
+          'action_name': 'build_libwebrtc',
+          'inputs': [
+            'third_party/libwebrtc'
+          ],
+          'outputs': [
+            'third_party/libwebrtc/trunk/out'
+          ],
+          'action': ['node', 'bin/build.js']
+        }
+      ]
+    },
+    {
+      'target_name': 'webrtc',
+      'dependencies': [ 'action_before_build' ],
       'variables': {
         'libwebrtc_out%': '<(libwebrtc)/out/Release/obj',
       },
@@ -212,6 +230,17 @@
         'src/datachannel.cc',
         'src/mediastream.cc',
         'src/mediastreamtrack.cc'
+      ]
+    },
+    {
+      "target_name": "action_after_build",
+      "type": "none",
+      "dependencies": [ "webrtc" ],
+      "copies": [
+        {
+          "files": [ "<(PRODUCT_DIR)/webrtc.node" ],
+          "destination": "./lib/binding"
+        }
       ]
     }
   ]

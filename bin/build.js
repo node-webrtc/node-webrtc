@@ -275,9 +275,9 @@
   }).then(function() {
 
     return runNinja();
-  }).then(function() {
-
-    return runNodeGypBuild();
+//  }).then(function() {
+//
+//    return runNodeGypBuild();
   }).then(function() {
 
     process.stdout.write('wrtc module build complete\r\n');

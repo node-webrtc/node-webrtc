@@ -4,3 +4,4 @@ node_modules
 third_party
 tools
 npm-debug.log
+lib/binding

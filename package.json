@@ -6,7 +6,7 @@
     "p2p",
     "peer"
   ],
-  "version": "0.0.12",
+  "version": "0.0.14",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "http://js-platform.github.io/node-webrtc/",
   "bugs": "https://github.com/js-platform/node-webrtc/issues",
@@ -18,15 +18,13 @@
   "main": "lib/index.js",
   "browser": "lib/browser.js",
   "engines": {
-    "node": "0.10.x"
+    "node": ">=0.10.x"
   },
   "dependencies": {
-    "bindings": "~1.1.1",
     "nan": "~0.4.4",
     "node-gyp": "~0.10.10",
     "rsvp": "~3.0.3",
-    "argparse": "~0.1.15",
-    "nopt": "^2.2.0"
+    "node-pre-gyp": "^0.5.9"
   },
   "devDependencies": {
     "grunt": "~0.4.2",
@@ -36,8 +34,16 @@
     "ws": "~0.4.31"
   },
   "scripts": {
-    "install": "node bin/build.js",
-    "uninstall": "node bin/clean.js",
+    "install": "node-pre-gyp install --fallback-to-build",
     "test": "node test/all.js"
+  },
+  "bundledDependencies": [
+    "node-pre-gyp"
+  ],
+  "binary": {
+    "module_name": "webrtc",
+    "module_path": "./lib/binding",
+    "host": "https://people.mozilla.org/~akligman",
+    "remote_path": "./{name}/v{version}"
   }
 }
