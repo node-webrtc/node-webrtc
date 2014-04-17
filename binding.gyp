@@ -24,7 +24,7 @@
         {
           'action_name': 'build_libwebrtc',
           'inputs': [
-            'third_party/libwebrtc'
+            'third_party'
           ],
           'outputs': [
             'third_party/libwebrtc/trunk/out'
