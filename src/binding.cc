@@ -18,4 +18,4 @@ void init(Handle<Object> exports) {
   MediaStreamTrack::Init(exports);
 }
 
-NODE_MODULE(webrtc, init)
+NODE_MODULE(wrtc, init)
