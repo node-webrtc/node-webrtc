@@ -1,6 +1,7 @@
 {
   'variables': {
     'libwebrtc%': 'third_party/libwebrtc/trunk',
+    'libwebrtc_revision%': 'r5936'
   },
   'conditions': [
     ['OS=="linux"', {
@@ -28,14 +29,14 @@
           'inputs': [],
           'outputs': ['/dev/null'],
           'action': [
-            'node', 'bin/build.js', '--target-arch', '<(target_arch)'
+            'node', 'bin/build.js', '--target-arch', '<(target_arch)', '--libwebrtc-revision', '<(libwebrtc_revision)'
           ],
           'message': 'Run build script'
         }
       ]
     },
     {
-      'target_name': 'webrtc',
+      'target_name': 'wrtc',
       'dependencies': [ 'action_before_build' ],
       'variables': {
         'libwebrtc_out%': '<(libwebrtc)/out/Release/obj',
@@ -236,10 +237,10 @@
     {
       "target_name": "action_after_build",
       "type": "none",
-      "dependencies": [ "webrtc" ],
+      "dependencies": [ "wrtc" ],
       "copies": [
         {
-          "files": [ "<(PRODUCT_DIR)/webrtc.node" ],
+          "files": [ "<(PRODUCT_DIR)/<(module_name).node" ],
           "destination": "<(module_path)"
         }
       ]
