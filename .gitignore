@@ -2,6 +2,6 @@ build
 .DS_Store
 node_modules
 third_party
-tools
 npm-debug.log
 lib/binding
+build.log

@@ -17,19 +17,20 @@
   'targets': [
     {
       'target_name': 'action_before_build',
+      'variables': {
+      },
       'dependencies': [],
+      'hard_depdency': 1,
       'type': 'none',
-      'hard_dependency': 1,
       'actions': [
         {
-          'action_name': 'build_libwebrtc',
-          'inputs': [
-            'third_party'
+          'action_name': 'run_build_script',
+          'inputs': [],
+          'outputs': ['/dev/null'],
+          'action': [
+            'node', 'bin/build.js', '--target-arch', '<(target_arch)'
           ],
-          'outputs': [
-            'third_party/libwebrtc/trunk/out'
-          ],
-          'action': ['node', 'bin/build.js']
+          'message': 'Run build script'
         }
       ]
     },
@@ -239,7 +240,7 @@
       "copies": [
         {
           "files": [ "<(PRODUCT_DIR)/webrtc.node" ],
-          "destination": "./lib/binding"
+          "destination": "<(module_path)"
         }
       ]
     }

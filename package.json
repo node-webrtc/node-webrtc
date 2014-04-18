@@ -24,7 +24,8 @@
     "nan": "~0.4.4",
     "node-gyp": "~0.10.10",
     "rsvp": "~3.0.3",
-    "node-pre-gyp": "^0.5.9"
+    "node-pre-gyp": "^0.5.9",
+    "nopt": "^2.2.0"
   },
   "devDependencies": {
     "grunt": "~0.4.2",
