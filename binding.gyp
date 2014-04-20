@@ -29,7 +29,7 @@
           'inputs': [],
           'outputs': ['/dev/null'],
           'action': [
-            'node', 'bin/build.js', '--target-arch', '<(target_arch)', '--libwebrtc-revision', '<(libwebrtc_revision)'
+            'node', 'bin/build.js', '--target-arch', '<(target_arch)', '--libwebrtc-revision', '<(libwebrtc_revision)', '--configuration', '<(configuration)'
           ],
           'message': 'Run build script'
         }
@@ -39,7 +39,7 @@
       'target_name': 'wrtc',
       'dependencies': [ 'action_before_build' ],
       'variables': {
-        'libwebrtc_out%': '<(libwebrtc)/out/Release/obj',
+        'libwebrtc_out%': '<(libwebrtc)/out/<(configuration)/obj',
       },
       'cflags': [
         '-pthread',

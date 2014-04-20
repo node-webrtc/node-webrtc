@@ -19,15 +19,14 @@
   var NODE_GYP = PROJECT_DIR + '/node_modules/.bin/node-gyp';
 
   var knownOpts = {
-    'debug': Boolean,
     'target-arch': String,
     'gyp-gen': String,
     'verbose': Boolean,
     'libwebrtc-revision': String,
+    'configuration': String,
   };
 
   var shortHands = {
-    'd': '--debug',
     't': '--target-arch',
     'ia32': ['--target-arch', 'ia32'],
     'x64': ['--target-arch', 'x64'],
@@ -40,12 +39,12 @@
 
   var TARGET_ARCH = parsed['target-arch'] || process.arch;
   var HOST_ARCH = process.arch;
-  var DEBUG = parsed['debug'] || false;
   var VERBOSE = !!parsed['verbose'];
   var PLATFORM = process.platform;
   var LIBWEBRTC_REVISION = parsed['libwebrtc-revision'] || 'r5459';
+  var CONFIGURATION = parsed['configuration'] || 'Release'
 
-  console.log("TARGET_ARCH="+TARGET_ARCH, LIBWEBRTC_REVISION);
+  console.log("TARGET_ARCH="+TARGET_ARCH, LIBWEBRTC_REVISION, CONFIGURATION);
 
   process.env.PATH = DEPOT_TOOLS_DIR + ':' + process.env.PATH;
   process.env.GYP_GENERATORS = NINJA;
@@ -151,8 +150,8 @@
 
   function build() {
     process.stdout.write('Building libjingle ... ');
-    process.env.BUILDTYPE = 'Release';
-    var args = ['-C', 'trunk'];
+    process.env.BUILDTYPE = CONFIGURATION;
+    var args = ['-C', 'trunk/out/' + CONFIGURATION];
 
     switch(PLATFORM) {
       case 'linux':
@@ -163,7 +162,7 @@
     }
 
     process.chdir(LIB_WEBRTC_DIR);
-    var proc = spawn(MAKE,
+    var proc = spawn(NINJA,
       args
     );
     var log = fs.createWriteStream(PROJECT_DIR+'/build.log', {flags: 'a'});
@@ -186,7 +185,11 @@
     process.stdout.write('Build complete\r\n');
   }
 
-  clone_depot_tools();
+  if(process.env.WRTC_SKIP_SYNC) {
+    build();
+  } else {
+    clone_depot_tools();
+  }
 
 /*
   function processOutput(spawnedProcess, processType) {
