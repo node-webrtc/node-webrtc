@@ -2,6 +2,7 @@
   'variables': {
     'libwebrtc%': 'third_party/libwebrtc/trunk',
     'libwebrtc_revision%': 'r5936'
+    #'libwebrtc_revision%': 'r5385'
   },
   'conditions': [
     ['OS=="linux"', {
@@ -40,6 +41,7 @@
       'dependencies': [ 'action_before_build' ],
       'variables': {
         'libwebrtc_out%': '<(libwebrtc)/out/<(configuration)/obj',
+#         'libwebrtc_out%': '<(libwebrtc)/out/Release/obj',
       },
       'cflags': [
         '-pthread',
@@ -149,7 +151,6 @@
               '../<(libwebrtc_out)/third_party/libvpx/libvpx_intrinsics_sse2.a',
               '../<(libwebrtc_out)/third_party/libvpx/libvpx_intrinsics_ssse3.a',
               '-Wl,--end-group',
-              #'../<(libwebrtc_out)/third_party/openssl/libopenssl.a',
               '../<(libwebrtc_out)/net/third_party/nss/libcrssl.a',
               '../<(libwebrtc_out)/third_party/usrsctp/libusrsctplib.a',
               '-lssl',
@@ -228,10 +229,14 @@
       },
       'sources': [
         'src/binding.cc',
+        'src/create-offer-observer.cc',
+        'src/create-answer-observer.cc',
+        'src/set-local-description-observer.cc',
+        'src/set-remote-description-observer.cc',
         'src/peerconnection.cc',
-        'src/datachannel.cc',
-        'src/mediastream.cc',
-        'src/mediastreamtrack.cc'
+#        'src/datachannel.cc',
+#        'src/mediastream.cc',
+#        'src/mediastreamtrack.cc',
       ]
     },
     {

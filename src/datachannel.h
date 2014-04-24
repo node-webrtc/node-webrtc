@@ -21,9 +21,29 @@
 using namespace node;
 using namespace v8;
 
+class DataChannel;
+
+class DataChannelObserver
+  : public webrtc::DataChannelObserver
+{
+  public:
+    DataChannelObserver(talk_base::scoped_refptr<webrtc::DataChannelInterface> libjingle_data_channel);
+    virtual ~DataChannelObserver();
+
+    virtual void OnStateChange();
+    virtual void OnMessage(const webrtc::DataBuffer& buffer);
+
+    talk_base::scoped_refptr<webrtc::DataChannelInterface> GetLibjingleDataChannel();
+    void SetJsDataChannel(DataChannel* js_data_channel);
+
+  private:
+    talk_base::scoped_refptr<webrtc::DataChannelInterface> _libjingle_data_channel;
+    DataChannel* _js_data_channel;
+
+};
+
 class DataChannel
-: public ObjectWrap,
-  public webrtc::DataChannelObserver
+: public ObjectWrap
 {
 
 public:
@@ -49,6 +69,13 @@ public:
     size_t size;
   };
 
+  struct StateEvent {
+    StateEvent(const webrtc::DataChannelInterface::DataState state)
+    : state(state) {}
+
+    webrtc::DataChannelInterface::DataState state;
+  };
+
   enum AsyncEventType {
     MESSAGE = 0x1 << 0, // 1
     ERROR = 0x1 << 1, // 2
@@ -60,15 +87,8 @@ public:
     ARRAY_BUFFER = 0x1
   };
 
-  DataChannel(webrtc::DataChannelInterface* dci);
+  DataChannel(DataChannelObserver* observer);
   ~DataChannel();
-
-  //
-  // DataChannelObserver implementation.
-  //
-
-  virtual void OnStateChange();
-  virtual void OnMessage(const webrtc::DataBuffer& buffer);
 
   //
   // Nodejs wrapping.
@@ -102,7 +122,8 @@ private:
   uv_loop_t *loop;
   std::queue<AsyncEvent> _events;
 
-  talk_base::scoped_refptr<webrtc::DataChannelInterface> _internalDataChannel;
+  talk_base::scoped_refptr<webrtc::DataChannelInterface> _libjingle_data_channel;
+  DataChannelObserver* _observer;
   BinaryType _binaryType;
 
   static Persistent<Function> ArrayBufferConstructor;

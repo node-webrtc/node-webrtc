@@ -1,0 +1,2 @@
+--suppressions=.valgrind.supp
+--track-origins=yes

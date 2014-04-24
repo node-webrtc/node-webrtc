@@ -43,6 +43,7 @@
   var PLATFORM = process.platform;
   var LIBWEBRTC_REVISION = parsed['libwebrtc-revision'] || 'r5459';
   var CONFIGURATION = parsed['configuration'] || 'Release'
+  //var CONFIGURATION = 'Release';
 
   console.log("TARGET_ARCH="+TARGET_ARCH, LIBWEBRTC_REVISION, CONFIGURATION);
 
@@ -150,7 +151,6 @@
 
   function build() {
     process.stdout.write('Building libjingle ... ');
-    process.env.BUILDTYPE = CONFIGURATION;
     var args = ['-C', 'trunk/out/' + CONFIGURATION];
 
     switch(PLATFORM) {

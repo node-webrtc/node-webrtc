@@ -14,6 +14,7 @@
 #include "talk/base/thread.h"
 #include "talk/base/scoped_ptr.h"
 #include "webrtc/system_wrappers/interface/ref_count.h"
+// #include "datachannel.h"
 
 #include "common.h"
 #include "nan.h"
@@ -21,58 +22,10 @@
 using namespace node;
 using namespace v8;
 
-class PeerConnection;
-
-// CreateSessionDescriptionObserver is required for Jsep callbacks.
-class CreateOfferObserver
-  : public webrtc::CreateSessionDescriptionObserver
-{
-  private:
-    PeerConnection* parent;
-
-  public:
-    CreateOfferObserver( PeerConnection* connection ): parent(connection) {};
-
-    virtual void OnSuccess( webrtc::SessionDescriptionInterface* sdp );
-    virtual void OnFailure( const std::string& msg );
-};
-
-class CreateAnswerObserver
-  : public webrtc::CreateSessionDescriptionObserver
-{
-  private:
-    PeerConnection* parent;
-
-  public:
-    CreateAnswerObserver( PeerConnection* connection ): parent(connection) {};
-
-    virtual void OnSuccess( webrtc::SessionDescriptionInterface* sdp );
-    virtual void OnFailure( const std::string& msg );
-};
-
-class SetLocalDescriptionObserver :
-  public webrtc::SetSessionDescriptionObserver
-{
-  private:
-    PeerConnection* parent;
-  public:
-    SetLocalDescriptionObserver( PeerConnection* connection): parent(connection) {};
-
-    virtual void OnSuccess();
-    virtual void OnFailure( const std::string& msg );
-};
-
-class SetRemoteDescriptionObserver :
-  public webrtc::SetSessionDescriptionObserver
-{
-  private:
-    PeerConnection* parent;
-  public:
-    SetRemoteDescriptionObserver( PeerConnection* connection): parent(connection) {};
-
-    virtual void OnSuccess();
-    virtual void OnFailure( const std::string& msg );
-};
+class CreateOfferObserver;
+class CreateAnswerObserver;
+class SetLocalDescriptionObserver;
+class SetRemoteDescriptionObserver;
 
 class PeerConnection
 : public ObjectWrap,
@@ -122,7 +75,14 @@ public:
 
     uint32_t state;
   };
+/*
+  struct DataChannelEvent {
+    DataChannelEvent(DataChannelObserver* data_channel_observer)
+    : data_channel_observer(data_channel_observer) {};
 
+    DataChannelObserver* data_channel_observer;
+  };
+*/
   enum AsyncEventType {
     CREATE_OFFER_SUCCESS = 0x1 << 0, // 1
     CREATE_OFFER_ERROR = 0x1 << 1, // 2
@@ -186,12 +146,14 @@ public:
   static NAN_METHOD(SetRemoteDescription);
   static NAN_METHOD(UpdateIce);
   static NAN_METHOD(AddIceCandidate);
+  /*
   static NAN_METHOD(CreateDataChannel);
   static NAN_METHOD(GetLocalStreams);
   static NAN_METHOD(GetRemoteStreams);
   static NAN_METHOD(GetStreamById);
   static NAN_METHOD(AddStream);
   static NAN_METHOD(RemoveStream);
+  */
   static NAN_METHOD(Close);
 
   static NAN_GETTER(GetLocalDescription);
@@ -215,8 +177,6 @@ private:
   uv_async_t async;
   uv_loop_t *loop;
   std::queue<AsyncEvent> _events;
-  talk_base::Thread* _signalThread;
-  talk_base::Thread* _workerThread;
   webrtc::PeerConnectionInterface::IceServers _iceServers;
   webrtc::MediaConstraintsInterface* _mediaConstraints;
 
@@ -226,7 +186,7 @@ private:
   talk_base::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
   talk_base::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _peerConnectionFactory;
-  talk_base::scoped_refptr<webrtc::PeerConnectionInterface> _internalPeerConnection;
+  talk_base::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
 };
 
 #endif

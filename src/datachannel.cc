@@ -16,14 +16,57 @@ using namespace v8;
 Persistent<Function> DataChannel::constructor;
 Persistent<Function> DataChannel::ArrayBufferConstructor;
 
-DataChannel::DataChannel(webrtc::DataChannelInterface* dci)
-: loop(uv_default_loop()),
-  _internalDataChannel(dci),
-  _binaryType(DataChannel::BLOB)
+DataChannelObserver::DataChannelObserver(talk_base::scoped_refptr<webrtc::DataChannelInterface> libjingle_data_channel) {
+  TRACE_CALL;
+  _libjingle_data_channel = libjingle_data_channel;
+  _libjingle_data_channel->RegisterObserver(this);
+  TRACE_END;
+}
+
+DataChannelObserver::~DataChannelObserver() {
+  _libjingle_data_channel->UnregisterObserver();
+  _libjingle_data_channel = NULL;
+  _js_data_channel = NULL;
+}
+
+void DataChannelObserver::OnStateChange()
 {
-  dci->Release();
+  TRACE_CALL;
+  if(_js_data_channel) {
+    DataChannel::StateEvent* data = new DataChannel::StateEvent(_libjingle_data_channel->state());
+    _js_data_channel->QueueEvent(DataChannel::STATE, static_cast<void*>(data));
+  }
+  TRACE_END;
+}
+
+void DataChannelObserver::OnMessage(const webrtc::DataBuffer& buffer)
+{
+  TRACE_CALL;
+  if(_js_data_channel) {
+    DataChannel::MessageEvent* data = new DataChannel::MessageEvent(&buffer);
+    _js_data_channel->QueueEvent(DataChannel::MESSAGE, static_cast<void*>(data));
+  }
+  TRACE_END;
+}
+
+talk_base::scoped_refptr<webrtc::DataChannelInterface> DataChannelObserver::GetLibjingleDataChannel() {
+  return _libjingle_data_channel;
+}
+
+void DataChannelObserver::SetJsDataChannel(DataChannel* js_data_channel) {
+  _js_data_channel = js_data_channel;
+}
+
+DataChannel::DataChannel(DataChannelObserver* observer)
+: loop(uv_default_loop()),
+  _observer(observer),
+  _binaryType(DataChannel::ARRAY_BUFFER)
+{
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, Run);
+
+  observer->SetJsDataChannel(this);
+  _libjingle_data_channel = observer->GetLibjingleDataChannel();
 
   async.data = this;
 }
@@ -42,11 +85,10 @@ NAN_METHOD(DataChannel::New) {
     return NanThrowTypeError("Use the new operator to construct the DataChannel.");
   }
 
-  v8::Local<v8::External> _dci = v8::Local<v8::External>::Cast(args[0]);
-  webrtc::DataChannelInterface* dci = static_cast<webrtc::DataChannelInterface*>(_dci->Value());
+  v8::Local<v8::External> _observer = v8::Local<v8::External>::Cast(args[0]);
+  DataChannelObserver* observer = static_cast<DataChannelObserver*>(_observer->Value());
 
-  DataChannel* obj = new DataChannel(dci);
-  dci->RegisterObserver(obj);
+  DataChannel* obj = new DataChannel(observer);
   obj->Wrap( args.This() );
   V8::AdjustAmountOfExternalAllocatedMemory(1024 * 1024);
 
@@ -99,11 +141,14 @@ void DataChannel::Run(uv_async_t* handle, int status)
       callback->Call(dc, 1, argv);
     } else if(DataChannel::STATE & evt.type)
     {
+      StateEvent* data = static_cast<StateEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(String::New("onstatechange")));
-      v8::Local<v8::Value> argv[0];
-      callback->Call(dc, 0, argv);
+      v8::Local<v8::Value> argv[1];
+      Local<Integer> state = Uint32::New(data->state);
+      argv[0] = state;
+      callback->Call(dc, 1, argv);
 
-      if(webrtc::DataChannelInterface::kClosed == self->_internalDataChannel->state()) {
+      if(webrtc::DataChannelInterface::kClosed == self->_libjingle_data_channel->state()) {
         do_shutdown = true;
       }
     } else if(DataChannel::MESSAGE & evt.type)
@@ -140,21 +185,6 @@ void DataChannel::Run(uv_async_t* handle, int status)
   TRACE_END;
 }
 
-void DataChannel::OnStateChange()
-{
-  TRACE_CALL;
-  QueueEvent(DataChannel::STATE, static_cast<void*>(NULL));
-  TRACE_END;
-}
-
-void DataChannel::OnMessage(const webrtc::DataBuffer& buffer)
-{
-  TRACE_CALL;
-  MessageEvent* data = new MessageEvent(&buffer);
-  QueueEvent(DataChannel::MESSAGE, static_cast<void*>(data));
-  TRACE_END;
-}
-
 NAN_METHOD(DataChannel::Send) {
   TRACE_CALL;
   NanScope();
@@ -166,7 +196,7 @@ NAN_METHOD(DataChannel::Send) {
     std::string data = *v8::String::Utf8Value(str);
 
     webrtc::DataBuffer buffer(data);
-    self->_internalDataChannel->Send(buffer);
+    self->_libjingle_data_channel->Send(buffer);
   } else {
     v8::Local<v8::Object> arraybuffer = v8::Local<v8::Object>::Cast(args[0]);
     void* data = arraybuffer->GetIndexedPropertiesExternalArrayData();
@@ -174,7 +204,7 @@ NAN_METHOD(DataChannel::Send) {
 
     talk_base::Buffer buffer(data, data_len);
     webrtc::DataBuffer data_buffer(buffer, true);
-    self->_internalDataChannel->Send(data_buffer);
+    self->_libjingle_data_channel->Send(data_buffer);
   }
 
   TRACE_END;
@@ -186,7 +216,7 @@ NAN_METHOD(DataChannel::Close) {
   NanScope();
 
   DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
-  self->_internalDataChannel->Close();
+  self->_libjingle_data_channel->Close();
 
   TRACE_END;
   NanReturnValue(Undefined());
@@ -210,7 +240,7 @@ NAN_GETTER(DataChannel::GetLabel) {
 
   DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.Holder() );
 
-  std::string label = self->_internalDataChannel->label();
+  std::string label = self->_libjingle_data_channel->label();
 
   TRACE_END;
   NanReturnValue(String::New(label.c_str()));
@@ -222,7 +252,7 @@ NAN_GETTER(DataChannel::GetReadyState) {
 
   DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.Holder() );
 
-  webrtc::DataChannelInterface::DataState state = self->_internalDataChannel->state();
+  webrtc::DataChannelInterface::DataState state = self->_libjingle_data_channel->state();
 
   TRACE_END;
   NanReturnValue(Number::New(static_cast<uint32_t>(state)));
