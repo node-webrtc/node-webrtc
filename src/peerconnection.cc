@@ -24,6 +24,7 @@
 
 using namespace node;
 using namespace v8;
+using namespace node_webrtc;
 
 Persistent<Function> PeerConnection::constructor;
 
@@ -169,7 +170,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     } else if(PeerConnection::NOTIFY_DATA_CHANNEL & evt.type)
     {
       PeerConnection::DataChannelEvent* data = static_cast<PeerConnection::DataChannelEvent*>(evt.data);
-      _DataChannelObserver* observer = data->observer;
+      DataChannelObserver* observer = data->observer;
       v8::Local<v8::Value> cargv[1];
       cargv[0] = v8::External::New(static_cast<void*>(observer));
       v8::Local<v8::Value> dc = NanPersistentToLocal(DataChannel::constructor)->NewInstance(1, cargv);
@@ -267,9 +268,9 @@ void PeerConnection::OnIceCandidate( const webrtc::IceCandidateInterface* candid
   TRACE_END;
 }
 
-void PeerConnection::OnDataChannel( webrtc::DataChannelInterface* libjingle_data_channel ) {
+void PeerConnection::OnDataChannel( webrtc::DataChannelInterface* jingle_data_channel ) {
   TRACE_CALL;
-  _DataChannelObserver* observer = new _DataChannelObserver(libjingle_data_channel);
+  DataChannelObserver* observer = new DataChannelObserver(jingle_data_channel);
   PeerConnection::DataChannelEvent* data = new PeerConnection::DataChannelEvent(observer);
   QueueEvent(PeerConnection::NOTIFY_DATA_CHANNEL, static_cast<void*>(data));
   TRACE_END;
@@ -433,7 +434,7 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   }
 
   talk_base::scoped_refptr<webrtc::DataChannelInterface> data_channel_interface = self->_jinglePeerConnection->CreateDataChannel(*label, &dataChannelInit);
-  _DataChannelObserver* observer = new _DataChannelObserver(data_channel_interface);
+  DataChannelObserver* observer = new DataChannelObserver(data_channel_interface);
 
   v8::Local<v8::Value> cargv[1];
   cargv[0] = v8::External::New(static_cast<void*>(observer));

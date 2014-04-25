@@ -10,54 +10,51 @@
 #include "common.h"
 #include "datachannel.h"
 
-using namespace node;
-using namespace v8;
+using namespace node_webrtc;
 
-Persistent<Function> DataChannel::constructor;
-Persistent<Function> DataChannel::ArrayBufferConstructor;
+v8::Persistent<v8::Function> DataChannel::constructor;
+v8::Persistent<v8::Function> DataChannel::ArrayBufferConstructor;
 
-_DataChannelObserver::_DataChannelObserver(talk_base::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel) {
+DataChannelObserver::DataChannelObserver(talk_base::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel) {
   TRACE_CALL;
+  uv_mutex_init(&lock);
   _jingleDataChannel = jingleDataChannel;
   _jingleDataChannel->RegisterObserver(this);
   TRACE_END;
 }
 
-_DataChannelObserver::~_DataChannelObserver() {
-  _jingleDataChannel->UnregisterObserver();
+DataChannelObserver::~DataChannelObserver() {
   _jingleDataChannel = NULL;
-  _jsDataChannel = NULL;
 }
 
-void _DataChannelObserver::OnStateChange()
+void DataChannelObserver::OnStateChange()
 {
   TRACE_CALL;
-  if(_jsDataChannel) {
-    DataChannel::StateEvent* data = new DataChannel::StateEvent(_jingleDataChannel->state());
-    _jsDataChannel->QueueEvent(DataChannel::STATE, static_cast<void*>(data));
-  }
+  DataChannel::StateEvent* data = new DataChannel::StateEvent(_jingleDataChannel->state());
+  QueueEvent(DataChannel::STATE, static_cast<void*>(data));
   TRACE_END;
 }
 
-void _DataChannelObserver::OnMessage(const webrtc::DataBuffer& buffer)
+void DataChannelObserver::OnMessage(const webrtc::DataBuffer& buffer)
 {
   TRACE_CALL;
-  if(_jsDataChannel) {
     DataChannel::MessageEvent* data = new DataChannel::MessageEvent(&buffer);
-    _jsDataChannel->QueueEvent(DataChannel::MESSAGE, static_cast<void*>(data));
-  }
+    QueueEvent(DataChannel::MESSAGE, static_cast<void*>(data));
   TRACE_END;
 }
 
-talk_base::scoped_refptr<webrtc::DataChannelInterface> _DataChannelObserver::GetJingleDataChannel() {
-  return _jingleDataChannel;
+void DataChannelObserver::QueueEvent(DataChannel::AsyncEventType type, void* data) {
+  TRACE_CALL;
+  DataChannel::AsyncEvent evt;
+  evt.type = type;
+  evt.data = data;
+  uv_mutex_lock(&lock);
+  _events.push(evt);
+  uv_mutex_unlock(&lock);
+  TRACE_END;
 }
 
-void _DataChannelObserver::SetJsDataChannel(DataChannel* jsDataChannel) {
-  _jsDataChannel = jsDataChannel;
-}
-
-DataChannel::DataChannel(_DataChannelObserver* observer)
+DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
 : loop(uv_default_loop()),
   _observer(observer),
   _binaryType(DataChannel::ARRAY_BUFFER)
@@ -65,10 +62,27 @@ DataChannel::DataChannel(_DataChannelObserver* observer)
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, Run);
 
-  observer->SetJsDataChannel(this);
-  _jingleDataChannel = observer->GetJingleDataChannel();
+  _jingleDataChannel = observer->_jingleDataChannel;
+  _jingleDataChannel->RegisterObserver(this);
 
   async.data = this;
+
+  // Re-queue cached observer events
+  while(true) {
+    uv_mutex_lock(&observer->lock);
+    bool empty = observer->_events.empty();
+    if(empty)
+    {
+      uv_mutex_unlock(&observer->lock);
+      break;
+    }
+    AsyncEvent evt = observer->_events.front();
+    observer->_events.pop();
+    uv_mutex_unlock(&observer->lock);
+    QueueEvent(evt.type, evt.data);
+  }
+
+  delete observer;
 }
 
 DataChannel::~DataChannel()
@@ -86,11 +100,11 @@ NAN_METHOD(DataChannel::New) {
   }
 
   v8::Local<v8::External> _observer = v8::Local<v8::External>::Cast(args[0]);
-  _DataChannelObserver* observer = static_cast<_DataChannelObserver*>(_observer->Value());
+  node_webrtc::DataChannelObserver* observer = static_cast<node_webrtc::DataChannelObserver*>(_observer->Value());
 
   DataChannel* obj = new DataChannel(observer);
   obj->Wrap( args.This() );
-  V8::AdjustAmountOfExternalAllocatedMemory(1024 * 1024);
+  //V8::AdjustAmountOfExternalAllocatedMemory(1024 * 1024);
 
   TRACE_END;
   NanReturnValue( args.This() );
@@ -135,16 +149,16 @@ void DataChannel::Run(uv_async_t* handle, int status)
     if(DataChannel::ERROR & evt.type)
     {
       DataChannel::ErrorEvent* data = static_cast<DataChannel::ErrorEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(String::New("onerror")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(v8::String::New("onerror")));
       v8::Local<v8::Value> argv[1];
-      argv[0] = Exception::Error(String::New(data->msg.c_str()));
+      argv[0] = v8::Exception::Error(v8::String::New(data->msg.c_str()));
       callback->Call(dc, 1, argv);
     } else if(DataChannel::STATE & evt.type)
     {
       StateEvent* data = static_cast<StateEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(String::New("onstatechange")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(v8::String::New("onstatechange")));
       v8::Local<v8::Value> argv[1];
-      Local<Integer> state = Uint32::New(data->state);
+      v8::Local<v8::Integer> state = v8::Uint32::New(data->state);
       argv[0] = state;
       callback->Call(dc, 1, argv);
 
@@ -154,22 +168,22 @@ void DataChannel::Run(uv_async_t* handle, int status)
     } else if(DataChannel::MESSAGE & evt.type)
     {
       MessageEvent* data = static_cast<MessageEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(String::New("onmessage")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(v8::String::New("onmessage")));
 
       v8::Local<v8::Value> argv[1];
 
       if(data->binary) {
-        Local<Object> array = NanPersistentToLocal(ArrayBufferConstructor)->NewInstance();
+        v8::Local<v8::Object> array = NanPersistentToLocal(ArrayBufferConstructor)->NewInstance();
         array->SetIndexedPropertiesToExternalArrayData(data->message, v8::kExternalByteArray, data->size);
-        Local<String> byteLenghtKey = String::New("byteLength");
-        Local<Integer> byteLengthValue = Uint32::New(data->size);
+        v8::Local<v8::String> byteLenghtKey = v8::String::New("byteLength");
+        v8::Local<v8::Integer> byteLengthValue = v8::Uint32::New(data->size);
         array->ForceSet(byteLenghtKey, byteLengthValue);
-        V8::AdjustAmountOfExternalAllocatedMemory(data->size);
+        //V8::AdjustAmountOfExternalAllocatedMemory(data->size);
 
         argv[0] = array;
         callback->Call(dc, 1, argv);
       } else {
-        Local<String> str = String::New(data->message, data->size);
+        v8::Local<v8::String> str = v8::String::New(data->message, data->size);
 
         argv[0] = str;
         callback->Call(dc, 1, argv);
@@ -188,7 +202,8 @@ void DataChannel::Run(uv_async_t* handle, int status)
 void DataChannel::OnStateChange()
 {
   TRACE_CALL;
-  QueueEvent(DataChannel::STATE, static_cast<void*>(NULL));
+  StateEvent* data = new StateEvent(_jingleDataChannel->state());
+  QueueEvent(DataChannel::STATE, static_cast<void*>(data));
   TRACE_END;
 }
 
@@ -223,7 +238,7 @@ NAN_METHOD(DataChannel::Send) {
   }
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnValue(v8::Undefined());
 }
 
 NAN_METHOD(DataChannel::Close) {
@@ -234,7 +249,7 @@ NAN_METHOD(DataChannel::Close) {
   self->_jingleDataChannel->Close();
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnValue(v8::Undefined());
 }
 
 NAN_METHOD(DataChannel::Shutdown) {
@@ -246,47 +261,47 @@ NAN_METHOD(DataChannel::Shutdown) {
     uv_close((uv_handle_t*)(&self->async), NULL);
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnValue(v8::Undefined());
 }
 
 NAN_GETTER(DataChannel::GetLabel) {
   TRACE_CALL;
   NanScope();
 
-  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.Holder() );
+  DataChannel* self = node::ObjectWrap::Unwrap<DataChannel>( args.Holder() );
 
   std::string label = self->_jingleDataChannel->label();
 
   TRACE_END;
-  NanReturnValue(String::New(label.c_str()));
+  NanReturnValue(v8::String::New(label.c_str()));
 }
 
 NAN_GETTER(DataChannel::GetReadyState) {
   TRACE_CALL;
   NanScope();
 
-  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.Holder() );
+  DataChannel* self = node::ObjectWrap::Unwrap<DataChannel>( args.Holder() );
 
   webrtc::DataChannelInterface::DataState state = self->_jingleDataChannel->state();
 
   TRACE_END;
-  NanReturnValue(Number::New(static_cast<uint32_t>(state)));
+  NanReturnValue(v8::Number::New(static_cast<uint32_t>(state)));
 }
 
 NAN_GETTER(DataChannel::GetBinaryType) {
   TRACE_CALL;
   NanScope();
 
-  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.Holder() );
+  DataChannel* self = node::ObjectWrap::Unwrap<DataChannel>( args.Holder() );
 
   TRACE_END;
-  NanReturnValue(Number::New(static_cast<uint32_t>(self->_binaryType)));
+  NanReturnValue(v8::Number::New(static_cast<uint32_t>(self->_binaryType)));
 }
 
 NAN_SETTER(DataChannel::SetBinaryType) {
   TRACE_CALL;
 
-  DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.Holder() );
+  DataChannel* self = node::ObjectWrap::Unwrap<DataChannel>( args.Holder() );
   self->_binaryType = static_cast<BinaryType>(value->Uint32Value());
 
   TRACE_END;
@@ -296,26 +311,26 @@ NAN_SETTER(DataChannel::ReadOnly) {
   INFO("PeerConnection::ReadOnly");
 }
 
-void DataChannel::Init( Handle<Object> exports ) {
-  Local<FunctionTemplate> tpl = FunctionTemplate::New( New );
-  tpl->SetClassName( String::NewSymbol( "DataChannel" ) );
+void DataChannel::Init( v8::Handle<v8::Object> exports ) {
+  v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New( New );
+  tpl->SetClassName( v8::String::NewSymbol( "DataChannel" ) );
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "close" ),
-    FunctionTemplate::New( Close )->GetFunction() );
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "shutdown" ),
-    FunctionTemplate::New( Shutdown )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( v8::String::NewSymbol( "close" ),
+    v8::FunctionTemplate::New( Close )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( v8::String::NewSymbol( "shutdown" ),
+    v8::FunctionTemplate::New( Shutdown )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "send" ),
-    FunctionTemplate::New( Send )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( v8::String::NewSymbol( "send" ),
+    v8::FunctionTemplate::New( Send )->GetFunction() );
 
-  tpl->InstanceTemplate()->SetAccessor(String::New("label"), GetLabel, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("binaryType"), GetBinaryType, SetBinaryType);
-  tpl->InstanceTemplate()->SetAccessor(String::New("readyState"), GetReadyState, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(v8::String::New("label"), GetLabel, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(v8::String::New("binaryType"), GetBinaryType, SetBinaryType);
+  tpl->InstanceTemplate()->SetAccessor(v8::String::New("readyState"), GetReadyState, ReadOnly);
 
-  NanAssignPersistent(Function, constructor, tpl->GetFunction());
-  exports->Set( String::NewSymbol("DataChannel"), tpl->GetFunction() );
+  NanAssignPersistent(v8::Function, constructor, tpl->GetFunction());
+  exports->Set( v8::String::NewSymbol("DataChannel"), tpl->GetFunction() );
 
   v8::Local<v8::Object> global = v8::Context::GetCurrent()->Global();
   v8::Local<v8::Value> obj = global->Get(v8::String::New("ArrayBuffer"));
-  NanAssignPersistent(Function, ArrayBufferConstructor, obj.As<Function>());
+  NanAssignPersistent(v8::Function, ArrayBufferConstructor, obj.As<v8::Function>());
 }

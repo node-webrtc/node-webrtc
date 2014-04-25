@@ -2,6 +2,8 @@
 #include "peerconnection.h"
 #include "common.h"
 
+using namespace node_webrtc;
+
 void CreateOfferObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp)
 {
   TRACE_CALL;

@@ -1,7 +1,7 @@
 {
   'variables': {
     'libwebrtc%': 'third_party/libwebrtc/trunk',
-    'libwebrtc_revision%': 'r5936'
+    'libwebrtc_revision%': 'r5982'
     #'libwebrtc_revision%': 'r5385'
   },
   'conditions': [

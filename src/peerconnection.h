@@ -22,6 +22,8 @@
 using namespace node;
 using namespace v8;
 
+namespace node_webrtc {
+
 class CreateOfferObserver;
 class CreateAnswerObserver;
 class SetLocalDescriptionObserver;
@@ -77,10 +79,10 @@ public:
   };
 
   struct DataChannelEvent {
-    DataChannelEvent(_DataChannelObserver* observer)
+    DataChannelEvent(DataChannelObserver* observer)
     : observer(observer) {};
 
-    _DataChannelObserver* observer;
+    DataChannelObserver* observer;
   };
 
   enum AsyncEventType {
@@ -188,5 +190,7 @@ private:
   talk_base::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _jinglePeerConnectionFactory;
   talk_base::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
 };
+
+}
 
 #endif

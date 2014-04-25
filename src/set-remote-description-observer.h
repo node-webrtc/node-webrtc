@@ -1,5 +1,7 @@
 #include "talk/app/webrtc/peerconnectioninterface.h"
 
+namespace node_webrtc {
+
 class PeerConnection;
 
 class SetRemoteDescriptionObserver :
@@ -13,3 +15,5 @@ class SetRemoteDescriptionObserver :
     virtual void OnSuccess();
     virtual void OnFailure( const std::string& msg );
 };
+
+}

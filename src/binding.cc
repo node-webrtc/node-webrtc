@@ -9,6 +9,7 @@
 //#include "mediastreamtrack.h"
 
 using namespace v8;
+using namespace node_webrtc;
 
 void init(Handle<Object> exports) {
   talk_base::InitializeSSL();

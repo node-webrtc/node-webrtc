@@ -18,33 +18,16 @@
 #include "common.h"
 #include "nan.h"
 
-using namespace node;
-using namespace v8;
+namespace node_webrtc {
 
-class DataChannel;
-
-class _DataChannelObserver
-  : public webrtc::DataChannelObserver
-{
-  public:
-    _DataChannelObserver(talk_base::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel);
-    virtual ~_DataChannelObserver();
-
-    virtual void OnStateChange();
-    virtual void OnMessage(const webrtc::DataBuffer& buffer);
-
-    talk_base::scoped_refptr<webrtc::DataChannelInterface> GetJingleDataChannel();
-    void SetJsDataChannel(DataChannel* js_data_channel);
-
-  private:
-    talk_base::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
-    DataChannel* _jsDataChannel;
-};
+class DataChannelObserver;
 
 class DataChannel
-: public ObjectWrap
+: public node::ObjectWrap
 , public webrtc::DataChannelObserver
 {
+
+  friend class node_webrtc::DataChannelObserver;
 
 public:
 
@@ -87,7 +70,7 @@ public:
     ARRAY_BUFFER = 0x1
   };
 
-  DataChannel(_DataChannelObserver* observer);
+  DataChannel(node_webrtc::DataChannelObserver* observer);
   ~DataChannel();
 
   //
@@ -100,8 +83,8 @@ public:
   //
   // Nodejs wrapping.
   //
-  static void Init( Handle<Object> exports );
-  static Persistent<Function> constructor;
+  static void Init(v8::Handle<v8::Object> exports);
+  static v8::Persistent<v8::Function> constructor;
   static NAN_METHOD(New);
 
   static NAN_METHOD(Send);
@@ -133,7 +116,25 @@ private:
   DataChannelObserver* _observer;
   BinaryType _binaryType;
 
-  static Persistent<Function> ArrayBufferConstructor;
+  static v8::Persistent<v8::Function> ArrayBufferConstructor;
 };
+
+class DataChannelObserver
+  : public webrtc::DataChannelObserver
+{
+  public:
+    DataChannelObserver(talk_base::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel);
+    virtual ~DataChannelObserver();
+
+    virtual void OnStateChange();
+    virtual void OnMessage(const webrtc::DataBuffer& buffer);
+    void QueueEvent(DataChannel::AsyncEventType type, void* data);
+
+    uv_mutex_t lock;
+    std::queue<DataChannel::AsyncEvent> _events;
+    talk_base::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
+};
+
+}
 
 #endif
