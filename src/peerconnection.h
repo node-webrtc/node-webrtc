@@ -14,7 +14,7 @@
 #include "talk/base/thread.h"
 #include "talk/base/scoped_ptr.h"
 #include "webrtc/system_wrappers/interface/ref_count.h"
-// #include "datachannel.h"
+#include "datachannel.h"
 
 #include "common.h"
 #include "nan.h"
@@ -75,14 +75,14 @@ public:
 
     uint32_t state;
   };
-/*
-  struct DataChannelEvent {
-    DataChannelEvent(DataChannelObserver* data_channel_observer)
-    : data_channel_observer(data_channel_observer) {};
 
-    DataChannelObserver* data_channel_observer;
+  struct DataChannelEvent {
+    DataChannelEvent(_DataChannelObserver* observer)
+    : observer(observer) {};
+
+    _DataChannelObserver* observer;
   };
-*/
+
   enum AsyncEventType {
     CREATE_OFFER_SUCCESS = 0x1 << 0, // 1
     CREATE_OFFER_ERROR = 0x1 << 1, // 2
@@ -146,8 +146,8 @@ public:
   static NAN_METHOD(SetRemoteDescription);
   static NAN_METHOD(UpdateIce);
   static NAN_METHOD(AddIceCandidate);
-  /*
   static NAN_METHOD(CreateDataChannel);
+  /*
   static NAN_METHOD(GetLocalStreams);
   static NAN_METHOD(GetRemoteStreams);
   static NAN_METHOD(GetStreamById);
@@ -185,7 +185,7 @@ private:
   talk_base::scoped_refptr<SetLocalDescriptionObserver> _setLocalDescriptionObserver;
   talk_base::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
-  talk_base::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _peerConnectionFactory;
+  talk_base::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _jinglePeerConnectionFactory;
   talk_base::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
 };
 

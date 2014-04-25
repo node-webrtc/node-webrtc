@@ -234,7 +234,7 @@
         'src/set-local-description-observer.cc',
         'src/set-remote-description-observer.cc',
         'src/peerconnection.cc',
-#        'src/datachannel.cc',
+        'src/datachannel.cc',
 #        'src/mediastream.cc',
 #        'src/mediastreamtrack.cc',
       ]

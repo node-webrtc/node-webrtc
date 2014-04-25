@@ -15,7 +15,7 @@
 
 #include "common.h"
 #include "peerconnection.h"
-//#include "datachannel.h"
+#include "datachannel.h"
 //#include "mediastream.h"
 #include "create-offer-observer.h"
 #include "create-answer-observer.h"
@@ -39,17 +39,19 @@ PeerConnection::PeerConnection()
   _setLocalDescriptionObserver = new talk_base::RefCountedObject<SetLocalDescriptionObserver>( this );
   _setRemoteDescriptionObserver = new talk_base::RefCountedObject<SetRemoteDescriptionObserver>( this );
 
+  // FIXME: don't hardcode this, read from args instead
   webrtc::PeerConnectionInterface::IceServer iceServer;
   iceServer.uri = "stun:stun.l.google.com:19302";
   _iceServers.push_back(iceServer);
 
   webrtc::FakeConstraints constraints;
   constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, webrtc::MediaConstraintsInterface::kValueTrue);
+  // FIXME: crashes without these constraints, why?
   constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveAudio, webrtc::MediaConstraintsInterface::kValueFalse);
   constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveVideo, webrtc::MediaConstraintsInterface::kValueFalse);
 
-  _peerConnectionFactory = webrtc::CreatePeerConnectionFactory();
-  _jinglePeerConnection = _peerConnectionFactory->CreatePeerConnection(_iceServers, &constraints, NULL, this);
+  _jinglePeerConnectionFactory = webrtc::CreatePeerConnectionFactory();
+  _jinglePeerConnection = _jinglePeerConnectionFactory->CreatePeerConnection(_iceServers, &constraints, NULL, this);
 
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, Run);
@@ -164,22 +166,19 @@ void PeerConnection::Run(uv_async_t* handle, int status)
         argv[2] = Integer::New(data->sdpMLineIndex);
         callback->Call(pc, 3, argv);
       }
-    }/* else if(PeerConnection::NOTIFY_DATA_CHANNEL & evt.type)
+    } else if(PeerConnection::NOTIFY_DATA_CHANNEL & evt.type)
     {
       PeerConnection::DataChannelEvent* data = static_cast<PeerConnection::DataChannelEvent*>(evt.data);
-      DataChannelObserver* observer = static_cast<DataChannelObserver*>(evt.data);
+      _DataChannelObserver* observer = data->observer;
       v8::Local<v8::Value> cargv[1];
       cargv[0] = v8::External::New(static_cast<void*>(observer));
       v8::Local<v8::Value> dc = NanPersistentToLocal(DataChannel::constructor)->NewInstance(1, cargv);
 
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("ondatachannel")));
-      if(!callback.IsEmpty())
-      {
-        v8::Local<v8::Value> argv[1];
-        argv[0] = dc;
-        callback->Call(pc, 1, argv);
-      }
-    } else if(PeerConnection::NOTIFY_ADD_STREAM & evt.type)
+      v8::Local<v8::Value> argv[1];
+      argv[0] = dc;
+      callback->Call(pc, 1, argv);
+    }/* else if(PeerConnection::NOTIFY_ADD_STREAM & evt.type)
     {
       webrtc::MediaStreamInterface* msi = static_cast<webrtc::MediaStreamInterface*>(evt.data);
       v8::Local<v8::Value> cargv[1];
@@ -211,8 +210,6 @@ void PeerConnection::Run(uv_async_t* handle, int status)
   }
 
   if(do_shutdown) {
-    //self->_signalThread->Stop();
-    //self->_workerThread->Stop();
     uv_close((uv_handle_t*)(&self->async), NULL);
   }
 
@@ -272,11 +269,9 @@ void PeerConnection::OnIceCandidate( const webrtc::IceCandidateInterface* candid
 
 void PeerConnection::OnDataChannel( webrtc::DataChannelInterface* libjingle_data_channel ) {
   TRACE_CALL;
-  /*
-  DataChannelObserver* observer = new DataChannelObserver(libjingle_data_channel);
+  _DataChannelObserver* observer = new _DataChannelObserver(libjingle_data_channel);
   PeerConnection::DataChannelEvent* data = new PeerConnection::DataChannelEvent(observer);
   QueueEvent(PeerConnection::NOTIFY_DATA_CHANNEL, static_cast<void*>(data));
-  */
   TRACE_END;
 }
 
@@ -294,10 +289,10 @@ NAN_METHOD(PeerConnection::New) {
   }
 
   PeerConnection* obj = new PeerConnection();
-  obj->Wrap( args.This() );
+  obj->Wrap(args.This());
 
   TRACE_END;
-  NanReturnValue( args.This() );
+  NanReturnValue(args.This());
 }
 
 NAN_METHOD(PeerConnection::CreateOffer) {
@@ -390,7 +385,7 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
   TRACE_END;
   NanReturnValue(Undefined());
 }
-/*
+
 NAN_METHOD(PeerConnection::CreateDataChannel) {
   TRACE_CALL;
   NanScope();
@@ -438,7 +433,7 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   }
 
   talk_base::scoped_refptr<webrtc::DataChannelInterface> data_channel_interface = self->_jinglePeerConnection->CreateDataChannel(*label, &dataChannelInit);
-  DataChannelObserver* observer = new DataChannelObserver(data_channel_interface);
+  _DataChannelObserver* observer = new _DataChannelObserver(data_channel_interface);
 
   v8::Local<v8::Value> cargv[1];
   cargv[0] = v8::External::New(static_cast<void*>(observer));
@@ -448,7 +443,7 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   NanReturnValue(dc);
 }
 
-
+/*
 NAN_METHOD(PeerConnection::AddStream) {
   TRACE_CALL;
   NanScope();
@@ -657,10 +652,10 @@ void PeerConnection::Init( Handle<Object> exports ) {
 
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "addIceCandidate" ),
     FunctionTemplate::New( AddIceCandidate )->GetFunction() );
-/*
+
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "createDataChannel" ),
     FunctionTemplate::New( CreateDataChannel )->GetFunction() );
-
+/*
   tpl->PrototypeTemplate()->Set( String::NewSymbol( "getLocalStreams" ),
     FunctionTemplate::New( GetLocalStreams )->GetFunction() );
 

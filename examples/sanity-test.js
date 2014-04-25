@@ -22,7 +22,7 @@ function handle_error(error)
 
 var checks = 0;
 var expected = 2;
-/*
+
 function create_data_channels() {
   var dc1 = pc1.createDataChannel('test');
   dc1.onopen = function() {
@@ -44,7 +44,7 @@ function create_data_channels() {
 
   create_offer();
 }
-*/
+
 function create_offer() {
   console.log('pc1: create offer');
   pc1.createOffer(set_pc1_local_description, handle_error);
@@ -99,8 +99,7 @@ function wait() {
 }
 
 function run() {
-  //create_data_channels();
-  create_offer();
+  create_data_channels();
 }
 
 function done() {
