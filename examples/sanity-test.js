@@ -32,7 +32,6 @@ function create_data_channels() {
     }
   }
   pc2.ondatachannel = function(event) {
-    console.log("pc2: data channel event:", event.channel.readyState);
     var dc2 = event.channel;
     dc2.onopen = function() {
       console.log("pc2: data channel open");

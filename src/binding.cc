@@ -8,13 +8,10 @@
 //#include "mediastream.h"
 //#include "mediastreamtrack.h"
 
-using namespace v8;
-using namespace node_webrtc;
-
-void init(Handle<Object> exports) {
+void init(v8::Handle<v8::Object> exports) {
   talk_base::InitializeSSL();
-  PeerConnection::Init(exports);
-  DataChannel::Init(exports);
+  node_webrtc::PeerConnection::Init(exports);
+  node_webrtc::DataChannel::Init(exports);
   //MediaStream::Init(exports);
   //MediaStreamTrack::Init(exports);
 }
