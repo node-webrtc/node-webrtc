@@ -51,6 +51,16 @@
   process.env.GYP_GENERATORS = NINJA;
   process.env.GYP_DEFINES = ('host_arch=' + HOST_ARCH + ' target_arch=' + TARGET_ARCH);
 
+  function prepare_directories() {
+    process.stdout.write('Preparing directories ... ');
+    if(!fs.existsSync(LIB_DIR)) {
+      fs.mkdirSync(LIB_DIR);
+    }
+
+    process.stdout.write('done\r\n');
+    process.nextTick(clone_depot_tools);
+  }
+
   function clone_depot_tools() {
     process.stdout.write('Cloning depot tools ... ');
     if(!fs.existsSync(DEPOT_TOOLS_DIR)) {
@@ -78,13 +88,12 @@
   }
 
   function gclient_config() {
+    process.stdout.write('Configuring gclient ... ');
+
     if(!fs.existsSync(LIB_WEBRTC_DIR)) {
-      if(!fs.existsSync(LIB_DIR))
-        fs.mkdirSync(LIB_DIR);
       fs.mkdirSync(LIB_WEBRTC_DIR);
     }
 
-    process.stdout.write('Configuring gclient ... ');
     process.chdir(LIB_WEBRTC_DIR);
     var proc = spawn(GCLIENT,
       ['config', LIB_WEBRTC_DIR_REPO]
@@ -185,229 +194,10 @@
     process.stdout.write('Build complete\r\n');
   }
 
-  if(process.env.WRTC_SKIP_SYNC) {
+  if(process.env.WRTC_BUILD_ONLY) {
     build();
   } else {
-    clone_depot_tools();
+    prepare_directories();
   }
 
-/*
-  function processOutput(spawnedProcess, processType) {
-    return new RSVP.Promise(function(resolve, reject) {
-      spawnedProcess.stdout.on('data',
-        function(data) {
-          if (VERBOSE) {
-            process.stdout.write(data);
-          } else {
-            process.stdout.write('.');
-          }
-        }
-      ).on('error',
-        function(error) {
-          if (VERBOSE) {
-            process.stdout.write(error);
-          } else {
-            process.stdout.write('[failure]');
-          }
-        }
-      ).on('end',
-        function() {
-          if (VERBOSE) {
-            process.stdout.write('\r\n' + processType + ' finished\r\n');
-          } else {
-            process.stdout.write('.\r\n');
-          }
-        });
-
-      spawnedProcess.stderr.on('data',
-        function(data) {
-          if (VERBOSE) {
-            process.stdout.write(data);
-          } else {
-            process.stdout.write('.');
-          }
-        }
-      );
-
-      spawnedProcess.on('exit',
-        function(code, signal) {
-          if (code !== undefined &&
-            code !== 0) {
-            reject('For ' + processType + ' something went wrong: error code '+ code + ', signal ' + signal + '.\r\n\tTry to run build script with --verbose option to find the possible problem.\r\n');
-          } else {
-            resolve();
-          }
-        }
-      );
-    });
-  }
-
-  function downloadDepotTools() {
-    return new RSVP.Promise(function(resolve, reject) {
-
-      process.stdout.write('Going to eventually download depot tools from ' +
-        DEPOT_TOOLS_REPO + ' in ' + TOOLS_DEPOT_TOOLS_DIR + '\r\n');
-
-      if (!fs.existsSync(TOOLS_DIR)) {
-
-        fs.mkdirSync(TOOLS_DIR);
-      }
-
-      process.chdir(TOOLS_DIR);
-      if(!fs.existsSync(TOOLS_DEPOT_TOOLS_DIR)) {
-
-        var gitCloneDepotTools = spawn('git', [
-          'clone', '-v', '--progress', DEPOT_TOOLS_REPO
-        ]);
-
-        processOutput(gitCloneDepotTools, 'cloning depot tools').then(function(){
-
-          resolve();
-        }, function(rejectionInfo) {
-
-          reject(rejectionInfo);
-        });
-      } else {
-
-        if (VERBOSE) {
-
-          process.stdout.write('You already have depot tools, going on...\r\n');
-        } else {
-
-          process.stdout.write('.');
-        }
-        resolve();
-      }
-    });
-  }
-
- function runGclientConfig() {
-    return new RSVP.Promise(function(resolve, reject) {
-
-      process.stdout.write('Going to run the depot tools command: ' +
-        GCLIENT + ' config ' + LIB_WEBRTC_DIR_REPO + ' in folder ' + LIB_WEBRTC_DIR + ' \r\n');
-
-      if(!fs.existsSync(LIB_WEBRTC_DIR)) {
-
-        if(!fs.existsSync(LIB_DIR)) {
-
-          fs.mkdirSync(LIB_DIR);
-        }
-
-        fs.mkdirSync(LIB_WEBRTC_DIR);
-      }
-      process.chdir(LIB_WEBRTC_DIR);
-
-      var gclientConfig = spawn(GCLIENT, [
-        'config',
-        LIB_WEBRTC_DIR_REPO
-      ]);
-
-      var processName = GCLIENT + ' config ' + LIB_WEBRTC_DIR_REPO;
-      processOutput(gclientConfig, processName).then(function(){
-
-          resolve();
-        }, function(rejectionInfo) {
-
-          reject(rejectionInfo);
-        });
-    });
-  }
-
-function runGclientSync() {
-    return new RSVP.Promise(function(resolve, reject) {
-
-      process.stdout.write('Going to run the depot tools command: '+
-        GCLIENT + ' sync -D --verbose -j1 in folder '+ LIB_WEBRTC_DIR + '\r\n');
-
-      process.chdir(LIB_WEBRTC_DIR);
-      var gclientSync = spawn(GCLIENT, ['sync', '-D', '--verbose', '-j1']);
-
-      var processName = GCLIENT + ' sync -D --verbose -j1';
-      processOutput(gclientSync, processName).then(function(){
-
-          resolve();
-        }, function(rejectionInfo) {
-
-          reject(rejectionInfo);
-        });
-    });
-  }
-
- function runGlientRunHooks() {
-    return new RSVP.Promise(function(resolve, reject) {
-0
-      process.stdout.write('Going to run the depot tools command: '+
-        GCLIENT + ' runhooks in folder '+ LIB_WEBRTC_DIR + '\r\n');
-
-      process.chdir(LIB_WEBRTC_DIR);
-      var gclientRunHooks = spawn(GCLIENT, ['runhooks', '--force']);
-
-      var processName = GCLIENT + ' runhooks';
-      processOutput(gclientRunHooks, processName).then(function(){
-
-          resolve();
-        }, function(rejectionInfo) {
-
-          reject(rejectionInfo);
-        });
-    });
-  }
-
- function runNinja() {
-    return new RSVP.Promise(function(resolve, reject) {
-
-      process.stdout.write('Going to run the depot tools command: ' + NINJA +
-        ' -C trunk/out/Release in folder '+ LIB_WEBRTC_DIR + '\r\n');
-
-      var ninjaArguments = [];
-      ninjaArguments.push('-C');
-      ninjaArguments.push('trunk/out/Release');
-      if('linux' === os.platform()) {
-
-        ninjaArguments.push('peerconnection_client');
-      }
-
-      process.chdir(LIB_WEBRTC_DIR);
-      var make = spawn(NINJA, ninjaArguments);
-
-      var processName = NINJA;
-      processOutput(make, processName).then(function(){
-
-          resolve();
-        }, function(rejectionInfo) {
-
-          reject(rejectionInfo);
-        });
-    });
-  }
-
-  downloadDepotTools().then(
-    function() {
-      return runGclientConfig();
-    }
-  ).then(
-    function() {
-      return runGclientSync();
-    }
-  ).then(
-    function() {
-      return runGlientRunHooks();
-    }
-  ).then(
-    function() {
-      return runNinja();
-    }
-  ).then(
-    function() {
-      process.stdout.write('wrtc module build complete\r\n');
-      process.exit(0);
-    }
-  ).catch(
-    function(rejectionInfo) {
-      process.stderr.write(rejectionInfo);
-      process.exit(1);
-    }
-  );
-*/
 })();
