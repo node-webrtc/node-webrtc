@@ -1,6 +1,7 @@
 (function() {
 
-var bridge = window.location.toString().split('?')[1] || 'localhost:9001';
+var host = window.location.host.split(':')[0];
+var bridge = window.location.toString().split('?')[1] || host + ':9001';
 
 var RTCPeerConnection     = wrtc.RTCPeerConnection;
 var RTCSessionDescription = wrtc.RTCSessionDescription;
