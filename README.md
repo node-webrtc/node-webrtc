@@ -64,6 +64,7 @@ Once everything is built, try `npm test` as a sanity check.
 
 ## bridge.js
 You can run the data channel demo by `node examples/bridge.js` and browsing to `examples/peer.html` in `chrome --enable-data-channels`.
+
 usage:
 ````
 node examples/bridge.js [-h <host>] [-p <port>] [-ws <ws port>]
