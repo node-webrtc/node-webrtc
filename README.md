@@ -60,7 +60,27 @@ npm install
 
 # Tests
 
-Once everything is built, try `npm test` as a sanity check. You can run the data channel demo by `node examples/bridge.js` and browsing to `examples/peer.html` in `chrome --enable-data-channels`. You can pass an alternate port to the node script by `node examples/bridge.js <port>`. If the bridge and peer are on different machines, you can pass the bridge address to the peer by `http://<yourmachine>/peer.html?<host:port>`.
+Once everything is built, try `npm test` as a sanity check.
+
+## bridge.js
+You can run the data channel demo by `node examples/bridge.js` and browsing to `examples/peer.html` in `chrome --enable-data-channels`.
+
+usage:
+````
+node examples/bridge.js [-h <host>] [-p <port>] [-ws <ws port>]
+````
+options:
+````
+-h  host IP for the webserver that will serve the static files (default 127.0.0.1)
+-p  host port for the webserver that will serve the static files (default 8080)
+-ws port of the Web Socket server (default 9001)
+````
+
+If the bridge and peer are on different machines, you can pass the bridge address to the peer by: 
+````
+http://<webserver>/peer.html?<sockertserver:port>
+````
+By default the bridge will be the same IP as the webserver and will listen on port 9001.
 
 The output from `bridge.js` should look like:
 ````

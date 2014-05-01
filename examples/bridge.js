@@ -1,7 +1,9 @@
+var static = require('node-static-alias');
 var http = require('http');
 var webrtc = require('..');
 var ws = require('ws');
 
+var args = require('minimist')(process.argv.slice(2));
 var MAX_REQUEST_LENGHT = 1024;
 var pc = null;
 var offer = null;
@@ -26,10 +28,28 @@ var pendingDataChannels = {};
 var dataChannels = {}
 var pendingCandidates = [];
 
-var args = process.argv;
-var port = args[2] || 9001;
+var host = args.h || '127.0.0.1';
+var port = args.p || 8080;
+var socketPort = args.ws || 9001;
 
-var wss = new ws.Server({'port': port});
+var file = new static.Server('./examples', {
+    alias: {
+        match: '/dist/wrtc.js',
+        serve: '../dist/wrtc.js',
+        allowOutside: true
+      }
+    });
+
+var app = http.createServer(function (req, res) {
+    console.log(req.url);
+    req.addListener('end', function() {
+        file.serve(req, res);
+      }).resume();
+
+}).listen(port, host);
+console.log('Server running at http://' + host + ':' + port + '/');
+
+var wss = new ws.Server({'port': 9001});
 wss.on('connection', function(ws)
 {
   console.info('ws connected');
