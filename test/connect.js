@@ -159,7 +159,8 @@ test('monitor the ice connection state of peer:0', function(t) {
   t.plan(1);
 
   function checkState() {
-    if (peers[0].iceConnectionState === 'connected') {
+    if (peers[0].iceConnectionState === 'connected' ||
+        peers[0].iceConnectionState === 'completed') {
       t.pass('peer:0 in connected state');
       peers[0].oniceconnectionstatechange = null;
     }
