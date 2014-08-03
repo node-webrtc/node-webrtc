@@ -15,6 +15,6 @@ ENV PATH $PATH:/usr/lib/jvm/java-6-oracle/jre/bin/
 ADD ./ /wrtc/
 WORKDIR /wrtc/
 
-RUN node_modules/.bin/node-pre-gyp install --fallback-to-build
+RUN npm install && node_modules/.bin/node-pre-gyp install --fallback-to-build
 RUN npm install
 RUN npm test
