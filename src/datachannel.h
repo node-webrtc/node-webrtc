@@ -116,7 +116,10 @@ private:
   DataChannelObserver* _observer;
   BinaryType _binaryType;
 
+#if NODE_MODULE_VERSION < 0x000C
   static v8::Persistent<v8::Function> ArrayBufferConstructor;
+#endif
+
 };
 
 class DataChannelObserver

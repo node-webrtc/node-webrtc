@@ -55,7 +55,7 @@ PeerConnection::PeerConnection()
   _jinglePeerConnection = _jinglePeerConnectionFactory->CreatePeerConnection(_iceServers, &constraints, NULL, this);
 
   uv_mutex_init(&lock);
-  uv_async_init(loop, &async, Run);
+  uv_async_init(loop, &async, reinterpret_cast<uv_async_cb>(Run));
 
   async.data = this;
 }
@@ -106,31 +106,31 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     if(PeerConnection::ERROR_EVENT & evt.type)
     {
       PeerConnection::ErrorEvent* data = static_cast<PeerConnection::ErrorEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onerror")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onerror")));
       v8::Local<v8::Value> argv[1];
-      argv[0] = Exception::Error(String::New(data->msg.c_str()));
-      callback->Call(pc, 1, argv);
+      argv[0] = Exception::Error(NanNew(data->msg));
+      NanMakeCallback(pc, callback, 1, argv);
     } else if(PeerConnection::SDP_EVENT & evt.type)
     {
       PeerConnection::SdpEvent* data = static_cast<PeerConnection::SdpEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsuccess")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onsuccess")));
       v8::Local<v8::Value> argv[1];
-      argv[0] = String::New(data->desc.c_str());
-      callback->Call(pc, 1, argv);
+      argv[0] = NanNew(data->desc);
+      NanMakeCallback(pc, callback, 1, argv);
     } else if(PeerConnection::VOID_EVENT & evt.type)
     {
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsuccess")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onsuccess")));
       v8::Local<v8::Value> argv[0];
-      callback->Call(pc, 0, argv);
+      NanMakeCallback(pc, callback, 0, argv);
     } else if(PeerConnection::SIGNALING_STATE_CHANGE & evt.type)
     {
       PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onsignalingstatechange")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onsignalingstatechange")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
-        argv[0] = Uint32::New(data->state);
-        callback->Call(pc, 1, argv);
+        argv[0] = NanNew<Uint32>(data->state);
+        NanMakeCallback(pc, callback, 1, argv);
       }
       if(webrtc::PeerConnectionInterface::kClosed == data->state) {
         do_shutdown = true;
@@ -138,74 +138,74 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     } else if(PeerConnection::ICE_CONNECTION_STATE_CHANGE & evt.type)
     {
       PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("oniceconnectionstatechange")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("oniceconnectionstatechange")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
-        argv[0] = Uint32::New(data->state);
-        callback->Call(pc, 1, argv);
+        argv[0] = NanNew<Uint32>(data->state);
+        NanMakeCallback(pc, callback, 1, argv);
       }
     } else if(PeerConnection::ICE_GATHERING_STATE_CHANGE & evt.type)
     {
       PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onicegatheringstatechange")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onicegatheringstatechange")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
-        argv[0] = Uint32::New(data->state);
-        callback->Call(pc, 1, argv);
+        argv[0] = NanNew<Uint32>(data->state);
+        NanMakeCallback(pc, callback, 1, argv);
       }
     } else if(PeerConnection::ICE_CANDIDATE & evt.type)
     {
       PeerConnection::IceEvent* data = static_cast<PeerConnection::IceEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onicecandidate")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onicecandidate")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[3];
-        argv[0] = String::New(data->candidate.c_str());
-        argv[1] = String::New(data->sdpMid.c_str());
-        argv[2] = Integer::New(data->sdpMLineIndex);
-        callback->Call(pc, 3, argv);
+        argv[0] = NanNew(data->candidate);
+        argv[1] = NanNew(data->sdpMid);
+        argv[2] = NanNew<Integer>(data->sdpMLineIndex);
+        NanMakeCallback(pc, callback, 3, argv);
       }
     } else if(PeerConnection::NOTIFY_DATA_CHANNEL & evt.type)
     {
       PeerConnection::DataChannelEvent* data = static_cast<PeerConnection::DataChannelEvent*>(evt.data);
       DataChannelObserver* observer = data->observer;
       v8::Local<v8::Value> cargv[1];
-      cargv[0] = v8::External::New(static_cast<void*>(observer));
-      v8::Local<v8::Value> dc = NanPersistentToLocal(DataChannel::constructor)->NewInstance(1, cargv);
+      cargv[0] = NanNew<v8::External>(static_cast<void*>(observer));
+      v8::Local<v8::Value> dc = NanNew(DataChannel::constructor)->NewInstance(1, cargv);
 
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("ondatachannel")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("ondatachannel")));
       v8::Local<v8::Value> argv[1];
       argv[0] = dc;
-      callback->Call(pc, 1, argv);
+      NanMakeCallback(pc, callback, 1, argv);
     }/* else if(PeerConnection::NOTIFY_ADD_STREAM & evt.type)
     {
       webrtc::MediaStreamInterface* msi = static_cast<webrtc::MediaStreamInterface*>(evt.data);
       v8::Local<v8::Value> cargv[1];
-      cargv[0] = v8::External::New(static_cast<void*>(msi));
-      v8::Local<v8::Value> ms = NanPersistentToLocal(MediaStream::constructor)->NewInstance(1, cargv);
+      cargv[0] = NanNew<v8::External>(static_cast<void*>(msi));
+      v8::Local<v8::Value> ms = NanNew(MediaStream::constructor)->NewInstance(1, cargv);
 
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onaddstream")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onaddstream")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
         argv[0] = ms;
-        callback->Call(pc, 1, argv);
+        NanMakeCallback(pc, callback, 1, argv);
       }
     } else if(PeerConnection::NOTIFY_REMOVE_STREAM & evt.type)
     {
       webrtc::MediaStreamInterface* msi = static_cast<webrtc::MediaStreamInterface*>(evt.data);
       v8::Local<v8::Value> cargv[1];
-      cargv[0] = v8::External::New(static_cast<void*>(msi));
-      v8::Local<v8::Value> ms = NanPersistentToLocal(MediaStream::constructor)->NewInstance(1, cargv);
+      cargv[0] = NanNew<v8::External>(static_cast<void*>(msi));
+      v8::Local<v8::Value> ms = NanNew(MediaStream::constructor)->NewInstance(1, cargv);
 
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(String::New("onremovestream")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onremovestream")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
         argv[0] = ms;
-        callback->Call(pc, 1, argv);
+        NanMakeCallback(pc, callback, 1, argv);
       }
     }*/
   }
@@ -305,7 +305,7 @@ NAN_METHOD(PeerConnection::CreateOffer) {
   self->_jinglePeerConnection->CreateOffer(self->_createOfferObserver, NULL);
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnValue(NanUndefined());
 }
 
 NAN_METHOD(PeerConnection::CreateAnswer) {
@@ -317,7 +317,7 @@ NAN_METHOD(PeerConnection::CreateAnswer) {
   self->_jinglePeerConnection->CreateAnswer(self->_createAnswerObserver, NULL);
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnValue(NanUndefined());
 }
 
 NAN_METHOD(PeerConnection::SetLocalDescription) {
@@ -326,8 +326,8 @@ NAN_METHOD(PeerConnection::SetLocalDescription) {
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
   v8::Local<v8::Object> desc = v8::Local<v8::Object>::Cast(args[0]);
-  v8::String::Utf8Value _type(desc->Get(v8::String::NewSymbol("type"))->ToString());
-  v8::String::Utf8Value _sdp(desc->Get(v8::String::NewSymbol("sdp"))->ToString());
+  v8::String::Utf8Value _type(desc->Get(NanNew("type"))->ToString());
+  v8::String::Utf8Value _sdp(desc->Get(NanNew("sdp"))->ToString());
 
   std::string type = *_type;
   std::string sdp = *_sdp;
@@ -336,7 +336,7 @@ NAN_METHOD(PeerConnection::SetLocalDescription) {
   self->_jinglePeerConnection->SetLocalDescription(self->_setLocalDescriptionObserver, sdi);
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnValue(NanUndefined());
 }
 
 NAN_METHOD(PeerConnection::SetRemoteDescription) {
@@ -345,8 +345,8 @@ NAN_METHOD(PeerConnection::SetRemoteDescription) {
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
   v8::Local<v8::Object> desc = v8::Local<v8::Object>::Cast(args[0]);
-  v8::String::Utf8Value _type(desc->Get(v8::String::NewSymbol("type"))->ToString());
-  v8::String::Utf8Value _sdp(desc->Get(v8::String::NewSymbol("sdp"))->ToString());
+  v8::String::Utf8Value _type(desc->Get(NanNew("type"))->ToString());
+  v8::String::Utf8Value _sdp(desc->Get(NanNew("sdp"))->ToString());
 
   std::string type = *_type;
   std::string sdp = *_sdp;
@@ -355,7 +355,7 @@ NAN_METHOD(PeerConnection::SetRemoteDescription) {
   self->_jinglePeerConnection->SetRemoteDescription(self->_setRemoteDescriptionObserver, sdi);
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnValue(NanUndefined());
 }
 
 NAN_METHOD(PeerConnection::AddIceCandidate) {
@@ -365,11 +365,11 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
   Handle<Object> sdp = Handle<Object>::Cast(args[0]);
 
-  v8::String::Utf8Value _candidate(sdp->Get(String::New("candidate"))->ToString());
+  v8::String::Utf8Value _candidate(sdp->Get(NanNew("candidate"))->ToString());
   std::string candidate = *_candidate;
-  v8::String::Utf8Value _sipMid(sdp->Get(String::New("sdpMid"))->ToString());
+  v8::String::Utf8Value _sipMid(sdp->Get(NanNew("sdpMid"))->ToString());
   std::string sdp_mid = *_sipMid;
-  uint32_t sdp_mline_index = sdp->Get(String::New("sdpMLineIndex"))->Uint32Value();
+  uint32_t sdp_mline_index = sdp->Get(NanNew("sdpMLineIndex"))->Uint32Value();
 
   webrtc::SdpParseError sdpParseError;
   webrtc::IceCandidateInterface* ci = webrtc::CreateIceCandidate(sdp_mid, sdp_mline_index, candidate, &sdpParseError);
@@ -384,7 +384,7 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
   }
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnValue(NanUndefined());
 }
 
 NAN_METHOD(PeerConnection::CreateDataChannel) {
@@ -396,38 +396,38 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   Handle<Object> dataChannelDict = Handle<Object>::Cast(args[1]);
 
   webrtc::DataChannelInit dataChannelInit;
-  if(dataChannelDict->Has(String::New("id"))) {
-    Local<Value> value = dataChannelDict->Get(String::New("id"));
+  if(dataChannelDict->Has(NanNew("id"))) {
+    Local<Value> value = dataChannelDict->Get(NanNew("id"));
     if(value->IsInt32()) {
       dataChannelInit.id = value->Int32Value();
     }
   }
-  if(dataChannelDict->Has(String::New("maxRetransmitTime"))) {
-    Local<Value> value = dataChannelDict->Get(String::New("maxRetransmitTime"));
+  if(dataChannelDict->Has(NanNew("maxRetransmitTime"))) {
+    Local<Value> value = dataChannelDict->Get(NanNew("maxRetransmitTime"));
     if(value->IsInt32()) {
       dataChannelInit.maxRetransmitTime = value->Int32Value();
     }
   }
-  if(dataChannelDict->Has(String::New("maxRetransmits"))) {
-    Local<Value> value = dataChannelDict->Get(String::New("maxRetransmits"));
+  if(dataChannelDict->Has(NanNew("maxRetransmits"))) {
+    Local<Value> value = dataChannelDict->Get(NanNew("maxRetransmits"));
     if(value->IsInt32()) {
       dataChannelInit.maxRetransmits = value->Int32Value();
     }
   }
-  if(dataChannelDict->Has(String::New("negotiated"))) {
-    Local<Value> value = dataChannelDict->Get(String::New("negotiated"));
+  if(dataChannelDict->Has(NanNew("negotiated"))) {
+    Local<Value> value = dataChannelDict->Get(NanNew("negotiated"));
     if(value->IsBoolean()) {
       dataChannelInit.negotiated = value->BooleanValue();
     }
   }
-  if(dataChannelDict->Has(String::New("ordered"))) {
-    Local<Value> value = dataChannelDict->Get(String::New("ordered"));
+  if(dataChannelDict->Has(NanNew("ordered"))) {
+    Local<Value> value = dataChannelDict->Get(NanNew("ordered"));
     if(value->IsBoolean()) {
       dataChannelInit.ordered = value->BooleanValue();
     }
   }
-  if(dataChannelDict->Has(String::New("protocol"))) {
-    Local<Value> value = dataChannelDict->Get(String::New("protocol"));
+  if(dataChannelDict->Has(NanNew("protocol"))) {
+    Local<Value> value = dataChannelDict->Get(NanNew("protocol"));
     if(value->IsString()) {
       dataChannelInit.protocol = *String::Utf8Value(value->ToString());
     }
@@ -437,8 +437,8 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   DataChannelObserver* observer = new DataChannelObserver(data_channel_interface);
 
   v8::Local<v8::Value> cargv[1];
-  cargv[0] = v8::External::New(static_cast<void*>(observer));
-  v8::Local<v8::Value> dc = NanPersistentToLocal(DataChannel::constructor)->NewInstance(1, cargv);
+  cargv[0] = NanNew<v8::External>(static_cast<void*>(observer));
+  v8::Local<v8::Value> dc = NanNew(DataChannel::constructor)->NewInstance(1, cargv);
 
   TRACE_END;
   NanReturnValue(dc);
@@ -456,7 +456,7 @@ NAN_METHOD(PeerConnection::AddStream) {
   self->_jinglePeerConnection->AddStream(ms->GetInterface(),NULL);
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnValue(NanUndefined());
 }
 
 NAN_METHOD(PeerConnection::RemoveStream) {
@@ -469,7 +469,7 @@ NAN_METHOD(PeerConnection::RemoveStream) {
   self->_jinglePeerConnection->RemoveStream(ms->GetInterface());
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnValue(NanUndefined());
 }
 
 NAN_METHOD(PeerConnection::GetLocalStreams) {
@@ -479,11 +479,11 @@ NAN_METHOD(PeerConnection::GetLocalStreams) {
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
   talk_base::scoped_refptr<webrtc::StreamCollectionInterface> _streams = self->_jinglePeerConnection->local_streams();
 
-  v8::Local<v8::Array> array = v8::Array::New(_streams->count());
+  v8::Local<v8::Array> array = NanNew<v8::Array>(_streams->count());
   for (unsigned int index = 0; index < _streams->count(); index++) {
     v8::Local<v8::Value> cargv[1];
-    cargv[0] = v8::External::New(static_cast<void*>(_streams->at(index)));
-    array->Set(index, NanPersistentToLocal(MediaStream::constructor)->NewInstance(1, cargv));
+    cargv[0] = NanNew<v8::External>(static_cast<void*>(_streams->at(index)));
+    array->Set(index, NanNew(MediaStream::constructor)->NewInstance(1, cargv));
   }
 
   TRACE_END;
@@ -497,11 +497,11 @@ NAN_METHOD(PeerConnection::GetRemoteStreams) {
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
   talk_base::scoped_refptr<webrtc::StreamCollectionInterface> _streams = self->_jinglePeerConnection->remote_streams();
 
-  v8::Local<v8::Array> array = v8::Array::New(_streams->count());
+  v8::Local<v8::Array> array = NanNew<v8::Array>(_streams->count());
   for (unsigned int index = 0; index < _streams->count(); index++) {
     v8::Local<v8::Value> cargv[1];
-    cargv[0] = v8::External::New(static_cast<void*>(_streams->at(index)));
-    array->Set(index, NanPersistentToLocal(MediaStream::constructor)->NewInstance(1, cargv));
+    cargv[0] = NanNew<v8::External>(static_cast<void*>(_streams->at(index)));
+    array->Set(index, NanNew(MediaStream::constructor)->NewInstance(1, cargv));
   }
 
   TRACE_END;
@@ -525,11 +525,11 @@ NAN_METHOD(PeerConnection::GetStreamById) {
   TRACE_END;
   if (stream) {
     v8::Local<v8::Value> cargv[1];
-    cargv[0] = v8::External::New(static_cast<void*>(stream));
-    v8::Local<v8::Value> ms = NanPersistentToLocal(MediaStream::constructor)->NewInstance(1, cargv);
+    cargv[0] = NanNew<v8::External>(static_cast<void*>(stream));
+    v8::Local<v8::Value> ms = NanNew(MediaStream::constructor)->NewInstance(1, cargv);
     NanReturnValue(ms);
   } else {
-    NanReturnValue(Undefined());
+    NanReturnValue(NanUndefined());
   }
 }
 */
@@ -537,7 +537,7 @@ NAN_METHOD(PeerConnection::UpdateIce) {
   TRACE_CALL;
   NanScope();
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnValue(NanUndefined());
 }
 
 NAN_METHOD(PeerConnection::Close) {
@@ -548,7 +548,7 @@ NAN_METHOD(PeerConnection::Close) {
   self->_jinglePeerConnection->Close();
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnValue(NanUndefined());
 }
 
 NAN_GETTER(PeerConnection::GetLocalDescription) {
@@ -560,11 +560,11 @@ NAN_GETTER(PeerConnection::GetLocalDescription) {
 
   Handle<Value> value;
   if(NULL == sdi) {
-    value = Null();
+    value = NanNull();
   } else {
     std::string sdp;
     sdi->ToString(&sdp);
-    value = v8::String::New(sdp.c_str());
+    value = NanNew(sdp);
   }
 
   TRACE_END;
@@ -580,11 +580,11 @@ NAN_GETTER(PeerConnection::GetRemoteDescription) {
 
   Handle<Value> value;
   if(NULL == sdi) {
-    value = Null();
+    value = NanNull();
   } else {
     std::string sdp;
     sdi->ToString(&sdp);
-    value = v8::String::New(sdp.c_str());
+    value = NanNew(sdp);
   }
 
   TRACE_END;
@@ -600,7 +600,7 @@ NAN_GETTER(PeerConnection::GetSignalingState) {
   webrtc::PeerConnectionInterface::SignalingState state = self->_jinglePeerConnection->signaling_state();
 
   TRACE_END;
-  NanReturnValue(Number::New(state));
+  NanReturnValue(NanNew<Number>(state));
 }
 
 NAN_GETTER(PeerConnection::GetIceConnectionState) {
@@ -612,7 +612,7 @@ NAN_GETTER(PeerConnection::GetIceConnectionState) {
   webrtc::PeerConnectionInterface::IceConnectionState state = self->_jinglePeerConnection->ice_connection_state();
 
   TRACE_END;
-  NanReturnValue(Number::New(state));
+  NanReturnValue(NanNew<Number>(state));
 }
 
 NAN_GETTER(PeerConnection::GetIceGatheringState) {
@@ -624,7 +624,7 @@ NAN_GETTER(PeerConnection::GetIceGatheringState) {
   webrtc::PeerConnectionInterface::IceGatheringState state = self->_jinglePeerConnection->ice_gathering_state();
 
   TRACE_END;
-  NanReturnValue(Number::New(static_cast<uint32_t>(state)));
+  NanReturnValue(NanNew<Number>(static_cast<uint32_t>(state)));
 }
 
 NAN_SETTER(PeerConnection::ReadOnly) {
@@ -632,55 +632,55 @@ NAN_SETTER(PeerConnection::ReadOnly) {
 }
 
 void PeerConnection::Init( Handle<Object> exports ) {
-  Local<FunctionTemplate> tpl = FunctionTemplate::New( New );
-  tpl->SetClassName( String::NewSymbol( "PeerConnection" ) );
+  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>( New );
+  tpl->SetClassName( NanNew( "PeerConnection" ) );
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "createOffer" ),
-    FunctionTemplate::New( CreateOffer )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "createOffer" ),
+    NanNew<FunctionTemplate>( CreateOffer )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "createAnswer" ),
-    FunctionTemplate::New( CreateAnswer )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "createAnswer" ),
+    NanNew<FunctionTemplate>( CreateAnswer )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "setLocalDescription" ),
-    FunctionTemplate::New( SetLocalDescription )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "setLocalDescription" ),
+    NanNew<FunctionTemplate>( SetLocalDescription )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "setRemoteDescription" ),
-    FunctionTemplate::New( SetRemoteDescription )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "setRemoteDescription" ),
+    NanNew<FunctionTemplate>( SetRemoteDescription )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "updateIce" ),
-    FunctionTemplate::New( UpdateIce )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "updateIce" ),
+    NanNew<FunctionTemplate>( UpdateIce )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "addIceCandidate" ),
-    FunctionTemplate::New( AddIceCandidate )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "addIceCandidate" ),
+    NanNew<FunctionTemplate>( AddIceCandidate )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "createDataChannel" ),
-    FunctionTemplate::New( CreateDataChannel )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "createDataChannel" ),
+    NanNew<FunctionTemplate>( CreateDataChannel )->GetFunction() );
 /*
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "getLocalStreams" ),
-    FunctionTemplate::New( GetLocalStreams )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "getLocalStreams" ),
+    NanNew<FunctionTemplate>( GetLocalStreams )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "getRemoteStreams" ),
-    FunctionTemplate::New( GetRemoteStreams )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "getRemoteStreams" ),
+    NanNew<FunctionTemplate>( GetRemoteStreams )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "getStreamById" ),
-    FunctionTemplate::New( GetStreamById )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "getStreamById" ),
+    NanNew<FunctionTemplate>( GetStreamById )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "addStream" ),
-    FunctionTemplate::New( AddStream )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "addStream" ),
+    NanNew<FunctionTemplate>( AddStream )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "removeStream" ),
-    FunctionTemplate::New( RemoveStream )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "removeStream" ),
+    NanNew<FunctionTemplate>( RemoveStream )->GetFunction() );
 */
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "close" ),
-    FunctionTemplate::New( Close )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "close" ),
+    NanNew<FunctionTemplate>( Close )->GetFunction() );
 
-  tpl->InstanceTemplate()->SetAccessor(String::New("localDescription"), GetLocalDescription, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("remoteDescription"), GetRemoteDescription, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("signalingState"), GetSignalingState, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("iceConnectionState"), GetIceConnectionState, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("iceGatheringState"), GetIceGatheringState, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("localDescription"), GetLocalDescription, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("remoteDescription"), GetRemoteDescription, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("signalingState"), GetSignalingState, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("iceConnectionState"), GetIceConnectionState, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("iceGatheringState"), GetIceGatheringState, ReadOnly);
 
-  NanAssignPersistent(Function, constructor,  tpl->GetFunction() );
-  exports->Set( String::NewSymbol("PeerConnection"), tpl->GetFunction() );
+  NanAssignPersistent(constructor,  tpl->GetFunction() );
+  exports->Set( NanNew("PeerConnection"), tpl->GetFunction() );
 }
