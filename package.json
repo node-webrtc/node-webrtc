@@ -21,7 +21,7 @@
     "node": ">=0.10.x"
   },
   "dependencies": {
-    "nan": "~0.4.4",
+    "nan": "~1.3.0",
     "node-gyp": "~0.10.10",
     "rsvp": "~3.0.3",
     "node-pre-gyp": "^0.5.9",

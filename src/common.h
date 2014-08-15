@@ -8,6 +8,7 @@
 #if defined(TRACING)
 
 #include <stdio.h>
+#include <nan.h>
 
 #define TRACE(msg) printf("   TRACE: %s\n", msg)
 #define TRACE_S(msg, s) printf("   TRACE: %s : %s\n", msg, s)
@@ -36,8 +37,7 @@
 #endif
 
 #define THROW_TYPE_ERROR( MSG ) \
-  return ThrowException(Exception::TypeError( \
-    String::New( MSG )));
+  return NanThrowTypeError( MSG );
 
 #define CHECK_ARG(I, CHECK, DO_TRUE, DO_FALSE) \
   if ( args.Length() <= (I) || !args[I]->CHECK ) { DO_FALSE; } else { DO_TRUE; }
@@ -57,21 +57,20 @@
   REQUIRE_ARG( I, IsNumber() ) \
   int VAR = args[I]->Int32Value();
 
-#define REQ_FUN_ARG(I, VAR)                                      \
-  if (args.Length() <= (I) || !args[I]->IsFunction())            \
-    return ThrowException(Exception::TypeError(              \
-      String::New("Argument " #I " must be a function")));   \
+#define REQ_FUN_ARG(I, VAR)                                         \
+  if (args.Length() <= (I) || !args[I]->IsFunction())               \
+    return NanThrowTypeError("Argument " #I " must be a function"); \
   Local<Function> VAR = Local<Function>::Cast(args[I]);
 
 #define CREATE_BUFFER( name, data, length ) \
-  Buffer* name ## _slow = Buffer::New( length ); \
-  memcpy(Buffer::Data( name ## _slow ), data, length ); \
+  Local<Object> name ## _buf = NanNewBufferHandle( length ); \
+  memcpy(Buffer::Data( name ## _buf ), data, length ); \
   Local<Object> name; \
-  Handle<Value> ctorArgs[3] = { name ## _slow->handle_, Integer::New( length ), Integer::New(0) }; \
+  Handle<Value> ctorArgs[3] = { name ## _buf, NanNew<Integer>( length ), NanNew<Integer>(0) }; \
   name = Local<Function>::Cast( \
-        Context::GetCurrent() \
+        NanGetCurrentContext() \
           ->Global() \
-          ->Get( String::New("Buffer")) \
+          ->Get( NanNew("Buffer")) \
       )->NewInstance( 3, ctorArgs );
 
 #endif

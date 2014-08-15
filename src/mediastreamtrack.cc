@@ -29,7 +29,7 @@ MediaStreamTrack::MediaStreamTrack(webrtc::MediaStreamTrackInterface* msti)
 
 MediaStreamTrack::~MediaStreamTrack()
 {
-    
+
 }
 
 NAN_METHOD(MediaStreamTrack::New) {
@@ -99,42 +99,42 @@ void MediaStreamTrack::Run(uv_async_t* handle, int status)
         self->_live = live;
       }
     }
-    if(MediaStreamTrack::MUTE & evt.type) 
+    if(MediaStreamTrack::MUTE & evt.type)
     {
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(mst->Get(String::New("onmute")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(mst->Get(NanNew("onmute")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[0];
-        callback->Call(mst, 0, argv);
+        NanMakeCallback(mst, callback, 0, argv);
       }
-    } else if(MediaStreamTrack::UNMUTE & evt.type) 
+    } else if(MediaStreamTrack::UNMUTE & evt.type)
     {
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(mst->Get(String::New("onunmute")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(mst->Get(NanNew("onunmute")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[0];
-        callback->Call(mst, 0, argv);
-      }
-    }
-    if(MediaStreamTrack::STARTED & evt.type) 
-    {
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(mst->Get(String::New("onstarted")));
-      if(!callback.IsEmpty())
-      {
-        v8::Local<v8::Value> argv[0];
-        callback->Call(mst, 0, argv);
+        NanMakeCallback(mst, callback, 0, argv);
       }
     }
-    if(MediaStreamTrack::ENDED & evt.type) 
+    if(MediaStreamTrack::STARTED & evt.type)
     {
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(mst->Get(String::New("onended")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(mst->Get(NanNew("onstarted")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[0];
-        callback->Call(mst, 0, argv);
+        NanMakeCallback(mst, callback, 0, argv);
       }
     }
-    
+    if(MediaStreamTrack::ENDED & evt.type)
+    {
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(mst->Get(NanNew("onended")));
+      if(!callback.IsEmpty())
+      {
+        v8::Local<v8::Value> argv[0];
+        NanMakeCallback(mst, callback, 0, argv);
+      }
+    }
+
   }
   scope.Close(Undefined());
   TRACE_END;
@@ -175,7 +175,7 @@ NAN_GETTER(MediaStreamTrack::GetId) {
   std::string id = self->_internalMediaStreamTrack->id();
 
   TRACE_END;
-  NanReturnValue(String::New(id.c_str()));
+  NanReturnValue(NanNew(id.c_str()));
 }
 
 NAN_GETTER(MediaStreamTrack::GetLabel) {
@@ -186,7 +186,7 @@ NAN_GETTER(MediaStreamTrack::GetLabel) {
   std::string label = self->_internalMediaStreamTrack->id();
 
   TRACE_END;
-  NanReturnValue(String::New(label.c_str()));
+  NanReturnValue(NanNew(label.c_str()));
 }
 
 NAN_GETTER(MediaStreamTrack::GetKind) {
@@ -197,7 +197,7 @@ NAN_GETTER(MediaStreamTrack::GetKind) {
   std::string kind = self->_internalMediaStreamTrack->kind();
 
   TRACE_END;
-  NanReturnValue(String::New(kind.c_str()));
+  NanReturnValue(NanNew(kind.c_str()));
 }
 
 NAN_GETTER(MediaStreamTrack::GetEnabled) {
@@ -250,7 +250,7 @@ NAN_SETTER(MediaStreamTrack::SetEnabled) {
 
   MediaStreamTrack* self = ObjectWrap::Unwrap<MediaStreamTrack>( args.Holder() );
   self->_internalMediaStreamTrack->set_enabled(value->ToBoolean()->Value());
-  
+
   TRACE_END;
 }
 
@@ -260,23 +260,23 @@ NAN_SETTER(MediaStreamTrack::ReadOnly) {
 
 void MediaStreamTrack::Init( Handle<Object> exports ) {
   Local<FunctionTemplate> tpl = FunctionTemplate::New( New );
-  tpl->SetClassName( String::NewSymbol( "MediaStreamTrack" ) );
+  tpl->SetClassName( NanNew( "MediaStreamTrack" ) );
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-    
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "clone" ),
+
+  tpl->PrototypeTemplate()->Set( NanNew( "clone" ),
     FunctionTemplate::New( clone )->GetFunction() );
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "stop" ),
+  tpl->PrototypeTemplate()->Set( NanNew( "stop" ),
     FunctionTemplate::New( stop )->GetFunction() );
 
-  tpl->InstanceTemplate()->SetAccessor(String::New("id"), GetId, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("kind"), GetKind, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("label"), GetLabel, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("enabled"), GetEnabled, SetEnabled);
-  tpl->InstanceTemplate()->SetAccessor(String::New("muted"), GetMuted, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("_readonly"), GetReadOnly, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("remote"), GetRemote, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("readyState"), GetReadyState, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("id"), GetId, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("kind"), GetKind, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("label"), GetLabel, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("enabled"), GetEnabled, SetEnabled);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("muted"), GetMuted, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("_readonly"), GetReadOnly, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("remote"), GetRemote, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("readyState"), GetReadyState, ReadOnly);
 
   NanAssignPersistent(Function, constructor, tpl->GetFunction());
-  exports->Set( String::NewSymbol("MediaStreamTrack"), tpl->GetFunction() );
+  exports->Set( NanNew("MediaStreamTrack"), tpl->GetFunction() );
 }
