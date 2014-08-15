@@ -51,6 +51,39 @@
   process.env.GYP_GENERATORS = NINJA;
   process.env.GYP_DEFINES = ('host_arch=' + HOST_ARCH + ' target_arch=' + TARGET_ARCH);
 
+  var first = true;
+  function spawn_log(cmd, args, opts, nextstep) {
+    if (arguments.length == 3) {
+        nextstep = opts;
+        opts = {};
+    }
+
+    var logpath = PROJECT_DIR + '/build.log';
+    if(first && fs.existsSync(logpath)) {
+      fs.truncateSync(logpath, 0);
+    }
+    first = false;
+
+    var log1 = fs.createWriteStream(logpath, {flags: 'a'});
+    var log2 = fs.createWriteStream(logpath, {flags: 'a'});
+
+    log1.on('open', function(){
+    log2.on('open', function(){
+      opts.stdio = ['ignore', log1, log2];
+      var proc = spawn(cmd, args, opts);
+      proc.on('exit', function(code, signal) {
+        if (code !== undefined && code !== 0) {
+          process.stderr.write('error (see build.log for details): ', code, signal, '\r\n');
+          process.exit(-1);
+        } else {
+          process.stdout.write('done\r\n');
+          process.nextTick(nextstep);
+        }
+      });
+    });
+    });
+  }
+
   function prepare_directories() {
     process.stdout.write('Preparing directories ... ');
     if(!fs.existsSync(LIB_DIR)) {
@@ -64,23 +97,11 @@
   function clone_depot_tools() {
     process.stdout.write('Cloning depot tools ... ');
     if(!fs.existsSync(DEPOT_TOOLS_DIR)) {
-      var proc = spawn('git',
-        ['-C', LIB_DIR, 'clone', '-v', '--progress', DEPOT_TOOLS_REPO]
+      spawn_log('git',
+        ['clone', '-v', '--progress', DEPOT_TOOLS_REPO],
+        {'cwd': LIB_DIR},
+        gclient_config
       );
-      var log = fs.createWriteStream(PROJECT_DIR+'/build.log', {flags: 'w'});
-      proc.stdout.pipe(log);
-      proc.stderr.pipe(log);
-      proc.on('exit', function(code, signal) {
-        if(undefined !== code && 0 !== code) {
-          process.stderr.write('error (see build.log for details): ', code, signal, '\r\n');
-          process.exit(-1);
-        } else {
-          proc.stdout.unpipe(log);
-          proc.stderr.unpipe(log);
-          process.stdout.write('done\r\n');
-          process.nextTick(gclient_config);
-        }
-      });
     } else {
       process.stdout.write('skip\r\n');
       process.nextTick(gclient_config);
@@ -95,67 +116,28 @@
     }
 
     process.chdir(LIB_WEBRTC_DIR);
-    var proc = spawn(GCLIENT,
-      ['config', LIB_WEBRTC_DIR_REPO]
-    );
-    var log = fs.createWriteStream(PROJECT_DIR+'/build.log', {flags: 'a'});
-    proc.stdout.pipe(log);
-    proc.stderr.pipe(log);
-    proc.on('exit', function(code, signal) {
-      if(undefined !== code && 0 !== code) {
-        process.stderr.write('error (see build.log for details): ', code, signal, '\r\n');
-        process.exit(-1);
-      } else {
-        proc.stdout.unpipe(log);
-        proc.stderr.unpipe(log);
-        process.stdout.write('done\r\n');
-        process.nextTick(gclient_sync);
-      }
-    });
+    spawn_log(GCLIENT,
+      ['config', LIB_WEBRTC_DIR_REPO],
+      gclient_sync
+    )
   }
 
   function gclient_sync() {
     process.stdout.write('Syncing upstream libjingle ... ');
     process.chdir(LIB_WEBRTC_DIR);
-    var proc = spawn(GCLIENT,
-      ['sync', '-f', '-n', '-D', '-j1', '-r'+LIBWEBRTC_REVISION]
-    );
-    var log = fs.createWriteStream(PROJECT_DIR+'/build.log', {flags: 'a'});
-    proc.stdout.pipe(log);
-    proc.stderr.pipe(log);
-    proc.on('exit', function(code, signal) {
-      if(undefined !== code && 0 !== code) {
-        process.stderr.write('error (see build.log for details): ', code, signal, '\r\n');
-        process.exit(-1);
-      } else {
-        proc.stdout.unpipe(log);
-        proc.stderr.unpipe(log);
-        process.stdout.write('done\r\n');
-        process.nextTick(gclient_runhooks);
-      }
-    });
+    spawn_log(GCLIENT,
+      ['sync', '-f', '-n', '-D', '-j1', '-r'+LIBWEBRTC_REVISION],
+      gclient_runhooks
+    )
   }
 
   function gclient_runhooks(cb) {
     process.stdout.write('Executing runhooks ... ');
     process.chdir(LIB_WEBRTC_DIR);
-    var proc = spawn(GCLIENT,
-      ['runhooks', '-j1']
+    spawn_log(GCLIENT,
+      ['runhooks', '-j1'],
+      build
     );
-    var log = fs.createWriteStream(PROJECT_DIR+'/build.log', {flags: 'a'});
-    proc.stdout.pipe(log);
-    proc.stderr.pipe(log);
-    proc.on('exit', function(code, signal) {
-      if(undefined !== code && 0 !== code) {
-        process.stderr.write('error (see build.log for details): ', code, signal, '\r\n');
-        process.exit(-1);
-      } else {
-        proc.stdout.unpipe(log);
-        proc.stderr.unpipe(log);
-        process.stdout.write('done\r\n');
-        process.nextTick(build);
-      }
-    });
   }
 
   function build() {
@@ -171,23 +153,10 @@
     }
 
     process.chdir(LIB_WEBRTC_DIR);
-    var proc = spawn(NINJA,
-      args
+    spawn_log(NINJA,
+      args,
+      complete
     );
-    var log = fs.createWriteStream(PROJECT_DIR+'/build.log', {flags: 'a'});
-    proc.stdout.pipe(log);
-    proc.stderr.pipe(log);
-    proc.on('exit', function(code, signal) {
-      if(undefined !== code && 0 !== code) {
-        process.stderr.write('error (see build.log for details): ', code, signal, '\r\n');
-        process.exit(-1);
-      } else {
-        proc.stdout.unpipe(log);
-        proc.stderr.unpipe(log);
-        process.stdout.write('done\r\n');
-        process.nextTick(complete);
-      }
-    });
   }
 
   function complete() {
