@@ -21,6 +21,9 @@ before_script:
   - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp package publish; fi;
   - node-pre-gyp clean
   - node-gyp clean
+  
+after_failure: 
+  - "cat build.log"
 
 notifications:
   email: false
