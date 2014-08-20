@@ -3,7 +3,7 @@ node_js:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y g++ python libnss3-dev libasound2-dev libpulse-dev libjpeg62-dev libxv-dev libgtk2.0-dev libexpat1-dev oracle-java7-installer
+  - sudo apt-get install -y g++ python libnss3-dev libasound2-dev libpulse-dev libjpeg62-dev libxv-dev libgtk2.0-dev libexpat1-dev oracle-java7-installer subversion
   - npm install -g grunt-cli
   - COMMIT_MESSAGE=$(git show -s --format=%B $TRAVIS_COMMIT | tr -d '\n')
   - export PATH=./node_modules/.bin/:$PATH
