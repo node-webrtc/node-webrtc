@@ -22,10 +22,10 @@
   },
   "dependencies": {
     "nan": "~1.3.0",
-    "node-gyp": "~0.10.10",
-    "rsvp": "~3.0.3",
-    "node-pre-gyp": "^0.5.9",
-    "nopt": "^2.2.0"
+    "node-gyp": "^1.0.1",
+    "node-pre-gyp": "^0.5.23",
+    "nopt": "^2.2.0",
+    "rsvp": "~3.0.3"
   },
   "devDependencies": {
     "grunt": "~0.4.2",
@@ -33,7 +33,7 @@
     "grunt-tape": "~0.0.2",
     "tape": "~2.4.2",
     "ws": "~0.4.31",
-    "aws-sdk": "^2.0.0-rc13",
+    "aws-sdk": "^2.0.15",
     "node-static": "^0.7.3",
     "minimist": "0.0.8",
     "node-static-alias": "^0.1.0"

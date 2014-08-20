@@ -1,0 +1,41 @@
+os:
+  - linux
+  - osx
+
+language: node_js
+
+node_js:
+  - "0.10"
+  - "0.11"
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y g++ python libnss3-dev libasound2-dev libpulse-dev libjpeg62-dev libxv-dev libgtk2.0-dev libexpat1-dev oracle-java7-installer subversion libudev-dev libdrm-dev libgconf2-dev libgcrypt11-dev libpci-dev libxtst-dev libxss-dev libgnome-keyring-dev
+  - npm install -g grunt-cli
+  - npm install node-gyp -g
+  - npm install aws-sdk
+  - PUBLISH_BINARY=true
+  - if [[ $TRAVIS_BRANCH == `git describe --tags --always HEAD` ]]; then PUBLISH_BINARY=true; fi;
+  
+install:
+  - npm install --build-from-source
+  - tail -n500 /home/travis/build/js-platform/node-webrtc/build.log
+
+before_script:
+  - echo $PUBLISH_BINARY
+  - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp package unpublish publish; fi;
+  - node-pre-gyp clean
+  - node-gyp clean
+
+script:
+  - echo "script"
+
+notifications:
+  email: false
+
+env:
+  global:
+    - JAVA_HOME="/usr/lib/jvm/java-7-oracle"
+    - MAKEOPTS="-j1"
+    - secure: "RFEwU9Vqlqnn/r9D8rNBYc7Zve2WLUfsecWLpvqmbhaXQcIwNIEzJ0VnG05G7y1xmq1iXK9QZXIPg7nbLi7dSFv2Pm5a8rCqO6XB3yL8KLeWbB/dTk9wVuaf/OO4D50WXkasjC76SnpC3XIhLJCHX9IszNZ/1XRo0yHXGWxyNVo="
+    - secure: "QPN1qiacTj3CkKXe5P8UI0vyPOoMPbuMPmb5z310nvhGB/LLKz/8n2GATTY2YSaTR9UdrGFjSuGPkWKG9kamlFCGigwfOXoHbOKZCWrjAlQd3ii0Dmh5PMsQlu3O7HyI4ymq9P3RT6Md+olPpxeSv9K2TrsmXVVgR2Qg3piTrPY="
