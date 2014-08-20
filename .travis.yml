@@ -23,7 +23,7 @@ before_script:
   - node-gyp clean
   
 after_failure: 
-  - "cat build.log"
+  - cat /home/travis/build/js-platform/node-webrtc/build.log
 
 notifications:
   email: false
