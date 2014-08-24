@@ -54,8 +54,22 @@ io.on('connection', function (socket) {
 
         pc.onaddstream = function (evt) {
             logMessage('rtc remote stream added successfully');
-            console.log(evt);
-            pc.addStream(evt);
+            var stream = evt.stream;
+            var audioTracks = stream.getAudioTracks();
+
+            // libwebrtc currently can't forward remote audio streams
+            // if you leave the track enabled, the server will segfault
+            // at LocalAudioTrackHandler::OnEnabledChanged(),
+            // talk/app/webrtc/mediastreamhandler.cc, line 115 svn R5982
+            // the code assumes it is being passed a *LocalAudioTrack*
+            // https://code.google.com/p/webrtc/issues/detail?id=2192
+            audioTracks.forEach(function(track) {
+                track.enabled = false;
+            });
+
+            pc.addStream(stream);
+
+            // audioTracks[0].enabled = true;
         };
 
         pc.oniceconnectionstatechange = function (evt) {
