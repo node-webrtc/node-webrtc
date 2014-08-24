@@ -18,7 +18,7 @@ Persistent<Function> MediaStreamTrack::constructor;
 MediaStreamTrack::MediaStreamTrack(webrtc::MediaStreamTrackInterface* msti)
 : _internalMediaStreamTrack(msti)
 {
-  msti->Release();
+  msti->AddRef();
   _muted = false;
   _live = _internalMediaStreamTrack->state() == webrtc::MediaStreamTrackInterface::kLive;
   uv_mutex_init(&lock);
@@ -29,7 +29,7 @@ MediaStreamTrack::MediaStreamTrack(webrtc::MediaStreamTrackInterface* msti)
 
 MediaStreamTrack::~MediaStreamTrack()
 {
-
+  _internalMediaStreamTrack->Release();
 }
 
 NAN_METHOD(MediaStreamTrack::New) {
@@ -102,7 +102,7 @@ void MediaStreamTrack::Run(uv_async_t* handle, int status)
     if(MediaStreamTrack::MUTE & evt.type)
     {
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(mst->Get(NanNew("onmute")));
-      if(!callback.IsEmpty())
+      if(!callback->IsUndefined())
       {
         v8::Local<v8::Value> argv[0];
         NanMakeCallback(mst, callback, 0, argv);
@@ -110,7 +110,7 @@ void MediaStreamTrack::Run(uv_async_t* handle, int status)
     } else if(MediaStreamTrack::UNMUTE & evt.type)
     {
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(mst->Get(NanNew("onunmute")));
-      if(!callback.IsEmpty())
+      if(!callback->IsUndefined())
       {
         v8::Local<v8::Value> argv[0];
         NanMakeCallback(mst, callback, 0, argv);
@@ -119,7 +119,7 @@ void MediaStreamTrack::Run(uv_async_t* handle, int status)
     if(MediaStreamTrack::STARTED & evt.type)
     {
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(mst->Get(NanNew("onstarted")));
-      if(!callback.IsEmpty())
+      if(!callback->IsUndefined())
       {
         v8::Local<v8::Value> argv[0];
         NanMakeCallback(mst, callback, 0, argv);
@@ -128,7 +128,7 @@ void MediaStreamTrack::Run(uv_async_t* handle, int status)
     if(MediaStreamTrack::ENDED & evt.type)
     {
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(mst->Get(NanNew("onended")));
-      if(!callback.IsEmpty())
+      if(!callback->IsUndefined())
       {
         v8::Local<v8::Value> argv[0];
         NanMakeCallback(mst, callback, 0, argv);
@@ -259,14 +259,14 @@ NAN_SETTER(MediaStreamTrack::ReadOnly) {
 }
 
 void MediaStreamTrack::Init( Handle<Object> exports ) {
-  Local<FunctionTemplate> tpl = FunctionTemplate::New( New );
+  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>( New );
   tpl->SetClassName( NanNew( "MediaStreamTrack" ) );
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   tpl->PrototypeTemplate()->Set( NanNew( "clone" ),
-    FunctionTemplate::New( clone )->GetFunction() );
+    NanNew<FunctionTemplate>( clone )->GetFunction() );
   tpl->PrototypeTemplate()->Set( NanNew( "stop" ),
-    FunctionTemplate::New( stop )->GetFunction() );
+    NanNew<FunctionTemplate>( stop )->GetFunction() );
 
   tpl->InstanceTemplate()->SetAccessor(NanNew("id"), GetId, ReadOnly);
   tpl->InstanceTemplate()->SetAccessor(NanNew("kind"), GetKind, ReadOnly);
@@ -277,6 +277,6 @@ void MediaStreamTrack::Init( Handle<Object> exports ) {
   tpl->InstanceTemplate()->SetAccessor(NanNew("remote"), GetRemote, ReadOnly);
   tpl->InstanceTemplate()->SetAccessor(NanNew("readyState"), GetReadyState, ReadOnly);
 
-  NanAssignPersistent(Function, constructor, tpl->GetFunction());
+  NanAssignPersistent(constructor, tpl->GetFunction());
   exports->Set( NanNew("MediaStreamTrack"), tpl->GetFunction() );
 }
