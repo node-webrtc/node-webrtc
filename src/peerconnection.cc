@@ -16,7 +16,7 @@
 #include "common.h"
 #include "peerconnection.h"
 #include "datachannel.h"
-//#include "mediastream.h"
+#include "mediastream.h"
 #include "create-offer-observer.h"
 #include "create-answer-observer.h"
 #include "set-local-description-observer.h"
@@ -179,7 +179,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
       v8::Local<v8::Value> argv[1];
       argv[0] = dc;
       NanMakeCallback(pc, callback, 1, argv);
-    }/* else if(PeerConnection::NOTIFY_ADD_STREAM & evt.type)
+    } else if(PeerConnection::NOTIFY_ADD_STREAM & evt.type)
     {
       webrtc::MediaStreamInterface* msi = static_cast<webrtc::MediaStreamInterface*>(evt.data);
       v8::Local<v8::Value> cargv[1];
@@ -207,7 +207,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
         argv[0] = ms;
         NanMakeCallback(pc, callback, 1, argv);
       }
-    }*/
+    }
   }
 
   if(do_shutdown) {
@@ -245,19 +245,15 @@ void PeerConnection::OnIceGatheringChange( webrtc::PeerConnectionInterface::IceG
 
 void PeerConnection::OnAddStream( webrtc::MediaStreamInterface* media_stream ) {
   TRACE_CALL;
-  /*
   media_stream->AddRef();
   QueueEvent(PeerConnection::NOTIFY_ADD_STREAM, static_cast<void*>(media_stream));
-  */
   TRACE_END;
 }
 
 void PeerConnection::OnRemoveStream( webrtc::MediaStreamInterface* media_stream ) {
   TRACE_CALL;
-  /*
   media_stream->AddRef();
   QueueEvent(PeerConnection::NOTIFY_REMOVE_STREAM, static_cast<void*>(media_stream));
-  */
   TRACE_END;
 }
 
@@ -444,7 +440,6 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   NanReturnValue(dc);
 }
 
-/*
 NAN_METHOD(PeerConnection::AddStream) {
   TRACE_CALL;
   NanScope();
@@ -532,7 +527,7 @@ NAN_METHOD(PeerConnection::GetStreamById) {
     NanReturnValue(NanUndefined());
   }
 }
-*/
+
 NAN_METHOD(PeerConnection::UpdateIce) {
   TRACE_CALL;
   NanScope();
@@ -656,7 +651,7 @@ void PeerConnection::Init( Handle<Object> exports ) {
 
   tpl->PrototypeTemplate()->Set( NanNew( "createDataChannel" ),
     NanNew<FunctionTemplate>( CreateDataChannel )->GetFunction() );
-/*
+
   tpl->PrototypeTemplate()->Set( NanNew( "getLocalStreams" ),
     NanNew<FunctionTemplate>( GetLocalStreams )->GetFunction() );
 
@@ -671,7 +666,7 @@ void PeerConnection::Init( Handle<Object> exports ) {
 
   tpl->PrototypeTemplate()->Set( NanNew( "removeStream" ),
     NanNew<FunctionTemplate>( RemoveStream )->GetFunction() );
-*/
+
   tpl->PrototypeTemplate()->Set( NanNew( "close" ),
     NanNew<FunctionTemplate>( Close )->GetFunction() );
 
