@@ -245,14 +245,12 @@ void PeerConnection::OnIceGatheringChange( webrtc::PeerConnectionInterface::IceG
 
 void PeerConnection::OnAddStream( webrtc::MediaStreamInterface* media_stream ) {
   TRACE_CALL;
-  media_stream->AddRef();
   QueueEvent(PeerConnection::NOTIFY_ADD_STREAM, static_cast<void*>(media_stream));
   TRACE_END;
 }
 
 void PeerConnection::OnRemoveStream( webrtc::MediaStreamInterface* media_stream ) {
   TRACE_CALL;
-  media_stream->AddRef();
   QueueEvent(PeerConnection::NOTIFY_REMOVE_STREAM, static_cast<void*>(media_stream));
   TRACE_END;
 }

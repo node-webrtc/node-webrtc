@@ -19,7 +19,7 @@ Persistent<Function> MediaStream::constructor;
 MediaStream::MediaStream(webrtc::MediaStreamInterface* msi)
 : _internalMediaStream(msi)
 {
-  msi->Release();
+  _internalMediaStream->AddRef();
   _inactive = !IsMediaStreamActive();
   uv_mutex_init(&lock);
   uv_async_init(uv_default_loop(), &async, Run);
@@ -29,7 +29,7 @@ MediaStream::MediaStream(webrtc::MediaStreamInterface* msi)
 
 MediaStream::~MediaStream()
 {
-
+  _internalMediaStream->Release();
 }
 
 NAN_METHOD(MediaStream::New) {
@@ -103,7 +103,7 @@ void MediaStream::Run(uv_async_t* handle, int status)
     if(MediaStream::ACTIVE & evt.type)
     {
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ms->Get(String::New("onactive")));
-      if(!callback.IsEmpty())
+      if(!callback->IsUndefined())
       {
         v8::Local<v8::Value> argv[0];
         NanMakeCallback(ms, callback, 0, argv);
@@ -111,7 +111,7 @@ void MediaStream::Run(uv_async_t* handle, int status)
     } else if(MediaStream::INACTIVE & evt.type)
     {
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ms->Get(String::New("oninactive")));
-      if(!callback.IsEmpty())
+      if(!callback->IsUndefined())
       {
         v8::Local<v8::Value> argv[0];
         NanMakeCallback(ms, callback, 0, argv);
@@ -124,7 +124,7 @@ void MediaStream::Run(uv_async_t* handle, int status)
       cargv[0] = v8::External::New(static_cast<void*>(msti));
       v8::Local<v8::Value> mst = NanNew(MediaStreamTrack::constructor)->NewInstance(1, cargv);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ms->Get(String::New("onaddtrack")));
-      if(!callback.IsEmpty())
+      if(!callback->IsUndefined())
       {
         v8::Local<v8::Value> argv[1];
         argv[0] = mst;
@@ -138,7 +138,7 @@ void MediaStream::Run(uv_async_t* handle, int status)
       cargv[0] = v8::External::New(static_cast<void*>(msti));
       v8::Local<v8::Value> mst = NanNew(MediaStreamTrack::constructor)->NewInstance(1, cargv);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ms->Get(String::New("onremovetrack")));
-      if(!callback.IsEmpty())
+      if(!callback->IsUndefined())
       {
         v8::Local<v8::Value> argv[1];
         argv[0] = mst;
@@ -231,7 +231,6 @@ NAN_METHOD(MediaStream::getTrackById) {
 
   talk_base::scoped_refptr<webrtc::MediaStreamTrackInterface> track = audioTrack.get() ? audioTrack : videoTrack;
   webrtc::MediaStreamTrackInterface* msti = track.get();
-  msti->AddRef();
 
   v8::Local<v8::Value> cargv[1];
   cargv[0] = v8::External::New(static_cast<void*>(msti));

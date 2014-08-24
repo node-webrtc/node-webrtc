@@ -73,7 +73,13 @@ io.on('connection', function (socket) {
         };
 
         pc.oniceconnectionstatechange = function (evt) {
-            console.log('ICE:', pc.iceConnectionState);
+            if (pc.iceConnectionState === 'disconnected') {
+                console.log('client disconnected');
+                pc.close();
+            }
+            else if (pc.iceConnectionState === 'closed') {
+                pc = null;
+            }
         };
 
         /*if (isHost) {
