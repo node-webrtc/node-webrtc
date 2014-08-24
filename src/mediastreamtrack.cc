@@ -259,14 +259,14 @@ NAN_SETTER(MediaStreamTrack::ReadOnly) {
 }
 
 void MediaStreamTrack::Init( Handle<Object> exports ) {
-  Local<FunctionTemplate> tpl = FunctionTemplate::New( New );
+  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>( New );
   tpl->SetClassName( NanNew( "MediaStreamTrack" ) );
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   tpl->PrototypeTemplate()->Set( NanNew( "clone" ),
-    FunctionTemplate::New( clone )->GetFunction() );
+    NanNew<FunctionTemplate>( clone )->GetFunction() );
   tpl->PrototypeTemplate()->Set( NanNew( "stop" ),
-    FunctionTemplate::New( stop )->GetFunction() );
+    NanNew<FunctionTemplate>( stop )->GetFunction() );
 
   tpl->InstanceTemplate()->SetAccessor(NanNew("id"), GetId, ReadOnly);
   tpl->InstanceTemplate()->SetAccessor(NanNew("kind"), GetKind, ReadOnly);
@@ -277,6 +277,6 @@ void MediaStreamTrack::Init( Handle<Object> exports ) {
   tpl->InstanceTemplate()->SetAccessor(NanNew("remote"), GetRemote, ReadOnly);
   tpl->InstanceTemplate()->SetAccessor(NanNew("readyState"), GetReadyState, ReadOnly);
 
-  NanAssignPersistent(Function, constructor, tpl->GetFunction());
+  NanAssignPersistent(constructor, tpl->GetFunction());
   exports->Set( NanNew("MediaStreamTrack"), tpl->GetFunction() );
 }
