@@ -14,7 +14,7 @@ before_install:
   - npm install -g grunt-cli
   - npm install node-gyp -g
   - npm install aws-sdk
-  - PUBLISH_BINARY=true
+  - PUBLISH_BINARY=false
   - if [[ $TRAVIS_BRANCH == `git describe --tags --always HEAD` ]]; then PUBLISH_BINARY=true; fi;
   
 install:
