@@ -76,7 +76,7 @@
           process.stderr.write('error (see build.log for details): ', code, signal, '\r\n');
           process.exit(-1);
         } else {
-          process.stdout.write('done\r\n');
+          process.stdout.write(' done\r\n');
           process.nextTick(nextstep);
         }
       });
@@ -121,28 +121,51 @@
       gclient_sync
     )
   }
+  
+  var timer = null;
+  
+  function startTimer() {
+    timer = setInterval(function() {
+      process.stdout.write('.');
+    }, 10000);
+  }
+  
+  function stopTimer() {
+    clearInterval(timer);
+    timer = null;
+  }
 
   function gclient_sync() {
     process.stdout.write('Syncing upstream libjingle ... ');
     process.chdir(LIB_WEBRTC_DIR);
+    
     spawn_log(GCLIENT,
       ['sync', '-f', '-n', '-D', '-j1', '-r'+LIBWEBRTC_REVISION],
       gclient_runhooks
     )
+    
+    startTimer();
   }
 
   function gclient_runhooks(cb) {
+    stopTimer();
+    
     process.stdout.write('Executing runhooks ... ');
     process.chdir(LIB_WEBRTC_DIR);
+    
     spawn_log(GCLIENT,
       ['runhooks', '-j1'],
       build
     );
+    
+    startTimer();
   }
 
   function build() {
+    stopTimer();
+    
     process.stdout.write('Building libjingle ... ');
-    var args = ['-C', 'trunk/out/' + CONFIGURATION];
+    var args = ['-j1', '-C', 'trunk/out/' + CONFIGURATION];
 
     switch(PLATFORM) {
       case 'linux':
@@ -150,16 +173,20 @@
         break;
       default:
         break;
-    }
+   } 
 
     process.chdir(LIB_WEBRTC_DIR);
     spawn_log(NINJA,
       args,
       complete
     );
+    
+    startTimer();
   }
 
   function complete() {
+    stopTimer();
+    
     process.stdout.write('Build complete\r\n');
   }
 
