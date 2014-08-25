@@ -26,6 +26,9 @@ before_script:
   - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp package unpublish publish; fi;
   - node-pre-gyp clean
   - node-gyp clean
+  
+after_failure: 
+  - cat /home/travis/build/js-platform/node-webrtc/build.log
 
 script:
   - echo "script"
