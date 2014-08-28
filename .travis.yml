@@ -27,6 +27,7 @@ install:
 
 before_script:
   - echo $PUBLISH_BINARY
+  - echo $TRAVIS_TAG
   - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp package unpublish publish; fi;
   - node-pre-gyp clean
   - node-gyp clean
