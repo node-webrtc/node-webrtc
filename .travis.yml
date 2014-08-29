@@ -1,6 +1,6 @@
 branches:
   only:
-    - /^v[0-9]/
+    - /^v[0-9]+\.[0-9]+\.[0-9]/
 
 os:
   - linux
@@ -18,8 +18,7 @@ before_install:
   - npm install -g grunt-cli
   - npm install node-gyp -g
   - npm install aws-sdk
-  - PUBLISH_BINARY=false
-  - if [[ $TRAVIS_BRANCH == `git describe --tags --always HEAD` ]]; then PUBLISH_BINARY=true; fi;
+  - PUBLISH_BINARY=true
 
 install:
   - npm install --build-from-source
@@ -27,7 +26,6 @@ install:
 
 before_script:
   - echo $PUBLISH_BINARY
-  - echo $TRAVIS_TAG
   - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp package unpublish publish; fi;
   - node-pre-gyp clean
   - node-gyp clean
