@@ -1,6 +1,6 @@
 branches:
   only:
-    - develop
+    - /^tag-.*$/
 
 os:
   - linux
