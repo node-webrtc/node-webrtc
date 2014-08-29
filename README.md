@@ -78,7 +78,7 @@ options:
 -ws port of the Web Socket server (default 9001)
 ````
 
-If the bridge and peer are on different machines, you can pass the bridge address to the peer by: 
+If the bridge and peer are on different machines, you can pass the bridge address to the peer by:
 ````
 http://<webserver>/peer.html?<sockertserver:port>
 ````
