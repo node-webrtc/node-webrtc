@@ -44,4 +44,4 @@ env:
     - JAVA_HOME="/usr/lib/jvm/java-7-oracle"
     - MAKEOPTS="-j1"
     - secure: "BrNoIfou5SyigUJpF1YSZ34TxKcI0BuR1ZcO/Myj48vT4Dc+tiGbKwnfsn39lLF0h1rJHbcSdbeyVrNUCqBhjZDr9tSDlIyvUh30R/gSZhr4kH42WoLwsWHhSDxyK6oZ1AS5zs4rP/dLJiSYpouuEnwt0AgLyB+8J3ZF3W6oT5s="
-    - secure: "htDWLxjfGJjNQHObr8dD0QYZPSl6CIberG4MVXASU4sImqg42AE2c5KFMDWZXHl9b2t/2Usybvu0Z8AZ+STUL2QsQRW3Z19s08Zg1Om5Av8ws16/EJvOY56xQsm3ESgvurmkQwU/jOGtpWVXGoyJ0XHtMwTbtB/n6MwxCyJeDHQ="
+    - secure: "EGGkeg5Fj/k+TCxIOVd22qWH96qL/p2lAgiAmWvLOAfpX/r2YEgYvJq2JscsUr7y2v7Y5h4HjfpOfLJtoXNoUt8jlsb+RMa2bFvxUH8IGp267jyQS8nawF83Z3HexFaMPb92HRr4ofiUM+eW1jXu6Izk8xkAeXK5c/ZGq5xydAo="
