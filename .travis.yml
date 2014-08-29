@@ -1,6 +1,6 @@
 branches:
   only:
-    - /^tag-.*$/
+    - /^v(\d+\\.)?(\d+\\.)?(\\*|\d+)$/
 
 os:
   - linux
