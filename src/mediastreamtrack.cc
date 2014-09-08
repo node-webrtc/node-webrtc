@@ -277,6 +277,6 @@ void MediaStreamTrack::Init( Handle<Object> exports ) {
   tpl->InstanceTemplate()->SetAccessor(NanNew("remote"), GetRemote, ReadOnly);
   tpl->InstanceTemplate()->SetAccessor(NanNew("readyState"), GetReadyState, ReadOnly);
 
-  NanAssignPersistent(Function, constructor, tpl->GetFunction());
+  NanAssignPersistent(constructor, tpl->GetFunction());
   exports->Set( NanNew("MediaStreamTrack"), tpl->GetFunction() );
 }
