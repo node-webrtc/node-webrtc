@@ -19,17 +19,16 @@ Persistent<Function> MediaStream::constructor;
 MediaStream::MediaStream(webrtc::MediaStreamInterface* msi)
 : _internalMediaStream(msi)
 {
-  msi->Release();
   _inactive = !IsMediaStreamActive();
   uv_mutex_init(&lock);
-  uv_async_init(uv_default_loop(), &async, Run);
+  uv_async_init(uv_default_loop(), &async, reinterpret_cast<uv_async_cb>(Run));
 
   async.data = this;
 }
 
 MediaStream::~MediaStream()
 {
-
+  _internalMediaStream = NULL;
 }
 
 NAN_METHOD(MediaStream::New) {
@@ -102,7 +101,7 @@ void MediaStream::Run(uv_async_t* handle, int status)
 
     if(MediaStream::ACTIVE & evt.type)
     {
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ms->Get(String::New("onactive")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ms->Get(NanNew("onactive")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[0];
@@ -110,7 +109,7 @@ void MediaStream::Run(uv_async_t* handle, int status)
       }
     } else if(MediaStream::INACTIVE & evt.type)
     {
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ms->Get(String::New("oninactive")));
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ms->Get(NanNew("oninactive")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[0];
@@ -121,9 +120,9 @@ void MediaStream::Run(uv_async_t* handle, int status)
     {
       webrtc::MediaStreamTrackInterface* msti = static_cast<webrtc::MediaStreamTrackInterface*>(evt.data);
       v8::Local<v8::Value> cargv[1];
-      cargv[0] = v8::External::New(static_cast<void*>(msti));
-      v8::Local<v8::Value> mst = NanPersistentToLocal(MediaStreamTrack::constructor)->NewInstance(1, cargv);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ms->Get(String::New("onaddtrack")));
+      cargv[0] = NanNew<External>(static_cast<void*>(msti));
+      v8::Local<v8::Value> mst = NanNew(MediaStreamTrack::constructor)->NewInstance(1, cargv);
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ms->Get(NanNew("onaddtrack")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
@@ -135,9 +134,9 @@ void MediaStream::Run(uv_async_t* handle, int status)
     {
       webrtc::MediaStreamTrackInterface* msti = static_cast<webrtc::MediaStreamTrackInterface*>(evt.data);
       v8::Local<v8::Value> cargv[1];
-      cargv[0] = v8::External::New(static_cast<void*>(msti));
-      v8::Local<v8::Value> mst = NanPersistentToLocal(MediaStreamTrack::constructor)->NewInstance(1, cargv);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ms->Get(String::New("onremovetrack")));
+      cargv[0] = NanNew<External>(static_cast<void*>(msti));
+      v8::Local<v8::Value> mst = NanNew(MediaStreamTrack::constructor)->NewInstance(1, cargv);
+      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(ms->Get(NanNew("onremovetrack")));
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[1];
@@ -146,7 +145,6 @@ void MediaStream::Run(uv_async_t* handle, int status)
       }
     }
   }
-  scope.Close(Undefined());
   TRACE_END;
 }
 
@@ -187,12 +185,12 @@ NAN_METHOD(MediaStream::getAudioTracks) {
   MediaStream* self = ObjectWrap::Unwrap<MediaStream>( args.Holder() );
   webrtc::AudioTrackVector audioTracks = self->_internalMediaStream->GetAudioTracks();
 
-  v8::Local<v8::Array> array = v8::Array::New(audioTracks.size());
+  v8::Local<v8::Array> array = NanNew<Array>(audioTracks.size());
   int index = 0;
   for (webrtc::AudioTrackVector::iterator track = audioTracks.begin(); track != audioTracks.end(); track++, index++) {
     v8::Local<v8::Value> cargv[1];
-    cargv[0] = v8::External::New(static_cast<void*>(track->get()));
-    array->Set(index, NanPersistentToLocal(MediaStreamTrack::constructor)->NewInstance(1, cargv));
+    cargv[0] = NanNew<External>(static_cast<void*>(track->get()));
+    array->Set(index, NanNew(MediaStreamTrack::constructor)->NewInstance(1, cargv));
   }
 
   TRACE_END;
@@ -206,12 +204,12 @@ NAN_METHOD(MediaStream::getVideoTracks) {
   MediaStream* self = ObjectWrap::Unwrap<MediaStream>( args.Holder() );
   webrtc::VideoTrackVector videoTracks = self->_internalMediaStream->GetVideoTracks();
 
-  v8::Local<v8::Array> array = v8::Array::New(videoTracks.size());
+  v8::Local<v8::Array> array = NanNew<Array>(videoTracks.size());
   int index = 0;
   for (webrtc::VideoTrackVector::iterator track = videoTracks.begin(); track != videoTracks.end(); track++, index++) {
     v8::Local<v8::Value> cargv[1];
-    cargv[0] = v8::External::New(static_cast<void*>(track->get()));
-    array->Set(index, NanPersistentToLocal(MediaStreamTrack::constructor)->NewInstance(1, cargv));
+    cargv[0] = NanNew<External>(static_cast<void*>(track->get()));
+    array->Set(index, NanNew(MediaStreamTrack::constructor)->NewInstance(1, cargv));
   }
 
   TRACE_END;
@@ -234,8 +232,8 @@ NAN_METHOD(MediaStream::getTrackById) {
   msti->AddRef();
 
   v8::Local<v8::Value> cargv[1];
-  cargv[0] = v8::External::New(static_cast<void*>(msti));
-  v8::Local<v8::Value> mst = NanPersistentToLocal(MediaStreamTrack::constructor)->NewInstance(1, cargv);
+  cargv[0] = NanNew<External>(static_cast<void*>(msti));
+  v8::Local<v8::Value> mst = NanNew(MediaStreamTrack::constructor)->NewInstance(1, cargv);
 
   TRACE_END;
   NanReturnValue(mst);
@@ -255,7 +253,7 @@ NAN_METHOD(MediaStream::addTrack) {
   }
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnUndefined();
 }
 
 NAN_METHOD(MediaStream::removeTrack) {
@@ -272,7 +270,7 @@ NAN_METHOD(MediaStream::removeTrack) {
   }
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnUndefined();
 }
 
 NAN_METHOD(MediaStream::clone) {
@@ -280,7 +278,7 @@ NAN_METHOD(MediaStream::clone) {
   NanScope();
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  NanReturnUndefined();
 }
 
 NAN_GETTER(MediaStream::GetId) {
@@ -292,7 +290,7 @@ NAN_GETTER(MediaStream::GetId) {
   std::string label = self->_internalMediaStream->label();
 
   TRACE_END;
-  NanReturnValue(String::New(label.c_str()));
+  NanReturnValue(NanNew(label.c_str()));
 }
 
 NAN_GETTER(MediaStream::IsInactive) {
@@ -303,7 +301,7 @@ NAN_GETTER(MediaStream::IsInactive) {
   bool inactive = self->_inactive;
 
   TRACE_END;
-  NanReturnValue(Boolean::New(inactive));
+  NanReturnValue(NanNew<Boolean>(inactive));
 }
 
 NAN_SETTER(MediaStream::ReadOnly) {
@@ -312,27 +310,27 @@ NAN_SETTER(MediaStream::ReadOnly) {
 
 
 void MediaStream::Init( Handle<Object> exports ) {
-  Local<FunctionTemplate> tpl = FunctionTemplate::New( New );
-  tpl->SetClassName( String::NewSymbol( "MediaStream" ) );
+  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>( New );
+  tpl->SetClassName( NanNew( "MediaStream" ) );
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "getaudiotracks" ),
-    FunctionTemplate::New( getAudioTracks )->GetFunction() );
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "getvideotracks" ),
-    FunctionTemplate::New( getVideoTracks )->GetFunction() );
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "gettrackbyid" ),
-    FunctionTemplate::New( getTrackById )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "getAudioTracks" ),
+    NanNew<FunctionTemplate>( getAudioTracks )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "getVideoTracks" ),
+    NanNew<FunctionTemplate>( getVideoTracks )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "getTrackById" ),
+    NanNew<FunctionTemplate>( getTrackById )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "addtrack" ),
-    FunctionTemplate::New( addTrack )->GetFunction() );
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "removetrack" ),
-    FunctionTemplate::New( removeTrack )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "addTrack" ),
+    NanNew<FunctionTemplate>( addTrack )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "removeTrack" ),
+    NanNew<FunctionTemplate>( removeTrack )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( String::NewSymbol( "clone" ),
-    FunctionTemplate::New( clone )->GetFunction() );
+  tpl->PrototypeTemplate()->Set( NanNew( "clone" ),
+    NanNew<FunctionTemplate>( clone )->GetFunction() );
 
-  tpl->InstanceTemplate()->SetAccessor(String::New("id"), GetId, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(String::New("inactive"), IsInactive, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("id"), GetId, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("inactive"), IsInactive, ReadOnly);
 
-  NanAssignPersistent(Function, constructor, tpl->GetFunction());
-  exports->Set( String::NewSymbol("MediaStream"), tpl->GetFunction() );
+  NanAssignPersistent(constructor, tpl->GetFunction());
+  exports->Set( NanNew("MediaStream"), tpl->GetFunction() );
 }
