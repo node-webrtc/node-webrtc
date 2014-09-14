@@ -32,14 +32,14 @@ NAN_METHOD(GetUserMedia) {
   NanScope();
 
   v8::Local<v8::Object> options = v8::Local<v8::Object>::Cast(args[0]);
-  /*v8::Local<v8::Boolean> audio = options->Get(v8::String::NewSymbol("audio"))->ToBoolean();
-  v8::Local<v8::Boolean> video = options->Get(v8::String::NewSymbol("video"))->ToBoolean();*/
+  /*v8::Local<v8::Boolean> audio = options->Get(NanNew("audio"))->ToBoolean();
+  v8::Local<v8::Boolean> video = options->Get(NanNew("video"))->ToBoolean();*/
 
   /*talk_base::scoped_refptr<webrtc::MediaStreamInterface> stream = getUserMedia(audio->Value(), video->Value());*/
   talk_base::scoped_refptr<webrtc::MediaStreamInterface> stream = getUserMedia(true, false);
 
   v8::Local<v8::Value> cargv[1];
-  cargv[0] = v8::External::New(static_cast<void*>(stream));
+  cargv[0] = NanNew<External>(static_cast<void*>(stream));
 
   v8::Local<v8::Value> wrapped = NanNew(MediaStream::constructor)->NewInstance(1, cargv);
 

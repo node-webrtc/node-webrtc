@@ -15,8 +15,8 @@ void init(v8::Handle<v8::Object> exports) {
   node_webrtc::DataChannel::Init(exports);
   MediaStream::Init(exports);
   MediaStreamTrack::Init(exports);
-  exports->Set( String::NewSymbol("getUserMedia"),
-    FunctionTemplate::New( GetUserMedia )->GetFunction() );
+  exports->Set( NanNew("getUserMedia"),
+    NanNew<v8::FunctionTemplate>( GetUserMedia )->GetFunction() );
 }
 
 NODE_MODULE(wrtc, init)
