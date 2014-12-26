@@ -9,8 +9,8 @@ var RTCIceCandidate       = wrtc.RTCIceCandidate;
 
 var dataChannelSettings = {
   'reliable': {
-        outOfOrderAllowed: false,
-        maxRetransmitNum: 10
+        ordered: false,
+        maxRetransmits: 10
       },
   /*
   'reliable': {},
@@ -157,9 +157,19 @@ function doSendOffer(offer)
     } else if('ice' == data.type)
     {
       var candidate = new RTCIceCandidate(data.sdp.candidate);
-      pc.addIceCandidate(candidate);
+      if(candidate.candidate) {
+        pc.addIceCandidate(candidate, handleAddIceCandidateSuccess, handleAddIceCandidateError);
+      }
     }
   };
+}
+
+function handleAddIceCandidateSuccess() {
+
+}
+
+function handleAddIceCandidateError() {
+
 }
 
 function doSetRemoteDesc(desc)

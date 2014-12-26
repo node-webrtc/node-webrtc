@@ -11,8 +11,8 @@
 
 #include "talk/app/webrtc/jsep.h"
 #include "talk/app/webrtc/datachannelinterface.h"
-#include "talk/base/thread.h"
-#include "talk/base/scoped_ptr.h"
+#include "webrtc/base/thread.h"
+#include "webrtc/base/scoped_ptr.h"
 #include "webrtc/system_wrappers/interface/ref_count.h"
 
 #include "common.h"
@@ -112,7 +112,7 @@ private:
   uv_loop_t *loop;
   std::queue<AsyncEvent> _events;
 
-  talk_base::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
+  rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
   DataChannelObserver* _observer;
   BinaryType _binaryType;
 
@@ -126,7 +126,7 @@ class DataChannelObserver
   : public webrtc::DataChannelObserver
 {
   public:
-    DataChannelObserver(talk_base::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel);
+    DataChannelObserver(rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel);
     virtual ~DataChannelObserver();
 
     virtual void OnStateChange();
@@ -135,7 +135,7 @@ class DataChannelObserver
 
     uv_mutex_t lock;
     std::queue<DataChannel::AsyncEvent> _events;
-    talk_base::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
+    rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
 };
 
 }

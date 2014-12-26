@@ -35,10 +35,10 @@ Persistent<Function> PeerConnection::constructor;
 PeerConnection::PeerConnection()
 : loop(uv_default_loop())
 {
-  _createOfferObserver = new talk_base::RefCountedObject<CreateOfferObserver>( this );
-  _createAnswerObserver = new talk_base::RefCountedObject<CreateAnswerObserver>( this );
-  _setLocalDescriptionObserver = new talk_base::RefCountedObject<SetLocalDescriptionObserver>( this );
-  _setRemoteDescriptionObserver = new talk_base::RefCountedObject<SetRemoteDescriptionObserver>( this );
+  _createOfferObserver = new rtc::RefCountedObject<CreateOfferObserver>( this );
+  _createAnswerObserver = new rtc::RefCountedObject<CreateAnswerObserver>( this );
+  _setLocalDescriptionObserver = new rtc::RefCountedObject<SetLocalDescriptionObserver>( this );
+  _setRemoteDescriptionObserver = new rtc::RefCountedObject<SetRemoteDescriptionObserver>( this );
 
   // FIXME: don't hardcode this, read from args instead
   webrtc::PeerConnectionInterface::IceServer iceServer;
@@ -52,7 +52,7 @@ PeerConnection::PeerConnection()
   constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveVideo, webrtc::MediaConstraintsInterface::kValueFalse);
 
   _jinglePeerConnectionFactory = webrtc::CreatePeerConnectionFactory();
-  _jinglePeerConnection = _jinglePeerConnectionFactory->CreatePeerConnection(_iceServers, &constraints, NULL, this);
+  _jinglePeerConnection = _jinglePeerConnectionFactory->CreatePeerConnection(_iceServers, &constraints, NULL, NULL, this);
 
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, reinterpret_cast<uv_async_cb>(Run));
@@ -243,24 +243,6 @@ void PeerConnection::OnIceGatheringChange( webrtc::PeerConnectionInterface::IceG
   TRACE_END;
 }
 
-void PeerConnection::OnAddStream( webrtc::MediaStreamInterface* media_stream ) {
-  TRACE_CALL;
-  /*
-  media_stream->AddRef();
-  QueueEvent(PeerConnection::NOTIFY_ADD_STREAM, static_cast<void*>(media_stream));
-  */
-  TRACE_END;
-}
-
-void PeerConnection::OnRemoveStream( webrtc::MediaStreamInterface* media_stream ) {
-  TRACE_CALL;
-  /*
-  media_stream->AddRef();
-  QueueEvent(PeerConnection::NOTIFY_REMOVE_STREAM, static_cast<void*>(media_stream));
-  */
-  TRACE_END;
-}
-
 void PeerConnection::OnIceCandidate( const webrtc::IceCandidateInterface* candidate ) {
   TRACE_CALL;
   PeerConnection::IceEvent* data = new PeerConnection::IceEvent(candidate);
@@ -433,7 +415,7 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
     }
   }
 
-  talk_base::scoped_refptr<webrtc::DataChannelInterface> data_channel_interface = self->_jinglePeerConnection->CreateDataChannel(*label, &dataChannelInit);
+  rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel_interface = self->_jinglePeerConnection->CreateDataChannel(*label, &dataChannelInit);
   DataChannelObserver* observer = new DataChannelObserver(data_channel_interface);
 
   v8::Local<v8::Value> cargv[1];
@@ -477,7 +459,7 @@ NAN_METHOD(PeerConnection::GetLocalStreams) {
   NanScope();
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
-  talk_base::scoped_refptr<webrtc::StreamCollectionInterface> _streams = self->_jinglePeerConnection->local_streams();
+  rtc::scoped_refptr<webrtc::StreamCollectionInterface> _streams = self->_jinglePeerConnection->local_streams();
 
   v8::Local<v8::Array> array = NanNew<v8::Array>(_streams->count());
   for (unsigned int index = 0; index < _streams->count(); index++) {
@@ -495,7 +477,7 @@ NAN_METHOD(PeerConnection::GetRemoteStreams) {
   NanScope();
 
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
-  talk_base::scoped_refptr<webrtc::StreamCollectionInterface> _streams = self->_jinglePeerConnection->remote_streams();
+  rtc::scoped_refptr<webrtc::StreamCollectionInterface> _streams = self->_jinglePeerConnection->remote_streams();
 
   v8::Local<v8::Array> array = NanNew<v8::Array>(_streams->count());
   for (unsigned int index = 0; index < _streams->count(); index++) {
@@ -515,8 +497,8 @@ NAN_METHOD(PeerConnection::GetStreamById) {
   PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
   v8::String::Utf8Value param1(args[0]->ToString());
   std::string _id = std::string(*param1);
-  talk_base::scoped_refptr<webrtc::StreamCollectionInterface> _local = self->_jinglePeerConnection->local_streams();
-  talk_base::scoped_refptr<webrtc::StreamCollectionInterface> _remote = self->_jinglePeerConnection->remote_streams();
+  rtc::scoped_refptr<webrtc::StreamCollectionInterface> _local = self->_jinglePeerConnection->local_streams();
+  rtc::scoped_refptr<webrtc::StreamCollectionInterface> _remote = self->_jinglePeerConnection->remote_streams();
   webrtc::MediaStreamInterface* stream = _local->find(_id);
   if (!stream) {
       stream = _remote->find(_id);

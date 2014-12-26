@@ -1,7 +1,7 @@
 #include <node.h>
 #include <v8.h>
 
-#include "talk/base/ssladapter.h"
+#include "webrtc/base/ssladapter.h"
 
 #include "peerconnection.h"
 #include "datachannel.h"
@@ -9,7 +9,7 @@
 //#include "mediastreamtrack.h"
 
 void init(v8::Handle<v8::Object> exports) {
-  talk_base::InitializeSSL();
+  rtc::InitializeSSL();
   node_webrtc::PeerConnection::Init(exports);
   node_webrtc::DataChannel::Init(exports);
   //MediaStream::Init(exports);

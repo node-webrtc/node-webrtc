@@ -39,7 +39,6 @@
     "node-static-alias": "^0.1.0"
   },
   "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build",
     "test": "node test/all.js"
   },
   "bundledDependencies": [

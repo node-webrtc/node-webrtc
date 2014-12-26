@@ -41,7 +41,7 @@
   var HOST_ARCH = process.arch;
   var VERBOSE = !!parsed['verbose'];
   var PLATFORM = process.platform;
-  var LIBWEBRTC_REVISION = parsed['libwebrtc-revision'] || 'r5459';
+  var LIBWEBRTC_REVISION = parsed['libwebrtc-revision'] || 'r7090';
   var CONFIGURATION = parsed['configuration'] || 'Release'
   //var CONFIGURATION = 'Release';
 

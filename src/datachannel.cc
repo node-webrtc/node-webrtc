@@ -17,7 +17,7 @@ v8::Persistent<v8::Function> DataChannel::constructor;
 v8::Persistent<v8::Function> DataChannel::ArrayBufferConstructor;
 #endif
 
-DataChannelObserver::DataChannelObserver(talk_base::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel) {
+DataChannelObserver::DataChannelObserver(rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel) {
   TRACE_CALL;
   uv_mutex_init(&lock);
   _jingleDataChannel = jingleDataChannel;
@@ -245,7 +245,7 @@ NAN_METHOD(DataChannel::Send) {
     void* data = arraybuffer->GetIndexedPropertiesExternalArrayData();
     uint32_t data_len = arraybuffer->GetIndexedPropertiesExternalArrayDataLength();
 
-    talk_base::Buffer buffer(data, data_len);
+    rtc::Buffer buffer(data, data_len);
     webrtc::DataBuffer data_buffer(buffer, true);
     self->_jingleDataChannel->Send(data_buffer);
   }

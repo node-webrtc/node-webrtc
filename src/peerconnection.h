@@ -11,8 +11,8 @@
 
 #include "talk/app/webrtc/jsep.h"
 #include "talk/app/webrtc/peerconnectioninterface.h"
-#include "talk/base/thread.h"
-#include "talk/base/scoped_ptr.h"
+#include "webrtc/base/thread.h"
+#include "webrtc/base/scoped_ptr.h"
 #include "webrtc/system_wrappers/interface/ref_count.h"
 #include "datachannel.h"
 
@@ -131,8 +131,6 @@ public:
   virtual void OnIceCandidate(const webrtc::IceCandidateInterface* candidate );
   virtual void OnRenegotiationNeeded();
 
-  virtual void OnAddStream( webrtc::MediaStreamInterface* stream );
-  virtual void OnRemoveStream( webrtc::MediaStreamInterface* stream );
   virtual void OnDataChannel( webrtc::DataChannelInterface* data_channel );
 
   //
@@ -182,13 +180,13 @@ private:
   webrtc::PeerConnectionInterface::IceServers _iceServers;
   webrtc::MediaConstraintsInterface* _mediaConstraints;
 
-  talk_base::scoped_refptr<CreateOfferObserver> _createOfferObserver;
-  talk_base::scoped_refptr<CreateAnswerObserver> _createAnswerObserver;
-  talk_base::scoped_refptr<SetLocalDescriptionObserver> _setLocalDescriptionObserver;
-  talk_base::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
+  rtc::scoped_refptr<CreateOfferObserver> _createOfferObserver;
+  rtc::scoped_refptr<CreateAnswerObserver> _createAnswerObserver;
+  rtc::scoped_refptr<SetLocalDescriptionObserver> _setLocalDescriptionObserver;
+  rtc::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
-  talk_base::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _jinglePeerConnectionFactory;
-  talk_base::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
+  rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _jinglePeerConnectionFactory;
+  rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
 };
 
 }

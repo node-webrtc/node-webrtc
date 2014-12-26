@@ -14,14 +14,7 @@ var dataChannelSettings = {
   'reliable': {
         ordered: false,
         maxRetransmits: 0
-      },
-  /*
-  'reliable': {},
-  '@control': {
-        outOfOrderAllowed: true,
-        maxRetransmitNum: 0
       }
-  */
 };
 
 var pendingDataChannels = {};
@@ -68,7 +61,9 @@ wss.on('connection', function(ws)
     remoteReceived = true;
     pendingCandidates.forEach(function(candidate)
     {
-      pc.addIceCandidate(new webrtc.RTCIceCandidate(candidate.sdp));
+      if(candidate.sdp) {
+        pc.addIceCandidate(new webrtc.RTCIceCandidate(candidate.sdp));
+      }
     });
     pc.createAnswer(
       doSetLocalDesc,
@@ -182,7 +177,9 @@ wss.on('connection', function(ws)
     {
       if(remoteReceived)
       {
-        pc.addIceCandidate(new webrtc.RTCIceCandidate(data.sdp.candidate));
+        if(data.sdp.candidate) {
+          pc.addIceCandidate(new webrtc.RTCIceCandidate(data.sdp.candidate));
+        }
       } else
       {
         pendingCandidates.push(data);

@@ -8,10 +8,12 @@ var pc1 = new RTCPeerConnection();
 var pc2 = new RTCPeerConnection();
 
 pc1.onicecandidate = function(candidate) {
+  if(!candidate.candidate) return;
   pc2.addIceCandidate(candidate.candidate);
 }
 
 pc2.onicecandidate = function(candidate) {
+  if(!candidate.candidate) return;
   pc1.addIceCandidate(candidate.candidate);
 }
 
