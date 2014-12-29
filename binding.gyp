@@ -1,7 +1,7 @@
 {
   'variables': {
     'libwebrtc%': 'third_party/libwebrtc',
-    'configuration%': 'Release',
+    #'configuration%': 'Release',
   },
   'conditions': [
     ['OS=="linux"', {
@@ -29,7 +29,7 @@
           'inputs': [],
           'outputs': ['/dev/null'],
           'action': [
-            'node', 'bin/build.js', '--target-arch', '<(target_arch)', '--configuration', '<(configuration)'
+            'node', 'bin/build.js', '--target-arch', '<(target_arch)', '--configuration', '$(BUILDTYPE)'
           ],
           'message': 'Run build script'
         }
@@ -40,7 +40,7 @@
       'dependencies': [
       ],
       'variables': {
-        'libwebrtc_out%': '<(libwebrtc)/out/<(configuration)/obj',
+        'libwebrtc_out%': '<(libwebrtc)/out/$(BUILDTYPE)/obj',
       },
       'cflags': [
         '-pthread',
