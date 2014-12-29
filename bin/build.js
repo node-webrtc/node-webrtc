@@ -48,58 +48,44 @@
   process.env.GYP_GENERATORS = NINJA;
   process.env.GYP_DEFINES = ('host_arch=' + HOST_ARCH + ' target_arch=' + TARGET_ARCH);
 
-  var first = true;
   function spawn_log(cmd, args, opts, nextstep) {
     if (arguments.length == 3) {
         nextstep = opts;
         opts = {};
     }
 
-    var logpath = PROJECT_DIR + '/build.log';
-    if(first && fs.existsSync(logpath)) {
-      fs.truncateSync(logpath, 0);
-    }
-    first = false;
 
-    var log1 = fs.createWriteStream(logpath, {flags: 'a'});
-    var log2 = fs.createWriteStream(logpath, {flags: 'a'});
-
-    log1.on('open', function(){
-    log2.on('open', function(){
-      opts.stdio = ['ignore', log1, log2];
-      var proc = spawn(cmd, args, opts);
-      proc.on('exit', function(code, signal) {
-        if (code !== undefined && code !== 0) {
-          process.stderr.write('error (see build.log for details): ', code, signal, '\n');
-          process.exit(-1);
-        } else {
-          process.stdout.write(' done\n');
-          process.nextTick(nextstep);
-        }
-      });
-    });
+    opts.stdio = ['ignore', process.stdout, process.stderr];
+    var proc = spawn(cmd, args, opts);
+    proc.on('exit', function(code, signal) {
+      if (code !== undefined && code !== 0) {
+        console.error('ERROR:', code, signal, '\n');
+        process.exit(-1);
+      } else {
+        process.nextTick(nextstep);
+      }
     });
   }
 
   function prepare_directories() {
-    process.stdout.write('Preparing directories ... ');
     if(!fs.existsSync(LIB_DIR)) {
+      console.log(': Preparing directories ... ');
       fs.mkdirSync(LIB_DIR);
     }
 
-    process.stdout.write('done\n');
     process.nextTick(clone_depot_tools);
   }
 
   function clone_depot_tools() {
-    process.stdout.write('Cloning depot tools ... ');
     if(!fs.existsSync(DEPOT_TOOLS_DIR)) {
+      console.log(': Cloning depot_tools ... ');
       spawn_log('git',
         ['clone', '--depth', '1', '-v', '--progress', DEPOT_TOOLS_REPO],
         {'cwd': LIB_DIR},
         clone_libwebrtc_repo
       );
     } else {
+      console.log(': Updating depot_tools ... ');
       spawn_log('git',
         ['pull'],
         {'cwd': DEPOT_TOOLS_DIR},
@@ -109,14 +95,15 @@
   }
 
   function clone_libwebrtc_repo() {
-    process.stdout.write('Cloning libwebrtc repository ... ');
     if(!fs.existsSync(LIB_WEBRTC_DIR)) {
+      console.log(': Cloning libwebrtc ... ');
       spawn_log('git',
         ['clone', '--depth', '1', '-v', '--progress', LIB_WEBRTC_REPO],
         {'cwd': LIB_DIR},
         generate_build_scripts
       );
     } else {
+      console.log(': Updating libwebrtc ... ');
       spawn_log('git',
         ['pull'],
         {'cwd': LIB_WEBRTC_DIR},
@@ -142,7 +129,7 @@
   function generate_build_scripts() {
     stopTimer();
 
-    process.stdout.write('Generating build scripts ... ');
+    console.log(': Generating build scripts ... ');
     var args = ['webrtc/build/gyp_webrtc'];
 
     process.chdir(LIB_WEBRTC_DIR);
@@ -157,7 +144,7 @@
   function build() {
     stopTimer();
 
-    process.stdout.write('Building libwebrtc ... ');
+    console.log(': Building libwebrtc ... ');
     var args = ['-C', 'out/' + CONFIGURATION, 'wrtc_build'];
 
     process.chdir(LIB_WEBRTC_DIR);
@@ -172,7 +159,7 @@
   function complete() {
     stopTimer();
 
-    process.stdout.write('Build complete\n');
+    console.log(': Build complete\n');
   }
 
   prepare_directories();
