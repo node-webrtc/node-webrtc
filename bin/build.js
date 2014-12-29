@@ -42,7 +42,7 @@
   var PLATFORM = process.platform;
   var CONFIGURATION = parsed['configuration'] || 'Release'
 
-  console.log("TARGET_ARCH="+TARGET_ARCH, CONFIGURATION);
+  console.log("TARGET_ARCH="+TARGET_ARCH, "PLATFORM="+PLATFORM, "CONFIGURATION="+CONFIGURATION);
 
   process.env.PATH = DEPOT_TOOLS_DIR + ':' + process.env.PATH;
   process.env.GYP_GENERATORS = NINJA;
