@@ -8,21 +8,18 @@
   var nopt = require('nopt');
 
   var PROJECT_DIR = process.cwd();
-  var DEPOT_TOOLS_REPO = 'https://chromium.googlesource.com/chromium/tools/depot_tools.git';
-  var LIB_WEBRTC_DIR_REPO = 'http://webrtc.googlecode.com/svn/trunk';
+  var LIB_WEBRTC_REPO = 'https://github.com/js-platform/libwebrtc.git';
   var LIB_DIR = PROJECT_DIR + '/third_party';
   var LIB_WEBRTC_DIR = LIB_DIR + '/libwebrtc';
-  var DEPOT_TOOLS_DIR = LIB_DIR + '/depot_tools';
-  var GCLIENT = 'gclient';
   var NINJA = 'ninja';
   var MAKE = 'make';
+  var PYTHON = 'python';
   var NODE_GYP = PROJECT_DIR + '/node_modules/.bin/node-gyp';
 
   var knownOpts = {
     'target-arch': String,
     'gyp-gen': String,
     'verbose': Boolean,
-    'libwebrtc-revision': String,
     'configuration': String,
   };
 
@@ -41,13 +38,10 @@
   var HOST_ARCH = process.arch;
   var VERBOSE = !!parsed['verbose'];
   var PLATFORM = process.platform;
-  var LIBWEBRTC_REVISION = parsed['libwebrtc-revision'] || 'r7090';
   var CONFIGURATION = parsed['configuration'] || 'Release'
-  //var CONFIGURATION = 'Release';
 
-  console.log("TARGET_ARCH="+TARGET_ARCH, LIBWEBRTC_REVISION, CONFIGURATION);
+  console.log("TARGET_ARCH="+TARGET_ARCH, CONFIGURATION);
 
-  process.env.PATH = DEPOT_TOOLS_DIR + ':' + process.env.PATH;
   process.env.GYP_GENERATORS = NINJA;
   process.env.GYP_DEFINES = ('host_arch=' + HOST_ARCH + ' target_arch=' + TARGET_ARCH);
 
@@ -73,10 +67,10 @@
       var proc = spawn(cmd, args, opts);
       proc.on('exit', function(code, signal) {
         if (code !== undefined && code !== 0) {
-          process.stderr.write('error (see build.log for details): ', code, signal, '\r\n');
+          process.stderr.write('error (see build.log for details): ', code, signal, '\n');
           process.exit(-1);
         } else {
-          process.stdout.write(' done\r\n');
+          process.stdout.write(' done\n');
           process.nextTick(nextstep);
         }
       });
@@ -90,110 +84,77 @@
       fs.mkdirSync(LIB_DIR);
     }
 
-    process.stdout.write('done\r\n');
-    process.nextTick(clone_depot_tools);
+    process.stdout.write('done\n');
+    process.nextTick(clone_libwebrtc_repo);
   }
 
-  function clone_depot_tools() {
-    process.stdout.write('Cloning depot tools ... ');
-    if(!fs.existsSync(DEPOT_TOOLS_DIR)) {
+  function clone_libwebrtc_repo() {
+    process.stdout.write('Cloning libwebrtc repository ... ');
+    if(!fs.existsSync(LIB_WEBRTC_DIR)) {
       spawn_log('git',
-        ['clone', '-v', '--progress', DEPOT_TOOLS_REPO],
+        ['clone', '--depth', '1', '-v', '--progress', LIB_WEBRTC_REPO],
         {'cwd': LIB_DIR},
-        gclient_config
+        generate_build_scripts
       );
     } else {
-      process.stdout.write('skip\r\n');
-      process.nextTick(gclient_config);
+      spawn_log('git',
+        ['pull'],
+        {'cwd': LIB_WEBRTC_DIR},
+        generate_build_scripts
+      );
     }
   }
 
-  function gclient_config() {
-    process.stdout.write('Configuring gclient ... ');
-
-    if(!fs.existsSync(LIB_WEBRTC_DIR)) {
-      fs.mkdirSync(LIB_WEBRTC_DIR);
-    }
-
-    process.chdir(LIB_WEBRTC_DIR);
-    spawn_log(GCLIENT,
-      ['config', LIB_WEBRTC_DIR_REPO],
-      gclient_sync
-    )
-  }
-  
   var timer = null;
-  
+
   function startTimer() {
     timer = setInterval(function() {
       process.stdout.write('.');
     }, 10000);
   }
-  
+
   function stopTimer() {
+    if(!timer) return;
     clearInterval(timer);
     timer = null;
   }
 
-  function gclient_sync() {
-    process.stdout.write('Syncing upstream libjingle ... ');
-    process.chdir(LIB_WEBRTC_DIR);
-    
-    spawn_log(GCLIENT,
-      ['sync', '-f', '-n', '-D', '-j1', '-r'+LIBWEBRTC_REVISION],
-      gclient_runhooks
-    )
-    
-    startTimer();
-  }
-
-  function gclient_runhooks(cb) {
+  function generate_build_scripts() {
     stopTimer();
-    
-    process.stdout.write('Executing runhooks ... ');
+
+    process.stdout.write('Generating build scripts ... ');
+    var args = ['webrtc/build/gyp_webrtc'];
+
     process.chdir(LIB_WEBRTC_DIR);
-    
-    spawn_log(GCLIENT,
-      ['runhooks', '-j1'],
+    spawn_log(PYTHON,
+      args,
       build
     );
-    
+
     startTimer();
   }
 
   function build() {
     stopTimer();
-    
-    process.stdout.write('Building libjingle ... ');
-    var args = ['-j1', '-C', 'trunk/out/' + CONFIGURATION];
 
-    switch(PLATFORM) {
-      case 'linux':
-        args.push('peerconnection_client');
-        break;
-      default:
-        break;
-   } 
+    process.stdout.write('Building libwebrtc ... ');
+    var args = ['-C', 'out/' + CONFIGURATION, 'wrtc_build'];
 
     process.chdir(LIB_WEBRTC_DIR);
     spawn_log(NINJA,
       args,
       complete
     );
-    
+
     startTimer();
   }
 
   function complete() {
     stopTimer();
-    
-    process.stdout.write('Build complete\r\n');
+
+    process.stdout.write('Build complete\n');
   }
 
-  if(process.env.WRTC_BUILD_ONLY) {
-    build();
-  } else {
-    prepare_directories();
-  }
+  prepare_directories();
 
 })();
