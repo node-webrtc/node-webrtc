@@ -8,8 +8,10 @@
   var nopt = require('nopt');
 
   var PROJECT_DIR = process.cwd();
+  var DEPOT_TOOLS_REPO = 'https://chromium.googlesource.com/chromium/tools/depot_tools.git';
   var LIB_WEBRTC_REPO = 'https://github.com/js-platform/libwebrtc.git';
   var LIB_DIR = PROJECT_DIR + '/third_party';
+  var DEPOT_TOOLS_DIR = LIB_DIR + '/depot_tools';
   var LIB_WEBRTC_DIR = LIB_DIR + '/libwebrtc';
   var NINJA = 'ninja';
   var MAKE = 'make';
@@ -42,6 +44,7 @@
 
   console.log("TARGET_ARCH="+TARGET_ARCH, CONFIGURATION);
 
+  process.env.PATH = DEPOT_TOOLS_DIR + ':' + process.env.PATH;
   process.env.GYP_GENERATORS = NINJA;
   process.env.GYP_DEFINES = ('host_arch=' + HOST_ARCH + ' target_arch=' + TARGET_ARCH);
 
@@ -85,7 +88,24 @@
     }
 
     process.stdout.write('done\n');
-    process.nextTick(clone_libwebrtc_repo);
+    process.nextTick(clone_depot_tools);
+  }
+
+  function clone_depot_tools() {
+    process.stdout.write('Cloning depot tools ... ');
+    if(!fs.existsSync(DEPOT_TOOLS_DIR)) {
+      spawn_log('git',
+        ['clone', '--depth', '1', '-v', '--progress', DEPOT_TOOLS_REPO],
+        {'cwd': LIB_DIR},
+        clone_libwebrtc_repo
+      );
+    } else {
+      spawn_log('git',
+        ['pull', DEPOT_TOOLS_REPO],
+        {'cwd': LIB_DIR},
+        clone_libwebrtc_repo
+      );
+    }
   }
 
   function clone_libwebrtc_repo() {
