@@ -101,8 +101,8 @@
       );
     } else {
       spawn_log('git',
-        ['pull', DEPOT_TOOLS_REPO],
-        {'cwd': LIB_DIR},
+        ['pull'],
+        {'cwd': DEPOT_TOOLS_DIR},
         clone_libwebrtc_repo
       );
     }
