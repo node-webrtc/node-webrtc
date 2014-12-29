@@ -17,10 +17,10 @@
   'targets': [
     {
       'target_name': 'wrtc',
-      'dependencies': [],
+      'dependencies': [
+      ],
       'variables': {
-#        'libwebrtc_out%': '<(libwebrtc)/out/<(configuration)/obj',
-        'libwebrtc_out%': '<(libwebrtc)/out/Release/obj',
+        'libwebrtc_out%': '<(libwebrtc)/out/Debug/obj',
       },
       'cflags': [
         '-pthread',
@@ -78,16 +78,30 @@
           ['OS=="linux"', {
             'libraries': [
               '../<(libwebrtc_out)/talk/libjingle_peerconnection.a',
-              '-lssl',
+              '../<(libwebrtc_out)/talk/libjingle_p2p.a',
+              '../<(libwebrtc_out)/talk/libjingle_media.a',
+              '../<(libwebrtc_out)/webrtc/p2p/librtc_p2p.a',
+              '../<(libwebrtc_out)/webrtc/base/librtc_base.a',
+              '../<(libwebrtc_out)/webrtc/base/librtc_base_approved.a',
+              '../<(libwebrtc_out)/chromium/src/net/third_party/nss/libcrssl.a',
+              '../<(libwebrtc_out)/chromium/src/third_party/usrsctp/libusrsctplib.a',
+#             '-lssl',
               '-lnss3',
             ]
           }],
           ['OS=="mac"', {
             'libraries': [
-              '../<(libwebrtc_out)/../libjingle_peerconnection.a',
+              '../<(libwebrtc_out)/talk/libjingle_peerconnection.a',
+              '../<(libwebrtc_out)/talk/libjingle_p2p.a',
+              '../<(libwebrtc_out)/talk/libjingle_media.a',
+              '../<(libwebrtc_out)/webrtc/p2p/librtc_p2p.a',
+              '../<(libwebrtc_out)/webrtc/base/librtc_base.a',
+              '../<(libwebrtc_out)/webrtc/base/librtc_base_approved.a',
+              '../<(libwebrtc_out)/chromium/src/net/third_party/nss/libcrssl.a',
+              '../<(libwebrtc_out)/chromium/src/third_party/usrsctp/libusrsctplib.a',
               '-framework AppKit',
               '-framework QTKit',
-              '-lssl'
+#             '-lssl',
             ]
           }],
         ],

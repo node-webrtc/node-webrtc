@@ -638,22 +638,7 @@ void PeerConnection::Init( Handle<Object> exports ) {
 
   tpl->PrototypeTemplate()->Set( NanNew( "createDataChannel" ),
     NanNew<FunctionTemplate>( CreateDataChannel )->GetFunction() );
-/*
-  tpl->PrototypeTemplate()->Set( NanNew( "getLocalStreams" ),
-    NanNew<FunctionTemplate>( GetLocalStreams )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( NanNew( "getRemoteStreams" ),
-    NanNew<FunctionTemplate>( GetRemoteStreams )->GetFunction() );
-
-  tpl->PrototypeTemplate()->Set( NanNew( "getStreamById" ),
-    NanNew<FunctionTemplate>( GetStreamById )->GetFunction() );
-
-  tpl->PrototypeTemplate()->Set( NanNew( "addStream" ),
-    NanNew<FunctionTemplate>( AddStream )->GetFunction() );
-
-  tpl->PrototypeTemplate()->Set( NanNew( "removeStream" ),
-    NanNew<FunctionTemplate>( RemoveStream )->GetFunction() );
-*/
   tpl->PrototypeTemplate()->Set( NanNew( "close" ),
     NanNew<FunctionTemplate>( Close )->GetFunction() );
 
