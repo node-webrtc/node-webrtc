@@ -28,6 +28,12 @@ cd node-webrtc
 npm install
 ````
 
+## Troubleshooting
+
+### Error while loading libtinfo.so.5 on Linux
+
+`sudo ln -s /usr/lib/libncurses.so.5 /usr/lib/libtinfo.so.5`
+
 # Tests
 
 ## Unit tests
