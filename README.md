@@ -54,7 +54,7 @@ http://<webserver>/peer.html?<sockertserver:port>
 ````
 By default the bridge will be the same IP as the webserver and will listen on port 9001.
 
-## ping-pong
+## ping-pong-test.js
 
 The ping-pong example creates two peer connections and sends some data between them.
 
