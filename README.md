@@ -30,6 +30,8 @@ npm install
 
 # Tests
 
+## Unit tests
+
 Once everything is built, try `npm test` as a sanity check.
 
 ## bridge.js
@@ -51,3 +53,12 @@ If the bridge and peer are on different machines, you can pass the bridge addres
 http://<webserver>/peer.html?<sockertserver:port>
 ````
 By default the bridge will be the same IP as the webserver and will listen on port 9001.
+
+## ping-pong
+
+The ping-pong example creates two peer connections and sends some data between them.
+
+usage:
+````
+node examples/ping-pong-test.js
+````
