@@ -34,8 +34,7 @@
     "tape": "~2.4.2",
     "ws": "~0.4.31",
     "node-static": "^0.7.3",
-    "minimist": "0.0.8",
-    "node-static-alias": "^0.1.0"
+    "minimist": "0.0.8"
   },
   "scripts": {
     "test": "node test/all.js"

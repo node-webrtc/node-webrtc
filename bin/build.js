@@ -15,7 +15,7 @@
   var LIB_WEBRTC_DIR = LIB_DIR + '/libwebrtc';
   var NINJA = 'ninja';
   var MAKE = 'make';
-  var PYTHON = 'python';
+  var PYTHON = process.env['PYTHON'] || 'python';
   var NODE_GYP = PROJECT_DIR + '/node_modules/.bin/node-gyp';
 
   var knownOpts = {
@@ -40,9 +40,9 @@
   var HOST_ARCH = process.arch;
   var VERBOSE = !!parsed['verbose'];
   var PLATFORM = process.platform;
-  var CONFIGURATION = parsed['configuration'] || 'Release'
+  var CONFIGURATION = parsed['configuration'] || 'Release';
 
-  console.log("TARGET_ARCH="+TARGET_ARCH, "PLATFORM="+PLATFORM, "CONFIGURATION="+CONFIGURATION);
+  console.log("TARGET_ARCH="+TARGET_ARCH, "PLATFORM="+PLATFORM, "CONFIGURATION="+CONFIGURATION, "PYTHON="+PYTHON);
 
   process.env.PATH = DEPOT_TOOLS_DIR + ':' + process.env.PATH;
   process.env.GYP_GENERATORS = NINJA;
