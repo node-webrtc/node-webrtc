@@ -1,7 +1,5 @@
 [![NPM](https://nodei.co/npm/wrtc.png?downloads=true&stars=true)](https://nodei.co/npm/wrtc/)
 
-[![NPM](https://nodei.co/npm-dl/wrtc.png?height=3)](https://nodei.co/npm/wrtc/)
-
 [![Gratipay][wrtc-gratipay-image]][wrtc-gratipay-url]
 
 # Contributing
