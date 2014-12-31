@@ -12,7 +12,10 @@ Once you've done some hacking and you'd like to have your work merged, you'll ne
 
 ## Prerequisites
 
-[This section needs to be updated.]
+### Linux
+* ncurses
+* ssl
+* nss
 
 ## Install
 
