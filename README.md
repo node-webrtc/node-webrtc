@@ -1,4 +1,8 @@
-[![NPM](https://nodei.co/npm/wrtc.png?downloads=true&stars=true)](https://nodei.co/npm/wrtc/) [![NPM](https://nodei.co/npm-dl/wrtc.png?height=3)](https://nodei.co/npm/wrtc/)
+[![NPM](https://nodei.co/npm/wrtc.png?downloads=true&stars=true)](https://nodei.co/npm/wrtc/)
+
+[![NPM](https://nodei.co/npm-dl/wrtc.png?height=3)](https://nodei.co/npm/wrtc/)
+
+[![Gratipay][wrtc-gratipay-image]][wrtc-gratipay-url]
 
 # Contributing
 
@@ -68,3 +72,6 @@ usage:
 ````
 node examples/ping-pong-test.js
 ````
+
+[wrtc-gratipay-image]: https://img.shields.io/gratipay/modeswitch.svg?style=flat
+[wrtc-gratipay-url]: https://gratipay.com/modeswitch/
