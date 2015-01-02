@@ -14,6 +14,9 @@ Once you've done some hacking and you'd like to have your work merged, you'll ne
 
 ### Linux
 
+* python2
+* git
+* pkg-config
 * ncurses
 * ssl
 * nss
