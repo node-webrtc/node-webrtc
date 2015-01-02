@@ -14,9 +14,13 @@ Once you've done some hacking and you'd like to have your work merged, you'll ne
 
 ### Linux
 
-* ncurses
-* ssl
-* nss
+* python2
+* git
+* pkg-config
+* libncurses-devel
+* libssl-devel
+* libnss-devel
+* libexpat-devel
 
 Some of these libraries may be installed by default. Package names for these libraries may differ between distributions.
 
