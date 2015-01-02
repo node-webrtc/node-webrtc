@@ -10,7 +10,7 @@ node_js:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y g++ python libnss3-dev libudev-dev libgcrypt11-dev
+  - sudo apt-get install -y g++ python libnss3-dev libgcrypt11-dev
   - npm install -g grunt-cli
   - npm install node-gyp -g
 
