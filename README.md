@@ -13,9 +13,12 @@ Once you've done some hacking and you'd like to have your work merged, you'll ne
 ## Prerequisites
 
 ### Linux
+
 * ncurses
 * ssl
 * nss
+
+Some of these libraries may be installed by default. Package names for these libraries may differ between distributions.
 
 ## Install
 
