@@ -200,6 +200,41 @@ test('data channel connectivity', function(t) {
   t.pass('successfully called send on dc:0');
 });
 
+test('getStats', function(t) {
+  t.plan(2);
+
+  function getStats(peer, callback) {
+    peer.getStats(function(response) {
+      var reports = response.result();
+      callback(null, reports.map(function(report) {
+        var obj = {
+          timestamp: report.timestamp,
+          type: report.type
+        };
+        var names = report.names();
+        names.forEach(function(name) {
+          obj[name] = report.stat(name);
+        });
+        return obj;
+      }));
+    }, function(error) {
+      callback(error);
+    });
+  }
+
+  function done(error, reports) {
+    if (error) {
+      return t.fail(error);
+    }
+    console.log(reports);
+    t.pass('successfully called getStats');
+  }
+
+  peers.forEach(function(peer) {
+    getStats(peer, done);
+  });
+});
+
 test('close the connections', function(t) {
   t.plan(1);
   peers[0].close();
