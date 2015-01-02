@@ -87,7 +87,7 @@
     } else {
       console.log(': Updating depot_tools ... ');
       spawn_log('git',
-        ['pull'],
+        ['pull', 'origin', 'master'],
         {'cwd': DEPOT_TOOLS_DIR},
         clone_libwebrtc_repo
       );
@@ -105,7 +105,7 @@
     } else {
       console.log(': Updating libwebrtc ... ');
       spawn_log('git',
-        ['pull'],
+        ['pull', 'origin', 'master'],
         {'cwd': LIB_WEBRTC_DIR},
         generate_build_scripts
       );
