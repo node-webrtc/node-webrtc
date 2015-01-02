@@ -1,7 +1,3 @@
-branches:
-  only:
-    - /^v[0-9]+\.[0-9]+\.[0-9]/
-
 os:
   - linux
   - osx
@@ -14,34 +10,15 @@ node_js:
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y g++ python libnss3-dev libasound2-dev libpulse-dev libjpeg62-dev libxv-dev libgtk2.0-dev libexpat1-dev oracle-java7-installer subversion libudev-dev libdrm-dev libgconf2-dev libgcrypt11-dev libpci-dev libxtst-dev libxss-dev libgnome-keyring-dev
+  - sudo apt-get install -y g++ python libnss3-dev libudev-dev libgcrypt11-dev libpci-dev
   - npm install -g grunt-cli
   - npm install node-gyp -g
-  - npm install aws-sdk
-  - PUBLISH_BINARY=true
 
 install:
-  - npm install --build-from-source
-  - tail -n500 /home/travis/build/js-platform/node-webrtc/build.log
+  - npm install
 
 before_script:
-  - echo $PUBLISH_BINARY
-  - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp package unpublish publish; fi;
-  - node-pre-gyp clean
   - node-gyp clean
-
-after_failure:
-  - tail -n500 /home/travis/build/js-platform/node-webrtc/build.log
-
-script:
-  - echo "script"
 
 notifications:
   email: false
-
-env:
-  global:
-    - JAVA_HOME="/usr/lib/jvm/java-7-oracle"
-    - MAKEOPTS="-j1"
-    - secure: "BrNoIfou5SyigUJpF1YSZ34TxKcI0BuR1ZcO/Myj48vT4Dc+tiGbKwnfsn39lLF0h1rJHbcSdbeyVrNUCqBhjZDr9tSDlIyvUh30R/gSZhr4kH42WoLwsWHhSDxyK6oZ1AS5zs4rP/dLJiSYpouuEnwt0AgLyB+8J3ZF3W6oT5s="
-    - secure: "EGGkeg5Fj/k+TCxIOVd22qWH96qL/p2lAgiAmWvLOAfpX/r2YEgYvJq2JscsUr7y2v7Y5h4HjfpOfLJtoXNoUt8jlsb+RMa2bFvxUH8IGp267jyQS8nawF83Z3HexFaMPb92HRr4ofiUM+eW1jXu6Izk8xkAeXK5c/ZGq5xydAo="
