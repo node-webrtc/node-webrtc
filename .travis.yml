@@ -17,8 +17,5 @@ before_install:
 install:
   - npm install
 
-before_script:
-  - node-gyp clean
-
 notifications:
   email: false
