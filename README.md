@@ -37,7 +37,15 @@ npm install
 
 ### Error while loading libtinfo.so.5 on Linux
 
-`sudo ln -s /usr/lib/libncurses.so.5 /usr/lib/libtinfo.so.5`
+Add a symlink to libncurses:
+
+        sudo ln -s /usr/lib/libncurses.so.5 /usr/lib/libtinfo.so.5
+
+### Some linux distros default to Python3 and the build process fails
+
+This is most common on Arch Linux. Set `python2` as the default for `npm`:
+
+        npm config set python python2
 
 # Tests
 
