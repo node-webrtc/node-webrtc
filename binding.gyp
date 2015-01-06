@@ -118,6 +118,7 @@
               '../<(libwebrtc_out)/../librtc_base.a',
               '../<(libwebrtc_out)/../librtc_base_approved.a',
               '../<(libwebrtc_out)/../libusrsctplib.a',
+              '../<(libwebrtc_out)/../libboringssl.a',
               '-framework AppKit',
               '-framework QTKit',
 #             '-lssl',
