@@ -119,8 +119,8 @@
   function update_clang() {
     var CLANG_SCRIPT_DIR = LIB_WEBRTC_DIR + '/chromium/src/tools/clang/scripts';
     console.log(CLANG_SCRIPT_DIR);
-    spawn_log('sh',
-      ['update.sh'],
+    spawn_log('update.sh',
+      [],
       {'cwd': CLANG_SCRIPT_DIR},
       generate_build_scripts);
   }
