@@ -77,39 +77,52 @@
   }
 
   function clone_depot_tools() {
+    var next = clone_libwebrtc_repo;
+
     if(!fs.existsSync(DEPOT_TOOLS_DIR)) {
       console.log(': Cloning depot_tools ... ');
       spawn_log('git',
         ['clone', '--depth', '1', '-v', '--progress', DEPOT_TOOLS_REPO],
         {'cwd': LIB_DIR},
-        clone_libwebrtc_repo
+        next
       );
     } else {
       console.log(': Updating depot_tools ... ');
       spawn_log('git',
         ['pull', 'origin', 'master'],
         {'cwd': DEPOT_TOOLS_DIR},
-        clone_libwebrtc_repo
+        next
       );
     }
   }
 
   function clone_libwebrtc_repo() {
+    var next = update_clang;
+
     if(!fs.existsSync(LIB_WEBRTC_DIR)) {
       console.log(': Cloning libwebrtc ... ');
       spawn_log('git',
         ['clone', '--depth', '1', '-v', '--progress', LIB_WEBRTC_REPO],
         {'cwd': LIB_DIR},
-        generate_build_scripts
+        next
       );
     } else {
       console.log(': Updating libwebrtc ... ');
       spawn_log('git',
         ['pull', 'origin', 'master'],
         {'cwd': LIB_WEBRTC_DIR},
-        generate_build_scripts
+        next
       );
     }
+  }
+
+  function update_clang() {
+    var CLANG_SCRIPT_DIR = LIB_WEBRTC_DIR + '/chromium/src/tools/clang/scripts';
+    console.log(CLANG_SCRIPT_DIR);
+    spawn_log('sh',
+      ['update.sh'],
+      {'cwd': CLANG_SCRIPT_DIR},
+      generate_build_scripts);
   }
 
   var timer = null;
