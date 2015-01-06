@@ -22,6 +22,10 @@ Once you've done some hacking and you'd like to have your work merged, you'll ne
 * libnss-devel
 * libexpat-devel
 
+### OSX
+
+* XCode
+
 Some of these libraries may be installed by default. Package names for these libraries may differ between distributions.
 
 ## Install
