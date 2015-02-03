@@ -58,6 +58,10 @@ This is most common on Arch Linux. Set `python2` as the default for `npm`:
 
         npm config set python python2
 
+### The node.js package for my distro is too old
+
+Follow the instructions here: https://github.com/joyent/node/wiki/installing-node.js-via-package-manager
+
 # Tests
 
 ## Unit tests
