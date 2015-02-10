@@ -21,6 +21,8 @@
 #include "create-answer-observer.h"
 #include "set-local-description-observer.h"
 #include "set-remote-description-observer.h"
+#include "stats-observer.h"
+#include "rtcstatsresponse.h"
 
 using namespace node;
 using namespace v8;
@@ -117,6 +119,15 @@ void PeerConnection::Run(uv_async_t* handle, int status)
       v8::Local<v8::Value> argv[1];
       argv[0] = NanNew(data->desc);
       NanMakeCallback(pc, callback, 1, argv);
+    } else if(PeerConnection::GET_STATS_SUCCESS & evt.type)
+    {
+      PeerConnection::GetStatsEvent* data = static_cast<PeerConnection::GetStatsEvent*>(evt.data);
+      NanCallback *callback = data->callback;
+      v8::Local<v8::Value> cargv[1];
+      cargv[0] = NanNew<v8::External>(static_cast<void*>(&data->reports));
+      v8::Local<v8::Value> argv[1];
+      argv[0] = NanNew(RTCStatsResponse::constructor)->NewInstance(1, cargv);
+      callback->Call(1, argv);
     } else if(PeerConnection::VOID_EVENT & evt.type)
     {
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onsuccess")));
@@ -515,6 +526,31 @@ NAN_METHOD(PeerConnection::GetStreamById) {
   }
 }
 */
+NAN_METHOD(PeerConnection::GetStats) {
+  TRACE_CALL;
+  NanScope();
+
+  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
+
+  NanCallback *onSuccess = new NanCallback(args[0].As<Function>());
+  NanCallback *onFailure = new NanCallback(args[1].As<Function>());
+  rtc::scoped_refptr<StatsObserver> statsObserver =
+     new rtc::RefCountedObject<StatsObserver>( self, onSuccess );
+
+  if (!self->_jinglePeerConnection->GetStats(statsObserver,
+    webrtc::PeerConnectionInterface::kStatsOutputLevelStandard))
+  {
+    // TODO: Include error?
+    Local<Value> argv[] = {
+      NanNull()
+    };
+    onFailure->Call(1, argv);
+  }
+
+  TRACE_END;
+  NanReturnValue(NanUndefined());
+}
+
 NAN_METHOD(PeerConnection::UpdateIce) {
   TRACE_CALL;
   NanScope();
@@ -629,6 +665,9 @@ void PeerConnection::Init( Handle<Object> exports ) {
 
   tpl->PrototypeTemplate()->Set( NanNew( "setRemoteDescription" ),
     NanNew<FunctionTemplate>( SetRemoteDescription )->GetFunction() );
+
+  tpl->PrototypeTemplate()->Set( NanNew( "getStats" ),
+    NanNew<FunctionTemplate>( GetStats )->GetFunction() );
 
   tpl->PrototypeTemplate()->Set( NanNew( "updateIce" ),
     NanNew<FunctionTemplate>( UpdateIce )->GetFunction() );

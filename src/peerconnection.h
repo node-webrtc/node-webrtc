@@ -85,6 +85,14 @@ public:
     DataChannelObserver* observer;
   };
 
+  struct GetStatsEvent {
+    GetStatsEvent(NanCallback* callback, webrtc::StatsReports reports)
+    : callback(callback), reports(reports) {};
+
+    NanCallback* callback;
+    webrtc::StatsReports reports;
+  };
+
   enum AsyncEventType {
     CREATE_OFFER_SUCCESS = 0x1 << 0, // 1
     CREATE_OFFER_ERROR = 0x1 << 1, // 2
@@ -105,13 +113,14 @@ public:
     ICE_GATHERING_STATE_CHANGE = 0x1 << 16, // 65536
     NOTIFY_ADD_STREAM = 0x1 << 17, // 131072
     NOTIFY_REMOVE_STREAM = 0x1 << 18, // 262144
+    GET_STATS_SUCCESS = 0x1 << 19, // 524288
 
     ERROR_EVENT = CREATE_OFFER_ERROR | CREATE_ANSWER_ERROR |
                   SET_LOCAL_DESCRIPTION_ERROR | SET_REMOTE_DESCRIPTION_ERROR |
                   ADD_ICE_CANDIDATE_ERROR,
     SDP_EVENT = CREATE_OFFER_SUCCESS | CREATE_ANSWER_SUCCESS,
     VOID_EVENT = SET_LOCAL_DESCRIPTION_SUCCESS | SET_REMOTE_DESCRIPTION_SUCCESS |
-                 ADD_ICE_CANDIDATE_SUCCESS,
+                 ADD_ICE_CANDIDATE_SUCCESS | GET_STATS_SUCCESS,
     STATE_EVENT = SIGNALING_STATE_CHANGE | ICE_CONNECTION_STATE_CHANGE |
                   ICE_GATHERING_STATE_CHANGE
   };
@@ -154,6 +163,7 @@ public:
   static NAN_METHOD(AddStream);
   static NAN_METHOD(RemoveStream);
   */
+  static NAN_METHOD(GetStats);
   static NAN_METHOD(Close);
 
   static NAN_GETTER(GetLocalDescription);
