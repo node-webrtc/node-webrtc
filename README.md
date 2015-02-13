@@ -26,7 +26,7 @@ To install prerequisites with the apt-get package manager,
 
 `apt-get install python2.7 git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev  `
 
-### CentOS/Red Hat
+### CentOS/Fedora/RHEL
 
 To install prerequisites with the yum package manager,
 
