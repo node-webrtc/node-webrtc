@@ -12,8 +12,6 @@ Once you've done some hacking and you'd like to have your work merged, you'll ne
 
 ## Prerequisites
 
-### Debian/Ubuntu
-
 * python2
 * git
 * pkg-config
@@ -22,20 +20,28 @@ Once you've done some hacking and you'd like to have your work merged, you'll ne
 * libnss-devel
 * libexpat-devel
 
-### CentOS/Red Hat
-## Install
+### Debian/Ubuntu
 
-* python
-* git
-* perl-ExtUtils-PkgConfig
-* openssl-devel
-* ncurses-devel
-* nss-devel
-* expat-devel
+To install prerequisites with the apt-get package manager,
+
+`apt-get install python2.7 git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev  `
+
+### CentOS/Red Hat
+
+To install prerequisites with the yum package manager,
+
+`yum install python git pkgconfig openssl-devel ncurses-devel nss-devel expat-devel`
 
 ### OSX
 
 * XCode
+
+To install prerequisites using the homebrew package manager,
+
+```
+brew update
+brew install git openssl pkg-config openssl ncurses nss expat
+```
 
 Some of these libraries may be installed by default. Package names for these libraries may differ between distributions.
 
