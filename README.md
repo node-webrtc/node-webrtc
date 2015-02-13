@@ -12,7 +12,7 @@ Once you've done some hacking and you'd like to have your work merged, you'll ne
 
 ## Prerequisites
 
-### Linux
+### Debian/Ubuntu
 
 * python2
 * git
@@ -21,6 +21,17 @@ Once you've done some hacking and you'd like to have your work merged, you'll ne
 * libssl-devel
 * libnss-devel
 * libexpat-devel
+
+### CentOS/Red Hat
+## Install
+
+* python
+* git
+* perl-ExtUtils-PkgConfig
+* openssl-devel
+* ncurses-devel
+* nss-devel
+* expat-devel
 
 ### OSX
 
