@@ -199,6 +199,11 @@ void DataChannel::Run(uv_async_t* handle, int status)
       } else {
         v8::Local<v8::String> str = NanNew(data->message, data->size);
 
+        // cleanup message event
+        delete[] data->message;
+        data->message = NULL;
+        delete data;
+
         argv[0] = str;
         NanMakeCallback(dc, callback, 1, argv);
       }
