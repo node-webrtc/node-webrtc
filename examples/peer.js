@@ -156,8 +156,8 @@ function doSendOffer(offer)
       doSetRemoteDesc(data);
     } else if('ice' == data.type)
     {
-      var candidate = new RTCIceCandidate(data.sdp.candidate);
-      if(candidate.candidate) {
+      if(data.sdp.candidate) {
+        var candidate = new RTCIceCandidate(data.sdp.candidate);
         pc.addIceCandidate(candidate, handleAddIceCandidateSuccess, handleAddIceCandidateError);
       }
     }
