@@ -245,14 +245,34 @@ NAN_METHOD(DataChannel::Send) {
 
     webrtc::DataBuffer buffer(data);
     self->_jingleDataChannel->Send(buffer);
-  } else {
-    v8::Local<v8::Object> arraybuffer = v8::Local<v8::Object>::Cast(args[0]);
-    void* data = arraybuffer->GetIndexedPropertiesExternalArrayData();
-    uint32_t data_len = arraybuffer->GetIndexedPropertiesExternalArrayDataLength();
+  } else if (args[0]->IsArrayBuffer()) {  // Works on node-v0.12.0
+    v8::Local<v8::ArrayBuffer> arraybuffer = v8::Local<v8::ArrayBuffer>::Cast(args[0]);
+    
+    if (arraybuffer->ByteLength()) {
+      // Make this ArrayBuffer external. 
+      // The pointer to underlying memory block and byte length are returned as |Contents| structure. 
+      // After ArrayBuffer had been etxrenalized, it does no longer owns the memory block. 
+      // The caller should take steps to free memory when it is no longer needed.
+      
+      v8::ArrayBuffer::Contents content = arraybuffer->Externalize();
 
-    rtc::Buffer buffer(data, data_len);
-    webrtc::DataBuffer data_buffer(buffer, true);
-    self->_jingleDataChannel->Send(data_buffer);
+      rtc::Buffer buffer(content.Data(), content.ByteLength());
+      webrtc::DataBuffer data_buffer(buffer, true);
+      self->_jingleDataChannel->Send(data_buffer);
+      
+      // free memory?!? release arraybuffer?
+      
+      //if (arraybuffer->IsNeuterable()) {
+        // http://v8.googlecode.com/svn/trunk/include/v8.h
+        
+        // Neuters this ArrayBuffer and all its views (typed arrays).
+        // Neutering sets the byte length of the buffer and all typed arrays to zero,
+        // preventing JavaScript from ever accessing underlying backing store.
+        // ArrayBuffer should have been externalized and must be neuterable.
+        
+        arraybuffer->Neuter();
+      //}
+    }
   }
 
   TRACE_END;
