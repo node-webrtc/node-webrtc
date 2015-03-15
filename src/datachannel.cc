@@ -246,31 +246,45 @@ NAN_METHOD(DataChannel::Send) {
     webrtc::DataBuffer buffer(data);
     self->_jingleDataChannel->Send(buffer);
   } else {
-#if NODE_MODULE_VERSION >= 14 // Tested with node-v0.12.0 and works with empty buffer
-    if (args[0]->IsArrayBuffer()) {
-      v8::Local<v8::ArrayBuffer> arraybuffer = v8::Local<v8::ArrayBuffer>::Cast(args[0]);
-      v8::ArrayBuffer::Contents content = arraybuffer->Externalize();
+#if NODE_MINOR_VERSION >= 12 // Tested with node-v0.12.0 and works with empty buffer
+    if (args[0]->IsArrayBuffer() || args[0]->IsTypedArray()) {
+      v8::Local<v8::ArrayBuffer> arraybuffer;
       
-      rtc::Buffer buffer(content.Data(), content.ByteLength());
-      webrtc::DataBuffer data_buffer(buffer, true);
-      self->_jingleDataChannel->Send(data_buffer);
+      if (args[0]->IsArrayBuffer()) {
+        arraybuffer = v8::Local<v8::ArrayBuffer>::Cast(args[0]);
+      } else {
+        v8::Local<v8::ArrayBufferView> view = v8::Local<v8::ArrayBufferView>::Cast(args[0]);
+        arraybuffer = view->Buffer();
+      }
       
-      arraybuffer->Neuter();
-      delete[] static_cast<char*>(content.Data());
+      if (!arraybuffer.IsEmpty()) {
+        v8::ArrayBuffer::Contents content = arraybuffer->Externalize();
+
+        rtc::Buffer buffer(content.Data(), content.ByteLength());
+        webrtc::DataBuffer data_buffer(buffer, true);
+        self->_jingleDataChannel->Send(data_buffer);
+
+        arraybuffer->Neuter();
+        delete[] static_cast<char*>(content.Data());
+      }
+    } else {
+      NanThrowTypeError("Invalid argument");
     }
 #else
-    if (args[0]->IsObject()) { // Tested with node-v0.10.9 and works with empty buffer
+    if (args[0]->IsObject()) { // Tested with node-v0.10.9 and node-v0.11.16 and works with empty buffer
       v8::Local<v8::Object> arraybuffer = v8::Local<v8::Object>::Cast(args[0]);
       void* data = arraybuffer->GetIndexedPropertiesExternalArrayData();
       int data_len = arraybuffer->GetIndexedPropertiesExternalArrayDataLength();
 
-      if (data_len < 0) {
-        data_len = 0;
+      if (data_len >= 0) { 
+        rtc::Buffer buffer(data, data_len);
+        webrtc::DataBuffer data_buffer(buffer, true);
+        self->_jingleDataChannel->Send(data_buffer);
+      } else {
+        NanThrowTypeError("Invalid object argument. WRTC only supports ArrayBufferView");
       }
-      
-      rtc::Buffer buffer(data, data_len);
-      webrtc::DataBuffer data_buffer(buffer, true);
-      self->_jingleDataChannel->Send(data_buffer);
+    } else {
+      NanThrowTypeError("Invalid argument");
     }
 #endif
   }
