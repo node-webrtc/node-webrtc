@@ -34,8 +34,6 @@ Persistent<Function> PeerConnection::constructor;
 // PeerConnection
 //
 
-#include <stdio.h>
-
 PeerConnection::PeerConnection(v8::Handle<v8::Object> configuration, v8::Handle<v8::Object> constraints)
   : loop(uv_default_loop())
 {
