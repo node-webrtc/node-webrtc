@@ -367,18 +367,18 @@ NAN_METHOD(PeerConnection::New) {
     return NanThrowTypeError("Use the new operator to construct the PeerConnection.");
   }
   
-  v8::Local<v8::Object> servers;
-  v8::Local<v8::Object> options;
+  v8::Local<v8::Object> configuration;
+  v8::Local<v8::Object> constraints;
   
   if (args.Length() >= 1 && args[0]->IsObject()) {
-    servers = v8::Local<v8::Object>::Cast(args[0]);
+    configuration = v8::Local<v8::Object>::Cast(args[0]);
     
-    if (args[1]->IsObject()) {
-      options = v8::Local<v8::Object>::Cast(args[0]);
+    if (args.Length() >= 2 && args[1]->IsObject()) {
+      constraints = v8::Local<v8::Object>::Cast(args[0]);
     }
   }
 
-  PeerConnection* obj = new PeerConnection(servers, options);
+  PeerConnection* obj = new PeerConnection(configuration, constraints);
   obj->Wrap(args.This());
 
   TRACE_END;
