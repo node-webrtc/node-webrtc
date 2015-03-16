@@ -34,27 +34,114 @@ Persistent<Function> PeerConnection::constructor;
 // PeerConnection
 //
 
-PeerConnection::PeerConnection()
-: loop(uv_default_loop())
+#include <stdio.h>
+
+PeerConnection::PeerConnection(v8::Handle<v8::Object> configuration, v8::Handle<v8::Object> constraints)
+  : loop(uv_default_loop())
 {
   _createOfferObserver = new rtc::RefCountedObject<CreateOfferObserver>( this );
   _createAnswerObserver = new rtc::RefCountedObject<CreateAnswerObserver>( this );
   _setLocalDescriptionObserver = new rtc::RefCountedObject<SetLocalDescriptionObserver>( this );
   _setRemoteDescriptionObserver = new rtc::RefCountedObject<SetRemoteDescriptionObserver>( this );
 
-  // FIXME: don't hardcode this, read from args instead
-  webrtc::PeerConnectionInterface::IceServer iceServer;
-  iceServer.uri = "stun:stun.l.google.com:19302";
-  _iceServers.push_back(iceServer);
+  if (!configuration.IsEmpty()) {
+    v8::Local<v8::Value> iceservers_value = configuration->Get(NanNew("iceServers"));
+    
+    if (!iceservers_value.IsEmpty() && iceservers_value->IsArray()) {
+      v8::Local<v8::Array> list = v8::Local<v8::Array>::Cast(iceservers_value);
 
-  webrtc::FakeConstraints constraints;
-  constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, webrtc::MediaConstraintsInterface::kValueTrue);
+      for (unsigned int index = 0; index < list->Length(); index++) {
+        v8::Local<v8::Value> server_value = list->Get(index);
+
+        if (!server_value.IsEmpty() && server_value->IsObject()) {
+          v8::Local<v8::Object> server = v8::Local<v8::Object>::Cast(server_value);
+
+          v8::Local<v8::Value> url_value = server->Get(NanNew("url"));
+          v8::Local<v8::Value> username_value = server->Get(NanNew("username"));
+          v8::Local<v8::Value> credential_value = server->Get(NanNew("credential"));
+
+          if (!url_value.IsEmpty() && url_value->IsString()) {
+            webrtc::PeerConnectionInterface::IceServer entry;
+            v8::String::Utf8Value url(url_value->ToString());
+
+            entry.uri = *url;
+
+            if (!username_value.IsEmpty() && username_value->IsString()) {
+              v8::String::Utf8Value username(username_value->ToString());
+              entry.username = *username;
+            }
+
+            if (!credential_value.IsEmpty() && credential_value->IsString()) {
+              v8::String::Utf8Value credential(credential_value->ToString());
+              entry.password = *credential;
+            }
+
+            _iceServers.push_back(entry);
+          }
+        }        
+      }
+    }
+  }
+
+  bool enableSecure = true;
+  bool enableAudio = false;
+  bool enableVideo = false;
+  
+  if (!constraints.IsEmpty()) {
+    v8::Local<v8::Value> optional_value = constraints->Get(NanNew("optional"));
+    
+    if (!optional_value.IsEmpty() && optional_value->IsArray()) {
+      v8::Local<v8::Array> options = v8::Local<v8::Array>::Cast(optional_value);
+      
+      for (unsigned int index = 0; index < options->Length(); index++) {
+        v8::Local<v8::Value> option_value = options->Get(index);
+        
+        if (!option_value.IsEmpty() && option_value->IsObject()) {
+          v8::Local<v8::Object> option = v8::Local<v8::Object>::Cast(option_value);
+          v8::Local<v8::Value> DtlsSrtpKeyAgreement = option->Get(NanNew("DtlsSrtpKeyAgreement"));
+          
+          if (!DtlsSrtpKeyAgreement.IsEmpty() && DtlsSrtpKeyAgreement->IsFalse()) {
+            enableSecure = false;
+          }
+        }
+      }
+    }
+/*
+    v8::Local<v8::Value> mandatory_value = constraints->Get(NanNew("mandatory"));
+    
+    if (!mandatory_value.IsEmpty() && mandatory_value->IsObject()) {
+      v8::Local<v8::Object> mandatory = v8::Local<v8::Object>::Cast(mandatory_value);
+      v8::Local<v8::Value> OfferToReceiveAudio = mandatory->Get(NanNew("OfferToReceiveAudio"));
+      v8::Local<v8::Value> OfferToReceiveVideo = mandatory->Get(NanNew("OfferToReceiveVideo"));
+
+      if (!OfferToReceiveAudio.IsEmpty() && OfferToReceiveAudio->IsTrue()) {
+        enableAudio = true;
+      }
+      
+      if (!OfferToReceiveVideo.IsEmpty() && OfferToReceiveVideo->IsTrue()) {
+        enableVideo = true;
+      }
+    }
+*/
+  }
+  
+  webrtc::FakeConstraints fakeconstraints;
+  
+  fakeconstraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, enableSecure ? 
+                              webrtc::MediaConstraintsInterface::kValueTrue : 
+                              webrtc::MediaConstraintsInterface::kValueFalse);
+  
   // FIXME: crashes without these constraints, why?
-  constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveAudio, webrtc::MediaConstraintsInterface::kValueFalse);
-  constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveVideo, webrtc::MediaConstraintsInterface::kValueFalse);
+  fakeconstraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveAudio, enableAudio ? 
+                               webrtc::MediaConstraintsInterface::kValueTrue : 
+                               webrtc::MediaConstraintsInterface::kValueFalse);
+                           
+  fakeconstraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveVideo, enableVideo ? 
+                               webrtc::MediaConstraintsInterface::kValueTrue : 
+                               webrtc::MediaConstraintsInterface::kValueFalse);
 
   _jinglePeerConnectionFactory = webrtc::CreatePeerConnectionFactory();
-  _jinglePeerConnection = _jinglePeerConnectionFactory->CreatePeerConnection(_iceServers, &constraints, NULL, NULL, this);
+  _jinglePeerConnection = _jinglePeerConnectionFactory->CreatePeerConnection(_iceServers, &fakeconstraints, NULL, NULL, this);
 
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, reinterpret_cast<uv_async_cb>(Run));
@@ -281,8 +368,19 @@ NAN_METHOD(PeerConnection::New) {
   if(!args.IsConstructCall()) {
     return NanThrowTypeError("Use the new operator to construct the PeerConnection.");
   }
+  
+  v8::Local<v8::Object> servers;
+  v8::Local<v8::Object> options;
+  
+  if (args.Length() >= 1 && args[0]->IsObject()) {
+    servers = v8::Local<v8::Object>::Cast(args[0]);
+    
+    if (args[1]->IsObject()) {
+      options = v8::Local<v8::Object>::Cast(args[0]);
+    }
+  }
 
-  PeerConnection* obj = new PeerConnection();
+  PeerConnection* obj = new PeerConnection(servers, options);
   obj->Wrap(args.This());
 
   TRACE_END;

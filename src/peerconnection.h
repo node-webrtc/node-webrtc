@@ -125,7 +125,7 @@ public:
                   ICE_GATHERING_STATE_CHANGE
   };
 
-  PeerConnection();
+  PeerConnection(v8::Handle<v8::Object> configuration, v8::Handle<v8::Object> constraints);
   ~PeerConnection();
 
   //
