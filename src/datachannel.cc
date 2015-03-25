@@ -196,7 +196,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
           v8::Local<v8::Value> argv[1];
 
           if (data->binary) {
-#if NODE_MINOR_VERSION >= 12
+#if NODE_MODULE_VERSION > 0x000B
             v8::Local<v8::ArrayBuffer> array = v8::ArrayBuffer::New(
               v8::Isolate::GetCurrent(), data->message, data->size);
 #else
