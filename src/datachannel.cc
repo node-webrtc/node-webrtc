@@ -156,57 +156,78 @@ void DataChannel::Run(uv_async_t* handle, int status)
     uv_mutex_unlock(&self->lock);
 
     TRACE_U("evt.type", evt.type);
-    if(DataChannel::ERROR & evt.type)
-    {
-      DataChannel::ErrorEvent* data = static_cast<DataChannel::ErrorEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(NanNew("onerror")));
-      v8::Local<v8::Value> argv[1];
-      argv[0] = v8::Exception::Error(NanNew(data->msg));
-      NanMakeCallback(dc, callback, 1, argv);
-    } else if(DataChannel::STATE & evt.type)
-    {
-      StateEvent* data = static_cast<StateEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(NanNew("onstatechange")));
-      v8::Local<v8::Value> argv[1];
-      v8::Local<v8::Integer> state = NanNew<v8::Integer>((data->state));
-      argv[0] = state;
-      NanMakeCallback(dc, callback, 1, argv);
+    
+    switch (evt.type) {
+      case DataChannel::ERROR: 
+        {
+          DataChannel::ErrorEvent* data = static_cast<DataChannel::ErrorEvent*>(evt.data);
+          v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(NanNew("onerror")));
+          
+          v8::Local<v8::Value> argv[1];
+          
+          argv[0] = v8::Exception::Error(NanNew(data->msg));
+          
+          NanMakeCallback(dc, callback, 1, argv);
+        }
+        
+        break;
+      case DataChannel::STATE:
+        {
+          StateEvent* data = static_cast<StateEvent*>(evt.data);
+          
+          v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(NanNew("onstatechange")));
+          v8::Local<v8::Value> argv[1];
+          v8::Local<v8::Integer> state = NanNew<v8::Integer>((data->state));
+          
+          argv[0] = state;
+          NanMakeCallback(dc, callback, 1, argv);
 
-      if(webrtc::DataChannelInterface::kClosed == self->_jingleDataChannel->state()) {
-        do_shutdown = true;
-      }
-    } else if(DataChannel::MESSAGE & evt.type)
-    {
-      MessageEvent* data = static_cast<MessageEvent*>(evt.data);
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(NanNew("onmessage")));
+          if(webrtc::DataChannelInterface::kClosed == self->_jingleDataChannel->state()) {
+            do_shutdown = true;
+          }
+        }
+        
+        break;
+      case DataChannel::MESSAGE:
+        {
+          MessageEvent* data = static_cast<MessageEvent*>(evt.data);
+          v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(NanNew("onmessage")));
 
-      v8::Local<v8::Value> argv[1];
+          v8::Local<v8::Value> argv[1];
 
-      if(data->binary) {
+          if (data->binary) {
 #if NODE_MODULE_VERSION > 0x000B
-        v8::Local<v8::ArrayBuffer> array = v8::ArrayBuffer::New(
-            v8::Isolate::GetCurrent(), data->message, data->size);
+            v8::Local<v8::ArrayBuffer> array = v8::ArrayBuffer::New(
+              v8::Isolate::GetCurrent(), data->message, data->size);
 #else
-        v8::Local<v8::Object> array = NanNew(ArrayBufferConstructor)->NewInstance();
-        array->SetIndexedPropertiesToExternalArrayData(
-            data->message, v8::kExternalByteArray, data->size);
-        array->ForceSet(NanNew("byteLength"), NanNew<v8::Integer>(data->size));
+            v8::Local<v8::Object> array = NanNew(ArrayBufferConstructor)->NewInstance();
+            array->SetIndexedPropertiesToExternalArrayData(
+              data->message, v8::kExternalByteArray, data->size);
+            array->ForceSet(NanNew("byteLength"), NanNew<v8::Integer>(data->size));
 #endif
-        NanMakeWeakPersistent(array, data, &MessageWeakCallback);
 
-        argv[0] = array;
-        NanMakeCallback(dc, callback, 1, argv);
-      } else {
-        v8::Local<v8::String> str = NanNew(data->message, data->size);
+            NanMakeWeakPersistent(array, data, &MessageWeakCallback);
 
-        // cleanup message event
-        delete[] data->message;
-        data->message = NULL;
-        delete data;
+            argv[0] = array;
+            NanMakeCallback(dc, callback, 1, argv);
+          } else {
+            v8::Local<v8::String> str = NanNew(data->message, data->size);
 
-        argv[0] = str;
-        NanMakeCallback(dc, callback, 1, argv);
-      }
+            // cleanup message event
+            delete[] data->message;
+            data->message = NULL;
+            delete data;
+
+            argv[0] = str;
+            NanMakeCallback(dc, callback, 1, argv);
+          }
+        }
+        
+        break;
+      default:
+        NanThrowTypeError("Unknown WEBRTC Datachannel Event");
+       
+        break;
     }
   }
 

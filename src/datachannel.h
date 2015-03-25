@@ -60,9 +60,9 @@ public:
   };
 
   enum AsyncEventType {
-    MESSAGE = 0x1 << 0, // 1
-    ERROR = 0x1 << 1, // 2
-    STATE = 0x1 << 2, // 4
+    MESSAGE = 1,
+    ERROR,
+    STATE,
   };
 
   enum BinaryType {
