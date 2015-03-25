@@ -199,11 +199,13 @@ void PeerConnection::Run(uv_async_t* handle, int status)
         {
           PeerConnection::SdpEvent* data = static_cast<PeerConnection::SdpEvent*>(evt.data);
           v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onsuccess")));
+          
+          if (!callback.IsEmpty() && callback->IsFunction()) {
+            v8::Local<v8::Value> argv[1];
+            argv[0] = NanNew(data->desc);
 
-          v8::Local<v8::Value> argv[1];
-          argv[0] = NanNew(data->desc);
-
-          NanMakeCallback(pc, callback, 1, argv);
+            NanMakeCallback(pc, callback, 1, argv);
+          }
         }
           
         break;
@@ -214,13 +216,15 @@ void PeerConnection::Run(uv_async_t* handle, int status)
       case PeerConnection::ADD_ICE_CANDIDATE_ERROR:
         {
           PeerConnection::ErrorEvent* data = static_cast<PeerConnection::ErrorEvent*>(evt.data);
-        
           v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onerror")));
-          v8::Local<v8::Value> argv[1];
-        
-          argv[0] = Exception::Error(NanNew(data->msg));
-        
-          NanMakeCallback(pc, callback, 1, argv);
+          
+          if (!callback.IsEmpty() && callback->IsFunction()) {
+            v8::Local<v8::Value> argv[1];
+
+            argv[0] = Exception::Error(NanNew(data->msg));
+
+            NanMakeCallback(pc, callback, 1, argv);
+          }
         }
         
         break;
@@ -229,9 +233,12 @@ void PeerConnection::Run(uv_async_t* handle, int status)
       case PeerConnection::ADD_ICE_CANDIDATE_SUCCESS:
         {
           v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onsuccess")));
-          v8::Local<v8::Value> argv[0];
-        
-          NanMakeCallback(pc, callback, 0, argv);
+          
+          if (!callback.IsEmpty() && callback->IsFunction()) {
+            v8::Local<v8::Value> argv[0];
+
+            NanMakeCallback(pc, callback, 0, argv);
+          }
         }
         
         break;
@@ -250,9 +257,12 @@ void PeerConnection::Run(uv_async_t* handle, int status)
         }
         {
           v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onsuccess")));
-          v8::Local<v8::Value> argv[0];
-        
-          NanMakeCallback(pc, callback, 0, argv);
+          
+          if (!callback.IsEmpty() && callback->IsFunction()) {
+            v8::Local<v8::Value> argv[0];
+
+            NanMakeCallback(pc, callback, 0, argv);
+          }
         }
         
         break;
@@ -266,11 +276,14 @@ void PeerConnection::Run(uv_async_t* handle, int status)
           v8::Local<v8::Value> dc = NanNew(DataChannel::constructor)->NewInstance(1, cargv);
 
           v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("ondatachannel")));
-          v8::Local<v8::Value> argv[1];
+          
+          if (!callback.IsEmpty() && callback->IsFunction()) {
+            v8::Local<v8::Value> argv[1];
 
-          argv[0] = dc;
+            argv[0] = dc;
 
-          NanMakeCallback(pc, callback, 1, argv);
+            NanMakeCallback(pc, callback, 1, argv);
+          }
         }
         
         break;
@@ -285,7 +298,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
           PeerConnection::IceEvent* data = static_cast<PeerConnection::IceEvent*>(evt.data);
           v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onicecandidate")));
 
-          if (!callback.IsEmpty()) {
+          if (!callback.IsEmpty() && callback->IsFunction()) {
             v8::Local<v8::Value> argv[3];
 
             argv[0] = NanNew(data->candidate);
@@ -302,7 +315,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
           PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
           v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onsignalingstatechange")));
 
-          if (!callback.IsEmpty()) {
+          if (!callback.IsEmpty() && callback->IsFunction()) {
             v8::Local<v8::Value> argv[1];
 
             argv[0] = NanNew<Uint32>(data->state);
@@ -321,7 +334,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
           PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
           v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("oniceconnectionstatechange")));
 
-          if (!callback.IsEmpty()) {
+          if (!callback.IsEmpty() && callback->IsFunction()) {
             v8::Local<v8::Value> argv[1];
 
             argv[0] = NanNew<Uint32>(data->state);
@@ -336,7 +349,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
           PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
           v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onicegatheringstatechange")));
 
-          if (!callback.IsEmpty()) {
+          if (!callback.IsEmpty() && callback->IsFunction()) {
             v8::Local<v8::Value> argv[1];
 
             argv[0] = NanNew<Uint32>(data->state);
@@ -355,7 +368,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
 
         v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onaddstream")));
         
-        if(!callback.IsEmpty()) {
+        if(!callback.IsEmpty() && callback->IsFunction()) {
           v8::Local<v8::Value> argv[1];
           argv[0] = ms;
           NanMakeCallback(pc, callback, 1, argv);
@@ -371,7 +384,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
 
         v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onremovestream")));
         
-        if(!callback.IsEmpty()) {
+        if(!callback.IsEmpty() && callback->IsFunction()) {
           v8::Local<v8::Value> argv[1];
           argv[0] = ms;
           NanMakeCallback(pc, callback, 1, argv);
@@ -379,12 +392,12 @@ void PeerConnection::Run(uv_async_t* handle, int status)
 */        
         break;
       case PeerConnection::RENEGOTIATION: 
-        {
+        {          
           v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onnegotiationneeded")));
 
-          if (!callback.IsEmpty()) {
+          if (!callback.IsEmpty() && callback->IsFunction()) {
             v8::Local<v8::Value> argv[0];
-
+            
             NanMakeCallback(pc, callback, 0, argv);
           }
         }
