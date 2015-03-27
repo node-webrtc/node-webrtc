@@ -21,7 +21,7 @@
       'variables': {
       },
       'dependencies': [],
-      'hard_depdency': 1,
+      'hard_dependency': 1,
       'type': 'none',
       'actions': [
         {
@@ -38,6 +38,7 @@
     {
       'target_name': 'wrtc',
       'dependencies': [
+        'action_before_build'
       ],
       'variables': {
         'libwebrtc_out%': '<(libwebrtc)/out/$(BUILDTYPE)/obj',
@@ -139,6 +140,17 @@
         'src/rtcstatsreport.cc',
         'src/rtcstatsresponse.cc',
         'src/stats-observer.cc'
+      ]
+    },
+    {
+      "target_name": "action_after_build",
+      "type": "none",
+      "dependencies": [ "<(module_name)" ],
+      "copies": [
+        {
+          "files": [ "<(PRODUCT_DIR)/<(module_name).node" ],
+          "destination": "<(module_path)"
+        }
       ]
     }
   ]

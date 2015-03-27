@@ -17,16 +17,26 @@
   },
   "main": "lib/index.js",
   "browser": "lib/browser.js",
+  "binary": {
+    "module_name": "wrtc",
+    "module_path": "./build/{module_name}/v{version}/{configuration}/{node_abi}-{platform}-{arch}/",
+    "remote_path": "./{module_name}/v{version}/{configuration}/",
+    "package_name": "{node_abi}-{platform}-{arch}.tar.gz",
+    "host": "https://node-webrtc.s3.amazonaws.com"
+  },
   "engines": {
     "node": ">=0.10.x"
   },
   "dependencies": {
-    "bindings": "^1.2.1",
     "nan": "~1.3.0",
     "node-gyp": "^1.0.1",
+    "node-pre-gyp": "0.6.x",
     "node-static-alias": "^0.1.2",
     "nopt": "^2.2.0"
   },
+  "bundledDependencies": [
+    "node-pre-gyp"
+  ],
   "devDependencies": {
     "grunt": "~0.4.2",
     "grunt-contrib-jshint": "~0.8.0",
@@ -37,6 +47,7 @@
     "minimist": "0.0.8"
   },
   "scripts": {
+    "install": "node-pre-gyp install --fallback-to-build",
     "test": "node test/all.js"
   }
 }
