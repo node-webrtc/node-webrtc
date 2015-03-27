@@ -27,7 +27,7 @@
         {
           'action_name': 'run_build_script',
           'inputs': [],
-          'outputs': ['/dev/console'],
+          'outputs': ['/dev/null'],
           'action': [
             'node', 'bin/build.js', '--target-arch', '<(target_arch)', '--configuration', '$(BUILDTYPE)'
           ],
@@ -38,6 +38,7 @@
     {
       'target_name': 'wrtc',
       'dependencies': [
+        'action_before_build'
       ],
       'variables': {
         'libwebrtc_out%': '<(libwebrtc)/out/$(BUILDTYPE)/obj',
