@@ -21,7 +21,7 @@
       'variables': {
       },
       'dependencies': [],
-      'hard_depdency': 1,
+      'hard_dependency': 1,
       'type': 'none',
       'actions': [
         {
