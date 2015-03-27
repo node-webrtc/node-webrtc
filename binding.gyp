@@ -27,6 +27,7 @@
         {
           'action_name': 'run_build_script',
           'inputs': [],
+          'outputs': ['/dev/console'],
           'action': [
             'node', 'bin/build.js', '--target-arch', '<(target_arch)', '--configuration', '$(BUILDTYPE)'
           ],
