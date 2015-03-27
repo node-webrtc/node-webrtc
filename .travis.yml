@@ -26,8 +26,9 @@ before_install:
 # If version is 0.9 do not publish to avoid duplicated binary error, caused by 0.9 and 0.10
 # returning same v number in node.js.
 - if [[ "$TRAVIS_NODE_VERSION" == '0.9' ]]; then PUBLISH_BINARY=false; fi;
+- node bin/build.js
 install:
-- npm install --build-from-source
+- npm install
 - node-pre-gyp package publish
 
 before_script:
