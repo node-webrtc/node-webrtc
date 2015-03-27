@@ -1,21 +1,21 @@
 os:
-  - linux
-  - osx
-
+- linux
+- osx
 language: node_js
-
 node_js:
-  - "0.10"
-  - "0.11"
-
+- '0.10'
+- '0.11'
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -y python libnss3-dev libncurses5-dev libssl-dev libexpat-dev
-  - npm install -g grunt-cli
-  - npm install node-gyp -g
-
+- sudo apt-get update -qq
+- sudo apt-get install -y python libnss3-dev libncurses5-dev libssl-dev libexpat-dev
+- npm install -g grunt-cli
+- npm install node-gyp -g
 install:
-  - npm install
-
+- npm install
+- node-pre-gyp package publish
 notifications:
   email: false
+env:
+  global:
+  - secure: WXH5UmmNHUZT1GGJFyyZsEDlJRIa4Pw989ArTxsAiOeYhll+mbXKcWbq4IKmrvFyXE9lWtl2aCU5OnR62NoatVnRj1guQJsvxqKtpuQ2wDvrTzVn1ZKZztlhffIBcjsnud3vmqCrkWesPOhqvTltaypSGxAF92ZkttTR5iv1Cw0=
+  - secure: LmX0byzsXqDC6Q+N6txwpTw8puORTBMaDFSYE2+OGbQJu06mNleYamsjTBdGTgDqBps72EiA3/GGkoarc7kyzKVP6NDMvpCwSsbDVjZkJ+OJ2wSzkD1IcHRBfsjB6NVv8rk3S5V/vwiqXM2PIaCd6o/VTGDqutf8wSxw6gYqFM4=
