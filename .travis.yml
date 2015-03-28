@@ -5,8 +5,8 @@ os:
 language: node_js
 
 node_js:
-  - '0.10'
-  - '0.11'
+  - "0.10"
+  - "0.11"
 
 before_install:
   - sudo apt-get update -qq
@@ -36,7 +36,7 @@ install:
   - npm test
 
 before_script:
-    - echo "Publishing native platform Binary Package? ->" $PUBLISH_BINARY
+  - echo "Publishing native platform Binary Package? ->" $PUBLISH_BINARY
   # if publishing, do it
   - if [[ $PUBLISH_BINARY == true ]]; then node-pre-gyp package publish; fi;
   # cleanup
