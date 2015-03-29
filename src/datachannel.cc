@@ -371,6 +371,18 @@ NAN_GETTER(DataChannel::GetBinaryType) {
   NanReturnValue(NanNew<v8::Number>(static_cast<uint32_t>(self->_binaryType)));
 }
 
+NAN_GETTER(DataChannel::BufferedAmount) {
+  TRACE_CALL;
+  NanScope();
+
+  DataChannel* self = node::ObjectWrap::Unwrap<DataChannel>( args.Holder() );
+
+  uint64_t bufferSize = self->_jingleDataChannel->buffered_amount();
+
+  TRACE_END;
+  NanReturnValue(NanNew<v8::Number>(static_cast<uint32_t>(bufferSize)));
+}
+
 NAN_SETTER(DataChannel::SetBinaryType) {
   TRACE_CALL;
 
@@ -399,6 +411,7 @@ void DataChannel::Init( v8::Handle<v8::Object> exports ) {
   tpl->InstanceTemplate()->SetAccessor(NanNew("label"), GetLabel, ReadOnly);
   tpl->InstanceTemplate()->SetAccessor(NanNew("binaryType"), GetBinaryType, SetBinaryType);
   tpl->InstanceTemplate()->SetAccessor(NanNew("readyState"), GetReadyState, ReadOnly);
+  tpl->InstanceTemplate()->SetAccessor(NanNew("bufferedAmount"), BufferedAmount, ReadOnly);
 
   NanAssignPersistent(constructor, tpl->GetFunction());
   exports->Set( NanNew("DataChannel"), tpl->GetFunction() );

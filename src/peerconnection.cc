@@ -849,6 +849,92 @@ NAN_SETTER(PeerConnection::ReadOnly) {
   INFO("PeerConnection::ReadOnly");
 }
 
+#define USE_BACKTRACE 1
+
+#ifdef USE_BACKTRACE
+#ifdef __APPLE__
+#include <stdio.h>
+#include <signal.h>
+#include <execinfo.h>
+#include <dlfcn.h>
+#include <cxxabi.h>
+
+static void ShowBacktrace(const char *event) {
+  void *stack[50] = {0};
+  int count = 0, cur = 0, skip = 2;
+  
+  count = backtrace(stack, sizeof(stack));
+  
+  if (count) {
+    for (int index = (count - 1); index > skip && index >= 1; index--) {
+      char addr[128] = {0};
+      Dl_info info;
+     
+      snprintf(addr, sizeof(addr), "%p", stack[index]);
+     
+      if (dladdr(stack[index], &info) && info.dli_sname) {
+        char buffer[128] = {0};
+        size_t len = sizeof(buffer);
+        int status = 0;
+
+        (void) abi::__cxa_demangle(info.dli_sname, buffer, &len, &status);
+        
+        if (!status) {
+          printf("%d: %s [%s] %s\n", cur, event, addr, buffer);
+        } else {
+          printf("%d: %s [%s] %s\n", cur, event, addr, info.dli_sname);
+        }
+      } else {
+        printf("%d: %s [%s] function()\n", cur, event, addr);
+      }
+      
+      cur++;
+    }
+  }
+}
+
+static void onSegv(int sig) {
+  ShowBacktrace("SIGSEGV");
+}
+
+static void onBus(int sig) {
+  ShowBacktrace("SIGBUS");
+}
+
+static void onAbort(int sig) {
+  ShowBacktrace("SIGABRT");
+}
+
+void InitBacktrace() {
+  struct sigaction actsegv, actbus, actabrt;
+
+  sigemptyset(&actsegv.sa_mask);
+  sigemptyset(&actbus.sa_mask);
+  sigemptyset(&actabrt.sa_mask);
+  
+  actsegv.sa_flags = 0;
+  actsegv.sa_handler = onSegv;
+  
+  actbus.sa_flags = 0;
+  actbus.sa_handler = onBus;
+  
+  actabrt.sa_flags = 0;
+  actabrt.sa_handler = onAbort; 
+
+  sigaction(SIGSEGV, &actsegv, 0);
+  sigaction(SIGBUS, &actbus, 0);
+  sigaction(SIGABRT, &actabrt, 0);
+}
+
+#else
+
+void InitBacktrace() {
+
+}
+
+#endif
+#endif
+
 void PeerConnection::Init( Handle<Object> exports ) {
   Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>( New );
   tpl->SetClassName( NanNew( "PeerConnection" ) );
@@ -889,4 +975,8 @@ void PeerConnection::Init( Handle<Object> exports ) {
 
   NanAssignPersistent(constructor,  tpl->GetFunction() );
   exports->Set( NanNew("PeerConnection"), tpl->GetFunction() );
+  
+#ifdef USE_BACKTRACE
+  InitBacktrace();
+#endif
 }
