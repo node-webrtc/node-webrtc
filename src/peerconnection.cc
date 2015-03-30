@@ -893,21 +893,34 @@ static void ShowBacktrace(const char *event) {
   }
 }
 
+struct sigaction actsegv, actbus, actabrt;
+
+void CloseBacktrace() {
+  actsegv.sa_handler = SIG_DFL;
+  actbus.sa_handler = SIG_DFL;
+  actabrt.sa_handler = SIG_DFL;
+  
+  sigaction(SIGSEGV, &actsegv, 0);
+  sigaction(SIGBUS, &actbus, 0);
+  sigaction(SIGABRT, &actabrt, 0);
+}
+
 static void onSegv(int sig) {
   ShowBacktrace("SIGSEGV");
+  CloseBacktrace();
 }
 
 static void onBus(int sig) {
   ShowBacktrace("SIGBUS");
+  CloseBacktrace();
 }
 
 static void onAbort(int sig) {
   ShowBacktrace("SIGABRT");
+  CloseBacktrace();
 }
 
 void InitBacktrace() {
-  struct sigaction actsegv, actbus, actabrt;
-
   sigemptyset(&actsegv.sa_mask);
   sigemptyset(&actbus.sa_mask);
   sigemptyset(&actabrt.sa_mask);

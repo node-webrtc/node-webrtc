@@ -192,7 +192,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
         {
           MessageEvent* data = static_cast<MessageEvent*>(evt.data);
           v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(NanNew("onmessage")));
-
+ 
           v8::Local<v8::Value> argv[1];
 
           if (data->binary) {
@@ -204,8 +204,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
             array->SetIndexedPropertiesToExternalArrayData(
               data->message, v8::kExternalByteArray, data->size);
             array->ForceSet(NanNew("byteLength"), NanNew<v8::Integer>(data->size));
-#endif
-
+#endif  
             NanMakeWeakPersistent(array, data, &MessageWeakCallback);
 
             argv[0] = array;
@@ -260,14 +259,18 @@ NAN_METHOD(DataChannel::Send) {
 
   DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
 
+  bool isBinary = false;
+  rtc::Buffer buffer;
+
   if(args[0]->IsString()) {
     v8::Local<v8::String> str = v8::Local<v8::String>::Cast(args[0]);
-    std::string data = *v8::String::Utf8Value(str);
-
-    webrtc::DataBuffer buffer(data);
-    self->_jingleDataChannel->Send(buffer);
+    const char *data = *v8::String::Utf8Value(str);
+    
+    buffer = rtc::Buffer(data, str->Length());
   } else {
-#if NODE_MINOR_VERSION >= 12 // Tested with node-v0.12.0 and works with empty buffer
+    isBinary = true;
+    
+#if NODE_MINOR_VERSION >= 12
     if (args[0]->IsArrayBuffer() || args[0]->IsTypedArray()) {
       v8::Local<v8::ArrayBuffer> arraybuffer;
       
@@ -281,26 +284,24 @@ NAN_METHOD(DataChannel::Send) {
       if (!arraybuffer.IsEmpty()) {
         v8::ArrayBuffer::Contents content = arraybuffer->Externalize();
 
-        rtc::Buffer buffer(content.Data(), content.ByteLength());
-        webrtc::DataBuffer data_buffer(buffer, true);
-        self->_jingleDataChannel->Send(data_buffer);
+        buffer = rtc::Buffer(content.Data(), content.ByteLength());
 
         arraybuffer->Neuter();
         delete[] static_cast<char*>(content.Data());
+      } else {
+        NanThrowTypeError("Invalid argument");
       }
     } else {
       NanThrowTypeError("Invalid argument");
     }
 #else
-    if (args[0]->IsObject()) { // Tested with node-v0.10.9 and node-v0.11.16 and works with empty buffer
+    if (args[0]->IsObject()) {
       v8::Local<v8::Object> arraybuffer = v8::Local<v8::Object>::Cast(args[0]);
       void* data = arraybuffer->GetIndexedPropertiesExternalArrayData();
       int data_len = arraybuffer->GetIndexedPropertiesExternalArrayDataLength();
 
-      if (data_len >= 0) { 
-        rtc::Buffer buffer(data, data_len);
-        webrtc::DataBuffer data_buffer(buffer, true);
-        self->_jingleDataChannel->Send(data_buffer);
+      if (data_len >= 0) {
+        buffer = rtc::Buffer(data, data_len);
       } else {
         NanThrowTypeError("Invalid object argument. WRTC only supports ArrayBufferView");
       }
@@ -309,6 +310,9 @@ NAN_METHOD(DataChannel::Send) {
     }
 #endif
   }
+  
+  webrtc::DataBuffer data_buffer(buffer, isBinary);
+  self->_jingleDataChannel->Send(data_buffer);
 
   TRACE_END;
   NanReturnUndefined();
