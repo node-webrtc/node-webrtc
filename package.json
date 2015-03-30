@@ -28,7 +28,7 @@
     "node": ">=0.10.x"
   },
   "dependencies": {
-    "nan": "~1.3.0",
+    "nan": "~1.7.0",
     "node-gyp": "^1.0.1",
     "node-pre-gyp": "0.6.x",
     "node-static-alias": "^0.1.2",

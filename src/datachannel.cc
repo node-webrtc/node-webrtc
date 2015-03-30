@@ -190,7 +190,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
         v8::Local<v8::Object> array = NanNew(ArrayBufferConstructor)->NewInstance();
         array->SetIndexedPropertiesToExternalArrayData(
             data->message, v8::kExternalByteArray, data->size);
-        array->ForceSet(NanNew("byteLength"), NanNew<v8::Integer>(data->size));
+        array->ForceSet(NanNew("byteLength"), NanNew<v8::Integer>(static_cast<uint32_t>(data->size)));
 #endif
         NanMakeWeakPersistent(array, data, &MessageWeakCallback);
 
