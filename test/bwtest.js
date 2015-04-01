@@ -1,47 +1,61 @@
 'use strict';
 
-var wrtc = require('..');
-
 /**
- * define window for simple-peer
+ * define window with webrtc functions for simple-peer
  */
-global.window = {
-    RTCPeerConnection: wrtc.RTCPeerConnection,
-    RTCSessionDescription: wrtc.RTCSessionDescription,
-    RTCIceCandidate: wrtc.RTCIceCandidate,
-    // Firefox does not trigger "negotiationneeded"
-    // this is a workaround to make simple-peer trigger the negotiation
-    mozRTCPeerConnection: wrtc.RTCPeerConnection,
-};
+if (typeof(window) === 'undefined') {
+    var wrtc = require('..');
+    global.window = {
+        RTCPeerConnection: wrtc.RTCPeerConnection,
+        RTCSessionDescription: wrtc.RTCSessionDescription,
+        RTCIceCandidate: wrtc.RTCIceCandidate,
+        // Firefox does not trigger "negotiationneeded"
+        // this is a workaround to make simple-peer trigger the negotiation
+        mozRTCPeerConnection: wrtc.RTCPeerConnection,
+    };
+}
 
 var SimplePeer = require('simple-peer');
 
 
 function bwtest(peer1, peer2) {
+    var START_TIME = Date.now();
+    var SEND_DELAY_MS = 1;
+    var NPACKETS = 10000;
+    var PACKET_SIZE = 16 * 1024;
+    var buffer = new ArrayBuffer(PACKET_SIZE);
+    var n = 0;
     var stats = {
         count: 0,
         bytes: 0,
     };
-    var SEND_DELAY_MS = 1;
-    var NPACKETS = 100000;
-    var PACKET_SIZE = 16 * 1024;
-    var buffer = new ArrayBuffer(PACKET_SIZE);
-    var n = 0;
+
+    function info() {
+        var took = (Date.now() - START_TIME) / 1000;
+        return 'sent ' + n + ' received ' + stats.count +
+            ' took ' + took.toFixed(3) + ' seconds' +
+            ' bandwidth ' + (stats.bytes / took / 1024).toFixed(0) + ' KB/s';
+    }
 
     peer2.on('data', function(data) {
         stats.count += 1;
         stats.bytes += data.length;
+        if (stats.count >= NPACKETS) {
+            console.log('RECEIVE DONE!', info());
+        }
     });
 
     function send() {
         if (n >= NPACKETS) {
-            console.log('DONE!', stats);
+            console.log('SEND DONE!', info());
             return;
         }
-        console.log('send', n, stats);
+        if (n % 100 === 0) {
+            console.log('SENDING:', info());
+        }
         peer1.send(buffer, function(err) {
             if (err) {
-                console.error('ERROR!', stats);
+                console.error('ERROR!', info());
                 return;
             }
             n += 1;
