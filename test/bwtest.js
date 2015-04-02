@@ -20,7 +20,7 @@ var SimplePeer = require('simple-peer');
 
 function bwtest(peer1, peer2) {
     var START_TIME = Date.now();
-    var SEND_DELAY_MS = 1;
+    var BUFFERED_DELAY_MS = 10;
     var NPACKETS = 10000;
     var PACKET_SIZE = 16 * 1024;
     var buffer = new ArrayBuffer(PACKET_SIZE);
@@ -44,6 +44,8 @@ function bwtest(peer1, peer2) {
         stats.bytes += data.length;
         if (stats.count >= NPACKETS) {
             console.log('RECEIVE DONE!', info());
+            peer1.destroy();
+            peer2.destroy();
         }
     });
 
@@ -57,7 +59,7 @@ function bwtest(peer1, peer2) {
         }
         if (peer1._channel && peer1._channel.bufferedAmount) {
             console.log('WAITING:', info());
-            setTimeout(send, SEND_DELAY_MS);
+            setTimeout(send, BUFFERED_DELAY_MS);
             return;
         }
         peer1.send(buffer, function(err) {
@@ -66,7 +68,11 @@ function bwtest(peer1, peer2) {
                 return;
             }
             n += 1;
-            setTimeout(send, SEND_DELAY_MS);
+            if (global.setImmediate) {
+                global.setImmediate(send);
+            } else {
+                setTimeout(send, 0);
+            }
         });
     }
 
