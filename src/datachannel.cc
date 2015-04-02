@@ -192,7 +192,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
             data->message, v8::kExternalByteArray, data->size);
         array->ForceSet(NanNew("byteLength"), NanNew<v8::Integer>(static_cast<uint32_t>(data->size)));
 #endif
-        NanMakeWeakPersistent(array, data, &MessageWeakCallback);
+        NanMakeWeakPersistent(callback, data, &MessageWeakCallback);
 
         argv[0] = array;
         NanMakeCallback(dc, callback, 1, argv);
