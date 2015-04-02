@@ -282,6 +282,18 @@ NAN_METHOD(DataChannel::Shutdown) {
   NanReturnUndefined();
 }
 
+NAN_GETTER(DataChannel::GetBufferedAmount) {
+  TRACE_CALL;
+  NanScope();
+
+  DataChannel* self = node::ObjectWrap::Unwrap<DataChannel>( args.Holder() );
+
+  uint64_t buffered_amount = self->_jingleDataChannel->buffered_amount();
+
+  TRACE_END;
+  NanReturnValue(NanNew<v8::Number>(buffered_amount));
+}
+
 NAN_GETTER(DataChannel::GetLabel) {
   TRACE_CALL;
   NanScope();
@@ -341,6 +353,7 @@ void DataChannel::Init( v8::Handle<v8::Object> exports ) {
   tpl->PrototypeTemplate()->Set( NanNew( "send" ),
     NanNew<v8::FunctionTemplate>( Send )->GetFunction() );
 
+  tpl->InstanceTemplate()->SetAccessor(NanNew("bufferedAmount"), GetBufferedAmount, ReadOnly);
   tpl->InstanceTemplate()->SetAccessor(NanNew("label"), GetLabel, ReadOnly);
   tpl->InstanceTemplate()->SetAccessor(NanNew("binaryType"), GetBinaryType, SetBinaryType);
   tpl->InstanceTemplate()->SetAccessor(NanNew("readyState"), GetReadyState, ReadOnly);

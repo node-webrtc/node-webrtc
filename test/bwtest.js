@@ -32,7 +32,9 @@ function bwtest(peer1, peer2) {
 
     function info() {
         var took = (Date.now() - START_TIME) / 1000;
+        var buffered = peer1._channel && peer1._channel.bufferedAmount;
         return 'sent ' + n + ' received ' + stats.count +
+            (buffered ? ' buffered ' + buffered : '') +
             ' took ' + took.toFixed(3) + ' seconds' +
             ' bandwidth ' + (stats.bytes / took / 1024).toFixed(0) + ' KB/s';
     }
@@ -53,9 +55,14 @@ function bwtest(peer1, peer2) {
         if (n % 100 === 0) {
             console.log('SENDING:', info());
         }
+        if (peer1._channel && peer1._channel.bufferedAmount) {
+            console.log('WAITING:', info());
+            setTimeout(send, SEND_DELAY_MS);
+            return;
+        }
         peer1.send(buffer, function(err) {
             if (err) {
-                console.error('ERROR!', info());
+                console.error('ERROR!', info(), err.stack || err);
                 return;
             }
             n += 1;
