@@ -6,7 +6,6 @@
 
 #include "talk/app/webrtc/jsep.h"
 #include "webrtc/system_wrappers/interface/ref_count.h"
-
 #include "common.h"
 #include "datachannel.h"
 
@@ -238,6 +237,7 @@ NAN_METHOD(DataChannel::Send) {
   NanScope();
 
   DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
+  v8::Local<v8::ArrayBuffer> arraybuffer;
 
   if(args[0]->IsString()) {
     v8::Local<v8::String> str = v8::Local<v8::String>::Cast(args[0]);
@@ -248,7 +248,13 @@ NAN_METHOD(DataChannel::Send) {
   } else {
 
 #if NODE_MINOR_VERSION >= 12
-    v8::Local<v8::ArrayBuffer> arraybuffer = v8::Local<v8::ArrayBuffer>::Cast(args[0]);
+    if (args[0]->IsArrayBuffer()) {
+      arraybuffer = v8::Local<v8::ArrayBuffer>::Cast(args[0]);
+    } else {
+      v8::Local<v8::ArrayBufferView> view = v8::Local<v8::ArrayBufferView>::Cast(args[0]);
+      arraybuffer = view->Buffer();
+    }
+
     v8::ArrayBuffer::Contents content = arraybuffer->Externalize();
     rtc::Buffer buffer(content.Data(), content.ByteLength());
 
