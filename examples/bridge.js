@@ -108,7 +108,11 @@ wss.on('connection', function(ws)
       };
       channel.onmessage = function(evt) {
         var data = evt.data;
-        console.log('onmessage:', evt.data);
+        if (typeof data === 'string') {
+            console.log('onmessage:', evt.data);
+        } else {
+            console.log('onmessage:', new Uint8Array(evt.data));
+        }
         if('string' == typeof data) {
           channel.send("Hello peer!");
         } else {
