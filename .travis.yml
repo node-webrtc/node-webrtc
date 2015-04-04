@@ -7,6 +7,7 @@ language: node_js
 node_js:
   - "0.10"
   - "0.11"
+  - "0.12"
 
 before_install:
   - sudo apt-get update -qq
@@ -31,7 +32,7 @@ before_install:
   - if [[ "$TRAVIS_NODE_VERSION" == '0.9' ]]; then PUBLISH_BINARY=false; fi;
 
 install:
-  - npm install
+  - npm install --build-from-source
   #- node-pre-gyp package publish
   - npm test
 
