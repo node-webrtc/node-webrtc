@@ -237,7 +237,6 @@ NAN_METHOD(DataChannel::Send) {
   NanScope();
 
   DataChannel* self = ObjectWrap::Unwrap<DataChannel>( args.This() );
-  v8::Local<v8::ArrayBuffer> arraybuffer;
 
   if(args[0]->IsString()) {
     v8::Local<v8::String> str = v8::Local<v8::String>::Cast(args[0]);
@@ -248,6 +247,8 @@ NAN_METHOD(DataChannel::Send) {
   } else {
 
 #if NODE_MINOR_VERSION >= 12
+    v8::Local<v8::ArrayBuffer> arraybuffer;
+
     if (args[0]->IsArrayBuffer()) {
       arraybuffer = v8::Local<v8::ArrayBuffer>::Cast(args[0]);
     } else {
