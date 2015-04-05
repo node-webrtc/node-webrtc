@@ -29,7 +29,7 @@
           'inputs': [],
           'outputs': ['/dev/null'],
           'action': [
-            'node', 'bin/build.js', '--target-arch', '<(target_arch)', '--configuration', '$(BUILDTYPE)'
+            'node', 'bin/build.js', '--target-arch', '<(target_arch)', '--configuration', '$(BUILDTYPE)', '--module_path', '<(module_path)'
           ],
           'message': 'Run build script'
         }

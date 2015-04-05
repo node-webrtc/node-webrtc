@@ -3,7 +3,8 @@
   'use strict';
 
   var os = require('os');
-  var fs = require('fs');
+  var fs = require('fs-extra');
+  var Path = require('path');
   var spawn = require('child_process').spawn;
   var nopt = require('nopt');
 
@@ -17,12 +18,14 @@
   var MAKE = 'make';
   var PYTHON = process.env['PYTHON'] || 'python';
   var NODE_GYP = PROJECT_DIR + '/node_modules/.bin/node-gyp';
+  var BUILD_DIR = Path.join(__dirname, '../build');
 
   var knownOpts = {
     'target-arch': String,
     'gyp-gen': String,
     'verbose': Boolean,
     'configuration': String,
+    'module_path': String,
   };
 
   var shortHands = {
@@ -40,9 +43,11 @@
   var HOST_ARCH = process.arch;
   var VERBOSE = !!parsed['verbose'];
   var PLATFORM = process.platform;
+  var MODULE_PATH = parsed['module_path'];
   var CONFIGURATION = parsed['configuration'] || 'Release';
+  var IS_DEBUG = CONFIGURATION == 'Debug';
 
-  console.log("TARGET_ARCH="+TARGET_ARCH, "PLATFORM="+PLATFORM, "CONFIGURATION="+CONFIGURATION, "PYTHON="+PYTHON);
+  console.log("TARGET_ARCH="+TARGET_ARCH, "PLATFORM="+PLATFORM, "CONFIGURATION="+CONFIGURATION, "PYTHON="+PYTHON, "MODULE_PATH="+MODULE_PATH);
 
   process.env.PATH = DEPOT_TOOLS_DIR + ':' + process.env.PATH;
   process.env.GYP_GENERATORS = NINJA;
@@ -172,6 +177,7 @@
   function complete() {
     stopTimer();
 
+    fs.writeFileSync(Path.join(BUILD_DIR, 'wrtc.json'), JSON.stringify({debug: IS_DEBUG}));
     console.log(': Build complete\n');
   }
 
