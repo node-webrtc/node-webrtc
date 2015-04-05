@@ -6,7 +6,6 @@
 
 #include "talk/app/webrtc/jsep.h"
 #include "webrtc/system_wrappers/interface/ref_count.h"
-
 #include "common.h"
 #include "datachannel.h"
 
@@ -246,13 +245,35 @@ NAN_METHOD(DataChannel::Send) {
     webrtc::DataBuffer buffer(data);
     self->_jingleDataChannel->Send(buffer);
   } else {
+
+#if NODE_MINOR_VERSION >= 12
+    v8::Local<v8::ArrayBuffer> arraybuffer;
+
+    if (args[0]->IsArrayBuffer()) {
+      arraybuffer = v8::Local<v8::ArrayBuffer>::Cast(args[0]);
+    } else {
+      v8::Local<v8::ArrayBufferView> view = v8::Local<v8::ArrayBufferView>::Cast(args[0]);
+      arraybuffer = view->Buffer();
+    }
+
+    v8::ArrayBuffer::Contents content = arraybuffer->Externalize();
+    rtc::Buffer buffer(content.Data(), content.ByteLength());
+
+#else
     v8::Local<v8::Object> arraybuffer = v8::Local<v8::Object>::Cast(args[0]);
     void* data = arraybuffer->GetIndexedPropertiesExternalArrayData();
     uint32_t data_len = arraybuffer->GetIndexedPropertiesExternalArrayDataLength();
 
     rtc::Buffer buffer(data, data_len);
+
+#endif
+
     webrtc::DataBuffer data_buffer(buffer, true);
     self->_jingleDataChannel->Send(data_buffer);
+
+#if NODE_MINOR_VERSION >= 12
+    arraybuffer->Neuter();
+#endif
   }
 
   TRACE_END;
