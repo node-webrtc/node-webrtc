@@ -246,7 +246,7 @@ NAN_METHOD(DataChannel::Send) {
     self->_jingleDataChannel->Send(buffer);
   } else {
 
-#if NODE_MINOR_VERSION >= 12
+#if NODE_MINOR_VERSION >= 11
     v8::Local<v8::ArrayBuffer> arraybuffer;
 
     if (args[0]->IsArrayBuffer()) {
@@ -271,7 +271,7 @@ NAN_METHOD(DataChannel::Send) {
     webrtc::DataBuffer data_buffer(buffer, true);
     self->_jingleDataChannel->Send(data_buffer);
 
-#if NODE_MINOR_VERSION >= 12
+#if NODE_MINOR_VERSION >= 11
     arraybuffer->Neuter();
 #endif
   }
