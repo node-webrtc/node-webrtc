@@ -31,7 +31,7 @@ function main() {
  * setup tape tests for bwtest
  */
 function bwtape() {
-    tape('bwtest default', function(t) {
+    tape('bwtest default', {skip: true}, function(t) {
         t.plan(1);
         bwtest({
             packetCount: 500,
@@ -40,7 +40,7 @@ function bwtape() {
         });
     });
 
-    tape('bwtest no buffering', function(t) {
+    tape('bwtest no buffering', {skip: true}, function(t) {
         t.plan(1);
         bwtest({
             packetCount: 500,
@@ -51,7 +51,7 @@ function bwtape() {
         });
     });
 
-    tape('bwtest unordered and unreliable', function(t) {
+    tape('bwtest unordered and unreliable', {skip: true}, function(t) {
         t.plan(1);
         bwtest({
             packetCount: 500,
