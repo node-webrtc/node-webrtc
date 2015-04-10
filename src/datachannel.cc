@@ -211,8 +211,8 @@ void DataChannel::Run(uv_async_t* handle, int status)
 
   if(do_shutdown) {
     uv_close((uv_handle_t*)(&self->async), NULL);
-    _jingleDataChannel->UnregisterObserver();
-    _jingleDataChannel = NULL;
+    self->_jingleDataChannel->UnregisterObserver();
+    self->_jingleDataChannel = NULL;
   }
 
   TRACE_END;
