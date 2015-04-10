@@ -89,8 +89,6 @@ DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
 DataChannel::~DataChannel()
 {
   TRACE_CALL;
-  _jingleDataChannel->UnregisterObserver();
-  _jingleDataChannel = NULL;
   TRACE_END;
 }
 
@@ -213,6 +211,8 @@ void DataChannel::Run(uv_async_t* handle, int status)
 
   if(do_shutdown) {
     uv_close((uv_handle_t*)(&self->async), NULL);
+    _jingleDataChannel->UnregisterObserver();
+    _jingleDataChannel = NULL;
   }
 
   TRACE_END;
