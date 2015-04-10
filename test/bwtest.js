@@ -2,6 +2,7 @@
 
 var tape = require('tape');
 var args = require('minimist')(process.argv.slice(2));
+var SimplePeer = require('./simple-peer');
 
 
 module.exports = bwtest;
@@ -106,7 +107,6 @@ function bwtest(options, callback) {
     };
 
     // setup two peers with simple-peer
-    var SimplePeer = requireSimplePeer();
     var peer1 = new SimplePeer();
     var peer2 = new SimplePeer({
         initiator: true,
@@ -238,25 +238,6 @@ function bwtest(options, callback) {
             (bufferedAmount ? 'bufferedAmount ' + bufferedAmount + '. ' : '') +
             'took ' + took.toFixed(3) + ' seconds. ' +
             'bandwidth ' + (stats.bytes / took / 1024).toFixed(0) + ' KB/s. ';
-    }
-
-
-    /**
-     * define window with webrtc functions before loading simple-peer
-     */
-    function requireSimplePeer() {
-        if (typeof(window) === 'undefined') {
-            var wrtc = require('..');
-            global.window = {
-                RTCPeerConnection: wrtc.RTCPeerConnection,
-                RTCSessionDescription: wrtc.RTCSessionDescription,
-                RTCIceCandidate: wrtc.RTCIceCandidate,
-                // node-webrtc and Firefox do not trigger "negotiationneeded"
-                // this is a workaround to make simple-peer trigger the negotiation
-                mozRTCPeerConnection: wrtc.RTCPeerConnection,
-            };
-        }
-        return require('simple-peer');
     }
 
 
