@@ -2,11 +2,21 @@
 
 [![Build Status](https://secure.travis-ci.org/js-platform/node-webrtc.png?branch=develop)](http://travis-ci.org/js-platform/node-webrtc) [![Gratipay][wrtc-gratipay-image]][wrtc-gratipay-url]
 
+# Preamble
+
+This open-source project provides a native module for NodeJS that supports a subset of standards-compliant WebRTC features. Specifically, the PeerConnection and DataChannel APIs. 
+
+__MediaStream APIs are not supported__ in order to reduce the number of external dependencies and to make compilation faster and easier. In the future, support for MediaStreams may be added by proxying them over DataChannels. See [#156](https://github.com/js-platform/node-webrtc/issues/156) for more details and discussion.
+
+This project relies on a companion library, [libwebrtc](https://github.com/js-platform/libwebrtc).
+
 # Contributing
 
 The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/modeswitch/node-webrtc/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet.
 
 Once you've done some hacking and you'd like to have your work merged, you'll need to make a pull request. If your patch includes code, make sure to check that all the unit tests pass, including any new tests you wrote. Finally, make sure you add yourself to the `AUTHORS` file.
+
+Whenever possible, prefer making pull requests to opening issues.
 
 # Getting Started
 
