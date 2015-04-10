@@ -89,6 +89,8 @@ DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
 DataChannel::~DataChannel()
 {
   TRACE_CALL;
+  _jingleDataChannel->UnregisterObserver();
+  _jingleDataChannel = NULL;
   TRACE_END;
 }
 
