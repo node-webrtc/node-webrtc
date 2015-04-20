@@ -42,7 +42,7 @@
     "grunt": "~0.4.2",
     "grunt-contrib-jshint": "~0.8.0",
     "grunt-tape": "~0.0.2",
-    "simple-peer": "4.0.4",
+    "simple-peer": "^5.0.0",
     "tape": "~2.4.2",
     "ws": "~0.4.31",
     "node-static": "^0.7.3",

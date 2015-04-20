@@ -1,8 +1,9 @@
 'use strict';
 
+var wrtc = require('..');
 var tape = require('tape');
 var args = require('minimist')(process.argv.slice(2));
-var SimplePeer = require('./simple-peer');
+var SimplePeer = require('simple-peer');
 
 
 module.exports = bwtest;
@@ -107,8 +108,11 @@ function bwtest(options, callback) {
     };
 
     // setup two peers with simple-peer
-    var peer1 = new SimplePeer();
+    var peer1 = new SimplePeer({
+        wrtc: wrtc
+    });
     var peer2 = new SimplePeer({
+        wrtc: wrtc,
         initiator: true,
         config: options.iceConfig
     });
