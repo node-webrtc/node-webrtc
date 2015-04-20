@@ -1,7 +1,8 @@
 'use strict';
 
 var tape = require('tape');
-var SimplePeer = require('./simple-peer');
+var SimplePeer = require('simple-peer');
+var wrtc = require('..');
 
 tape('connect once', function(t) {
     t.plan(1);
@@ -54,8 +55,11 @@ function connect(callback) {
     console.log(connName, 'starting');
 
     // setup two peers with simple-peer
-    var peer1 = new SimplePeer();
+    var peer1 = new SimplePeer({
+        wrtc: wrtc
+    });
     var peer2 = new SimplePeer({
+        wrtc: wrtc,
         initiator: true
     });
 
