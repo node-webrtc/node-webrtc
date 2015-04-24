@@ -190,35 +190,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
       v8::Local<v8::Value> argv[1];
       argv[0] = dc;
       NanMakeCallback(pc, callback, 1, argv);
-    }/* else if(PeerConnection::NOTIFY_ADD_STREAM & evt.type)
-    {
-      webrtc::MediaStreamInterface* msi = static_cast<webrtc::MediaStreamInterface*>(evt.data);
-      v8::Local<v8::Value> cargv[1];
-      cargv[0] = NanNew<v8::External>(static_cast<void*>(msi));
-      v8::Local<v8::Value> ms = NanNew(MediaStream::constructor)->NewInstance(1, cargv);
-
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onaddstream")));
-      if(!callback.IsEmpty())
-      {
-        v8::Local<v8::Value> argv[1];
-        argv[0] = ms;
-        NanMakeCallback(pc, callback, 1, argv);
-      }
-    } else if(PeerConnection::NOTIFY_REMOVE_STREAM & evt.type)
-    {
-      webrtc::MediaStreamInterface* msi = static_cast<webrtc::MediaStreamInterface*>(evt.data);
-      v8::Local<v8::Value> cargv[1];
-      cargv[0] = NanNew<v8::External>(static_cast<void*>(msi));
-      v8::Local<v8::Value> ms = NanNew(MediaStream::constructor)->NewInstance(1, cargv);
-
-      v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onremovestream")));
-      if(!callback.IsEmpty())
-      {
-        v8::Local<v8::Value> argv[1];
-        argv[0] = ms;
-        NanMakeCallback(pc, callback, 1, argv);
-      }
-    }*/
+    }
   }
 
   if(do_shutdown) {
@@ -437,95 +409,6 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   NanReturnValue(dc);
 }
 
-/*
-NAN_METHOD(PeerConnection::AddStream) {
-  TRACE_CALL;
-  NanScope();
-
-  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
-  MediaStream* ms = ObjectWrap::Unwrap<MediaStream>( args[0]->ToObject() );
-  Handle<Object> constraintsDict = Handle<Object>::Cast(args[1]);
-
-  self->_jinglePeerConnection->AddStream(ms->GetInterface(),NULL);
-
-  TRACE_END;
-  NanReturnValue(NanUndefined());
-}
-
-NAN_METHOD(PeerConnection::RemoveStream) {
-  TRACE_CALL;
-  NanScope();
-
-  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
-  MediaStream* ms = ObjectWrap::Unwrap<MediaStream>( args[0]->ToObject() );
-
-  self->_jinglePeerConnection->RemoveStream(ms->GetInterface());
-
-  TRACE_END;
-  NanReturnValue(NanUndefined());
-}
-
-NAN_METHOD(PeerConnection::GetLocalStreams) {
-  TRACE_CALL;
-  NanScope();
-
-  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
-  rtc::scoped_refptr<webrtc::StreamCollectionInterface> _streams = self->_jinglePeerConnection->local_streams();
-
-  v8::Local<v8::Array> array = NanNew<v8::Array>(_streams->count());
-  for (unsigned int index = 0; index < _streams->count(); index++) {
-    v8::Local<v8::Value> cargv[1];
-    cargv[0] = NanNew<v8::External>(static_cast<void*>(_streams->at(index)));
-    array->Set(index, NanNew(MediaStream::constructor)->NewInstance(1, cargv));
-  }
-
-  TRACE_END;
-  NanReturnValue(array);
-}
-
-NAN_METHOD(PeerConnection::GetRemoteStreams) {
-  TRACE_CALL;
-  NanScope();
-
-  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
-  rtc::scoped_refptr<webrtc::StreamCollectionInterface> _streams = self->_jinglePeerConnection->remote_streams();
-
-  v8::Local<v8::Array> array = NanNew<v8::Array>(_streams->count());
-  for (unsigned int index = 0; index < _streams->count(); index++) {
-    v8::Local<v8::Value> cargv[1];
-    cargv[0] = NanNew<v8::External>(static_cast<void*>(_streams->at(index)));
-    array->Set(index, NanNew(MediaStream::constructor)->NewInstance(1, cargv));
-  }
-
-  TRACE_END;
-  NanReturnValue(array);
-}
-
-NAN_METHOD(PeerConnection::GetStreamById) {
-  TRACE_CALL;
-  NanScope();
-
-  PeerConnection* self = ObjectWrap::Unwrap<PeerConnection>( args.This() );
-  v8::String::Utf8Value param1(args[0]->ToString());
-  std::string _id = std::string(*param1);
-  rtc::scoped_refptr<webrtc::StreamCollectionInterface> _local = self->_jinglePeerConnection->local_streams();
-  rtc::scoped_refptr<webrtc::StreamCollectionInterface> _remote = self->_jinglePeerConnection->remote_streams();
-  webrtc::MediaStreamInterface* stream = _local->find(_id);
-  if (!stream) {
-      stream = _remote->find(_id);
-  }
-
-  TRACE_END;
-  if (stream) {
-    v8::Local<v8::Value> cargv[1];
-    cargv[0] = NanNew<v8::External>(static_cast<void*>(stream));
-    v8::Local<v8::Value> ms = NanNew(MediaStream::constructor)->NewInstance(1, cargv);
-    NanReturnValue(ms);
-  } else {
-    NanReturnValue(NanUndefined());
-  }
-}
-*/
 NAN_METHOD(PeerConnection::GetStats) {
   TRACE_CALL;
   NanScope();
