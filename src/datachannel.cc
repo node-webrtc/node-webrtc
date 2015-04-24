@@ -171,7 +171,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
       argv[0] = state;
       NanMakeCallback(dc, callback, 1, argv);
 
-      if(webrtc::DataChannelInterface::kClosed == self->_jingleDataChannel->state()) {
+      if(self->_jingleDataChannel && webrtc::DataChannelInterface::kClosed == self->_jingleDataChannel->state()) {
         do_shutdown = true;
       }
     } else if(DataChannel::MESSAGE & evt.type)
