@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "fs-extra": "^0.18.0",
-    "nan": "^1.7.0",
+    "nan": "~1.8",
     "node-gyp": "^1.0.1",
     "node-pre-gyp": "0.6.x",
     "node-static-alias": "^0.1.2",
