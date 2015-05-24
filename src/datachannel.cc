@@ -32,7 +32,7 @@ void DataChannelObserver::OnStateChange()
 {
   TRACE_CALL;
   DataChannel::StateEvent* data = new DataChannel::StateEvent(_jingleDataChannel->state());
-  QueueEvent(DataChannel::STATE, static_cast<void*>(data));
+  QueueEvent(DataChannel::EVT_STATE, static_cast<void*>(data));
   TRACE_END;
 }
 
@@ -40,7 +40,7 @@ void DataChannelObserver::OnMessage(const webrtc::DataBuffer& buffer)
 {
   TRACE_CALL;
     DataChannel::MessageEvent* data = new DataChannel::MessageEvent(&buffer);
-    QueueEvent(DataChannel::MESSAGE, static_cast<void*>(data));
+    QueueEvent(DataChannel::EVT_MESSAGE, static_cast<void*>(data));
   TRACE_END;
 }
 
@@ -155,14 +155,14 @@ void DataChannel::Run(uv_async_t* handle, int status)
     uv_mutex_unlock(&self->lock);
 
     TRACE_U("evt.type", evt.type);
-    if(DataChannel::ERROR & evt.type)
+    if(DataChannel::EVT_ERROR & evt.type)
     {
       DataChannel::ErrorEvent* data = static_cast<DataChannel::ErrorEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(NanNew("onerror")));
       v8::Local<v8::Value> argv[1];
       argv[0] = v8::Exception::Error(NanNew(data->msg));
       NanMakeCallback(dc, callback, 1, argv);
-    } else if(DataChannel::STATE & evt.type)
+    } else if(DataChannel::EVT_STATE & evt.type)
     {
       StateEvent* data = static_cast<StateEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(NanNew("onstatechange")));
@@ -174,7 +174,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
       if(self->_jingleDataChannel && webrtc::DataChannelInterface::kClosed == self->_jingleDataChannel->state()) {
         do_shutdown = true;
       }
-    } else if(DataChannel::MESSAGE & evt.type)
+    } else if(DataChannel::EVT_MESSAGE & evt.type)
     {
       MessageEvent* data = static_cast<MessageEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(NanNew("onmessage")));
@@ -222,7 +222,7 @@ void DataChannel::OnStateChange()
 {
   TRACE_CALL;
   StateEvent* data = new StateEvent(_jingleDataChannel->state());
-  QueueEvent(DataChannel::STATE, static_cast<void*>(data));
+  QueueEvent(DataChannel::EVT_STATE, static_cast<void*>(data));
   TRACE_END;
 }
 
@@ -230,7 +230,7 @@ void DataChannel::OnMessage(const webrtc::DataBuffer& buffer)
 {
   TRACE_CALL;
   MessageEvent* data = new MessageEvent(&buffer);
-  QueueEvent(DataChannel::MESSAGE, static_cast<void*>(data));
+  QueueEvent(DataChannel::EVT_MESSAGE, static_cast<void*>(data));
   TRACE_END;
 }
 
