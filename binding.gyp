@@ -85,6 +85,18 @@
         'DYNAMIC_ANNOTATIONS_ENABLED=0',
         'WEBRTC_POSIX=1'
       ],
+      'conditions': [
+        ['OS=="win"', {
+          'defines!': [
+            'WEBRTC_LINUX',
+            'WEBRTC_POSIX=1',
+            'POSIX'
+          ],
+          'defines': [
+            'WEBRTC_WIN'
+          ],
+        }]
+      ],
       'include_dirs': [
         "<!(node -p -e \"require('path').relative('.', require('path').dirname(require.resolve('nan')))\")",
         '<(libwebrtc)',
