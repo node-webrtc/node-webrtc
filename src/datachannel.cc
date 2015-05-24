@@ -361,7 +361,7 @@ NAN_SETTER(DataChannel::SetBinaryType) {
 }
 
 NAN_SETTER(DataChannel::ReadOnly) {
-  INFO("PeerConnection::ReadOnly");
+  LOG_INFO("PeerConnection::ReadOnly");
 }
 
 void DataChannel::Init( v8::Handle<v8::Object> exports ) {

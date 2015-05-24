@@ -1,9 +1,9 @@
 #if !defined( COMMON_H )
 #define COMMON_H
 
-#define WARN(msg) fprintf(stdout, "\033[01;33m native:%s \033[00m\n", msg)
-#define ERROR(msg) fprintf(stdout, "\033[01;32m native:%s \033[00m\n", msg)
-#define INFO(msg) fprintf(stdout, "\033[01;34m native:%s \033[00m\n", msg)
+#define LOG_WARN(msg) fprintf(stdout, "\033[01;33m native:%s \033[00m\n", msg)
+#define LOG_ERROR(msg) fprintf(stdout, "\033[01;32m native:%s \033[00m\n", msg)
+#define LOG_INFO(msg) fprintf(stdout, "\033[01;34m native:%s \033[00m\n", msg)
 
 #if defined(TRACING)
 
