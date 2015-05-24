@@ -131,8 +131,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
     } else if(PeerConnection::VOID_EVENT & evt.type)
     {
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(NanNew("onsuccess")));
-      v8::Local<v8::Value> argv[0];
-      NanMakeCallback(pc, callback, 0, argv);
+      NanMakeCallback(pc, callback, 0, NULL);
     } else if(PeerConnection::SIGNALING_STATE_CHANGE & evt.type)
     {
       PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
