@@ -263,7 +263,7 @@
     stopTimer();
 
     console.log(': Building libwebrtc ... ');
-    var args = ['-C', 'out/' + CONFIGURATION, 'wrtc_build'];
+    var args = ['-C', 'out/' + (PLATFORM != 'win32' ? CONFIGURATION : CONFIGURATION + '_x64'), 'wrtc_build'];
 
     process.chdir(LIB_WEBRTC_DIR);
     spawn_log(NINJA,

@@ -41,7 +41,7 @@
         'action_before_build'
       ],
       'variables': {
-        'libwebrtc_out%': '<(libwebrtc)/out/$(BUILDTYPE)/obj',
+        'libwebrtc_out%': '<(libwebrtc)/out/<(CONFIGURATION_NAME)/obj',
       },
       'cflags': [
         '-pthread',
@@ -95,6 +95,9 @@
           'defines': [
             'WEBRTC_WIN'
           ],
+          'variables': {
+            'libwebrtc_out%': '<(libwebrtc)/out/<(CONFIGURATION_NAME)_x64/obj',
+          },
         }]
       ],
       'include_dirs': [
