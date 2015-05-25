@@ -192,14 +192,23 @@
   function git_win_process_symlinks() {
     var i = 0;
     var l = symlinks.length;
+    var symlink;
 
     console.log(': Processing symbolic links ... ');
-    git_win_process_symlink(symlinks[i++], function git_win_process_symlink_cb() {
-      if (i < l) {
-        git_win_process_symlink(symlinks[i++], git_win_process_symlink_cb);
-      } else {
-        generate_build_scripts();
-      }
+    symlink = symlinks[i++];
+    git_win_process_symlink(symlink, function git_win_process_symlink_cb() {
+      var updateProc = spawn('git', ['update-index', '--assume-unchanged', symlink]);
+      updateProc.on('exit', function (code, signal) {
+        if (code !== undefined && code !== 0) {
+          console.error('ERROR:', code, signal, '\n');
+        }
+        if (i < l) {
+          symlink = symlinks[i++];
+          git_win_process_symlink(symlink, git_win_process_symlink_cb);
+        } else {
+          generate_build_scripts();
+        }
+      });
     });
   }
 
