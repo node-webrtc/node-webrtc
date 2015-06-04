@@ -41,7 +41,7 @@
         'action_before_build'
       ],
       'variables': {
-        'libwebrtc_out%': '<(libwebrtc)/out/$(BUILDTYPE)/obj',
+        'libwebrtc_out%': '<(libwebrtc)/out/<(CONFIGURATION_NAME)/obj',
       },
       'cflags': [
         '-pthread',
@@ -85,6 +85,21 @@
         'DYNAMIC_ANNOTATIONS_ENABLED=0',
         'WEBRTC_POSIX=1'
       ],
+      'conditions': [
+        ['OS=="win"', {
+          'defines!': [
+            'WEBRTC_LINUX',
+            'WEBRTC_POSIX=1',
+            'POSIX'
+          ],
+          'defines': [
+            'WEBRTC_WIN'
+          ],
+          'variables': {
+            'libwebrtc_out%': '<(libwebrtc)/out/<(CONFIGURATION_NAME)_x64/obj',
+          },
+        }]
+      ],
       'include_dirs': [
         "<!(node -p -e \"require('path').relative('.', require('path').dirname(require.resolve('nan')))\")",
         '<(libwebrtc)',
@@ -123,6 +138,22 @@
               '-framework AppKit',
               '-framework QTKit',
 #             '-lssl',
+            ]
+          }],
+          ['OS=="win"', {
+            'libraries': [
+              '<(libwebrtc_out)/talk/libjingle_peerconnection.lib',
+              '<(libwebrtc_out)/talk/libjingle_p2p.lib',
+              '<(libwebrtc_out)/talk/libjingle_media.lib',
+              '<(libwebrtc_out)/webrtc/p2p/rtc_p2p.lib',
+              '<(libwebrtc_out)/webrtc/base/rtc_base.lib',
+              '<(libwebrtc_out)/webrtc/base/rtc_base_approved.lib',
+              '<(libwebrtc_out)/third_party/libsrtp/libsrtp.lib',
+              '<(libwebrtc_out)/third_party/usrsctp/usrsctplib.lib',
+              '<(libwebrtc_out)/third_party/boringssl/boringssl.lib',
+              '-lWs2_32.lib',
+              '-lSecur32.lib',
+              '-lwinmm.lib'
             ]
           }],
         ],

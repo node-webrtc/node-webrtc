@@ -307,7 +307,7 @@ NAN_GETTER(MediaStream::IsInactive) {
 }
 
 NAN_SETTER(MediaStream::ReadOnly) {
-  INFO("MediaStream::ReadOnly");
+  LOG_INFO("MediaStream::ReadOnly");
 }
 
 

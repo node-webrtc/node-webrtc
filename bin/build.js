@@ -46,6 +46,7 @@
   var MODULE_PATH = parsed['module_path'];
   var CONFIGURATION = parsed['configuration'] || 'Release';
   var IS_DEBUG = CONFIGURATION == 'Debug';
+  var symlinks = [];
 
   console.log("TARGET_ARCH="+TARGET_ARCH, "PLATFORM="+PLATFORM, "CONFIGURATION="+CONFIGURATION, "PYTHON="+PYTHON, "MODULE_PATH="+MODULE_PATH);
 
@@ -102,7 +103,7 @@
   }
 
   function clone_libwebrtc_repo() {
-    var next = update_clang;
+    var next = PLATFORM == 'win32' ? win_generate_symlinks : update_clang;
 
     if(!fs.existsSync(LIB_WEBRTC_DIR)) {
       console.log(': Cloning libwebrtc ... ');
@@ -144,6 +145,114 @@
     timer = null;
   }
 
+  function git_win_process_symlink(linkname, cb) {
+    var checkoutProc = spawn('git', ['checkout', '--', linkname]);
+    checkoutProc.on('exit', function (code, signal) {
+      var flag;
+      var dest;
+      var stats;
+      var fullpath;
+      var linkProc;
+
+      if (code !== undefined && code !== 0) {
+        console.error('ERROR:', code, signal, '\n');
+        cb();
+      } else {
+        dest = fs.readFileSync(linkname, 'utf-8');
+        fullpath = Path.dirname(linkname) + '/' + dest;
+
+        try {
+          stats = fs.statSync(fullpath);
+        } catch (e) {
+          cb();
+          return;
+        }
+
+        if (stats.isFile()) {
+          flag = '/H';
+        } else if (stats.isDirectory()) {
+          flag = '/J';
+        } else {
+          cb();
+          return;
+        }
+
+        fs.unlinkSync(linkname);
+        linkProc = spawn('cmd', ['/C', 'mklink', flag, linkname.replace(/\//g, "\\"), fullpath.replace(/\//g, "\\") ]);
+        linkProc.on('exit', function (code, signal) {
+          if (code !== undefined && code !== 0) {
+            console.error('ERROR:', code, signal, '\n');
+          }
+          cb();
+        });
+      }
+    });
+  }
+
+  function git_win_process_symlinks() {
+    var i = 0;
+    var l = symlinks.length;
+    var symlink;
+
+    console.log(': Processing symbolic links ... ');
+    symlink = symlinks[i++];
+    git_win_process_symlink(symlink, function git_win_process_symlink_cb() {
+      var updateProc = spawn('git', ['update-index', '--assume-unchanged', symlink]);
+      updateProc.on('exit', function (code, signal) {
+        if (code !== undefined && code !== 0) {
+          console.error('ERROR:', code, signal, '\n');
+        }
+        if (i < l) {
+          symlink = symlinks[i++];
+          git_win_process_symlink(symlink, git_win_process_symlink_cb);
+        } else {
+          generate_build_scripts();
+        }
+      });
+    });
+  }
+
+  function win_generate_symlinks() {
+    var lsProc;
+    stopTimer();
+
+    console.log(': Fetching symbolic links ... ');
+    process.chdir(LIB_WEBRTC_DIR);
+    lsProc = spawn('git', ['ls-files', '-s']);
+
+    lsProc.stdout.on('data', function(data) {
+      var i = 0;
+      var str = data.toString();
+      var lines = str.split(/(\r?\n)/g);
+      var l = lines.length;
+
+      for (var i = 0, l = lines.length; i < l; ++i) {
+        var line = lines[i];
+        if (line && line.match(/^120000/)) {
+          var tab = line.split(/[\s]+/);
+          if (tab && tab.length == 4) {
+            try {
+              fs.accessSync(tab[3], fs.R_OK | fs.W_OK);
+            } catch (err) {
+              continue;
+            }
+            symlinks.push(tab[3]);
+          }
+        }
+      }
+    });
+
+    lsProc.on('exit', function (code, signal) {
+      if (code !== undefined && code !== 0) {
+        console.error('ERROR:', code, signal, '\n');
+      } else {
+        git_win_process_symlinks();
+      }
+    });
+
+    startTimer();
+  }
+
   function generate_build_scripts() {
     stopTimer();
 
@@ -163,7 +272,7 @@
     stopTimer();
 
     console.log(': Building libwebrtc ... ');
-    var args = ['-C', 'out/' + CONFIGURATION, 'wrtc_build'];
+    var args = ['-C', 'out/' + (PLATFORM != 'win32' ? CONFIGURATION : CONFIGURATION + '_x64'), 'wrtc_build'];
 
     process.chdir(LIB_WEBRTC_DIR);
     spawn_log(NINJA,

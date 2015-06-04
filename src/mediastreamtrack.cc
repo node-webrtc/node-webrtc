@@ -255,7 +255,7 @@ NAN_SETTER(MediaStreamTrack::SetEnabled) {
 }
 
 NAN_SETTER(MediaStreamTrack::ReadOnly) {
-  INFO("MediaStreamTrack::ReadOnly");
+  LOG_INFO("MediaStreamTrack::ReadOnly");
 }
 
 void MediaStreamTrack::Init( Handle<Object> exports ) {
