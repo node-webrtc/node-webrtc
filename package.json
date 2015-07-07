@@ -49,7 +49,7 @@
     "minimist": "0.0.8"
   },
   "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build",
+    "install": "node-pre-gyp install --build-from-source",
     "test": "node test/all.js"
   }
 }
