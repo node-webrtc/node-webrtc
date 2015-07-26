@@ -104,7 +104,7 @@
               '../<(libwebrtc_out)/webrtc/p2p/librtc_p2p.a',
               '../<(libwebrtc_out)/webrtc/base/librtc_base.a',
               '../<(libwebrtc_out)/webrtc/base/librtc_base_approved.a',
-              '../<(libwebrtc_out)/chromium/src/net/third_party/nss/libcrssl.a',
+#             '../<(libwebrtc_out)/chromium/src/net/third_party/nss/libcrssl.a',
               '../<(libwebrtc_out)/chromium/src/third_party/usrsctp/libusrsctplib.a',
               '../<(libwebrtc_out)/chromium/src/third_party/boringssl/libboringssl.a',
 #             '-lssl',
