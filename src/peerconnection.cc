@@ -110,14 +110,14 @@ void PeerConnection::Run(uv_async_t* handle, int status)
       PeerConnection::ErrorEvent* data = static_cast<PeerConnection::ErrorEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(Nan::New("onerror").ToLocalChecked()));
       v8::Local<v8::Value> argv[1];
-      argv[0] = Exception::Error(Nan::New(data->msg));
+      argv[0] = Nan::Error(data->msg.c_str());
       Nan::MakeCallback(pc, callback, 1, argv);
     } else if(PeerConnection::SDP_EVENT & evt.type)
     {
       PeerConnection::SdpEvent* data = static_cast<PeerConnection::SdpEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(Nan::New("onsuccess").ToLocalChecked()));
       v8::Local<v8::Value> argv[1];
-      argv[0] = Nan::New(data->desc);
+      argv[0] = Nan::New(&data->desc);
       Nan::MakeCallback(pc, callback, 1, argv);
     } else if(PeerConnection::GET_STATS_SUCCESS & evt.type)
     {
@@ -173,8 +173,8 @@ void PeerConnection::Run(uv_async_t* handle, int status)
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[3];
-        argv[0] = Nan::New(data->candidate);
-        argv[1] = Nan::New(data->sdpMid);
+        argv[0] = Nan::New(&data->candidate);
+        argv[1] = Nan::New(&data->sdpMid);
         argv[2] = Nan::New<Integer>(data->sdpMLineIndex);
         Nan::MakeCallback(pc, callback, 3, argv);
       }
@@ -463,8 +463,8 @@ NAN_GETTER(PeerConnection::GetLocalDescription) {
   if(NULL == sdi) {
     value = Nan::Null();
   } else {
-    std::string sdp;
-    sdi->ToString(&sdp);
+    std::string *sdp;
+    sdi->ToString(sdp);
     value = Nan::New(sdp);
   }
 
@@ -483,8 +483,8 @@ NAN_GETTER(PeerConnection::GetRemoteDescription) {
   if(NULL == sdi) {
     value = Nan::Null();
   } else {
-    std::string sdp;
-    sdi->ToString(&sdp);
+    std::string *sdp;
+    sdi->ToString(sdp);
     value = Nan::New(sdp);
   }
 
@@ -534,41 +534,41 @@ NAN_SETTER(PeerConnection::ReadOnly) {
 
 void PeerConnection::Init( Handle<Object> exports ) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>( New );
-  tpl->SetClassName( Nan::New( "PeerConnection" ) );
+  tpl->SetClassName( Nan::New( "PeerConnection").ToLocalChecked() );
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  tpl->PrototypeTemplate()->Set( Nan::New( "createOffer" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "createOffer" ).ToLocalChecked(),
     Nan::New<FunctionTemplate>( CreateOffer )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( Nan::New( "createAnswer" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "createAnswer" ).ToLocalChecked(),
     Nan::New<FunctionTemplate>( CreateAnswer )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( Nan::New( "setLocalDescription" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "setLocalDescription").ToLocalChecked(),
     Nan::New<FunctionTemplate>( SetLocalDescription )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( Nan::New( "setRemoteDescription" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "setRemoteDescription").ToLocalChecked(),
     Nan::New<FunctionTemplate>( SetRemoteDescription )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( Nan::New( "getStats" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "getStats" ).ToLocalChecked(),
     Nan::New<FunctionTemplate>( GetStats )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( Nan::New( "updateIce" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "updateIce" ).ToLocalChecked(),
     Nan::New<FunctionTemplate>( UpdateIce )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( Nan::New( "addIceCandidate" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "addIceCandidate" ).ToLocalChecked(),
     Nan::New<FunctionTemplate>( AddIceCandidate )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( Nan::New( "createDataChannel" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "createDataChannel" ).ToLocalChecked(),
     Nan::New<FunctionTemplate>( CreateDataChannel )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( Nan::New( "close" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "close" ).ToLocalChecked(),
     Nan::New<FunctionTemplate>( Close )->GetFunction() );
 
-  tpl->InstanceTemplate()->SetAccessor(Nan::New("localDescription").ToLocalChecked(), GetLocalDescription, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(Nan::New("remoteDescription").ToLocalChecked(), GetRemoteDescription, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(Nan::New("signalingState").ToLocalChecked(), GetSignalingState, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(Nan::New("iceConnectionState").ToLocalChecked(), GetIceConnectionState, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(Nan::New("iceGatheringState").ToLocalChecked(), GetIceGatheringState, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("localDescription").ToLocalChecked(), GetLocalDescription, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("remoteDescription").ToLocalChecked(), GetRemoteDescription, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("signalingState").ToLocalChecked(), GetSignalingState, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("iceConnectionState").ToLocalChecked(), GetIceConnectionState, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("iceGatheringState").ToLocalChecked(), GetIceGatheringState, ReadOnly);
 
   constructor.Reset(tpl->GetFunction() );
   exports->Set( Nan::New("PeerConnection").ToLocalChecked(), tpl->GetFunction() );
