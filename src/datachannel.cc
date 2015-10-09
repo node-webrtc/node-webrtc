@@ -124,14 +124,14 @@ void DataChannel::QueueEvent(AsyncEventType type, void* data)
   TRACE_END;
 }
 
-NAN_WEAK_CALLBACK(MessageWeakCallback)
+/*NAN_WEAK_CALLBACK(MessageWeakCallback)
 {
   P* parameter = data.GetParameter();
   delete[] parameter->message;
   parameter->message = NULL;
   delete parameter;
   //Nan::AdjustExternalMemory(-parameter->size);
-}
+}*/
 
 void DataChannel::Run(uv_async_t* handle, int status)
 {
@@ -160,7 +160,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
       DataChannel::ErrorEvent* data = static_cast<DataChannel::ErrorEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(dc->Get(Nan::New("onerror").ToLocalChecked()));
       v8::Local<v8::Value> argv[1];
-      argv[0] = v8::Exception::Error(Nan::New(data->msg));
+      argv[0] = Nan::Error(data->msg.c_str());
       Nan::MakeCallback(dc, callback, 1, argv);
     } else if(DataChannel::STATE & evt.type)
     {
@@ -191,12 +191,12 @@ void DataChannel::Run(uv_async_t* handle, int status)
             data->message, v8::kExternalByteArray, data->size);
         array->ForceSet(Nan::New("byteLength").ToLocalChecked(), Nan::New<v8::Integer>(static_cast<uint32_t>(data->size)));
 #endif
-        NanMakeWeakPersistent(callback, data, &MessageWeakCallback);
+        //NanMakeWeakPersistent(callback, data, &MessageWeakCallback);
 
         argv[0] = array;
         Nan::MakeCallback(dc, callback, 1, argv);
       } else {
-        v8::Local<v8::String> str = Nan::New(data->message, data->size);
+        v8::Local<v8::String> str = Nan::New(data->message, data->size).ToLocalChecked();
 
         // cleanup message event
         delete[] data->message;
@@ -248,7 +248,7 @@ NAN_METHOD(DataChannel::Send) {
     self->_jingleDataChannel->Send(buffer);
   } else {
 
-#if NODE_MINOR_VERSION >= 11
+#if NODE_MINOR_VERSION >= 11 || NODE_MAJOR_VERSION >= 0
     v8::Local<v8::ArrayBuffer> arraybuffer;
 
     if (info[0]->IsArrayBuffer()) {
@@ -273,7 +273,7 @@ NAN_METHOD(DataChannel::Send) {
     webrtc::DataBuffer data_buffer(buffer, true);
     self->_jingleDataChannel->Send(data_buffer);
 
-#if NODE_MINOR_VERSION >= 11
+#if NODE_MINOR_VERSION >= 11 || NODE_MAJOR_VERSION >= 0
     arraybuffer->Neuter();
 #endif
   }
@@ -326,7 +326,7 @@ NAN_GETTER(DataChannel::GetLabel) {
   std::string label = self->_jingleDataChannel->label();
 
   TRACE_END;
-  info.GetReturnValue().Set(Nan::New(label));
+  info.GetReturnValue().Set(Nan::New(label).ToLocalChecked());
 }
 
 NAN_GETTER(DataChannel::GetReadyState) {
@@ -366,20 +366,20 @@ NAN_SETTER(DataChannel::ReadOnly) {
 
 void DataChannel::Init( v8::Handle<v8::Object> exports ) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>( New );
-  tpl->SetClassName( Nan::New( "DataChannel" ) );
+  tpl->SetClassName( Nan::New( "DataChannel" ).ToLocalChecked() );
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  tpl->PrototypeTemplate()->Set( Nan::New( "close" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "close" ).ToLocalChecked(),
     Nan::New<v8::FunctionTemplate>( Close )->GetFunction() );
-  tpl->PrototypeTemplate()->Set( Nan::New( "shutdown" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "shutdown" ).ToLocalChecked(),
     Nan::New<v8::FunctionTemplate>( Shutdown )->GetFunction() );
 
-  tpl->PrototypeTemplate()->Set( Nan::New( "send" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "send" ).ToLocalChecked(),
     Nan::New<v8::FunctionTemplate>( Send )->GetFunction() );
 
-  tpl->InstanceTemplate()->SetAccessor(Nan::New("bufferedAmount").ToLocalChecked(), GetBufferedAmount, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(Nan::New("label").ToLocalChecked(), GetLabel, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(Nan::New("binaryType").ToLocalChecked(), GetBinaryType, SetBinaryType);
-  tpl->InstanceTemplate()->SetAccessor(Nan::New("readyState").ToLocalChecked(), GetReadyState, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("bufferedAmount").ToLocalChecked(), GetBufferedAmount, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("label").ToLocalChecked(), GetLabel, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("binaryType").ToLocalChecked(), GetBinaryType, SetBinaryType);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("readyState").ToLocalChecked(), GetReadyState, ReadOnly);
 
   constructor.Reset(tpl->GetFunction());
   exports->Set( Nan::New("DataChannel").ToLocalChecked(), tpl->GetFunction() );
