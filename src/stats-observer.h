@@ -13,10 +13,10 @@ class StatsObserver
 {
   private:
     PeerConnection* parent;
-    NanCallback* callback;
+    Nan::Callback* callback;
 
   public:
-    StatsObserver( PeerConnection* parent, NanCallback *callback )
+    StatsObserver( PeerConnection* parent, Nan::Callback *callback )
     : parent(parent), callback(callback) {};
 
     virtual void OnComplete(const webrtc::StatsReports& reports);
