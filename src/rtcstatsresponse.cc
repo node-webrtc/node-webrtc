@@ -46,10 +46,10 @@ NAN_METHOD(RTCStatsResponse::result) {
 
 void RTCStatsResponse::Init( Handle<Object> exports ) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate> ( New );
-  tpl->SetClassName( Nan::New( "RTCStatsResponse" ) );
+  tpl->SetClassName( Nan::New( "RTCStatsResponse" ).ToLocalChecked() );
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  tpl->PrototypeTemplate()->Set( Nan::New( "result" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "result" ).ToLocalChecked(),
     Nan::New<FunctionTemplate>( result )->GetFunction() );
    constructor.Reset(tpl->GetFunction() );
-  exports->Set( Nan::New( "RTCStatsResponse" ), tpl->GetFunction() );
+  exports->Set( Nan::New( "RTCStatsResponse" ).ToLocalChecked(), tpl->GetFunction() );
 }
