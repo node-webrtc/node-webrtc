@@ -43,7 +43,7 @@ NAN_METHOD(RTCStatsReport::names) {
   for (std::vector<int>::size_type i = 0; i != values.size(); i++) {
     webrtc::StatsReport::Value value = values[i];
     std::string display_name = value.display_name();
-    names->Set(i, Nan::New<String>(display_name)).ToLocalChecked();
+    names->Set(i, Nan::New<String>(display_name).ToLocalChecked());
   }
 
   TRACE_END;
@@ -92,7 +92,7 @@ NAN_GETTER(RTCStatsReport::GetType) {
   std::string type = self->report->type;
 
   TRACE_END;
-  info.GetReturnValue().Set( Nan::New<String>(type) ).ToLocalChecked();
+  info.GetReturnValue().Set( Nan::New<String>(type).ToLocalChecked() );
 }
 
 NAN_SETTER(RTCStatsReport::ReadOnly) {
@@ -101,17 +101,17 @@ NAN_SETTER(RTCStatsReport::ReadOnly) {
 
 void RTCStatsReport::Init( Handle<Object> exports ) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate> ( New );
-  tpl->SetClassName( Nan::New( "RTCStatsReport" ) );
+  tpl->SetClassName( Nan::New( "RTCStatsReport" ).ToLocalChecked() );
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  tpl->PrototypeTemplate()->Set( Nan::New( "names" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "names" ).ToLocalChecked(),
     Nan::New<FunctionTemplate>( names )->GetFunction() );
-  tpl->PrototypeTemplate()->Set( Nan::New( "stat" ),
+  tpl->PrototypeTemplate()->Set( Nan::New( "stat" ).ToLocalChecked(),
     Nan::New<FunctionTemplate>( stat )->GetFunction() );
 
-  tpl->InstanceTemplate()->SetAccessor(Nan::New("timestamp").ToLocalChecked(), GetTimestamp, ReadOnly);
-  tpl->InstanceTemplate()->SetAccessor(Nan::New("type").ToLocalChecked(), GetType, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("timestamp").ToLocalChecked(), GetTimestamp, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("type").ToLocalChecked(), GetType, ReadOnly);
 
    constructor.Reset(tpl->GetFunction() );
-  exports->Set( Nan::New( "RTCStatsReport" ), tpl->GetFunction() );
+  exports->Set( Nan::New( "RTCStatsReport" ).ToLocalChecked(), tpl->GetFunction() );
 }
