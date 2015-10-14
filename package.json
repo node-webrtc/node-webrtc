@@ -30,7 +30,7 @@
   "dependencies": {
     "fs-extra": "^0.18.0",
     "nan": "^2.1.0",
-    "node-gyp": "^1.0.1",
+    "node-gyp": "^3.0.3",
     "node-pre-gyp": "0.6.x",
     "node-static-alias": "^0.1.2",
     "nopt": "^2.2.0"

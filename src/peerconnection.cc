@@ -117,7 +117,7 @@ void PeerConnection::Run(uv_async_t* handle, int status)
       PeerConnection::SdpEvent* data = static_cast<PeerConnection::SdpEvent*>(evt.data);
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(pc->Get(Nan::New("onsuccess").ToLocalChecked()));
       v8::Local<v8::Value> argv[1];
-      argv[0] = Nan::New(&data->desc);
+      argv[0] = Nan::New(data->desc.c_str()).ToLocalChecked();
       Nan::MakeCallback(pc, callback, 1, argv);
     } else if(PeerConnection::GET_STATS_SUCCESS & evt.type)
     {
@@ -173,8 +173,8 @@ void PeerConnection::Run(uv_async_t* handle, int status)
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[3];
-        argv[0] = Nan::New(&data->candidate);
-        argv[1] = Nan::New(&data->sdpMid);
+        argv[0] = Nan::New(data->candidate.c_str()).ToLocalChecked();
+        argv[1] = Nan::New(data->sdpMid.c_str()).ToLocalChecked();
         argv[2] = Nan::New<Integer>(data->sdpMLineIndex);
         Nan::MakeCallback(pc, callback, 3, argv);
       }
@@ -463,9 +463,9 @@ NAN_GETTER(PeerConnection::GetLocalDescription) {
   if(NULL == sdi) {
     value = Nan::Null();
   } else {
-    std::string *sdp;
-    sdi->ToString(sdp);
-    value = Nan::New(sdp);
+    std::string sdp;
+    sdi->ToString(&sdp);
+    value = Nan::New(sdp.c_str()).ToLocalChecked();
   }
 
   TRACE_END;
@@ -483,9 +483,9 @@ NAN_GETTER(PeerConnection::GetRemoteDescription) {
   if(NULL == sdi) {
     value = Nan::Null();
   } else {
-    std::string *sdp;
-    sdi->ToString(sdp);
-    value = Nan::New(sdp);
+    std::string sdp;
+    sdi->ToString(&sdp);
+    value = Nan::New(sdp.c_str()).ToLocalChecked();
   }
 
   TRACE_END;
