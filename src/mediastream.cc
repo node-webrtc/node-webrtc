@@ -14,7 +14,7 @@
 using namespace node;
 using namespace v8;
 
-Persistent<Function> MediaStream::constructor;
+Nan::Persistent<Function> MediaStream::constructor;
 
 MediaStream::MediaStream(webrtc::MediaStreamInterface* msi)
 : _internalMediaStream(msi)
@@ -34,21 +34,21 @@ MediaStream::~MediaStream()
 
 NAN_METHOD(MediaStream::New) {
   TRACE_CALL;
-  NanScope();
+  Nan::HandleScope scope;
 
-  if(!args.IsConstructCall()) {
-    return NanThrowTypeError("Use the new operator to construct the MediaStream.");
+  if(!info.IsConstructCall()) {
+    return Nan::ThrowTypeError("Use the new operator to construct the MediaStream.");
   }
 
-  v8::Local<v8::External> _msi = v8::Local<v8::External>::Cast(args[0]);
+  v8::Local<v8::External> _msi = v8::Local<v8::External>::Cast(info[0]);
   webrtc::MediaStreamInterface* msi = static_cast<webrtc::MediaStreamInterface*>(_msi->Value());
 
   MediaStream* obj = new MediaStream(msi);
   msi->RegisterObserver(obj);
-  obj->Wrap( args.This() );
+  obj->Wrap( info.This() );
 
   TRACE_END;
-  NanReturnValue( args.This() );
+  info.GetReturnValue().Set( info.This() );
 }
 
 void MediaStream::QueueEvent(AsyncEventType type, void* data)
@@ -68,9 +68,9 @@ void MediaStream::QueueEvent(AsyncEventType type, void* data)
 void MediaStream::Run(uv_async_t* handle, int status)
 {
   TRACE_CALL;
-  NanScope();
+  Nan::HandleScope scope;
   MediaStream* self = static_cast<MediaStream*>(handle->data);
-  v8::Handle<v8::Object> ms = NanObjectWrapHandle(self);
+  v8::Handle<v8::Object> ms = self->handle();
 
   while(true)
   {
@@ -106,7 +106,7 @@ void MediaStream::Run(uv_async_t* handle, int status)
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[0];
-        NanMakeCallback(ms, callback, 0, argv);
+        Nan::MakeCallback(ms, callback, 0, argv);
       }
     } else if(MediaStream::INACTIVE & evt.type)
     {
@@ -114,7 +114,7 @@ void MediaStream::Run(uv_async_t* handle, int status)
       if(!callback.IsEmpty())
       {
         v8::Local<v8::Value> argv[0];
-        NanMakeCallback(ms, callback, 0, argv);
+        Nan::MakeCallback(ms, callback, 0, argv);
       }
     }
     if(MediaStream::ADDTRACK & evt.type)
@@ -128,7 +128,7 @@ void MediaStream::Run(uv_async_t* handle, int status)
       {
         v8::Local<v8::Value> argv[1];
         argv[0] = mst;
-        NanMakeCallback(ms, callback, 1, argv);
+        Nan::MakeCallback(ms, callback, 1, argv);
       }
     }
     if(MediaStream::REMOVETRACK & evt.type)
@@ -142,7 +142,7 @@ void MediaStream::Run(uv_async_t* handle, int status)
       {
         v8::Local<v8::Value> argv[1];
         argv[0] = mst;
-        NanMakeCallback(ms, callback, 1, argv);
+        Nan::MakeCallback(ms, callback, 1, argv);
       }
     }
   }
@@ -182,9 +182,9 @@ webrtc::MediaStreamInterface* MediaStream::GetInterface() {
 
 NAN_METHOD(MediaStream::getAudioTracks) {
   TRACE_CALL;
-  NanScope();
+  Nan::HandleScope scope;
 
-  MediaStream* self = ObjectWrap::Unwrap<MediaStream>( args.Holder() );
+  MediaStream* self = Nan::ObjectWrap::Unwrap<MediaStream>( info.Holder() );
   webrtc::AudioTrackVector audioTracks = self->_internalMediaStream->GetAudioTracks();
 
   v8::Local<v8::Array> array = v8::Array::New(audioTracks.size());
@@ -196,14 +196,14 @@ NAN_METHOD(MediaStream::getAudioTracks) {
   }
 
   TRACE_END;
-  NanReturnValue(array);
+  info.GetReturnValue().Set(array);
 }
 
 NAN_METHOD(MediaStream::getVideoTracks) {
   TRACE_CALL;
-  NanScope();
+  Nan::HandleScope scope;
 
-  MediaStream* self = ObjectWrap::Unwrap<MediaStream>( args.Holder() );
+  MediaStream* self = Nan::ObjectWrap::Unwrap<MediaStream>( info.Holder() );
   webrtc::VideoTrackVector videoTracks = self->_internalMediaStream->GetVideoTracks();
 
   v8::Local<v8::Array> array = v8::Array::New(videoTracks.size());
@@ -215,15 +215,15 @@ NAN_METHOD(MediaStream::getVideoTracks) {
   }
 
   TRACE_END;
-  NanReturnValue(array);
+  info.GetReturnValue().Set(array);
 }
 
 NAN_METHOD(MediaStream::getTrackById) {
   TRACE_CALL;
-  NanScope();
+  Nan::HandleScope scope;
 
-  MediaStream* self = ObjectWrap::Unwrap<MediaStream>( args.Holder() );
-  v8::String::Utf8Value param1(args[0]->ToString());
+  MediaStream* self = Nan::ObjectWrap::Unwrap<MediaStream>( info.Holder() );
+  v8::String::Utf8Value param1(info[0]->ToString());
   std::string _id = std::string(*param1);
 
   talk_base::scoped_refptr<webrtc::MediaStreamTrackInterface> audioTrack = self->_internalMediaStream->FindAudioTrack(_id);
@@ -238,15 +238,15 @@ NAN_METHOD(MediaStream::getTrackById) {
   v8::Local<v8::Value> mst = NanPersistentToLocal(MediaStreamTrack::constructor)->NewInstance(1, cargv);
 
   TRACE_END;
-  NanReturnValue(mst);
+  info.GetReturnValue().Set(mst);
 }
 
 NAN_METHOD(MediaStream::addTrack) {
   TRACE_CALL;
-  NanScope();
+  Nan::HandleScope scope;
 
-  MediaStream* self = ObjectWrap::Unwrap<MediaStream>( args.Holder() );
-  MediaStreamTrack* _track = ObjectWrap::Unwrap<MediaStreamTrack>(args[0]->ToObject());
+  MediaStream* self = Nan::ObjectWrap::Unwrap<MediaStream>( info.Holder() );
+  MediaStreamTrack* _track = Nan::ObjectWrap::Unwrap<MediaStreamTrack>(info[0]->ToObject());
 
   if (_track->GetInterface()->kind() == "audio") {
     self->_internalMediaStream->AddTrack((webrtc::AudioTrackInterface*)_track->GetInterface());
@@ -255,15 +255,15 @@ NAN_METHOD(MediaStream::addTrack) {
   }
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  info.GetReturnValue().Set(Undefined());
 }
 
 NAN_METHOD(MediaStream::removeTrack) {
   TRACE_CALL;
-  NanScope();
+  Nan::HandleScope scope;
 
-  MediaStream* self = ObjectWrap::Unwrap<MediaStream>( args.Holder() );
-  MediaStreamTrack* _track = ObjectWrap::Unwrap<MediaStreamTrack>(args[0]->ToObject());
+  MediaStream* self = Nan::ObjectWrap::Unwrap<MediaStream>( info.Holder() );
+  MediaStreamTrack* _track = Nan::ObjectWrap::Unwrap<MediaStreamTrack>(info[0]->ToObject());
 
   if (_track->GetInterface()->kind() == "audio") {
     self->_internalMediaStream->RemoveTrack((webrtc::AudioTrackInterface*)_track->GetInterface());
@@ -272,38 +272,38 @@ NAN_METHOD(MediaStream::removeTrack) {
   }
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  info.GetReturnValue().Set(Undefined());
 }
 
 NAN_METHOD(MediaStream::clone) {
   TRACE_CALL;
-  NanScope();
+  Nan::HandleScope scope;
 
   TRACE_END;
-  NanReturnValue(Undefined());
+  info.GetReturnValue().Set(Undefined());
 }
 
 NAN_GETTER(MediaStream::GetId) {
   TRACE_CALL;
-  NanScope();
+  Nan::HandleScope scope;
 
-  MediaStream* self = ObjectWrap::Unwrap<MediaStream>( args.Holder() );
+  MediaStream* self = Nan::ObjectWrap::Unwrap<MediaStream>( info.Holder() );
 
   std::string label = self->_internalMediaStream->label();
 
   TRACE_END;
-  NanReturnValue(String::New(label.c_str()));
+  info.GetReturnValue().Set(String::New(label.c_str()));
 }
 
 NAN_GETTER(MediaStream::IsInactive) {
   TRACE_CALL;
-  NanScope();
+  Nan::HandleScope scope;
 
-  MediaStream* self = ObjectWrap::Unwrap<MediaStream>( args.Holder() );
+  MediaStream* self = Nan::ObjectWrap::Unwrap<MediaStream>( info.Holder() );
   bool inactive = self->_inactive;
 
   TRACE_END;
-  NanReturnValue(Boolean::New(inactive));
+  info.GetReturnValue().Set(Boolean::New(inactive));
 }
 
 NAN_SETTER(MediaStream::ReadOnly) {
@@ -333,6 +333,6 @@ void MediaStream::Init( Handle<Object> exports ) {
   tpl->InstanceTemplate()->SetAccessor(String::New("id"), GetId, ReadOnly);
   tpl->InstanceTemplate()->SetAccessor(String::New("inactive"), IsInactive, ReadOnly);
 
-  NanAssignPersistent(Function, constructor, tpl->GetFunction());
+  Function.Reset(constructor, tpl->GetFunction());
   exports->Set( String::NewSymbol("MediaStream"), tpl->GetFunction() );
 }

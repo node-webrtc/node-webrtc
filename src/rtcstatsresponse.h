@@ -17,7 +17,7 @@ using namespace v8;
 namespace node_webrtc {
 
 class RTCStatsResponse
-: public ObjectWrap
+: public Nan::ObjectWrap
 {
 
 public:
@@ -29,7 +29,7 @@ public:
   // Nodejs wrapping.
   //
   static void Init( Handle<Object> exports );
-  static Persistent<Function> constructor;
+  static Nan::Persistent<Function> constructor;
   static NAN_METHOD(New);
 
   static NAN_METHOD(result);

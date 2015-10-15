@@ -23,7 +23,7 @@ namespace node_webrtc {
 class DataChannelObserver;
 
 class DataChannel
-: public node::ObjectWrap
+: public Nan::ObjectWrap
 , public webrtc::DataChannelObserver
 {
 
@@ -84,7 +84,7 @@ public:
   // Nodejs wrapping.
   //
   static void Init(v8::Handle<v8::Object> exports);
-  static v8::Persistent<v8::Function> constructor;
+  static Nan::Persistent<v8::Function> constructor;
   static NAN_METHOD(New);
 
   static NAN_METHOD(Send);
@@ -118,7 +118,7 @@ private:
   BinaryType _binaryType;
 
 #if NODE_MODULE_VERSION < 0x000C
-  static v8::Persistent<v8::Function> ArrayBufferConstructor;
+  static Nan::Persistent<v8::Function> ArrayBufferConstructor;
 #endif
 
 };

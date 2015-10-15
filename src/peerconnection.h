@@ -30,7 +30,7 @@ class SetLocalDescriptionObserver;
 class SetRemoteDescriptionObserver;
 
 class PeerConnection
-: public ObjectWrap,
+: public Nan::ObjectWrap,
   public webrtc::PeerConnectionObserver
 {
 
@@ -86,10 +86,10 @@ public:
   };
 
   struct GetStatsEvent {
-    GetStatsEvent(NanCallback* callback, webrtc::StatsReports reports)
+    GetStatsEvent(Nan::Callback* callback, webrtc::StatsReports reports)
     : callback(callback), reports(reports) {};
 
-    NanCallback* callback;
+    Nan::Callback* callback;
     webrtc::StatsReports reports;
   };
 
@@ -146,7 +146,7 @@ public:
   // Nodejs wrapping.
   //
   static void Init( Handle<Object> exports );
-  static Persistent<Function> constructor;
+  static Nan::Persistent<Function> constructor;
   static NAN_METHOD(New);
 
   static NAN_METHOD(CreateOffer);

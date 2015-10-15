@@ -21,7 +21,7 @@ using namespace node;
 using namespace v8;
 
 class MediaStreamTrack
-: public ObjectWrap,
+: public Nan::ObjectWrap,
   public webrtc::ObserverInterface
 {
     
@@ -49,7 +49,7 @@ public:
   //
   
   static void Init( Handle<Object> exports );
-  static Persistent<Function> constructor;
+  static Nan::Persistent<Function> constructor;
   static NAN_METHOD(New);
 
   static NAN_METHOD(stop);
