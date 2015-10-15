@@ -469,7 +469,11 @@ NAN_GETTER(PeerConnection::GetLocalDescription) {
   }
 
   TRACE_END;
+#if NODE_MAJOR_VERSION == 0
+  info.GetReturnValue().Set(Nan::New(value));
+#else
   info.GetReturnValue().Set(value);
+#endif
 }
 
 NAN_GETTER(PeerConnection::GetRemoteDescription) {
@@ -489,7 +493,11 @@ NAN_GETTER(PeerConnection::GetRemoteDescription) {
   }
 
   TRACE_END;
+#if NODE_MAJOR_VERSION == 0
+  info.GetReturnValue().Set(Nan::New(value));
+#else
   info.GetReturnValue().Set(value);
+#endif
 }
 
 NAN_GETTER(PeerConnection::GetSignalingState) {
