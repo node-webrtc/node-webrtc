@@ -138,7 +138,7 @@ void DataChannel::Run(uv_async_t* handle, int status)
   Nan::HandleScope scope;
   DataChannel* self = static_cast<DataChannel*>(handle->data);
   TRACE_CALL_P((uintptr_t)self);
-  v8::Handle<v8::Object> dc = self->handle();
+  v8::Local<v8::Object> dc = self->handle();
   bool do_shutdown = false;
 
   while(true)
@@ -248,7 +248,7 @@ NAN_METHOD(DataChannel::Send) {
     self->_jingleDataChannel->Send(buffer);
   } else {
 
-#if NODE_MINOR_VERSION >= 11 || NODE_MAJOR_VERSION >= 0
+#if NODE_MINOR_VERSION >= 11 || NODE_MAJOR_VERSION > 0
     v8::Local<v8::ArrayBuffer> arraybuffer;
 
     if (info[0]->IsArrayBuffer()) {
@@ -273,7 +273,7 @@ NAN_METHOD(DataChannel::Send) {
     webrtc::DataBuffer data_buffer(buffer, true);
     self->_jingleDataChannel->Send(data_buffer);
 
-#if NODE_MINOR_VERSION >= 11 || NODE_MAJOR_VERSION >= 0
+#if NODE_MINOR_VERSION >= 11 || NODE_MAJOR_VERSION > 0
     arraybuffer->Neuter();
 #endif
   }
