@@ -54,7 +54,7 @@ To install prerequisites using the homebrew package manager,
 
 ```
 brew update
-brew install git openssl pkg-config openssl ncurses nss expat
+brew install git openssl pkg-config openssl homebrew/dupes/ncurses nss expat
 ```
 
 Some of these libraries may be installed by default. Package names for these libraries may differ between distributions.
