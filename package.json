@@ -39,6 +39,7 @@
     "node-pre-gyp"
   ],
   "devDependencies": {
+    "aws-sdk": "^2.2.10",
     "grunt": "~0.4.2",
     "grunt-contrib-jshint": "~0.8.0",
     "grunt-tape": "~0.0.2",
