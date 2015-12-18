@@ -28,6 +28,7 @@ Some open issues have bounties assocaited with them. Once you patch is merged, y
 
 * python2
 * git
+* g++
 * pkg-config
 * libncurses-devel
 * libssl-devel
@@ -38,7 +39,7 @@ Some open issues have bounties assocaited with them. Once you patch is merged, y
 
 To install prerequisites with the apt-get package manager,
 
-`apt-get install python2.7 git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev  `
+`apt-get install python2.7 git-all g++ pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev`
 
 ### CentOS/Fedora/RHEL
 
