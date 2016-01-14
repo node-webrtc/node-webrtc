@@ -1,18 +1,10 @@
-#ifndef __RTCSTATSRESPONSE_H__
-#define __RTCSTATSRESPONSE_H__
+#ifndef SRC_RTCSTATSRESPONSE_H_
+#define SRC_RTCSTATSRESPONSE_H_
 
-#include <node.h>
-#include <v8.h>
-#include <node_object_wrap.h>
-#include <uv.h>
+#include "nan.h"
+#include "v8.h" // IWYU pragma: keep
 
 #include "talk/app/webrtc/statstypes.h"
-
-#include "common.h"
-#include "nan.h"
-
-using namespace node;
-using namespace v8;
 
 namespace node_webrtc {
 
@@ -28,8 +20,8 @@ public:
   //
   // Nodejs wrapping.
   //
-  static void Init( Handle<Object> exports );
-  static Nan::Persistent<Function> constructor;
+  static void Init(v8::Handle<v8::Object> exports );
+  static Nan::Persistent<v8::Function> constructor;
   static NAN_METHOD(New);
 
   static NAN_METHOD(result);
@@ -40,6 +32,6 @@ private:
 
 };
 
-}
+}  // namespace node_webrtc
 
-#endif
+#endif  // SRC_RTCSTATSRESPONSE_H_

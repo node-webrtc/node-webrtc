@@ -1,14 +1,16 @@
-#if !defined( COMMON_H )
-#define COMMON_H
+#ifndef SRC_COMMON_H_
+#define SRC_COMMON_H_
+
+#include <stdio.h>
+#include <string.h>
+
+#include "nan.h"
 
 #define WARN(msg) fprintf(stdout, "\033[01;33m native:%s \033[00m\n", msg)
 #define ERROR(msg) fprintf(stdout, "\033[01;32m native:%s \033[00m\n", msg)
 #define INFO(msg) fprintf(stdout, "\033[01;34m native:%s \033[00m\n", msg)
 
 #if defined(TRACING)
-
-#include <stdio.h>
-#include <nan.h>
 
 #define TRACE(msg) printf("   TRACE: %s\n", msg)
 #define TRACE_S(msg, s) printf("   TRACE: %s : %s\n", msg, s)
@@ -73,4 +75,4 @@
           ->Get( Nan::New("Buffer").ToLocalChecked()) \
       )->NewInstance( 3, ctorArgs );
 
-#endif
+#endif  // SRC_COMMON_H_

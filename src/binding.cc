@@ -1,5 +1,5 @@
-#include <node.h>
-#include <v8.h>
+#include "node.h"
+#include "v8.h"
 
 #include "webrtc/base/ssladapter.h"
 
@@ -8,7 +8,10 @@
 #include "rtcstatsreport.h"
 #include "rtcstatsresponse.h"
 
-void init(v8::Handle<v8::Object> exports) {
+using v8::Handle;
+using v8::Object;
+
+void init(Handle<Object> exports) {
   rtc::InitializeSSL();
   node_webrtc::PeerConnection::Init(exports);
   node_webrtc::DataChannel::Init(exports);

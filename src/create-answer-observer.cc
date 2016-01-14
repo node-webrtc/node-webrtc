@@ -1,8 +1,10 @@
 #include "create-answer-observer.h"
-#include "peerconnection.h"
-#include "common.h"
 
-using namespace node_webrtc;
+#include "common.h"
+#include "peerconnection.h"
+
+using node_webrtc::CreateAnswerObserver;
+using node_webrtc::PeerConnection;
 
 void CreateAnswerObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp)
 {

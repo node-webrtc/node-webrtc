@@ -1,31 +1,26 @@
-#ifndef __PEERCONNECTION_H__
-#define __PEERCONNECTION_H__
+#ifndef SRC_PEERCONNECTION_H_
+#define SRC_PEERCONNECTION_H_
 
-#include <queue>
+#include <stdint.h>
+
 #include <string>
+#include <queue>
 
-#include <node.h>
-#include <v8.h>
-#include <node_object_wrap.h>
-#include <uv.h>
+#include "nan.h"
+#include "uv.h"
+#include "v8.h" // IWYU pragma: keep
 
+#include "talk/app/webrtc/datachannelinterface.h" // IWYU pragma: keep
 #include "talk/app/webrtc/jsep.h"
 #include "talk/app/webrtc/peerconnectioninterface.h"
-#include "webrtc/base/thread.h"
-#include "webrtc/base/scoped_ptr.h"
-#include "webrtc/system_wrappers/interface/ref_count.h"
-#include "datachannel.h"
-
-#include "common.h"
-#include "nan.h"
-
-using namespace node;
-using namespace v8;
+#include "talk/app/webrtc/statstypes.h"
+#include "webrtc/base/scoped_ref_ptr.h"
 
 namespace node_webrtc {
 
 class CreateOfferObserver;
 class CreateAnswerObserver;
+class DataChannelObserver;
 class SetLocalDescriptionObserver;
 class SetRemoteDescriptionObserver;
 
@@ -145,8 +140,8 @@ public:
   //
   // Nodejs wrapping.
   //
-  static void Init( Handle<Object> exports );
-  static Nan::Persistent<Function> constructor;
+  static void Init(v8::Handle<v8::Object> exports );
+  static Nan::Persistent<v8::Function> constructor;
   static NAN_METHOD(New);
 
   static NAN_METHOD(CreateOffer);
@@ -198,6 +193,6 @@ private:
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
 };
 
-}
+}  // namespace node_webrtc
 
-#endif
+#endif  // SRC_PEERCONNECTION_H_

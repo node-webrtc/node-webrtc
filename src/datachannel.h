@@ -1,22 +1,18 @@
-#ifndef __DATACHANNEL_H__
-#define __DATACHANNEL_H__
+#ifndef SRC_DATACHANNEL_H_
+#define SRC_DATACHANNEL_H_
 
-#include <queue>
+#include <string.h>
+
 #include <string>
+#include <queue>
 
-#include <node.h>
-#include <v8.h>
-#include <node_object_wrap.h>
-#include <uv.h>
-
-#include "talk/app/webrtc/jsep.h"
-#include "talk/app/webrtc/datachannelinterface.h"
-#include "webrtc/base/thread.h"
-#include "webrtc/base/scoped_ptr.h"
-#include "webrtc/system_wrappers/interface/ref_count.h"
-
-#include "common.h"
 #include "nan.h"
+#include "uv.h"
+#include "v8.h" // IWYU pragma: keep
+
+#include "talk/app/webrtc/datachannelinterface.h"
+#include "webrtc/base/buffer.h"
+#include "webrtc/base/scoped_ref_ptr.h"
 
 namespace node_webrtc {
 
@@ -138,6 +134,6 @@ class DataChannelObserver
     rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
 };
 
-}
+}  // namespace node_webrtc
 
-#endif
+#endif  // SRC_DATACHANNEL_H_

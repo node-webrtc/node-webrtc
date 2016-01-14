@@ -1,4 +1,9 @@
-#include "talk/app/webrtc/peerconnectioninterface.h"
+#ifndef SRC_CREATE_OFFER_OBSERVER_H_
+#define SRC_CREATE_OFFER_OBSERVER_H_
+
+#include <string>
+
+#include "talk/app/webrtc/jsep.h"
 
 namespace node_webrtc {
 
@@ -17,4 +22,6 @@ class CreateOfferObserver
     virtual void OnFailure( const std::string& msg );
 };
 
-}
+}  // namespace node_webrtc
+
+#endif  // SRC_CREATE_OFFER_OBSERVER_H_

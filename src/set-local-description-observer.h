@@ -1,4 +1,9 @@
-#include "talk/app/webrtc/peerconnectioninterface.h"
+#ifndef SRC_SET_LOCAL_DESCRIPTION_OBSERVER_H_
+#define SRC_SET_LOCAL_DESCRIPTION_OBSERVER_H_
+
+#include <string>
+
+#include "talk/app/webrtc/jsep.h"
 
 namespace node_webrtc {
 
@@ -16,4 +21,6 @@ class SetLocalDescriptionObserver :
     virtual void OnFailure( const std::string& msg );
 };
 
-}
+}  // namespace node_webrtc
+
+#endif  // SRC_SET_LOCAL_DESCRIPTION_OBSERVER_H_

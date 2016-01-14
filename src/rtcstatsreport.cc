@@ -1,9 +1,21 @@
 #include "rtcstatsreport.h"
 
-using namespace node;
-using namespace v8;
+#include <string>
+#include <vector>
 
-using namespace node_webrtc;
+#include "common.h"
+
+using node_webrtc::RTCStatsReport;
+using v8::Array;
+using v8::External;
+using v8::Function;
+using v8::FunctionTemplate;
+using v8::Handle;
+using v8::Local;
+using v8::Number;
+using v8::Object;
+using v8::String;
+using v8::Value;
 
 Nan::Persistent<Function> RTCStatsReport::constructor;
 
@@ -11,7 +23,7 @@ RTCStatsReport::RTCStatsReport(webrtc::StatsReport* report)
 : report(report) {};
 
 RTCStatsReport::~RTCStatsReport() {
-  report = NULL;
+  report = nullptr;
 }
 
 NAN_METHOD(RTCStatsReport::New) {
@@ -56,7 +68,7 @@ NAN_METHOD(RTCStatsReport::stat) {
 
   RTCStatsReport* self = Nan::ObjectWrap::Unwrap<RTCStatsReport>( info.This() );
 
-  v8::String::Utf8Value _name(info[0]->ToString());
+  String::Utf8Value _name(info[0]->ToString());
   std::string name = std::string(*_name);
 
   Local<Value> found = Nan::Undefined();

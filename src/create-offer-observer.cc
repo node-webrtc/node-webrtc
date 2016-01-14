@@ -1,8 +1,10 @@
 #include "create-offer-observer.h"
-#include "peerconnection.h"
-#include "common.h"
 
-using namespace node_webrtc;
+#include "common.h"
+#include "peerconnection.h"
+
+using node_webrtc::CreateOfferObserver;
+using node_webrtc::PeerConnection;
 
 void CreateOfferObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp)
 {

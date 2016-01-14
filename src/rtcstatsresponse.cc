@@ -1,10 +1,19 @@
 #include "rtcstatsresponse.h"
+
+#include <vector>
+
+#include "common.h"
 #include "rtcstatsreport.h"
 
-using namespace node;
-using namespace v8;
-
-using namespace node_webrtc;
+using node_webrtc::RTCStatsResponse;
+using v8::Array;
+using v8::External;
+using v8::Function;
+using v8::FunctionTemplate;
+using v8::Handle;
+using v8::Local;
+using v8::Object;
+using v8::Value;
 
 Nan::Persistent<Function> RTCStatsResponse::constructor;
 
@@ -35,8 +44,8 @@ NAN_METHOD(RTCStatsResponse::result) {
   Local<Array> reports = Nan::New<Array>(self->reports.size());
   for (std::vector<int>::size_type i = 0; i != self->reports.size(); i++) {
     void *copy = (void *) self->reports.at(i);
-    v8::Local<v8::Value> cargv[1];
-    cargv[0] = Nan::New<v8::External>(copy);
+    Local<Value> cargv[1];
+    cargv[0] = Nan::New<External>(copy);
     reports->Set(i, Nan::New(RTCStatsReport::constructor)->NewInstance(1, cargv));
   }
 

@@ -1,18 +1,10 @@
-#ifndef __RTCSTATSREPORT_H__
-#define __RTCSTATSREPORT_H__
+#ifndef SRC_RTCSTATSREPORT_H_
+#define SRC_RTCSTATSREPORT_H_
 
-#include <node.h>
-#include <v8.h>
-#include <node_object_wrap.h>
-#include <uv.h>
-
-#include "talk/app/webrtc/statstypes.h"
-
-#include "common.h"
 #include "nan.h"
+#include "v8.h" // IWYU pragma: keep
 
-using namespace node;
-using namespace v8;
+#include "talk/app/webrtc/statstypes.h" // IWYU pragma: keep
 
 namespace node_webrtc {
 
@@ -28,8 +20,8 @@ public:
   //
   // Nodejs wrapping.
   //
-  static void Init( Handle<Object> exports );
-  static Nan::Persistent<Function> constructor;
+  static void Init(v8::Handle<v8::Object> exports );
+  static Nan::Persistent<v8::Function> constructor;
   static NAN_METHOD(New);
 
   static NAN_METHOD(names);
@@ -46,6 +38,6 @@ private:
 
 };
 
-}
+}  // namespace node_webrtc
 
-#endif
+#endif  // SRC_RTCSTATSREPORT_H_
