@@ -188,7 +188,6 @@ private:
   uv_loop_t *loop;
   std::queue<AsyncEvent> _events;
   webrtc::PeerConnectionInterface::IceServers _iceServers;
-  webrtc::MediaConstraintsInterface* _mediaConstraints;
 
   rtc::scoped_refptr<CreateOfferObserver> _createOfferObserver;
   rtc::scoped_refptr<CreateAnswerObserver> _createAnswerObserver;

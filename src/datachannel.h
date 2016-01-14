@@ -114,7 +114,6 @@ private:
   std::queue<AsyncEvent> _events;
 
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
-  DataChannelObserver* _observer;
   BinaryType _binaryType;
 
 #if NODE_MODULE_VERSION < 0x000C

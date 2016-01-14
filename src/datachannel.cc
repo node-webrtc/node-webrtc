@@ -57,7 +57,6 @@ void DataChannelObserver::QueueEvent(DataChannel::AsyncEventType type, void* dat
 
 DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
 : loop(uv_default_loop()),
-  _observer(observer),
   _binaryType(DataChannel::ARRAY_BUFFER)
 {
   uv_mutex_init(&lock);
@@ -384,8 +383,8 @@ void DataChannel::Init( v8::Handle<v8::Object> exports ) {
   constructor.Reset(tpl->GetFunction());
   exports->Set( Nan::New("DataChannel").ToLocalChecked(), tpl->GetFunction() );
 
-  v8::Local<v8::Object> global = Nan::GetCurrentContext()->Global();
 #if NODE_MODULE_VERSION < 0x000C
+  v8::Local<v8::Object> global = Nan::GetCurrentContext()->Global();
   v8::Local<v8::Value> obj = global->Get(Nan::New("ArrayBuffer").ToLocalChecked());
   ArrayBufferConstructor.Reset(obj.As<v8::Function>());
 #endif
