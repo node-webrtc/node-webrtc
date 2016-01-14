@@ -16,7 +16,6 @@
 #include "common.h"
 #include "peerconnection.h"
 #include "datachannel.h"
-//#include "mediastream.h"
 #include "create-offer-observer.h"
 #include "create-answer-observer.h"
 #include "set-local-description-observer.h"
