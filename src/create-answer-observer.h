@@ -10,16 +10,15 @@ namespace node_webrtc {
 class PeerConnection;
 
 class CreateAnswerObserver
-  : public webrtc::CreateSessionDescriptionObserver
-{
-  private:
-    PeerConnection* parent;
+: public webrtc::CreateSessionDescriptionObserver {
+ private:
+  PeerConnection* parent;
 
-  public:
-    CreateAnswerObserver( PeerConnection* connection ): parent(connection) {};
+ public:
+  explicit CreateAnswerObserver(PeerConnection* connection): parent(connection) {}
 
-    virtual void OnSuccess( webrtc::SessionDescriptionInterface* sdp );
-    virtual void OnFailure( const std::string& msg );
+  virtual void OnSuccess(webrtc::SessionDescriptionInterface* sdp);
+  virtual void OnFailure(const std::string& msg);
 };
 
 }  // namespace node_webrtc

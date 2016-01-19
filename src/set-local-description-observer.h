@@ -9,16 +9,16 @@ namespace node_webrtc {
 
 class PeerConnection;
 
-class SetLocalDescriptionObserver :
-  public webrtc::SetSessionDescriptionObserver
-{
-  private:
-    PeerConnection* parent;
-  public:
-    SetLocalDescriptionObserver( PeerConnection* connection): parent(connection) {};
+class SetLocalDescriptionObserver
+:  public webrtc::SetSessionDescriptionObserver {
+ private:
+  PeerConnection* parent;
 
-    virtual void OnSuccess();
-    virtual void OnFailure( const std::string& msg );
+ public:
+  explicit SetLocalDescriptionObserver(PeerConnection* connection): parent(connection) {}
+
+  virtual void OnSuccess();
+  virtual void OnFailure(const std::string& msg);
 };
 
 }  // namespace node_webrtc

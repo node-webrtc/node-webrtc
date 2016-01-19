@@ -20,7 +20,7 @@ using v8::Value;
 Nan::Persistent<Function> RTCStatsReport::constructor;
 
 RTCStatsReport::RTCStatsReport(webrtc::StatsReport* report)
-: report(report) {};
+: report(report) {}
 
 RTCStatsReport::~RTCStatsReport() {
   report = nullptr;
@@ -38,17 +38,17 @@ NAN_METHOD(RTCStatsReport::New) {
   webrtc::StatsReport* report = static_cast<webrtc::StatsReport*>(_report->Value());
 
   RTCStatsReport* obj = new RTCStatsReport(report);
-  obj->Wrap( info.This() );
+  obj->Wrap(info.This());
 
   TRACE_END;
-  info.GetReturnValue().Set( info.This() );
+  info.GetReturnValue().Set(info.This());
 }
 
 NAN_METHOD(RTCStatsReport::names) {
   TRACE_CALL;
   Nan::HandleScope scope;
 
-  RTCStatsReport* self = Nan::ObjectWrap::Unwrap<RTCStatsReport>( info.This() );
+  RTCStatsReport* self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.This());
 
   std::vector<webrtc::StatsReport::Value> values = self->report->values;
   Local<Array> names = Nan::New<Array>(values.size());
@@ -59,14 +59,14 @@ NAN_METHOD(RTCStatsReport::names) {
   }
 
   TRACE_END;
-  info.GetReturnValue().Set( names );
+  info.GetReturnValue().Set(names);
 }
 
 NAN_METHOD(RTCStatsReport::stat) {
   TRACE_CALL;
   Nan::HandleScope scope;
 
-  RTCStatsReport* self = Nan::ObjectWrap::Unwrap<RTCStatsReport>( info.This() );
+  RTCStatsReport* self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.This());
 
   String::Utf8Value _name(info[0]->ToString());
   std::string name = std::string(*_name);
@@ -82,48 +82,48 @@ NAN_METHOD(RTCStatsReport::stat) {
   }
 
   TRACE_END;
-  info.GetReturnValue().Set( found );
+  info.GetReturnValue().Set(found);
 }
 
 NAN_GETTER(RTCStatsReport::GetTimestamp) {
   TRACE_CALL;
   Nan::HandleScope scope;
 
-  RTCStatsReport *self = Nan::ObjectWrap::Unwrap<RTCStatsReport>( info.Holder() );
+  RTCStatsReport *self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.Holder());
   double timestamp = self->report->timestamp;
 
   TRACE_END;
-  info.GetReturnValue().Set( Nan::New<Number>(timestamp) );
+  info.GetReturnValue().Set(Nan::New<Number>(timestamp));
 }
 
 NAN_GETTER(RTCStatsReport::GetType) {
   TRACE_CALL;
   Nan::HandleScope scope;
 
-  RTCStatsReport *self = Nan::ObjectWrap::Unwrap<RTCStatsReport>( info.Holder() );
+  RTCStatsReport *self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.Holder());
   std::string type = self->report->type;
 
   TRACE_END;
-  info.GetReturnValue().Set( Nan::New<String>(type).ToLocalChecked() );
+  info.GetReturnValue().Set(Nan::New<String>(type).ToLocalChecked());
 }
 
 NAN_SETTER(RTCStatsReport::ReadOnly) {
   INFO("RTCStatsReport::ReadOnly");
 }
 
-void RTCStatsReport::Init( Handle<Object> exports ) {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate> ( New );
-  tpl->SetClassName( Nan::New( "RTCStatsReport" ).ToLocalChecked() );
+void RTCStatsReport::Init(Handle<Object> exports) {
+  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate> (New);
+  tpl->SetClassName(Nan::New("RTCStatsReport").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  tpl->PrototypeTemplate()->Set( Nan::New( "names" ).ToLocalChecked(),
-    Nan::New<FunctionTemplate>( names )->GetFunction() );
-  tpl->PrototypeTemplate()->Set( Nan::New( "stat" ).ToLocalChecked(),
-    Nan::New<FunctionTemplate>( stat )->GetFunction() );
+  tpl->PrototypeTemplate()->Set(Nan::New("names").ToLocalChecked(),
+    Nan::New<FunctionTemplate>(names)->GetFunction());
+  tpl->PrototypeTemplate()->Set(Nan::New("stat").ToLocalChecked(),
+    Nan::New<FunctionTemplate>(stat)->GetFunction());
 
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("timestamp").ToLocalChecked(), GetTimestamp, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("type").ToLocalChecked(), GetType, ReadOnly);
 
-   constructor.Reset(tpl->GetFunction() );
-  exports->Set( Nan::New( "RTCStatsReport" ).ToLocalChecked(), tpl->GetFunction() );
+  constructor.Reset(tpl->GetFunction());
+  exports->Set(Nan::New("RTCStatsReport").ToLocalChecked(), tpl->GetFunction());
 }

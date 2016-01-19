@@ -2,25 +2,22 @@
 #define SRC_RTCSTATSREPORT_H_
 
 #include "nan.h"
-#include "v8.h" // IWYU pragma: keep
+#include "v8.h"  // IWYU pragma: keep
 
-#include "talk/app/webrtc/statstypes.h" // IWYU pragma: keep
+#include "talk/app/webrtc/statstypes.h"  // IWYU pragma: keep
 
 namespace node_webrtc {
 
 class RTCStatsReport
-: public Nan::ObjectWrap
-{
-
-public:
-
-  RTCStatsReport(webrtc::StatsReport* report);
+: public Nan::ObjectWrap {
+ public:
+  explicit RTCStatsReport(webrtc::StatsReport* report);
   ~RTCStatsReport();
 
   //
   // Nodejs wrapping.
   //
-  static void Init(v8::Handle<v8::Object> exports );
+  static void Init(v8::Handle<v8::Object> exports);
   static Nan::Persistent<v8::Function> constructor;
   static NAN_METHOD(New);
 
@@ -32,10 +29,8 @@ public:
 
   static NAN_SETTER(ReadOnly);
 
-private:
-
+ private:
   webrtc::StatsReport* report;
-
 };
 
 }  // namespace node_webrtc

@@ -29,36 +29,36 @@ NAN_METHOD(RTCStatsResponse::New) {
   webrtc::StatsReports* reports = static_cast<webrtc::StatsReports*>(_reports->Value());
 
   RTCStatsResponse* obj = new RTCStatsResponse(*reports);
-  obj->Wrap( info.This() );
+  obj->Wrap(info.This());
 
   TRACE_END;
-  info.GetReturnValue().Set( info.This() );
+  info.GetReturnValue().Set(info.This());
 }
 
 NAN_METHOD(RTCStatsResponse::result) {
   TRACE_CALL;
   Nan::HandleScope scope;
 
-  RTCStatsResponse* self = Nan::ObjectWrap::Unwrap<RTCStatsResponse>( info.This() );
+  RTCStatsResponse* self = Nan::ObjectWrap::Unwrap<RTCStatsResponse>(info.This());
 
   Local<Array> reports = Nan::New<Array>(self->reports.size());
   for (std::vector<int>::size_type i = 0; i != self->reports.size(); i++) {
-    void *copy = (void *) self->reports.at(i);
+    const void *copy = static_cast<const void*>(self->reports.at(i));
     Local<Value> cargv[1];
-    cargv[0] = Nan::New<External>(copy);
+    cargv[0] = Nan::New<External>(const_cast<void*>(copy));
     reports->Set(i, Nan::New(RTCStatsReport::constructor)->NewInstance(1, cargv));
   }
 
   TRACE_END;
-  info.GetReturnValue().Set( reports );
+  info.GetReturnValue().Set(reports);
 }
 
-void RTCStatsResponse::Init( Handle<Object> exports ) {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate> ( New );
-  tpl->SetClassName( Nan::New( "RTCStatsResponse" ).ToLocalChecked() );
+void RTCStatsResponse::Init(Handle<Object> exports) {
+  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate> (New);
+  tpl->SetClassName(Nan::New("RTCStatsResponse").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  tpl->PrototypeTemplate()->Set( Nan::New( "result" ).ToLocalChecked(),
-    Nan::New<FunctionTemplate>( result )->GetFunction() );
-   constructor.Reset(tpl->GetFunction() );
-  exports->Set( Nan::New( "RTCStatsResponse" ).ToLocalChecked(), tpl->GetFunction() );
+  tpl->PrototypeTemplate()->Set(Nan::New("result").ToLocalChecked(),
+    Nan::New<FunctionTemplate>(result)->GetFunction());
+  constructor.Reset(tpl->GetFunction());
+  exports->Set(Nan::New("RTCStatsResponse").ToLocalChecked(), tpl->GetFunction());
 }
