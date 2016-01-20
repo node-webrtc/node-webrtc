@@ -19,7 +19,6 @@ Nan::Persistent<Function> RTCStatsResponse::constructor;
 
 NAN_METHOD(RTCStatsResponse::New) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct the RTCStatsResponse");
@@ -37,7 +36,6 @@ NAN_METHOD(RTCStatsResponse::New) {
 
 NAN_METHOD(RTCStatsResponse::result) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   RTCStatsResponse* self = Nan::ObjectWrap::Unwrap<RTCStatsResponse>(info.This());
 

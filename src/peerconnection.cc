@@ -230,7 +230,6 @@ void PeerConnection::OnRenegotiationNeeded() {
 
 NAN_METHOD(PeerConnection::New) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct the PeerConnection.");
@@ -245,7 +244,6 @@ NAN_METHOD(PeerConnection::New) {
 
 NAN_METHOD(PeerConnection::CreateOffer) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
@@ -257,7 +255,6 @@ NAN_METHOD(PeerConnection::CreateOffer) {
 
 NAN_METHOD(PeerConnection::CreateAnswer) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
@@ -269,7 +266,6 @@ NAN_METHOD(PeerConnection::CreateAnswer) {
 
 NAN_METHOD(PeerConnection::SetLocalDescription) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
   Local<Object> desc = Local<Object>::Cast(info[0]);
@@ -288,7 +284,6 @@ NAN_METHOD(PeerConnection::SetLocalDescription) {
 
 NAN_METHOD(PeerConnection::SetRemoteDescription) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
   Local<Object> desc = Local<Object>::Cast(info[0]);
@@ -307,7 +302,6 @@ NAN_METHOD(PeerConnection::SetRemoteDescription) {
 
 NAN_METHOD(PeerConnection::AddIceCandidate) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
   Handle<Object> sdp = Handle<Object>::Cast(info[0]);
@@ -334,7 +328,6 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
 
 NAN_METHOD(PeerConnection::CreateDataChannel) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
   String::Utf8Value label(info[0]->ToString());
@@ -391,7 +384,6 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
 
 NAN_METHOD(PeerConnection::GetStats) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
@@ -415,14 +407,12 @@ NAN_METHOD(PeerConnection::GetStats) {
 
 NAN_METHOD(PeerConnection::UpdateIce) {
   TRACE_CALL;
-  Nan::HandleScope scope;
   TRACE_END;
   info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(PeerConnection::Close) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
   self->_jinglePeerConnection->Close();
@@ -433,7 +423,6 @@ NAN_METHOD(PeerConnection::Close) {
 
 NAN_GETTER(PeerConnection::GetLocalDescription) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
   const webrtc::SessionDescriptionInterface* sdi = self->_jinglePeerConnection->local_description();
@@ -457,7 +446,6 @@ NAN_GETTER(PeerConnection::GetLocalDescription) {
 
 NAN_GETTER(PeerConnection::GetRemoteDescription) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
   const webrtc::SessionDescriptionInterface* sdi = self->_jinglePeerConnection->remote_description();
@@ -481,7 +469,6 @@ NAN_GETTER(PeerConnection::GetRemoteDescription) {
 
 NAN_GETTER(PeerConnection::GetSignalingState) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
@@ -493,7 +480,6 @@ NAN_GETTER(PeerConnection::GetSignalingState) {
 
 NAN_GETTER(PeerConnection::GetIceConnectionState) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
@@ -505,7 +491,6 @@ NAN_GETTER(PeerConnection::GetIceConnectionState) {
 
 NAN_GETTER(PeerConnection::GetIceGatheringState) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
 

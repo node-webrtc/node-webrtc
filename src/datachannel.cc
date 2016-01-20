@@ -94,7 +94,6 @@ DataChannel::~DataChannel() {
 
 NAN_METHOD(DataChannel::New) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct the DataChannel.");
@@ -227,7 +226,6 @@ void DataChannel::OnMessage(const webrtc::DataBuffer& buffer) {
 
 NAN_METHOD(DataChannel::Send) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.This());
 
@@ -274,7 +272,6 @@ NAN_METHOD(DataChannel::Send) {
 
 NAN_METHOD(DataChannel::Close) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.This());
   self->_jingleDataChannel->Close();
@@ -285,7 +282,6 @@ NAN_METHOD(DataChannel::Close) {
 
 NAN_METHOD(DataChannel::Shutdown) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.This());
   if (!uv_is_closing(reinterpret_cast<uv_handle_t*>(&self->async))) {
@@ -298,7 +294,6 @@ NAN_METHOD(DataChannel::Shutdown) {
 
 NAN_GETTER(DataChannel::GetBufferedAmount) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
@@ -310,7 +305,6 @@ NAN_GETTER(DataChannel::GetBufferedAmount) {
 
 NAN_GETTER(DataChannel::GetLabel) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
@@ -322,7 +316,6 @@ NAN_GETTER(DataChannel::GetLabel) {
 
 NAN_GETTER(DataChannel::GetReadyState) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
@@ -334,7 +327,6 @@ NAN_GETTER(DataChannel::GetReadyState) {
 
 NAN_GETTER(DataChannel::GetBinaryType) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 

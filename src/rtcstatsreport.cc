@@ -28,7 +28,6 @@ RTCStatsReport::~RTCStatsReport() {
 
 NAN_METHOD(RTCStatsReport::New) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct the RTCStatsReport");
@@ -46,7 +45,6 @@ NAN_METHOD(RTCStatsReport::New) {
 
 NAN_METHOD(RTCStatsReport::names) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   RTCStatsReport* self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.This());
 
@@ -64,7 +62,6 @@ NAN_METHOD(RTCStatsReport::names) {
 
 NAN_METHOD(RTCStatsReport::stat) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   RTCStatsReport* self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.This());
 
@@ -87,7 +84,6 @@ NAN_METHOD(RTCStatsReport::stat) {
 
 NAN_GETTER(RTCStatsReport::GetTimestamp) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   RTCStatsReport *self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.Holder());
   double timestamp = self->report->timestamp;
@@ -98,7 +94,6 @@ NAN_GETTER(RTCStatsReport::GetTimestamp) {
 
 NAN_GETTER(RTCStatsReport::GetType) {
   TRACE_CALL;
-  Nan::HandleScope scope;
 
   RTCStatsReport *self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.Holder());
   std::string type = self->report->type;
