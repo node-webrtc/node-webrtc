@@ -42,7 +42,7 @@ var app = http.createServer(function (req, res) {
 }).listen(port, host);
 console.log('Server running at http://' + host + ':' + port + '/');
 
-var wss = new ws.Server({'port': 9001});
+var wss = new ws.Server({'port': socketPort});
 wss.on('connection', function(ws)
 {
   console.info('ws connected');
