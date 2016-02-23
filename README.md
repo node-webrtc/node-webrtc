@@ -33,12 +33,13 @@ Some open issues have bounties assocaited with them. Once you patch is merged, y
 * libssl-devel
 * libnss-devel
 * libexpat-devel
+* libtinfo-devel (in CentOS, the libtinfo library is provided in the libncurses-devel package)
 
 ### Debian/Ubuntu
 
 To install prerequisites with the apt-get package manager,
 
-`apt-get install python2.7 git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev  `
+`apt-get install python2.7 git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libtinfo-dev`
 
 ### CentOS/Fedora/RHEL
 
