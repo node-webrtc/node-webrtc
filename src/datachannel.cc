@@ -246,7 +246,6 @@ NAN_METHOD(DataChannel::Send) {
       arraybuffer = view->Buffer();
     }
 
-    v8::ArrayBuffer::Contents content = arraybuffer->Externalize();
     rtc::Buffer buffer(content.Data(), content.ByteLength());
 
 #else
@@ -260,10 +259,6 @@ NAN_METHOD(DataChannel::Send) {
 
     webrtc::DataBuffer data_buffer(buffer, true);
     self->_jingleDataChannel->Send(data_buffer);
-
-#if NODE_MINOR_VERSION >= 11 || NODE_MAJOR_VERSION > 0
-    arraybuffer->Neuter();
-#endif
   }
 
   TRACE_END;
