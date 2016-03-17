@@ -1,54 +1,43 @@
-#ifndef __PEERCONNECTION_H__
-#define __PEERCONNECTION_H__
+#ifndef SRC_PEERCONNECTION_H_
+#define SRC_PEERCONNECTION_H_
 
-#include <queue>
+#include <stdint.h>
+
 #include <string>
+#include <queue>
 
-#include <node.h>
-#include <v8.h>
-#include <node_object_wrap.h>
-#include <uv.h>
+#include "nan.h"
+#include "uv.h"
+#include "v8.h"  // IWYU pragma: keep
 
+#include "talk/app/webrtc/datachannelinterface.h"  // IWYU pragma: keep
 #include "talk/app/webrtc/jsep.h"
 #include "talk/app/webrtc/peerconnectioninterface.h"
-#include "webrtc/base/thread.h"
-#include "webrtc/base/scoped_ptr.h"
-#include "webrtc/system_wrappers/interface/ref_count.h"
-#include "datachannel.h"
-
-#include "common.h"
-#include "nan.h"
-
-using namespace node;
-using namespace v8;
+#include "talk/app/webrtc/statstypes.h"
+#include "webrtc/base/scoped_ref_ptr.h"
 
 namespace node_webrtc {
 
 class CreateOfferObserver;
 class CreateAnswerObserver;
+class DataChannelObserver;
 class SetLocalDescriptionObserver;
 class SetRemoteDescriptionObserver;
 
 class PeerConnection
-: public Nan::ObjectWrap,
-  public webrtc::PeerConnectionObserver
-{
-
-public:
-
+: public Nan::ObjectWrap
+, public webrtc::PeerConnectionObserver {
+ public:
   struct ErrorEvent {
-    ErrorEvent(const std::string& msg)
+    explicit ErrorEvent(const std::string& msg)
     : msg(msg) {}
 
     std::string msg;
   };
 
-  struct SdpEvent
-  {
-    SdpEvent(webrtc::SessionDescriptionInterface* sdp)
-    {
-      if(!sdp->ToString(&desc))
-      {
+  struct SdpEvent {
+    explicit SdpEvent(webrtc::SessionDescriptionInterface* sdp) {
+      if (!sdp->ToString(&desc)) {
         desc = "";
       }
       type = sdp->type();
@@ -59,10 +48,9 @@ public:
   };
 
   struct IceEvent {
-    IceEvent(const webrtc::IceCandidateInterface* ice_candidate)
-    : sdpMLineIndex(ice_candidate->sdp_mline_index()),
-      sdpMid(ice_candidate->sdp_mid())
-    {
+    explicit IceEvent(const webrtc::IceCandidateInterface* ice_candidate)
+    : sdpMLineIndex(ice_candidate->sdp_mline_index())
+    , sdpMid(ice_candidate->sdp_mid()) {
       ice_candidate->ToString(&candidate);
     }
 
@@ -72,48 +60,48 @@ public:
   };
 
   struct StateEvent {
-    StateEvent(uint32_t state)
+    explicit StateEvent(uint32_t state)
     : state(state) {}
 
     uint32_t state;
   };
 
   struct DataChannelEvent {
-    DataChannelEvent(DataChannelObserver* observer)
-    : observer(observer) {};
+    explicit DataChannelEvent(DataChannelObserver* observer)
+    : observer(observer) {}
 
     DataChannelObserver* observer;
   };
 
   struct GetStatsEvent {
     GetStatsEvent(Nan::Callback* callback, webrtc::StatsReports reports)
-    : callback(callback), reports(reports) {};
+    : callback(callback), reports(reports) {}
 
     Nan::Callback* callback;
     webrtc::StatsReports reports;
   };
 
   enum AsyncEventType {
-    CREATE_OFFER_SUCCESS = 0x1 << 0, // 1
-    CREATE_OFFER_ERROR = 0x1 << 1, // 2
-    CREATE_ANSWER_SUCCESS = 0x1 << 2, // 4
-    CREATE_ANSWER_ERROR = 0x1 << 3, // 8
-    SET_LOCAL_DESCRIPTION_SUCCESS = 0x1 << 4, // 16
-    SET_LOCAL_DESCRIPTION_ERROR = 0x1 << 5, // 32
-    SET_REMOTE_DESCRIPTION_SUCCESS = 0x1 << 6, // 64
-    SET_REMOTE_DESCRIPTION_ERROR = 0x1 << 7, // 128
-    ADD_ICE_CANDIDATE_SUCCESS = 0x1 << 8, // 256
-    ADD_ICE_CANDIDATE_ERROR = 0x1 << 9, // 512
-    NOTIFY_DATA_CHANNEL = 0x1 << 10, // 1024
-    NOTIFY_CONNECTION = 0x1 << 11, // 2048
-    NOTIFY_CLOSED_CONNECTION = 0x1 << 12, // 4096
-    ICE_CANDIDATE = 0x1 << 13, // 8192
-    SIGNALING_STATE_CHANGE = 0x1 << 14, // 16384
-    ICE_CONNECTION_STATE_CHANGE = 0x1 << 15, // 32768
-    ICE_GATHERING_STATE_CHANGE = 0x1 << 16, // 65536
-    NOTIFY_ADD_STREAM = 0x1 << 17, // 131072
-    NOTIFY_REMOVE_STREAM = 0x1 << 18, // 262144
-    GET_STATS_SUCCESS = 0x1 << 19, // 524288
+    CREATE_OFFER_SUCCESS = 0x1 << 0,  // 1
+    CREATE_OFFER_ERROR = 0x1 << 1,  // 2
+    CREATE_ANSWER_SUCCESS = 0x1 << 2,  // 4
+    CREATE_ANSWER_ERROR = 0x1 << 3,  // 8
+    SET_LOCAL_DESCRIPTION_SUCCESS = 0x1 << 4,  // 16
+    SET_LOCAL_DESCRIPTION_ERROR = 0x1 << 5,  // 32
+    SET_REMOTE_DESCRIPTION_SUCCESS = 0x1 << 6,  // 64
+    SET_REMOTE_DESCRIPTION_ERROR = 0x1 << 7,  // 128
+    ADD_ICE_CANDIDATE_SUCCESS = 0x1 << 8,  // 256
+    ADD_ICE_CANDIDATE_ERROR = 0x1 << 9,  // 512
+    NOTIFY_DATA_CHANNEL = 0x1 << 10,  // 1024
+    NOTIFY_CONNECTION = 0x1 << 11,  // 2048
+    NOTIFY_CLOSED_CONNECTION = 0x1 << 12,  // 4096
+    ICE_CANDIDATE = 0x1 << 13,  // 8192
+    SIGNALING_STATE_CHANGE = 0x1 << 14,  // 16384
+    ICE_CONNECTION_STATE_CHANGE = 0x1 << 15,  // 32768
+    ICE_GATHERING_STATE_CHANGE = 0x1 << 16,  // 65536
+    NOTIFY_ADD_STREAM = 0x1 << 17,  // 131072
+    NOTIFY_REMOVE_STREAM = 0x1 << 18,  // 262144
+    GET_STATS_SUCCESS = 0x1 << 19,  // 524288
 
     ERROR_EVENT = CREATE_OFFER_ERROR | CREATE_ANSWER_ERROR |
                   SET_LOCAL_DESCRIPTION_ERROR | SET_REMOTE_DESCRIPTION_ERROR |
@@ -134,19 +122,19 @@ public:
 
   virtual void OnError();
 
-  virtual void OnSignalingChange( webrtc::PeerConnectionInterface::SignalingState new_state );
-  virtual void OnIceConnectionChange( webrtc::PeerConnectionInterface::IceConnectionState new_state );
-  virtual void OnIceGatheringChange( webrtc::PeerConnectionInterface::IceGatheringState new_state );
-  virtual void OnIceCandidate(const webrtc::IceCandidateInterface* candidate );
+  virtual void OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state);
+  virtual void OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState new_state);
+  virtual void OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState new_state);
+  virtual void OnIceCandidate(const webrtc::IceCandidateInterface* candidate);
   virtual void OnRenegotiationNeeded();
 
-  virtual void OnDataChannel( webrtc::DataChannelInterface* data_channel );
+  virtual void OnDataChannel(webrtc::DataChannelInterface* data_channel);
 
   //
   // Nodejs wrapping.
   //
-  static void Init( Handle<Object> exports );
-  static Nan::Persistent<Function> constructor;
+  static void Init(v8::Handle<v8::Object> exports);
+  static Nan::Persistent<v8::Function> constructor;
   static NAN_METHOD(New);
 
   static NAN_METHOD(CreateOffer);
@@ -175,7 +163,7 @@ public:
 
   void QueueEvent(AsyncEventType type, void* data);
 
-private:
+ private:
   static void Run(uv_async_t* handle, int status);
 
   struct AsyncEvent {
@@ -188,7 +176,6 @@ private:
   uv_loop_t *loop;
   std::queue<AsyncEvent> _events;
   webrtc::PeerConnectionInterface::IceServers _iceServers;
-  webrtc::MediaConstraintsInterface* _mediaConstraints;
 
   rtc::scoped_refptr<CreateOfferObserver> _createOfferObserver;
   rtc::scoped_refptr<CreateAnswerObserver> _createAnswerObserver;
@@ -199,6 +186,6 @@ private:
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
 };
 
-}
+}  // namespace node_webrtc
 
-#endif
+#endif  // SRC_PEERCONNECTION_H_

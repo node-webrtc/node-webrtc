@@ -1,14 +1,16 @@
-#if !defined( COMMON_H )
-#define COMMON_H
+#ifndef SRC_COMMON_H_
+#define SRC_COMMON_H_
+
+#include <stdio.h>
+#include <string.h>
+
+#include "nan.h"
 
 #define WARN(msg) fprintf(stdout, "\033[01;33m native:%s \033[00m\n", msg)
 #define ERROR(msg) fprintf(stdout, "\033[01;32m native:%s \033[00m\n", msg)
 #define INFO(msg) fprintf(stdout, "\033[01;34m native:%s \033[00m\n", msg)
 
 #if defined(TRACING)
-
-#include <stdio.h>
-#include <nan.h>
 
 #define TRACE(msg) printf("   TRACE: %s\n", msg)
 #define TRACE_S(msg, s) printf("   TRACE: %s : %s\n", msg, s)
@@ -36,25 +38,25 @@
 
 #endif
 
-#define THROW_TYPE_ERROR( MSG ) \
-  return Nan::ThrowTypeError( MSG );
+#define THROW_TYPE_ERROR(MSG) \
+  return Nan::ThrowTypeError(MSG);
 
 #define CHECK_ARG(I, CHECK, DO_TRUE, DO_FALSE) \
-  if ( info.Length() <= (I) || !info[I]->CHECK ) { DO_FALSE; } else { DO_TRUE; }
+  if (info.Length() <= (I) || !info[I]->CHECK) { DO_FALSE; } else { DO_TRUE; }
 
 #define REQUIRE_ARG(I, CHECK) \
-  CHECK_ARG( I, CHECK, , THROW_TYPE_ERROR("Argument " #I " must be an object") )
+  CHECK_ARG(I, CHECK, , THROW_TYPE_ERROR("Argument " #I " must be an object"))
 
 #define REQ_OBJ_ARG(I, VAR) \
-  REQUIRE_ARG( I, IsObject() ) \
-  Local<Object> VAR = Local<Object>::Cast( info[I] )
+  REQUIRE_ARG(I, IsObject()) \
+  Local<Object> VAR = Local<Object>::Cast(info[I])
 
 #define OPT_INT_ARG(I, VAR, DEFAULT) \
   int VAR; \
-  CHECK_ARG( I, IsNumber(), VAR = info[I]->Int32Value(), VAR = DEFAULT )
+  CHECK_ARG(I, IsNumber(), VAR = info[I]->Int32Value(), VAR = DEFAULT)
 
 #define REQ_INT_ARG(I, VAR) \
-  REQUIRE_ARG( I, IsNumber() ) \
+  REQUIRE_ARG(I, IsNumber()) \
   int VAR = info[I]->Int32Value();
 
 #define REQ_FUN_ARG(I, VAR)                                         \
@@ -62,15 +64,15 @@
     return Nan::ThrowTypeError("Argument " #I " must be a function"); \
   Local<Function> VAR = Local<Function>::Cast(info[I]);
 
-#define CREATE_BUFFER( name, data, length ) \
-  Local<Object> name ## _buf = Nan::NewBuffer( length ).ToLocalChecked(); \
-  memcpy(Buffer::Data( name ## _buf ), data, length ); \
+#define CREATE_BUFFER(name, data, length) \
+  Local<Object> name ## _buf = Nan::NewBuffer(length).ToLocalChecked(); \
+  memcpy(Buffer::Data(name ## _buf), data, length); \
   Local<Object> name; \
-  Handle<Value> ctorArgs[3] = { name ## _buf, Nan::New<Integer>( length ), Nan::New<Integer>(0) }; \
-  name = Local<Function>::Cast( \
+  Handle<Value> ctorArgs[3] = { name ## _buf, Nan::New<Integer>(length), Nan::New<Integer>(0) }; \
+  name = Local<Function>::Cast(\
         Nan::GetCurrentContext() \
           ->Global() \
-          ->Get( Nan::New("Buffer").ToLocalChecked()) \
-      )->NewInstance( 3, ctorArgs );
+          ->Get(Nan::New("Buffer").ToLocalChecked()) \
+      )->NewInstance(3, ctorArgs);
 
-#endif
+#endif  // SRC_COMMON_H_
