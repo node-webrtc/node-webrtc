@@ -351,13 +351,10 @@ void DataChannel::Init(Handle<Object> exports) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("DataChannel").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  tpl->PrototypeTemplate()->Set(Nan::New("close").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(Close)->GetFunction());
-  tpl->PrototypeTemplate()->Set(Nan::New("shutdown").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(Shutdown)->GetFunction());
 
-  tpl->PrototypeTemplate()->Set(Nan::New("send").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(Send)->GetFunction());
+  Nan::SetPrototypeMethod(tpl, "close", Close);
+  Nan::SetPrototypeMethod(tpl, "shutdown", Shutdown);
+  Nan::SetPrototypeMethod(tpl, "send", Send);
 
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("bufferedAmount").ToLocalChecked(), GetBufferedAmount, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("label").ToLocalChecked(), GetLabel, ReadOnly);

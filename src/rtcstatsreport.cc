@@ -111,10 +111,8 @@ void RTCStatsReport::Init(Handle<Object> exports) {
   tpl->SetClassName(Nan::New("RTCStatsReport").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  tpl->PrototypeTemplate()->Set(Nan::New("names").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(names)->GetFunction());
-  tpl->PrototypeTemplate()->Set(Nan::New("stat").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(stat)->GetFunction());
+  Nan::SetPrototypeMethod(tpl, "names", names);
+  Nan::SetPrototypeMethod(tpl, "stat", stat);
 
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("timestamp").ToLocalChecked(), GetTimestamp, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("type").ToLocalChecked(), GetType, ReadOnly);
