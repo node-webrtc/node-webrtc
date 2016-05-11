@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "fs-extra": "^0.18.0",
-    "nan": "^2.1.0",
+    "nan": "^2.3.2",
     "node-gyp": "^3.0.3",
     "node-pre-gyp": "0.6.x",
     "node-static-alias": "^0.1.2",
@@ -45,7 +45,7 @@
     "grunt-tape": "~0.0.2",
     "simple-peer": "^5.0.0",
     "tape": "~2.4.2",
-    "ws": "~0.4.31",
+    "ws": "^1.1.0",
     "node-static": "^0.7.3",
     "minimist": "0.0.8"
   },

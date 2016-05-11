@@ -509,32 +509,15 @@ void PeerConnection::Init(Handle<Object> exports) {
   tpl->SetClassName(Nan::New("PeerConnection").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  tpl->PrototypeTemplate()->Set(Nan::New("createOffer").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(CreateOffer)->GetFunction());
-
-  tpl->PrototypeTemplate()->Set(Nan::New("createAnswer").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(CreateAnswer)->GetFunction());
-
-  tpl->PrototypeTemplate()->Set(Nan::New("setLocalDescription").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(SetLocalDescription)->GetFunction());
-
-  tpl->PrototypeTemplate()->Set(Nan::New("setRemoteDescription").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(SetRemoteDescription)->GetFunction());
-
-  tpl->PrototypeTemplate()->Set(Nan::New("getStats").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(GetStats)->GetFunction());
-
-  tpl->PrototypeTemplate()->Set(Nan::New("updateIce").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(UpdateIce)->GetFunction());
-
-  tpl->PrototypeTemplate()->Set(Nan::New("addIceCandidate").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(AddIceCandidate)->GetFunction());
-
-  tpl->PrototypeTemplate()->Set(Nan::New("createDataChannel").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(CreateDataChannel)->GetFunction());
-
-  tpl->PrototypeTemplate()->Set(Nan::New("close").ToLocalChecked(),
-    Nan::New<FunctionTemplate>(Close)->GetFunction());
+  Nan::SetPrototypeMethod(tpl, "createOffer", CreateOffer);
+  Nan::SetPrototypeMethod(tpl, "createAnswer", CreateAnswer);
+  Nan::SetPrototypeMethod(tpl, "setLocalDescription", SetLocalDescription);
+  Nan::SetPrototypeMethod(tpl, "setRemoteDescription", SetRemoteDescription);
+  Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
+  Nan::SetPrototypeMethod(tpl, "updateIce", UpdateIce);
+  Nan::SetPrototypeMethod(tpl, "addIceCandidate", AddIceCandidate);
+  Nan::SetPrototypeMethod(tpl, "createDataChannel", CreateDataChannel);
+  Nan::SetPrototypeMethod(tpl, "close", Close);
 
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("localDescription").ToLocalChecked(), GetLocalDescription, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("remoteDescription").ToLocalChecked(), GetRemoteDescription, ReadOnly);
