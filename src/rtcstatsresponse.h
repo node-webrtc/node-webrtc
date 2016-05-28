@@ -4,7 +4,7 @@
 #include "nan.h"
 #include "v8.h"  // IWYU pragma: keep
 
-#include "talk/app/webrtc/statstypes.h"
+#include "webrtc/api/statstypes.h"
 
 namespace node_webrtc {
 

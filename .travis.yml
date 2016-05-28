@@ -1,38 +1,37 @@
-sudo: required
+language: node_js
+
+os:
+  - linux
+  - osx
+
+node_js:
+  - "6"
+  - "5"
+  - "4"
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
 
 notifications:
   email: false
-
-language: cpp
-
-services:
-  - docker
 
 env:
   global:
     - secure: "fu0XuIPY4LOzDlbz8f4tAdrqTxkFRzdlknHtbI2Cs3zSqafx8WKSfCIh/yRVjGVXLR+9Qk1MOsLhCkuzfE3iTcYmSE0mA+cmVoDXrb8sYdi3LWjm+SKsAj9Sm3mZY56Mg9gijy4xjuu16LcFxJIZSyr5kjT+UCrZ2Rg38vezbmQ="
     - secure: "gYv1HEWTR0p/cyoRd7qF/7TZsTWZ9walACVPxs4t/ZNluZyqcEsLNpH8hJMJ7wUmcYymqNpe9irZcvcXvsrh6YBjZnLYNIz7/iyIUBTSUA1l1NzTP7IsR6Rnt7H3YROk89xvF408n6GcrTrY8KoRtDlAq8Zp04oFsvf+/E6SCLs="
-  matrix:
-    - TRAVIS_NODE_VERSION=0.10
-    - TRAVIS_NODE_VERSION=0.12
-    - TRAVIS_NODE_VERSION=4
-    - TRAVIS_NODE_VERSION=5
-    - TRAVIS_NODE_VERSION=6
 
 install:
-  - RUN="
-      docker run
-        -v `pwd`:/code
-        -w /code
-        -e node_pre_gyp_accessKeyId=$node_pre_gyp_accessKeyId
-        -e node_pre_gyp_secretAccessKey=$node_pre_gyp_secretAccessKey
-        node:$TRAVIS_NODE_VERSION
-    "
-  - $RUN npm install
-  - $RUN node_modules/.bin/node-pre-gyp install --build-from-source
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      export CXX=g++-4.8;
+    fi
+  - npm install
 
 script:
-  - $RUN npm test
+  - npm test
   - if [[ $TRAVIS_TAG ]] ||
        [[ `git show -s --format=%B $TRAVIS_COMMIT` == *'[publish binary]' ]];
     then

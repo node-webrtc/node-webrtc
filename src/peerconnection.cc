@@ -3,8 +3,8 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 #include "peerconnection.h"
 
-#include "talk/app/webrtc/mediaconstraintsinterface.h"
-#include "talk/app/webrtc/test/fakeconstraints.h"
+#include "webrtc/api/mediaconstraintsinterface.h"
+#include "webrtc/api/test/fakeconstraints.h"
 #include "webrtc/base/refcount.h"
 
 #include "common.h"
@@ -30,6 +30,8 @@ using v8::Uint32;
 using v8::Value;
 
 Nan::Persistent<Function> PeerConnection::constructor;
+rtc::Thread* PeerConnection::_signalingThread;
+rtc::Thread* PeerConnection::_workerThread;
 
 //
 // PeerConnection
@@ -47,14 +49,17 @@ PeerConnection::PeerConnection()
   iceServer.uri = "stun:stun.l.google.com:19302";
   _iceServers.push_back(iceServer);
 
+  webrtc::PeerConnectionInterface::RTCConfiguration configuration;
+  configuration.servers = _iceServers;
+
   webrtc::FakeConstraints constraints;
   constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, webrtc::MediaConstraintsInterface::kValueTrue);
   // FIXME: crashes without these constraints, why?
   constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveAudio, webrtc::MediaConstraintsInterface::kValueFalse);
   constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveVideo, webrtc::MediaConstraintsInterface::kValueFalse);
 
-  _jinglePeerConnectionFactory = webrtc::CreatePeerConnectionFactory();
-  _jinglePeerConnection = _jinglePeerConnectionFactory->CreatePeerConnection(_iceServers, &constraints, nullptr, nullptr, this);
+  _jinglePeerConnectionFactory = webrtc::CreatePeerConnectionFactory(_workerThread, _signalingThread, nullptr, nullptr, nullptr);
+  _jinglePeerConnection = _jinglePeerConnectionFactory->CreatePeerConnection(configuration, &constraints, nullptr, nullptr, this);
 
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, reinterpret_cast<uv_async_cb>(Run));
@@ -64,6 +69,8 @@ PeerConnection::PeerConnection()
 
 PeerConnection::~PeerConnection() {
   TRACE_CALL;
+  _jinglePeerConnection = nullptr;
+  _jinglePeerConnectionFactory = nullptr;
   TRACE_END;
 }
 
@@ -122,7 +129,7 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
       callback->Call(1, argv);
     } else if (PeerConnection::VOID_EVENT & evt.type) {
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onsuccess").ToLocalChecked()));
-      Local<Value> argv[0];
+      Local<Value> argv[1];
       Nan::MakeCallback(pc, callback, 0, argv);
     } else if (PeerConnection::SIGNALING_STATE_CHANGE & evt.type) {
       PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
@@ -223,6 +230,16 @@ void PeerConnection::OnDataChannel(webrtc::DataChannelInterface* jingle_data_cha
   TRACE_END;
 }
 
+void PeerConnection::OnAddStream(webrtc::MediaStreamInterface* stream) {
+  TRACE_CALL;
+  TRACE_END;
+}
+
+void PeerConnection::OnRemoveStream(webrtc::MediaStreamInterface* stream) {
+  TRACE_CALL;
+  TRACE_END;
+}
+
 void PeerConnection::OnRenegotiationNeeded() {
   TRACE_CALL;
   TRACE_END;
@@ -274,7 +291,8 @@ NAN_METHOD(PeerConnection::SetLocalDescription) {
 
   std::string type = *_type;
   std::string sdp = *_sdp;
-  webrtc::SessionDescriptionInterface* sdi = webrtc::CreateSessionDescription(type, sdp);
+  webrtc::SdpParseError error;
+  webrtc::SessionDescriptionInterface* sdi = webrtc::CreateSessionDescription(type, sdp, &error);
 
   self->_jinglePeerConnection->SetLocalDescription(self->_setLocalDescriptionObserver, sdi);
 
@@ -292,7 +310,8 @@ NAN_METHOD(PeerConnection::SetRemoteDescription) {
 
   std::string type = *_type;
   std::string sdp = *_sdp;
-  webrtc::SessionDescriptionInterface* sdi = webrtc::CreateSessionDescription(type, sdp);
+  webrtc::SdpParseError error;
+  webrtc::SessionDescriptionInterface* sdi = webrtc::CreateSessionDescription(type, sdp, &error);
 
   self->_jinglePeerConnection->SetRemoteDescription(self->_setRemoteDescriptionObserver, sdi);
 
@@ -392,7 +411,7 @@ NAN_METHOD(PeerConnection::GetStats) {
   rtc::scoped_refptr<StatsObserver> statsObserver =
      new rtc::RefCountedObject<StatsObserver>(self, onSuccess);
 
-  if (!self->_jinglePeerConnection->GetStats(statsObserver,
+  if (!self->_jinglePeerConnection->GetStats(statsObserver, nullptr,
     webrtc::PeerConnectionInterface::kStatsOutputLevelStandard)) {
     // TODO: Include error?
     Local<Value> argv[] = {
@@ -504,7 +523,10 @@ NAN_SETTER(PeerConnection::ReadOnly) {
   INFO("PeerConnection::ReadOnly");
 }
 
-void PeerConnection::Init(Handle<Object> exports) {
+void PeerConnection::Init(rtc::Thread* signalingThread, rtc::Thread* workerThread, Handle<Object> exports) {
+  _signalingThread = signalingThread;
+  _workerThread = workerThread;
+
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("PeerConnection").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);

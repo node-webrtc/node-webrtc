@@ -247,7 +247,7 @@ NAN_METHOD(DataChannel::Send) {
     }
 
     v8::ArrayBuffer::Contents content = arraybuffer->Externalize();
-    rtc::Buffer buffer(content.Data(), content.ByteLength());
+    rtc::Buffer buffer(static_cast<char*>(content.Data()), content.ByteLength());
 
 #else
     Local<Object> arraybuffer = Local<Object>::Cast(info[0]);

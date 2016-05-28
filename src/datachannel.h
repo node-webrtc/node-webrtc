@@ -10,7 +10,7 @@
 #include "uv.h"
 #include "v8.h"  // IWYU pragma: keep
 
-#include "talk/app/webrtc/datachannelinterface.h"
+#include "webrtc/api/datachannelinterface.h"
 #include "webrtc/base/buffer.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 

@@ -3,8 +3,8 @@
 
 #include "nan.h"  // IWYU pragma: keep
 
-#include "talk/app/webrtc/peerconnectioninterface.h"
-#include "talk/app/webrtc/statstypes.h"
+#include "webrtc/api/peerconnectioninterface.h"
+#include "webrtc/api/statstypes.h"
 
 namespace node_webrtc {
 

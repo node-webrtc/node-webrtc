@@ -25,29 +25,19 @@
     "host": "https://node-webrtc.s3.amazonaws.com"
   },
   "engines": {
-    "node": ">=0.10.x"
+    "node": ">=4.0.0"
   },
   "dependencies": {
-    "fs-extra": "^0.18.0",
     "nan": "^2.3.2",
-    "node-gyp": "^3.0.3",
-    "node-pre-gyp": "0.6.x",
-    "node-static-alias": "^0.1.2",
-    "nopt": "^2.2.0"
+    "node-pre-gyp": "0.6.x"
   },
-  "bundledDependencies": [
-    "node-pre-gyp"
-  ],
   "devDependencies": {
     "aws-sdk": "^2.2.10",
-    "grunt": "~0.4.2",
-    "grunt-contrib-jshint": "~0.8.0",
-    "grunt-tape": "~0.0.2",
+    "minimist": "0.0.8",
+    "node-static-alias": "^0.1.2",
     "simple-peer": "^5.0.0",
     "tape": "~2.4.2",
-    "ws": "^1.1.0",
-    "node-static": "^0.7.3",
-    "minimist": "0.0.8"
+    "ws": "^1.1.0"
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
