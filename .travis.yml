@@ -24,8 +24,8 @@ install:
       docker run
         -v `pwd`:/code
         -w /code
-        -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-        -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+        -e node_pre_gyp_accessKeyId=$node_pre_gyp_accessKeyId
+        -e node_pre_gyp_secretAccessKey=$node_pre_gyp_secretAccessKey
         node:$TRAVIS_NODE_VERSION
     "
   - $RUN npm install
