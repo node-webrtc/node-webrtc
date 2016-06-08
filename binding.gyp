@@ -7,16 +7,15 @@
         {
           'action_name': 'download_webrtc_libraries_and_headers',
           'inputs': [],
-          'outputs': ['node_modules/webrtc-libraries-and-headers'],
-          # TODO(mroberts): Publish webrtc-libraries-and-headers to NPM and update these lines.
+          'outputs': ['third_party/webrtc'],
           'conditions': [
             ['OS=="win"', {
               'action': [
-                'npm install https://github.com/markandrus/webrtc-libraries-and-headers.git',
+                'npm run download-webrtc-libraries-and-headers',
               ],
             }, {
               'action': [
-                'npm', 'install', 'https://github.com/markandrus/webrtc-libraries-and-headers.git',
+                'npm', 'run', 'download-webrtc-libraries-and-headers',
               ],
             }],
           ],
@@ -97,7 +96,7 @@
       ],
       'include_dirs': [
         "<!(node -e \"require('nan')\")",
-        'node_modules/webrtc-libraries-and-headers/include',
+        'third_party/webrtc/include',
       ],
       'link_settings': {
         'conditions': [
@@ -108,7 +107,7 @@
           }],
           ['OS=="win"', {
             'libraries': [
-              '../node_modules/webrtc-libraries-and-headers/lib/libwebrtc.lib',
+              '../third_party/webrtc/lib/libwebrtc.lib',
               'dmoguids.lib',
               'msdmo.lib',
               'secur32.lib',
@@ -118,7 +117,7 @@
             ],
           }, {
             'libraries': [
-              '../node_modules/webrtc-libraries-and-headers/lib/libwebrtc.a',
+              '../third_party/webrtc/lib/libwebrtc.a',
             ],
           }],
         ],
