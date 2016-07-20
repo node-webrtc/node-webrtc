@@ -1,6 +1,6 @@
 [![NPM](https://nodei.co/npm/wrtc.png?downloads=true&stars=true)](https://nodei.co/npm/wrtc/)
 
-[![Build Status](https://secure.travis-ci.org/js-platform/node-webrtc.png?branch=develop)](http://travis-ci.org/js-platform/node-webrtc) [![Gratipay][wrtc-gratipay-image]][wrtc-gratipay-url]
+[![OS X/Linus Build Status](https://secure.travis-ci.org/js-platform/node-webrtc.png?branch=develop)](http://travis-ci.org/js-platform/node-webrtc) [![Windows Build status](https://ci.appveyor.com/api/projects/status/iulc84we28o1i7b9?svg=true)](https://ci.appveyor.com/project/markandrus/node-webrtc-7bnua) [![Gratipay][wrtc-gratipay-image]][wrtc-gratipay-url]
 
 # Preamble
 
