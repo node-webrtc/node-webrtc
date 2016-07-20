@@ -8,7 +8,7 @@ This open-source project provides a native module for NodeJS that supports a sub
 
 __MediaStream APIs are not supported__ in order to reduce the number of external dependencies and to make compilation faster and easier. In the future, support for MediaStreams may be added by proxying them over DataChannels. See [#156](https://github.com/js-platform/node-webrtc/issues/156) for more details and discussion.
 
-This project relies on a companion library, [libwebrtc](https://github.com/js-platform/libwebrtc).
+This project relies on precompiled WebRTC binaries.
 
 # Contributing
 
