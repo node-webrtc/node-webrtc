@@ -45,15 +45,17 @@ NAN_METHOD(RTCStatsReport::New) {
 
 NAN_METHOD(RTCStatsReport::names) {
   TRACE_CALL;
+  Nan::HandleScope scope;
 
   RTCStatsReport* self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.This());
 
-  std::vector<webrtc::StatsReport::Value> values = self->report->values;
+  webrtc::StatsReport::Values values = self->report->values();
   Local<Array> names = Nan::New<Array>(values.size());
-  for (std::vector<int>::size_type i = 0; i != values.size(); i++) {
-    webrtc::StatsReport::Value value = values[i];
-    std::string display_name = value.display_name();
-    names->Set(i, Nan::New<String>(display_name).ToLocalChecked());
+  size_t i = 0;
+  for (auto const &pair : values) {
+    const rtc::linked_ptr<webrtc::StatsReport::Value> value = pair.second;
+    std::string display_name = value->display_name();
+    names->Set(i++, Nan::New<String>(display_name).ToLocalChecked());
   }
 
   TRACE_END;
@@ -62,19 +64,20 @@ NAN_METHOD(RTCStatsReport::names) {
 
 NAN_METHOD(RTCStatsReport::stat) {
   TRACE_CALL;
+  Nan::HandleScope scope;
 
   RTCStatsReport* self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.This());
 
-  String::Utf8Value _name(info[0]->ToString());
+  v8::String::Utf8Value _name(info[0]->ToString());
   std::string name = std::string(*_name);
 
   Local<Value> found = Nan::Undefined();
-  std::vector<webrtc::StatsReport::Value> values = self->report->values;
-  for (std::vector<int>::size_type i = 0; i != values.size(); i++) {
-    webrtc::StatsReport::Value value = values[i];
-    std::string display_name = std::string(value.display_name());
+  webrtc::StatsReport::Values values = self->report->values();
+  for (auto const &pair : values) {
+    const rtc::linked_ptr<webrtc::StatsReport::Value> value = pair.second;
+    std::string display_name = std::string(value->display_name());
     if (display_name.compare(name) == 0) {
-      found = Nan::New<String>(value.value).ToLocalChecked();
+      found = Nan::New<String>(value->ToString()).ToLocalChecked();
     }
   }
 
@@ -84,9 +87,10 @@ NAN_METHOD(RTCStatsReport::stat) {
 
 NAN_GETTER(RTCStatsReport::GetTimestamp) {
   TRACE_CALL;
+  Nan::HandleScope scope;
 
   RTCStatsReport *self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.Holder());
-  double timestamp = self->report->timestamp;
+  double timestamp = self->report->timestamp();
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New<Number>(timestamp));
@@ -94,9 +98,10 @@ NAN_GETTER(RTCStatsReport::GetTimestamp) {
 
 NAN_GETTER(RTCStatsReport::GetType) {
   TRACE_CALL;
+  Nan::HandleScope scope;
 
   RTCStatsReport *self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.Holder());
-  std::string type = self->report->type;
+  std::string type = self->report->TypeToString();
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New<String>(type).ToLocalChecked());

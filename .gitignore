@@ -1,7 +1,9 @@
+*\~
+*.swp
 build
 .DS_Store
 node_modules
 third_party
-npm-debug.log
+npm-debug.log*
 lib/binding
 build.log

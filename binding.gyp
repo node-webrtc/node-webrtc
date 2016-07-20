@@ -1,48 +1,33 @@
 {
-  'variables': {
-    'libwebrtc%': 'third_party/libwebrtc',
-    #'configuration%': 'Release',
-  },
-  'conditions': [
-    ['OS=="linux"', {
-      'variables': {
-
-      }
-    }],
-    ['OS=="mac"', {
-      'variables': {
-
-      }
-    }],
-  ],
   'targets': [
     {
       'target_name': 'action_before_build',
-      'variables': {
-      },
-      'dependencies': [],
-      'hard_dependency': 1,
       'type': 'none',
       'actions': [
         {
-          'action_name': 'run_build_script',
+          'action_name': 'download_webrtc_libraries_and_headers',
           'inputs': [],
-          'outputs': ['/dev/null'],
-          'action': [
-            'node', 'bin/build.js', '--target-arch', '<(target_arch)', '--configuration', '$(BUILDTYPE)', '--module_path', '<(module_path)'
+          'outputs': ['third_party/webrtc'],
+          'conditions': [
+            ['OS=="win"', {
+              'action': [
+                'npm run download-webrtc-libraries-and-headers',
+              ],
+            }, {
+              'action': [
+                'npm', 'run', 'download-webrtc-libraries-and-headers',
+              ],
+            }],
           ],
-          'message': 'Run build script'
+          'message': 'Downloading WebRTC libraries and headers',
         }
-      ]
+      ],
     },
     {
       'target_name': 'wrtc',
       'dependencies': [
-        'action_before_build'
+        'action_before_build',
       ],
-      'variables': {
-        'libwebrtc_out%': '<(libwebrtc)/out/$(BUILDTYPE)/obj',
-      },
       'cflags': [
         '-pthread',
         '-fno-exceptions',
@@ -64,84 +49,90 @@
         '-std=c++11',
       ],
       'xcode_settings': {
+        'MACOSX_DEPLOYMENT_TARGET': '10.7',
         'OTHER_CFLAGS': [
           '-std=gnu++0x',
           '-Wno-c++0x-extensions',
           '-Wno-c++11-extensions',
+          '-stdlib=libc++',
+        ],
+        'OTHER_LDFLAGS': [
+          '-stdlib=libc++',
         ]
       },
       'defines': [
 #        'TRACING',
-        'LARGEFILE_SOURCE',
-        '_FILE_OFFSET_BITS=64',
-        'WEBRTC_TARGET_PC',
-        'WEBRTC_LINUX',
+#        'LARGEFILE_SOURCE',
+#        '_FILE_OFFSET_BITS=64',
         'WEBRTC_THREAD_RR',
         'EXPAT_RELATIVE_PATH',
         'GTEST_RELATIVE_PATH',
         'JSONCPP_RELATIVE_PATH',
         'WEBRTC_RELATIVE_PATH',
-        'POSIX',
-        '__STDC_FORMAT_MACROS',
-        'DYNAMIC_ANNOTATIONS_ENABLED=0',
-        'WEBRTC_POSIX=1'
+#        '__STDC_FORMAT_MACROS',
+#        'DYNAMIC_ANNOTATIONS_ENABLED=0',
+      ],
+      'conditions': [
+        ['OS=="linux"', {
+          'defines': [
+            'WEBRTC_LINUX',
+            'WEBRTC_POSIX=1',
+          ],
+        }],
+        ['OS=="mac"', {
+          'defines': [
+            'WEBRTC_MAC',
+            'WEBRTC_IOS',
+            'WEBRTC_POSIX=1',
+          ],
+        }],
+        ['OS=="win"', {
+          'defines': [
+            'WEBRTC_WIN',
+            'NOGDI',
+            'NOMINMAX',
+          ],
+        }],
       ],
       'include_dirs': [
-        "<!(node -p -e \"require('path').relative('.', require('path').dirname(require.resolve('nan')))\")",
-        '<(libwebrtc)',
-        '<(libwebrtc)/third_party/webrtc',
-        '<(libwebrtc)/third_party/webrtc/system_wrappers/interface',
-        '<(libwebrtc)/third_party',
+        "<!(node -e \"require('nan')\")",
+        'third_party/webrtc/include',
       ],
       'link_settings': {
-        'ldflags': [
-        ],
         'conditions': [
-          ['OS=="linux"', {
-            'libraries': [
-              '../<(libwebrtc_out)/talk/libjingle_peerconnection.a',
-              '../<(libwebrtc_out)/talk/libjingle_p2p.a',
-              '../<(libwebrtc_out)/talk/libjingle_media.a',
-              '../<(libwebrtc_out)/webrtc/p2p/librtc_p2p.a',
-              '../<(libwebrtc_out)/webrtc/base/librtc_base.a',
-              '../<(libwebrtc_out)/webrtc/base/librtc_base_approved.a',
-#             '../<(libwebrtc_out)/chromium/src/net/third_party/nss/libcrssl.a',
-              '../<(libwebrtc_out)/chromium/src/third_party/usrsctp/libusrsctplib.a',
-              '../<(libwebrtc_out)/chromium/src/third_party/boringssl/libboringssl.a',
-#             '-lssl',
-#             '-lnss3',
-            ]
-          }],
           ['OS=="mac"', {
             'libraries': [
-              '../<(libwebrtc_out)/../libjingle_peerconnection.a',
-              '../<(libwebrtc_out)/../libjingle_p2p.a',
-              '../<(libwebrtc_out)/../libjingle_media.a',
-              '../<(libwebrtc_out)/../librtc_p2p.a',
-              '../<(libwebrtc_out)/../librtc_base.a',
-              '../<(libwebrtc_out)/../librtc_base_approved.a',
-              '../<(libwebrtc_out)/../libusrsctplib.a',
-              '../<(libwebrtc_out)/../libboringssl.a',
               '-framework AppKit',
-              '-framework QTKit',
-#             '-lssl',
-            ]
+            ],
+          }],
+          ['OS=="win"', {
+            'libraries': [
+              '../third_party/webrtc/lib/libwebrtc.lib',
+              'dmoguids.lib',
+              'msdmo.lib',
+              'secur32.lib',
+              'winmm.lib',
+              'wmcodecdspuuid.lib',
+              'ws2_32.lib',
+            ],
+          }, {
+            'libraries': [
+              '../third_party/webrtc/lib/libwebrtc.a',
+            ],
           }],
         ],
-        'libraries': [
-        ]
       },
       'sources': [
         'src/binding.cc',
-        'src/create-offer-observer.cc',
         'src/create-answer-observer.cc',
-        'src/set-local-description-observer.cc',
-        'src/set-remote-description-observer.cc',
-        'src/peerconnection.cc',
+        'src/create-offer-observer.cc',
         'src/datachannel.cc',
+        'src/peerconnection.cc',
         'src/rtcstatsreport.cc',
         'src/rtcstatsresponse.cc',
-        'src/stats-observer.cc'
+        'src/set-local-description-observer.cc',
+        'src/set-remote-description-observer.cc',
+        'src/stats-observer.cc',
       ]
     },
     {

@@ -10,10 +10,10 @@
 #include "uv.h"
 #include "v8.h"  // IWYU pragma: keep
 
-#include "talk/app/webrtc/datachannelinterface.h"  // IWYU pragma: keep
-#include "talk/app/webrtc/jsep.h"
-#include "talk/app/webrtc/peerconnectioninterface.h"
-#include "talk/app/webrtc/statstypes.h"
+#include "webrtc/api/datachannelinterface.h"  // IWYU pragma: keep
+#include "webrtc/api/jsep.h"
+#include "webrtc/api/peerconnectioninterface.h"
+#include "webrtc/api/statstypes.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 
 namespace node_webrtc {
@@ -130,10 +130,13 @@ class PeerConnection
 
   virtual void OnDataChannel(webrtc::DataChannelInterface* data_channel);
 
+  virtual void OnAddStream(webrtc::MediaStreamInterface* stream);
+  virtual void OnRemoveStream(webrtc::MediaStreamInterface* stream);
+
   //
   // Nodejs wrapping.
   //
-  static void Init(v8::Handle<v8::Object> exports);
+  static void Init(rtc::Thread* signalingThread, rtc::Thread* workerThread, v8::Handle<v8::Object> exports);
   static Nan::Persistent<v8::Function> constructor;
   static NAN_METHOD(New);
 
@@ -182,8 +185,11 @@ class PeerConnection
   rtc::scoped_refptr<SetLocalDescriptionObserver> _setLocalDescriptionObserver;
   rtc::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
-  rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _jinglePeerConnectionFactory;
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
+  rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _jinglePeerConnectionFactory;
+
+  static rtc::Thread* _signalingThread;
+  static rtc::Thread* _workerThread;
 };
 
 }  // namespace node_webrtc

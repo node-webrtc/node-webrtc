@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "talk/app/webrtc/jsep.h"
+#include "webrtc/api/jsep.h"
 
 namespace node_webrtc {
 

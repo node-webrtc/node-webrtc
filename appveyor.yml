@@ -1,0 +1,20 @@
+environment:
+  matrix:
+    - nodejs_version: "6"
+      platform: x64
+      msvs_toolset: 12
+    - nodejs_version: "5"
+      platform: x64
+      msvs_toolset: 12
+    - nodejs_version: "4"
+      platform: x64
+      msvs_toolset: 12
+
+os: Visual Studio 2015
+
+install:
+  - scripts\build-appveyor.bat
+
+build: OFF
+test: OFF
+deploy: OFF
