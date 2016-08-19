@@ -20,7 +20,7 @@ Whenever possible, prefer making pull requests to opening issues.
 
 ### Disclaimer Regarding Bounties
 
-Some open issues have bounties assocaited with them. Once you patch is merged, you will need to coordinate with the person who posted the bounty in order to claim it.
+Some open issues have bounties associated with them. Once you patch is merged, you will need to coordinate with the person who posted the bounty in order to claim it.
 
 # Getting Started
 
