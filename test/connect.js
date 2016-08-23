@@ -70,7 +70,7 @@ test('setLocalDescription for peer:0', function(t) {
 test('capture ice candidates for peer:0', function(t) {
   t.plan(1);
   captureCandidates(peers[0], candidates[0], function() {
-    t.ok(candidates[0].length > 0, 'have candidates for peer:0');
+    t.equal(peers[0].iceGatheringState, 'complete', 'have candidates for peer:0');
   });
 });
 
@@ -83,6 +83,10 @@ test('setRemoteDescription for peer:1', function(t) {
 });
 
 test('provide peer:1 with the peer:0 gathered ice candidates', function(t) {
+  if (!candidates[0].length) {
+    return t.end();
+  }
+
   t.plan(candidates[0].length);
 
   candidates[0].forEach(function(candidate) {
@@ -122,7 +126,7 @@ test('setLocalDescription for peer:1', function(t) {
 test('capture ice candidates for peer:1', function(t) {
   t.plan(1);
   captureCandidates(peers[1], candidates[1], function() {
-    t.ok(candidates[1].length > 0, 'have candidates for peer:1');
+    t.equal(peers[1].iceGatheringState, 'complete', 'have candidates for peer:1');
   });
 });
 
@@ -135,6 +139,10 @@ test('setRemoteDescription for peer:0', function(t) {
 });
 
 test('provide peer:0 with the peer:1 gathered ice candidates', function(t) {
+  if (!candidates[1].length) {
+    return t.end();
+  }
+
   t.plan(candidates[1].length);
 
   candidates[1].forEach(function(candidate) {
