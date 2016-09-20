@@ -436,6 +436,9 @@ NAN_METHOD(PeerConnection::Close) {
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
   self->_jinglePeerConnection->Close();
 
+  self->_jinglePeerConnection = nullptr;
+  self->_jinglePeerConnectionFactory = nullptr;
+
   TRACE_END;
   info.GetReturnValue().Set(Nan::Undefined());
 }
