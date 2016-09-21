@@ -361,8 +361,8 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
   if (self->_jinglePeerConnection == nullptr) {
-      info.GetReturnValue().Set(Nan::Undefined());
-      return;
+    info.GetReturnValue().Set(Nan::Undefined());
+    return;
   }
 
   String::Utf8Value label(info[0]->ToString());
@@ -474,7 +474,7 @@ NAN_GETTER(PeerConnection::GetLocalDescription) {
   const webrtc::SessionDescriptionInterface* sdi = nullptr;
   
   if ( self->_jinglePeerConnection != nullptr) {
-      sdi = self->_jinglePeerConnection->local_description();
+    sdi = self->_jinglePeerConnection->local_description();
   }
 
   Handle<Value> value;
