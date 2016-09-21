@@ -244,9 +244,25 @@ test('getStats', function(t) {
 });
 
 test('close the connections', function(t) {
-  t.plan(1);
+  t.plan(3);
+
   peers[0].close();
   peers[1].close();
+
+  // make sure nothing crashes after connection is closed and _jinglePeerConnection is null
+  for (var i = 0; i < 2; i++) {
+    peers[i].createOffer();
+    peers[i].createAnswer();
+    peers[i].setLocalDescription({}, function() {}, function(){});
+    peers[i].setRemoteDescription({}, function() {}, function(){});
+    peers[i].addIceCandidate({}, function() {}, function(){});
+    peers[i].createDataChannel('test');
+    peers[i].getStats(function(){}, function(err){
+        t.ok(err);
+    });
+    peers[i].close();
+  }
+
   t.pass('closed connections');
 
   peers = [];
