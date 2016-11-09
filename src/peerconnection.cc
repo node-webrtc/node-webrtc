@@ -28,6 +28,7 @@ using v8::Object;
 using v8::String;
 using v8::Uint32;
 using v8::Value;
+using v8::Array;
 
 Nan::Persistent<Function> PeerConnection::constructor;
 rtc::Thread* PeerConnection::_signalingThread;
@@ -37,20 +38,15 @@ rtc::Thread* PeerConnection::_workerThread;
 // PeerConnection
 //
 
-PeerConnection::PeerConnection()
+PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList)
 : loop(uv_default_loop()) {
   _createOfferObserver = new rtc::RefCountedObject<CreateOfferObserver>(this);
   _createAnswerObserver = new rtc::RefCountedObject<CreateAnswerObserver>(this);
   _setLocalDescriptionObserver = new rtc::RefCountedObject<SetLocalDescriptionObserver>(this);
   _setRemoteDescriptionObserver = new rtc::RefCountedObject<SetRemoteDescriptionObserver>(this);
 
-  // FIXME: don't hardcode this, read from info instead
-  webrtc::PeerConnectionInterface::IceServer iceServer;
-  iceServer.uri = "stun:stun.l.google.com:19302";
-  _iceServers.push_back(iceServer);
-
   webrtc::PeerConnectionInterface::RTCConfiguration configuration;
-  configuration.servers = _iceServers;
+  configuration.servers = iceServerList;
 
   webrtc::FakeConstraints constraints;
   constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, webrtc::MediaConstraintsInterface::kValueTrue);
@@ -252,7 +248,87 @@ NAN_METHOD(PeerConnection::New) {
     return Nan::ThrowTypeError("Use the new operator to construct the PeerConnection.");
   }
 
-  PeerConnection* obj = new PeerConnection();
+  webrtc::PeerConnectionInterface::IceServers iceServerList;
+  
+  // Check if we have a configuration object
+  if (info[0]->IsObject()) {
+    const Local<Object> obj = info[0]->ToObject();
+
+    // Extract keys into array for iteration
+    const Local<Array> props = obj->GetPropertyNames();
+    
+    // Iterate all of the top-level config keys
+    for (uint32_t i = 0; i < props->Length(); i++) {
+      // Get the key and value for this particular config field
+      const Local<String> key = props->Get(i)->ToString();
+      const Local<Value> value = obj->Get(key);
+
+      // Annoyingly convert to std::string
+      String::Utf8Value _key(key);
+      std::string strKey = std::string(*_key);
+
+      // Handle iceServers configuration
+      if (strKey == "iceServers" && value->IsArray()) {
+        const Handle<Array> iceServers = Handle<Array>::Cast(value);
+
+        // Iterate over all of the ice servers configured
+        for (uint32_t j = 0; j < iceServers->Length(); j++) {
+          if (iceServers->Get(j)->IsObject()) {
+
+            const Local<Object> iceServerObj = iceServers->Get(j)->ToObject();
+            webrtc::PeerConnectionInterface::IceServer iceServer;
+            
+            const Local<Array> iceProps = iceServerObj->GetPropertyNames();
+
+            // Now we have an iceserver object in iceServerObj - Lets iterate all of its fields
+            for (uint32_t y = 0; y < iceProps->Length(); y++) {
+              String::Utf8Value _iceServerKey(iceProps->Get(y)->ToString());
+              std::string iceServerKey = std::string(*_iceServerKey);
+
+              Local<Value> iceValue = iceServerObj->Get(iceProps->Get(y)->ToString());
+
+              // Handle each field by casting the data and assigning to our iceServer intsance
+              if (iceServerKey == "url" && iceValue->IsString()) {
+                String::Utf8Value _iceUrl(iceValue->ToString());
+                std::string iceUrl = std::string(*_iceUrl);
+
+                iceServer.uri = iceUrl;
+              }
+              else if (iceServerKey == "urls" && iceValue->IsArray()) {
+                Handle<Array> iceUrls = Handle<Array>::Cast(iceValue);
+
+                for (uint32_t x = 0; x < iceUrls->Length(); x++) {
+                  String::Utf8Value _iceUrlsEntry(iceUrls->Get(x)->ToString());
+                  std::string iceUrlsEntry = std::string(*_iceUrlsEntry);
+
+                  iceServer.urls.push_back(iceUrlsEntry);
+                }
+              }
+              else if (iceServerKey == "credential" && iceValue->IsString()) {
+                String::Utf8Value _icePassword(iceValue->ToString());
+                std::string icePassword = std::string(*_icePassword);
+
+                iceServer.password = icePassword;
+              }
+              else if (iceServerKey == "username" && iceValue->IsString()) {
+                String::Utf8Value _iceUsername(iceValue->ToString());
+                std::string iceUsername = std::string(*_iceUsername);
+
+                iceServer.username = iceUsername;
+              }
+            }
+
+            // Lastly we push the created ICE server to our iceServerList, to be passed to the 'real' PeerConnection constructor
+            iceServerList.push_back(iceServer);
+          }
+        }
+      }
+      // else if (strKey == "offerToReceiveAudio") ... Handle more config here. For now i just need ICE
+    }
+  }
+
+  // Tell em whats up
+  PeerConnection* obj = new PeerConnection(iceServerList);
   obj->Wrap(info.This());
 
   TRACE_END;
