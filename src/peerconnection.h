@@ -113,7 +113,7 @@ class PeerConnection
                   ICE_GATHERING_STATE_CHANGE
   };
 
-  PeerConnection();
+  PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList);
   ~PeerConnection();
 
   //
