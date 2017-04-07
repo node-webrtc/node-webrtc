@@ -288,13 +288,13 @@ NAN_METHOD(PeerConnection::New) {
               Local<Value> iceValue = iceServerObj->Get(iceProps->Get(y)->ToString());
 
               // Handle each field by casting the data and assigning to our iceServer intsance
-              if (iceServerKey == "url" && iceValue->IsString()) {
+              if ((iceServerKey == "url" || iceServerKey == "urls") && iceValue->IsString()) {
                 String::Utf8Value _iceUrl(iceValue->ToString());
                 std::string iceUrl = std::string(*_iceUrl);
 
                 iceServer.uri = iceUrl;
               }
-              else if (iceServerKey == "urls" && iceValue->IsArray()) {
+              else if ((iceServerKey == "url" || iceServerKey == "urls") && iceValue->IsArray()) {
                 Handle<Array> iceUrls = Handle<Array>::Cast(iceValue);
 
                 for (uint32_t x = 0; x < iceUrls->Length(); x++) {
