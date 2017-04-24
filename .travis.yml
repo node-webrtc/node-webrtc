@@ -34,7 +34,7 @@ install:
 script:
   - npm test
   - if [[ $TRAVIS_TAG ]] ||
-       [[ `git show -s --format=%B $TRAVIS_COMMIT` == *'[publish binary]' ]];
+       [[ `git show -s --format=%B $TRAVIS_COMMIT` == *'[publish binary]'* ]];
     then
       $RUN node_modules/.bin/node-pre-gyp package publish;
     fi
