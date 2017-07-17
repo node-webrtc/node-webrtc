@@ -4,6 +4,9 @@ environment:
   node_pre_gyp_secretAccessKey:
     secure: L6xhlu4pL2PjxaA2EjB7VU4Tnpdr8D3CEenhPsAjkHXEvs9w+igtW+kvkYqrUUeU
   matrix:
+    - nodejs_version: "8"
+      platform: x64
+      msvs_toolset: 12
     - nodejs_version: "7"
       platform: x64
       msvs_toolset: 12
