@@ -423,7 +423,14 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
   if (self->_jinglePeerConnection != nullptr && self->_jinglePeerConnection->AddIceCandidate(ci)) {
     self->QueueEvent(PeerConnection::ADD_ICE_CANDIDATE_SUCCESS, static_cast<void*>(nullptr));
   } else {
-    PeerConnection::ErrorEvent* data = new PeerConnection::ErrorEvent(std::string("Failed to set ICE candidate."));
+    std::string error = std::string("Failed to set ICE candidate");
+    if( !self->_jinglePeerConnection ) {
+      error += ", no jingle peer connection";
+    } else if( sdpParseError.description.length() ) {
+      error += std::string(", parse error: ") + sdpParseError.description;
+    }
+    error += ".";
+    PeerConnection::ErrorEvent* data = new PeerConnection::ErrorEvent(error);
     self->QueueEvent(PeerConnection::ADD_ICE_CANDIDATE_ERROR, static_cast<void*>(data));
   }
 
