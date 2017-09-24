@@ -1,49 +1,61 @@
-#include "node.h"
-#include "v8.h"
+/* Copyright (c) 2017 The node-webrtc project authors. All rights reserved.
+ *
+ * Use of this source code is governed by a BSD-style license that can be found
+ * in the LICENSE.md file in the root of the source tree. All contributing
+ * project authors may be found in the AUTHORS file in the root of the source
+ * tree.
+ */
+#include <node.h>
 
 #include "webrtc/api/peerconnectioninterface.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 #include "webrtc/base/ssladapter.h"
-#include "webrtc/base/thread.h"
 
-#include "peerconnection.h"
-#include "datachannel.h"
-#include "rtcstatsreport.h"
-#include "rtcstatsresponse.h"
+#include "src/peerconnection.h"
+#include "src/datachannel.h"
+#include "src/rtcstatsreport.h"
+#include "src/rtcstatsresponse.h"
 
 using v8::Handle;
 using v8::Object;
 
-static rtc::Thread signalingThread;
-static rtc::Thread workerThread;
+static rtc::Thread* signalingThread = nullptr;
+static rtc::Thread* workerThread = nullptr;
 
-void setup(rtc::Thread* signalingThread, rtc::Thread* workerThread) {
-  bool result;
+void dispose(void*) {
+  node_webrtc::PeerConnection::Dispose();
+  node_webrtc::DataChannel::Dispose();
+  node_webrtc::RTCStatsReport::Dispose();
+  node_webrtc::RTCStatsResponse::Dispose();
 
-  result = rtc::InitializeSSL();
-  assert(result);
+  workerThread->Stop();
+  delete workerThread;
 
-  result = signalingThread->Start();
-  assert(result);
-
-  result = workerThread->Start();
-  assert(result);
-}
-
-void dispose(void* args) {
-  workerThread.Stop();
-
-  signalingThread.Stop();
+  signalingThread->Stop();
+  delete signalingThread;
 
   rtc::CleanupSSL();
 }
 
 void init(Handle<Object> exports) {
-  setup(&signalingThread, &workerThread);
-  node_webrtc::PeerConnection::Init(&signalingThread, &workerThread, exports);
+  bool result;
+
+  result = rtc::InitializeSSL();
+  assert(result);
+
+  signalingThread = new rtc::Thread();
+  result = signalingThread->Start();
+  assert(result);
+
+  workerThread = new rtc::Thread();
+  result = workerThread->Start();
+  assert(result);
+
+  node_webrtc::PeerConnection::Init(signalingThread, workerThread, exports);
   node_webrtc::DataChannel::Init(exports);
   node_webrtc::RTCStatsReport::Init(exports);
   node_webrtc::RTCStatsResponse::Init(exports);
+
   node::AtExit(dispose);
 }
 

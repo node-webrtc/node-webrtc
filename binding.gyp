@@ -97,6 +97,7 @@
       ],
       'include_dirs': [
         "<!(node -e \"require('nan')\")",
+        '.',
         'third_party/webrtc/include',
       ],
       'link_settings': {
@@ -129,6 +130,7 @@
         'src/create-offer-observer.cc',
         'src/datachannel.cc',
         'src/peerconnection.cc',
+        'src/events.cc',
         'src/rtcstatsreport.cc',
         'src/rtcstatsresponse.cc',
         'src/set-local-description-observer.cc',

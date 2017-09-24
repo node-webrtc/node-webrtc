@@ -1,3 +1,10 @@
+/* Copyright (c) 2017 The node-webrtc project authors. All rights reserved.
+ *
+ * Use of this source code is governed by a BSD-style license that can be found
+ * in the LICENSE.md file in the root of the source tree. All contributing
+ * project authors may be found in the AUTHORS file in the root of the source
+ * tree.
+ */
 #ifndef SRC_SET_LOCAL_DESCRIPTION_OBSERVER_H_
 #define SRC_SET_LOCAL_DESCRIPTION_OBSERVER_H_
 
@@ -17,8 +24,8 @@ class SetLocalDescriptionObserver
  public:
   explicit SetLocalDescriptionObserver(PeerConnection* connection): parent(connection) {}
 
-  virtual void OnSuccess();
-  virtual void OnFailure(const std::string& msg);
+  void OnSuccess() override;
+  void OnFailure(const std::string& msg) override;
 };
 
 }  // namespace node_webrtc

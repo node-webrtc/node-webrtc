@@ -1,10 +1,17 @@
+/* Copyright (c) 2017 The node-webrtc project authors. All rights reserved.
+ *
+ * Use of this source code is governed by a BSD-style license that can be found
+ * in the LICENSE.md file in the root of the source tree. All contributing
+ * project authors may be found in the AUTHORS file in the root of the source
+ * tree.
+ */
 #ifndef SRC_COMMON_H_
 #define SRC_COMMON_H_
 
-#include <stdio.h>
-#include <string.h>
+#include <nan.h>
 
-#include "nan.h"
+#include <cstdio>
+#include <cstring>
 
 #define WARN(msg) fprintf(stdout, "\033[01;33m native:%s \033[00m\n", msg)
 #define ERROR(msg) fprintf(stdout, "\033[01;32m native:%s \033[00m\n", msg)
