@@ -126,6 +126,7 @@
       },
       'sources': [
         'src/binding.cc',
+        'src/converters/webrtc.cc',
         'src/create-answer-observer.cc',
         'src/create-offer-observer.cc',
         'src/datachannel.cc',
