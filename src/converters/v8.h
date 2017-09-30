@@ -73,10 +73,11 @@ struct Converter<v8::Local<v8::Value>, double> {
 template <>
 struct Converter<v8::Local<v8::Value>, std::string> {
   static Validation<std::string> Convert(const v8::Local<v8::Value> value) {
-    if (!value->IsString()) {
+    auto maybeString = Nan::To<v8::String>(value);
+    if (maybeString.IsEmpty()) {
       return Validation<std::string>::Invalid("Expected a string");
     }
-    auto string = *v8::String::Utf8Value(value.As<v8::String>());
+    auto string = *v8::String::Utf8Value(maybeString.ToLocalChecked());
     return Validation<std::string>::Valid(string);
   }
 };
@@ -87,7 +88,7 @@ struct Converter<v8::Local<v8::Value>, std::vector<T>> {
     if (!value->IsArray()) {
       return Validation<std::vector<T>>::Invalid("Expected an array");
     }
-    auto array = value.As<v8::Array>();
+    auto array = v8::Local<v8::Array>::Cast(value);
     auto validated = std::vector<Validation<T>>();
     for (uint32_t i = 0; i < array->Length(); i++) {
       validated.push_back(From<T>(array->Get(i)));
