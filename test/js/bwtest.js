@@ -1,6 +1,6 @@
 'use strict';
 
-var wrtc = require('..');
+var wrtc = require('../..');
 var tape = require('tape');
 var args = require('minimist')(process.argv.slice(2));
 var SimplePeer = require('simple-peer');

@@ -4,7 +4,7 @@ var test = require('tape');
 // var detect = require('rtc-core/detect');
 // var RTCPeerConnection = detect('RTCPeerConnection');
 
-var wrtc = require('..');
+var wrtc = require('../..');
 
 var RTCIceCandidate   = wrtc.RTCIceCandidate;
 var RTCPeerConnection = wrtc.RTCPeerConnection;

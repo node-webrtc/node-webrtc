@@ -47,6 +47,6 @@
   "scripts": {
     "download-webrtc-libraries-and-headers": "node scripts/download-webrtc-libraries-and-headers.js",
     "install": "node-pre-gyp install --fallback-to-build",
-    "test": "node test/all.js"
+    "test": "node test/js/all.js"
   }
 }

@@ -2,7 +2,7 @@
 
 var test = require('tape');
 
-var RTCPeerConnection = require('..').RTCPeerConnection;
+var RTCPeerConnection = require('../..').RTCPeerConnection;
 
 
 var peer;
