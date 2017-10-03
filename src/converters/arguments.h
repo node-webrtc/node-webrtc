@@ -16,27 +16,36 @@
 #include <nan.h>
 
 #include "src/converters.h"
+#include "src/functional/curry.h"
 #include "src/functional/validation.h"
 
 namespace node_webrtc {
 
-template <typename T>
-static Validation<Maybe<T>> GetOptional(Nan::NAN_METHOD_ARGS_TYPE info, const size_t i) {
-  auto value = info[i];
-  if (value->IsUndefined()) {
-    return Validation<Maybe<T>>::Valid(Maybe<T>::Nothing());
+template <typename A>
+struct Converter<Nan::NAN_METHOD_ARGS_TYPE, A> {
+  static Validation<A> Convert(Nan::NAN_METHOD_ARGS_TYPE info) {
+    return From<A>(info[0]);
   }
-  return From<T>(value).Map(&Maybe<T>::Just);
-}
+};
 
-template <typename T>
-static Validation<T> GetOptional(
-    Nan::NAN_METHOD_ARGS_TYPE info,
-    const size_t i,
-    T default_value) {
-  return GetOptional<T>(info, i).Map(
-      [default_value](const Maybe<T> maybeT) { return maybeT.FromMaybe(default_value); });
-}
+template <typename A, typename B>
+struct Converter<Nan::NAN_METHOD_ARGS_TYPE, std::tuple<A, B>> {
+  static Validation<std::tuple<A, B>> Convert(Nan::NAN_METHOD_ARGS_TYPE info) {
+    return curry(std::make_tuple<A, B>)
+        % From<A>(info[0])
+        * From<B>(info[1]);
+  }
+};
+
+template <typename A, typename B, typename C>
+struct Converter<Nan::NAN_METHOD_ARGS_TYPE, std::tuple<A, B, C>> {
+  static Validation<std::tuple<A, B, C>> Convert(Nan::NAN_METHOD_ARGS_TYPE info) {
+    return curry(std::make_tuple<A, B>)
+        % From<A>(info[0])
+        * From<B>(info[1])
+        * From<C>(info[2]);
+  }
+};
 
 }  // namespace node_webrtc
 

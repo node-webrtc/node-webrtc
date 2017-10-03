@@ -199,6 +199,39 @@ struct Converter<v8::Local<v8::Value>, RTCAnswerOptions> {
   static Validation<RTCAnswerOptions> Convert(const v8::Local<v8::Value> value);
 };
 
+/*
+ * enum RTCSdpType {
+ *   "offer",
+ *   "pranswer",
+ *   "answer",
+ *   "rollback"
+ * };
+ */
+
+enum RTCSdpType {
+  kOffer,
+  kPrAnswer,
+  kAnswer,
+  kRollback
+};
+
+template <>
+struct Converter<v8::Local<v8::Value>, RTCSdpType> {
+  static Validation<RTCSdpType> Convert(const v8::Local<v8::Value> value);
+};
+
+/*
+ * dictionary RTCSessionDescriptionInit {
+ *   required RTCSdpType type;
+ *            DOMString  sdp = "";
+ * };
+ */
+
+template <>
+struct Converter<v8::Local<v8::Value>, webrtc::SessionDescriptionInterface*> {
+  static Validation<webrtc::SessionDescriptionInterface*> Convert(const v8::Local<v8::Value> value);
+};
+
 }  // namespace node_webrtc
 
 #endif  // SRC_CONVERTERS_WEBRTC_H_

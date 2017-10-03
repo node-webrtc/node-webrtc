@@ -162,6 +162,15 @@ class Validation {
   }
 
   /**
+   * Validation does not form a lawful Monad. Nevertheless, this is a useful
+   * function to have.
+   * @param tt a Validation for a Validation of T
+   */
+  static Validation<T> Join(const Validation<Validation<T>> tt) {
+    return tt.template FlatMap<T>([](const Validation<T> t) { return t; });
+  }
+
+  /**
    * Sequence a vector of Validations into a Validation of a vector.
    * @param values a vector of Validations
    * @return a Validation of a vector

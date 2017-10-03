@@ -20,6 +20,7 @@ using node_webrtc::RTCDtlsFingerprint;
 using node_webrtc::RTCIceCredentialType;
 using node_webrtc::RTCOAuthCredential;
 using node_webrtc::RTCOfferOptions;
+using node_webrtc::RTCSdpType;
 using node_webrtc::Validation;
 using v8::Local;
 using v8::Object;
@@ -31,6 +32,8 @@ using IceTransportsType = webrtc::PeerConnectionInterface::IceTransportsType;
 using RTCConfiguration = webrtc::PeerConnectionInterface::RTCConfiguration;
 using RTCOfferAnswerOptions = webrtc::PeerConnectionInterface::RTCOfferAnswerOptions;
 using RtcpMuxPolicy = webrtc::PeerConnectionInterface::RtcpMuxPolicy;
+using SdpParseError = webrtc::SdpParseError;
+using SessionDescriptionInterface = webrtc::SessionDescriptionInterface;
 
 static RTCOAuthCredential CreateRTCOAuthCredential(const std::string macKey, const std::string accessToken) {
   return RTCOAuthCredential(macKey, accessToken);
@@ -202,5 +205,57 @@ Validation<RTCAnswerOptions> Converter<Local<Value>, RTCAnswerOptions>::Convert(
       [](const Local<Object> object) {
         return curry(CreateRTCAnswerOptions)
             % GetOptional<bool>(object, "voiceActivityDetection", true);
+      });
+};
+
+Validation<RTCSdpType> Converter<Local<Value>, RTCSdpType>::Convert(const Local<Value> value) {
+  return From<std::string>(value).FlatMap<RTCSdpType>(
+      [](const std::string string) {
+        if (string == "offer") {
+          return Validation<RTCSdpType>::Valid(RTCSdpType::kOffer);
+        } else if (string == "pranswer") {
+          return Validation<RTCSdpType>::Valid(RTCSdpType::kPrAnswer);
+        } else if (string == "answer") {
+          return Validation<RTCSdpType>::Valid(RTCSdpType::kAnswer);
+        } else if (string == "rollback") {
+          return Validation<RTCSdpType>::Valid(RTCSdpType::kRollback);
+        }
+        return Validation<RTCSdpType>::Invalid("Expected \"offer\", \"pranswer\", \"answer\" or \"rollback\"");
+      });
+};
+
+Validation<SessionDescriptionInterface*> CreateSessionDescriptionInterface(
+    const RTCSdpType type,
+    const std::string sdp) {
+  std::string type_;
+  switch (type) {
+    case RTCSdpType::kOffer:
+      type_ = "offer";
+      break;
+    case RTCSdpType::kPrAnswer:
+      type_ = "pranswer";
+      break;
+    case RTCSdpType::kAnswer:
+      type_ = "answer";
+      break;
+    default: // kRollback
+      return Validation<SessionDescriptionInterface*>::Invalid("Rollback is not currently supported");
+  }
+  webrtc::SdpParseError error;
+  auto description = webrtc::CreateSessionDescription(type_, sdp, &error);
+  if (!description) {
+    return Validation<SessionDescriptionInterface*>::Invalid(error.description);
+  }
+  return Validation<SessionDescriptionInterface*>::Valid(description);
+}
+
+Validation<SessionDescriptionInterface*> Converter<Local<Value>, SessionDescriptionInterface*>::Convert(
+    const Local<Value> value) {
+  return From<Local<Object>>(value).FlatMap<SessionDescriptionInterface*>(
+      [](const Local<Object> object) {
+        return Validation<SessionDescriptionInterface*>::Join(
+            curry(CreateSessionDescriptionInterface)
+              % GetRequired<RTCSdpType>(object, "type")
+              * GetOptional<std::string>(object, "sdp", ""));
       });
 };

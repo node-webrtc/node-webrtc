@@ -29,7 +29,6 @@ using node_webrtc::DataChannelEvent;
 using node_webrtc::ErrorEvent;
 using node_webrtc::Event;
 using node_webrtc::From;
-using node_webrtc::GetOptional;
 using node_webrtc::GetStatsEvent;
 using node_webrtc::IceConnectionStateChangeEvent;
 using node_webrtc::IceEvent;
@@ -49,8 +48,10 @@ using v8::String;
 using v8::Uint32;
 using v8::Value;
 using v8::Array;
+using webrtc::SessionDescriptionInterface;
 
 using RTCConfiguration = webrtc::PeerConnectionInterface::RTCConfiguration;
+using RTCOfferAnswerOptions = webrtc::PeerConnectionInterface::RTCOfferAnswerOptions;
 
 Nan::Persistent<Function>* PeerConnection::constructor = nullptr;
 rtc::Thread* PeerConnection::_signalingThread;
@@ -299,16 +300,14 @@ NAN_METHOD(PeerConnection::New) {
     return Nan::ThrowTypeError("Use the new operator to construct the PeerConnection.");
   }
 
-  webrtc::PeerConnectionInterface::IceServers iceServerList;
-
-  auto maybeConfiguration = GetOptional<RTCConfiguration>(info, 0, RTCConfiguration());
+  auto maybeConfiguration = From<Maybe<RTCConfiguration>, Nan::NAN_METHOD_ARGS_TYPE>(info);
   if (maybeConfiguration.IsInvalid()) {
     auto error = maybeConfiguration.ToErrors()[0];
     return Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
   }
 
   // Tell em whats up
-  auto obj = new PeerConnection(maybeConfiguration.UnsafeFromValid());
+  auto obj = new PeerConnection(maybeConfiguration.UnsafeFromValid().FromMaybe(RTCConfiguration()));
   obj->Wrap(info.This());
 
   TRACE_END;
@@ -317,9 +316,17 @@ NAN_METHOD(PeerConnection::New) {
 
 NAN_METHOD(PeerConnection::CreateOffer) {
   TRACE_CALL;
+  auto validationOptions = From<Maybe<RTCOfferOptions>, Nan::NAN_METHOD_ARGS_TYPE>(info).Map(
+      [](const Maybe<RTCOfferOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCOfferOptions()); });
+  if (validationOptions.IsInvalid()) {
+    auto error = validationOptions.ToErrors()[0];
+    return Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+  }
+  auto options = validationOptions.UnsafeFromValid();
+
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
-  if (self->_jinglePeerConnection != nullptr) {
-    self->_jinglePeerConnection->CreateOffer(self->_createOfferObserver, nullptr);
+  if (self->_jinglePeerConnection) {
+    self->_jinglePeerConnection->CreateOffer(self->_createOfferObserver, nullptr); // options.options);
   }
 
   TRACE_END;
@@ -328,8 +335,17 @@ NAN_METHOD(PeerConnection::CreateOffer) {
 
 NAN_METHOD(PeerConnection::CreateAnswer) {
   TRACE_CALL;
+  // NOTE(mroberts): We do the validation per the Web IDL here, but we don't
+  // actually use the RTCAnswerOptions.
+  auto validationOptions = From<Maybe<RTCAnswerOptions>, Nan::NAN_METHOD_ARGS_TYPE>(info).Map(
+      [](const Maybe<RTCAnswerOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCAnswerOptions()); });
+  if (validationOptions.IsInvalid()) {
+    auto error = validationOptions.ToErrors()[0];
+    return Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+  }
+
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
-  if (self->_jinglePeerConnection != nullptr) {
+  if (self->_jinglePeerConnection) {
     self->_jinglePeerConnection->CreateAnswer(self->_createAnswerObserver, nullptr);
   }
 
@@ -339,15 +355,18 @@ NAN_METHOD(PeerConnection::CreateAnswer) {
 
 NAN_METHOD(PeerConnection::SetLocalDescription) {
   TRACE_CALL;
+  auto maybeDescription = From<SessionDescriptionInterface*, Nan::NAN_METHOD_ARGS_TYPE>(info);
+  if (maybeDescription.IsInvalid()) {
+    auto error = maybeDescription.ToErrors()[0];
+    return Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+  }
+  auto description = maybeDescription.UnsafeFromValid();
+
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
-  if (self->_jinglePeerConnection != nullptr) {
-    auto desc = Local<Object>::Cast(info[0]);
-    webrtc::SdpParseError error;
-    webrtc::SessionDescriptionInterface* sdi = webrtc::CreateSessionDescription(
-        *String::Utf8Value(desc->Get(Nan::New("type").ToLocalChecked())->ToString()),
-        *String::Utf8Value(desc->Get(Nan::New("sdp").ToLocalChecked())->ToString()),
-        &error);
-    self->_jinglePeerConnection->SetLocalDescription(self->_setLocalDescriptionObserver, sdi);
+  if (self->_jinglePeerConnection) {
+    self->_jinglePeerConnection->SetLocalDescription(self->_setLocalDescriptionObserver, description);
+  } else {
+    delete description;
   }
 
   TRACE_END;

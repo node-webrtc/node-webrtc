@@ -22,6 +22,16 @@ namespace node_webrtc {
 
 // TODO(mroberts): The following could probably all be moved into a v8.cc file.
 
+template <typename T>
+struct Converter<v8::Local<v8::Value>, Maybe<T>> {
+  static Validation<Maybe<T>> Convert(const v8::Local<v8::Value> value) {
+    if (value.IsEmpty() || value->IsUndefined()) {
+      return Validation<Maybe<T>>::Valid(Maybe<T>::Nothing());
+    }
+    return From<T>(value).Map(&Maybe<T>::Just);
+  }
+};
+
 template <>
 struct Converter<v8::Local<v8::Value>, bool> {
   static Validation<bool> Convert(const v8::Local<v8::Value> value) {

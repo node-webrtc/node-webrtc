@@ -68,19 +68,6 @@ struct Converter<S, Either<L, R>> {
   }
 };
 
-/**
- * There is a Converter that is allowed to fail.
- * @tparam S the source type
- * @tparam A some type A
- */
-template <typename S, typename A>
-struct Converter<S, Maybe<A>> {
-  static Validation<Maybe<A>> Convert(const S s) {
-    return From<A>(s).Map(Maybe<A>::Just)
-        | Validation<Maybe<A>>::Valid(Maybe<A>::Nothing());
-  }
-};
-
 }  // namespace node_webrtc
 
 #endif  // SRC_CONVERTERS_H_

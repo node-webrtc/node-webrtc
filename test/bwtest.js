@@ -266,7 +266,7 @@ function bwtest(options, callback) {
             /*
              * iceServers with stun urls. not needed for this in-process test.
              */
-            // iceServers: [{url: 'stun:23.21.150.121'}],
+            // iceServers: [{urls: 'stun:23.21.150.121'}],
         };
     }
 }
