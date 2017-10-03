@@ -242,7 +242,7 @@ Validation<SessionDescriptionInterface*> CreateSessionDescriptionInterface(
       return Validation<SessionDescriptionInterface*>::Invalid("Rollback is not currently supported");
   }
   webrtc::SdpParseError error;
-  auto description = webrtc::CreateSessionDescription(type_, sdp, &error);
+  auto description = webrtc::CreateSessionDescription(type_, std::string(sdp), &error);
   if (!description) {
     return Validation<SessionDescriptionInterface*>::Invalid(error.description);
   }

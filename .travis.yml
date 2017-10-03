@@ -18,6 +18,7 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - g++-4.8
+      - valgrind
 
 notifications:
   email: false
@@ -34,6 +35,20 @@ install:
   - npm install
 
 script:
+  - rm -rf build
+  - mkdir cmake-build-debug
+  - cd cmake-build-debug
+  - cmake -DCMAKE_BUILD_TYPE=Debug ..
+  - cd ..
+  - cmake --build cmake-build-debug --target wrtc -- -j 2
+  - ./bin/test
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      cd cmake-build-debug;
+      ctest -T memcheck;
+      cd ..;
+    fi
+  - rm -rf cmake-build-debug
+  - npm install
   - npm test
   - if [[ $TRAVIS_TAG ]] ||
        [[ `git show -s --format=%B $TRAVIS_COMMIT` == *'[publish binary]'* ]];

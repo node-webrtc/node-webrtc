@@ -15,6 +15,9 @@
 #include "src/datachannel.h"
 #include "src/rtcstatsreport.h"
 #include "src/rtcstatsresponse.h"
+#ifdef DEBUG
+#include "test.h"
+#endif
 
 using v8::Handle;
 using v8::Object;
@@ -55,6 +58,9 @@ void init(Handle<Object> exports) {
   node_webrtc::DataChannel::Init(exports);
   node_webrtc::RTCStatsReport::Init(exports);
   node_webrtc::RTCStatsResponse::Init(exports);
+#ifdef DEBUG
+  node_webrtc::Test::Init(exports);
+#endif
 
   node::AtExit(dispose);
 }

@@ -38,6 +38,7 @@
   "devDependencies": {
     "aws-sdk": "^2.2.10",
     "minimist": "0.0.8",
+    "mkdirp": "^0.5.1",
     "node-cmake": "^2.3.2",
     "node-static-alias": "^0.1.2",
     "simple-peer": "^5.0.0",

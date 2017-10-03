@@ -87,7 +87,7 @@ struct Converter<v8::Local<v8::Value>, std::string> {
     if (maybeString.IsEmpty()) {
       return Validation<std::string>::Invalid("Expected a string");
     }
-    auto string = *v8::String::Utf8Value(maybeString.ToLocalChecked());
+    auto string = std::string(*v8::String::Utf8Value(maybeString.ToLocalChecked()));
     return Validation<std::string>::Valid(string);
   }
 };

@@ -48,7 +48,10 @@
         '-fpermissive',
         '-std=c++11',
       ],
+      'cflags!': ['-fno-exceptions'],
+      'cflags_cc!': ['-fno-exceptions'],
       'xcode_settings': {
+        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
         'MACOSX_DEPLOYMENT_TARGET': '10.9',
         'OTHER_CFLAGS': [
           '-std=gnu++0x',
@@ -98,7 +101,9 @@
       'include_dirs': [
         "<!(node -e \"require('nan')\")",
         '.',
+        'test/cpp',
         'third_party/webrtc/include',
+        'third_party/catch',
       ],
       'link_settings': {
         'conditions': [
@@ -137,7 +142,8 @@
         'src/set-local-description-observer.cc',
         'src/set-remote-description-observer.cc',
         'src/stats-observer.cc',
-      ]
+        'test/cpp/test.cc',
+      ],
     },
     {
       "target_name": "action_after_build",

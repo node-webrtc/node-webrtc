@@ -322,7 +322,6 @@ NAN_METHOD(PeerConnection::CreateOffer) {
     auto error = validationOptions.ToErrors()[0];
     return Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
   }
-  auto options = validationOptions.UnsafeFromValid();
 
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
   if (self->_jinglePeerConnection) {

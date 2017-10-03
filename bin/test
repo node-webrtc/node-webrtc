@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+var path = require('path');
+var wrtc = require(path.join(__dirname, '..', 'lib'));
+wrtc.test(process.argv.slice(1));
