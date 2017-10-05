@@ -83,11 +83,10 @@ struct Converter<v8::Local<v8::Value>, double> {
 template <>
 struct Converter<v8::Local<v8::Value>, std::string> {
   static Validation<std::string> Convert(const v8::Local<v8::Value> value) {
-    auto maybeString = Nan::To<v8::String>(value);
-    if (maybeString.IsEmpty()) {
+    if (!value->IsString()) {
       return Validation<std::string>::Invalid("Expected a string");
     }
-    auto string = std::string(*v8::String::Utf8Value(maybeString.ToLocalChecked()));
+    auto string = std::string(*v8::String::Utf8Value(Nan::To<v8::String>(value).ToLocalChecked()));
     return Validation<std::string>::Valid(string);
   }
 };

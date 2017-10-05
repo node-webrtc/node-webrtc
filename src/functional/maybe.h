@@ -67,6 +67,14 @@ class Maybe {
   }
 
   /**
+   * Check whether or not the Maybe is empty.
+   * @return true if the Maybe is empty; otherwise, false
+   */
+  bool IsNothing() const {
+    return !_is_just;
+  }
+
+  /**
    * Maybe forms a functor. Map a function over Maybe.
    * @tparam F the type of a function from T to S
    * @param f a function from T to S

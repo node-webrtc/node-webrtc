@@ -60,36 +60,39 @@ Validation<RTCIceCredentialType> Converter<Local<Value>, RTCIceCredentialType>::
         });
 }
 
-static IceServer CreateIceServer(
+static Validation<IceServer> CreateIceServer(
     const Either<std::string, std::vector<std::string>> urlOrUrls,
     const std::string username,
-    const std::string credential,
-    const RTCIceCredentialType) {
+    const Either<std::string, RTCOAuthCredential> credential,
+    const RTCIceCredentialType credentialType) {
+  if (credential.IsRight() || credentialType != RTCIceCredentialType::kPassword) {
+    return Validation<IceServer>::Invalid("OAuth is not currently supported");
+  }
   IceServer iceServer;
   iceServer.uri = urlOrUrls.FromLeft("");
   iceServer.urls = urlOrUrls.FromRight(std::vector<std::string>());
   iceServer.username = username;
-  iceServer.password = credential;
-  return iceServer;
+  iceServer.password = credential.UnsafeFromLeft();
+  return Validation<IceServer>::Valid(iceServer);
 }
 
 Validation<IceServer> Converter<Local<Value>, IceServer>::Convert(const Local<Value> value) {
   return From<Local<Object>>(value).FlatMap<IceServer>(
       [](const Local<Object> object) {
-        return curry(CreateIceServer)
+        return Validation<IceServer>::Join(curry(CreateIceServer)
             % GetRequired<Either<std::string, std::vector<std::string>>>(object, "urls")
             * GetOptional<std::string>(object, "username", "")
-            * GetOptional<std::string>(object, "credential", "")
-            * GetOptional<RTCIceCredentialType>(object, "credentialType", kPassword);
+            * GetOptional<Either<std::string, RTCOAuthCredential>>(object, "credential", Either<std::string, RTCOAuthCredential>::Left(""))
+            * GetOptional<RTCIceCredentialType>(object, "credentialType", kPassword));
       });
 }
 
 Validation<IceTransportsType> Converter<Local<Value>, IceTransportsType>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<IceTransportsType>(
       [](const std::string string) {
-        if (string == "relay") {
+        if (string == "all") {
           return Validation<IceTransportsType>::Valid(IceTransportsType::kAll);
-        } else if (string == "all") {
+        } else if (string == "relay") {
           return Validation<IceTransportsType>::Valid(IceTransportsType::kRelay);
         }
         return Validation<IceTransportsType>::Invalid("Expected \"all\" or \"relay\"");
@@ -253,9 +256,8 @@ Validation<SessionDescriptionInterface*> Converter<Local<Value>, SessionDescript
     const Local<Value> value) {
   return From<Local<Object>>(value).FlatMap<SessionDescriptionInterface*>(
       [](const Local<Object> object) {
-        return Validation<SessionDescriptionInterface*>::Join(
-            curry(CreateSessionDescriptionInterface)
-              % GetRequired<RTCSdpType>(object, "type")
-              * GetOptional<std::string>(object, "sdp", ""));
+        return Validation<SessionDescriptionInterface*>::Join(curry(CreateSessionDescriptionInterface)
+            % GetRequired<RTCSdpType>(object, "type")
+            * GetOptional<std::string>(object, "sdp", ""));
       });
 };
