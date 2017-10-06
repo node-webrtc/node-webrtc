@@ -48,6 +48,8 @@ using v8::String;
 using v8::Uint32;
 using v8::Value;
 using v8::Array;
+using webrtc::DataChannelInit;
+using webrtc::IceCandidateInterface;
 using webrtc::SessionDescriptionInterface;
 
 using RTCConfiguration = webrtc::PeerConnectionInterface::RTCConfiguration;
@@ -374,15 +376,18 @@ NAN_METHOD(PeerConnection::SetLocalDescription) {
 
 NAN_METHOD(PeerConnection::SetRemoteDescription) {
   TRACE_CALL;
+  auto maybeDescription = From<SessionDescriptionInterface*, Nan::NAN_METHOD_ARGS_TYPE>(info);
+  if (maybeDescription.IsInvalid()) {
+    auto error = maybeDescription.ToErrors()[0];
+    return Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+  }
+  auto description = maybeDescription.UnsafeFromValid();
+
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
-  if (self->_jinglePeerConnection != nullptr) {
-    auto desc = Local<Object>::Cast(info[0]);
-    webrtc::SdpParseError error;
-    webrtc::SessionDescriptionInterface* sdi = webrtc::CreateSessionDescription(
-        *String::Utf8Value(desc->Get(Nan::New("type").ToLocalChecked())->ToString()),
-        *String::Utf8Value(desc->Get(Nan::New("sdp").ToLocalChecked())->ToString()),
-        &error);
-    self->_jinglePeerConnection->SetRemoteDescription(self->_setRemoteDescriptionObserver, sdi);
+  if (self->_jinglePeerConnection) {
+    self->_jinglePeerConnection->SetRemoteDescription(self->_setRemoteDescriptionObserver, description);
+  } else {
+    delete description;
   }
 
   TRACE_END;
@@ -392,24 +397,23 @@ NAN_METHOD(PeerConnection::SetRemoteDescription) {
 NAN_METHOD(PeerConnection::AddIceCandidate) {
   TRACE_CALL;
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
-  auto sdp = Handle<Object>::Cast(info[0]);
-  webrtc::SdpParseError sdpParseError;
-  webrtc::IceCandidateInterface* ci = webrtc::CreateIceCandidate(
-      *String::Utf8Value(sdp->Get(Nan::New("sdpMid").ToLocalChecked())->ToString()),
-      sdp->Get(Nan::New("sdpMLineIndex").ToLocalChecked())->Uint32Value(),
-      *String::Utf8Value(sdp->Get(Nan::New("candidate").ToLocalChecked())->ToString()),
-      &sdpParseError);
 
-  if (self->_jinglePeerConnection && self->_jinglePeerConnection->AddIceCandidate(ci)) {
-    self->Dispatch(AddIceCandidateSuccessEvent::Create());
-  } else {
-    std::string error = std::string("Failed to set ICE candidate");
-    if (!self->_jinglePeerConnection) {
-      error += ", no jingle peer connection.";
-    } else if (sdpParseError.description.length()) {
-      error += std::string(", parse error: ") + sdpParseError.description + ".";
-    }
+  auto maybeCandidate = From<IceCandidateInterface*, Nan::NAN_METHOD_ARGS_TYPE>(info);
+  if (maybeCandidate.IsInvalid()) {
+    auto error = maybeCandidate.ToErrors()[0];
     self->Dispatch(AddIceCandidateErrorEvent::Create(error));
+  } else {
+    auto candidate = maybeCandidate.UnsafeFromValid();
+    if (self->_jinglePeerConnection) {
+      if (self->_jinglePeerConnection->AddIceCandidate(candidate)) {
+        self->Dispatch(AddIceCandidateSuccessEvent::Create());
+      } else {
+        self->Dispatch(AddIceCandidateErrorEvent::Create("Failed to set ICE candidate"));
+      }
+    } else {
+      self->Dispatch(AddIceCandidateErrorEvent::Create("Failed to set ICE candidate (InvalidStateError)"));
+    }
+    delete candidate;
   }
 
   TRACE_END;
@@ -424,49 +428,17 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
     return;
   }
 
-  String::Utf8Value label(info[0]->ToString());
-  auto dataChannelDict = Handle<Object>::Cast(info[1]);
-
-  webrtc::DataChannelInit dataChannelInit;
-  if (dataChannelDict->Has(Nan::New("id").ToLocalChecked())) {
-    auto value = dataChannelDict->Get(Nan::New("id").ToLocalChecked());
-    if (value->IsInt32()) {
-      dataChannelInit.id = value->Int32Value();
-    }
+  auto maybeArgs = From<std::tuple<std::string, DataChannelInit>, Nan::NAN_METHOD_ARGS_TYPE>(info);
+  if (maybeArgs.IsInvalid()) {
+    auto error = maybeArgs.ToErrors()[0];
+    return Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
   }
-  if (dataChannelDict->Has(Nan::New("maxRetransmitTime").ToLocalChecked())) {
-    auto value = dataChannelDict->Get(Nan::New("maxRetransmitTime").ToLocalChecked());
-    if (value->IsInt32()) {
-      dataChannelInit.maxRetransmitTime = value->Int32Value();
-    }
-  }
-  if (dataChannelDict->Has(Nan::New("maxRetransmits").ToLocalChecked())) {
-    auto value = dataChannelDict->Get(Nan::New("maxRetransmits").ToLocalChecked());
-    if (value->IsInt32()) {
-      dataChannelInit.maxRetransmits = value->Int32Value();
-    }
-  }
-  if (dataChannelDict->Has(Nan::New("negotiated").ToLocalChecked())) {
-    auto value = dataChannelDict->Get(Nan::New("negotiated").ToLocalChecked());
-    if (value->IsBoolean()) {
-      dataChannelInit.negotiated = value->BooleanValue();
-    }
-  }
-  if (dataChannelDict->Has(Nan::New("ordered").ToLocalChecked())) {
-    auto value = dataChannelDict->Get(Nan::New("ordered").ToLocalChecked());
-    if (value->IsBoolean()) {
-      dataChannelInit.ordered = value->BooleanValue();
-    }
-  }
-  if (dataChannelDict->Has(Nan::New("protocol").ToLocalChecked())) {
-    auto value = dataChannelDict->Get(Nan::New("protocol").ToLocalChecked());
-    if (value->IsString()) {
-      dataChannelInit.protocol = *String::Utf8Value(value->ToString());
-    }
-  }
+  auto args = maybeArgs.UnsafeFromValid();
+  auto label = std::get<0>(args);
+  auto dataChannelInit = std::get<1>(args);
 
   rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel_interface =
-      self->_jinglePeerConnection->CreateDataChannel(*label, &dataChannelInit);
+      self->_jinglePeerConnection->CreateDataChannel(label, &dataChannelInit);
 
   Local<Value> cargv[] = {
       Nan::New<External>(reinterpret_cast<void*>(new DataChannelObserver(data_channel_interface)))

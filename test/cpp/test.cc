@@ -18,9 +18,9 @@ using node_webrtc::Maybe;
 using node_webrtc::RTCDtlsFingerprint;
 using node_webrtc::RTCIceCredentialType;
 using node_webrtc::RTCOAuthCredential;
+using node_webrtc::RTCPriorityType;
 using node_webrtc::RTCSdpType;
 using node_webrtc::Test;
-using v8::Context;
 using v8::Function;
 using v8::FunctionTemplate;
 using v8::Handle;
@@ -28,12 +28,16 @@ using v8::JSON;
 using v8::Local;
 using v8::Object;
 using v8::Value;
+using webrtc::DataChannelInit;
+using webrtc::IceCandidateInterface;
 using webrtc::SessionDescriptionInterface;
 
 using IceServer = webrtc::PeerConnectionInterface::IceServer;
 using IceTransportsType = webrtc::PeerConnectionInterface::IceTransportsType;
 using BundlePolicy = webrtc::PeerConnectionInterface::BundlePolicy;
 using RtcpMuxPolicy = webrtc::PeerConnectionInterface::RtcpMuxPolicy;
+
+static Nan::JSON NanJSON;
 
 template <typename T>
 static void RequireInvalid(const Local<Value> value) {
@@ -97,30 +101,61 @@ TEST_CASE("RTCBundlePolicy") {
   }
 }
 
-TEST_CASE("RTCDtlsFingerprint") {
-  Local<Context> context = Nan::GetCurrentContext();
+TEST_CASE("RTCDataChannelInit") {
+  SECTION("valid") {
+    Local<Value> emptyObject = Nan::New<Object>();
+    auto emptyObject_ = RequireValid<DataChannelInit>(emptyObject);
+    REQUIRE(emptyObject_.ordered);
+    REQUIRE(emptyObject_.maxRetransmitTime == -1);
+    REQUIRE(emptyObject_.maxRetransmits == -1);
+    REQUIRE(emptyObject_.protocol == "");
+    REQUIRE(!emptyObject_.negotiated);
+    REQUIRE(emptyObject_.id == -1);
 
+    Local<Value> fullObject = NanJSON.Parse(Nan::New(R"({
+  "ordered": false,
+  "maxPacketLifeTime": 666,
+  "maxRetransmits": 3,
+  "protocol": "foo",
+  "negotiated": true,
+  "id": 9
+})").ToLocalChecked()).ToLocalChecked();
+    auto fullObject_ = RequireValid<DataChannelInit>(fullObject);
+    REQUIRE(!fullObject_.ordered);
+    REQUIRE(fullObject_.maxRetransmitTime == 666);
+    REQUIRE(fullObject_.maxRetransmits == 3);
+    REQUIRE(fullObject_.protocol == "foo");
+    REQUIRE(fullObject_.negotiated);
+    REQUIRE(fullObject_.id == 9);
+  }
+
+  SECTION("invalid") {
+    // TODO(mroberts): Add invalid RTCDataChannelInits.
+  }
+}
+
+TEST_CASE("RTCDtlsFingerprint") {
   SECTION("valid") {
     Local<Value> emptyObject = Nan::New<Object>();
     auto emptyObject_ = RequireValid<RTCDtlsFingerprint>(emptyObject);
     REQUIRE(emptyObject_.algorithm.IsNothing());
     REQUIRE(emptyObject_.value.IsNothing());
 
-    auto algorithmOnly = JSON::Parse(context, Nan::New(R"({
+    auto algorithmOnly = NanJSON.Parse(Nan::New(R"({
   "algorithm": "foo"
 })").ToLocalChecked()).ToLocalChecked();
     auto algorithmOnly_ = RequireValid<RTCDtlsFingerprint>(algorithmOnly);
     REQUIRE(algorithmOnly_.algorithm.UnsafeFromJust() == "foo");
     REQUIRE(algorithmOnly_.value.IsNothing());
 
-    auto valueOnly = JSON::Parse(context, Nan::New(R"({
+    auto valueOnly = NanJSON.Parse(Nan::New(R"({
   "value": "foo"
 })").ToLocalChecked()).ToLocalChecked();
     auto valueOnly_ = RequireValid<RTCDtlsFingerprint>(valueOnly);
     REQUIRE(valueOnly_.algorithm.IsNothing());
     REQUIRE(valueOnly_.value.UnsafeFromJust() == "foo");
 
-    auto fullObject = JSON::Parse(context, Nan::New(R"({
+    auto fullObject = NanJSON.Parse(Nan::New(R"({
   "algorithm": "foo",
   "value": "bar"
 })").ToLocalChecked()).ToLocalChecked();
@@ -131,6 +166,47 @@ TEST_CASE("RTCDtlsFingerprint") {
 
   SECTION("invalid") {
     // TODO(mroberts): Add some invalid RTCDtlsFingerprints.
+  }
+}
+
+TEST_CASE("RTCIceCandidateInit") {
+  SECTION("valid") {
+    SECTION("no sdpMid or sdpMLineIndex") {
+      std::string candidate = "candidate:1467250027 1 udp 2122260223 192.168.0.196 46243 typ host generation 0";
+      auto iceCandidate = Nan::New<Object>();
+      Nan::Set(iceCandidate, Nan::New("candidate").ToLocalChecked(), Nan::New(candidate).ToLocalChecked());
+      auto iceCandidate_ = RequireValid<IceCandidateInterface*>(iceCandidate);
+      std::string candidate_;
+      iceCandidate_->ToString(&candidate_);
+      REQUIRE(candidate_ == candidate);
+      REQUIRE(iceCandidate_->sdp_mid() == "");
+      REQUIRE(iceCandidate_->sdp_mline_index() == 0);
+      delete iceCandidate_;
+    }
+
+    SECTION("both sdpMid and sdpMLineIndex") {
+      std::string candidate = "candidate:1467250027 1 udp 2122260223 192.168.0.196 46243 typ host generation 0";
+      std::string sdpMid = "video";
+      int sdpMLineIndex = 1;
+      auto iceCandidate = Nan::New<Object>();
+      Nan::Set(iceCandidate, Nan::New("candidate").ToLocalChecked(), Nan::New(candidate).ToLocalChecked());
+      Nan::Set(iceCandidate, Nan::New("sdpMid").ToLocalChecked(), Nan::New(sdpMid).ToLocalChecked());
+      Nan::Set(iceCandidate, Nan::New("sdpMLineIndex").ToLocalChecked(), Nan::New(sdpMLineIndex));
+      auto iceCandidate_ = RequireValid<IceCandidateInterface*>(iceCandidate);
+      std::string candidate_;
+      iceCandidate_->ToString(&candidate_);
+      REQUIRE(candidate_ == candidate);
+      REQUIRE(iceCandidate_->sdp_mid() == sdpMid);
+      REQUIRE(iceCandidate_->sdp_mline_index() == sdpMLineIndex);
+      delete iceCandidate_;
+    }
+  }
+
+  SECTION("invalid") {
+    // NOTE(mroberts): Although the IDL says we can default to the empty string,
+    // WebRTC wants a valid SDP fragment.
+    Local<Value> emptyObject = Nan::New<Object>();
+    RequireInvalid<IceCandidateInterface*>(Nan::New<Object>());
   }
 }
 
@@ -147,11 +223,9 @@ TEST_CASE("RTCIceCredentialType") {
 }
 
 TEST_CASE("RTCIceServer") {
-  Local<Context> context = Nan::GetCurrentContext();
-
   SECTION("valid") {
     SECTION("url") {
-      auto iceServer = JSON::Parse(context, Nan::New(R"({
+      auto iceServer = NanJSON.Parse(Nan::New(R"({
   "urls": "foo.com"
 })").ToLocalChecked()).ToLocalChecked();
       auto actual = RequireValid<IceServer>(iceServer);
@@ -159,7 +233,7 @@ TEST_CASE("RTCIceServer") {
     }
 
     SECTION("urls") {
-      auto iceServer = JSON::Parse(context, Nan::New(R"({
+      auto iceServer = NanJSON.Parse(Nan::New(R"({
   "urls": ["foo.com", "bar.net"]
 })").ToLocalChecked()).ToLocalChecked();
       auto actual = RequireValid<IceServer>(iceServer);
@@ -168,7 +242,7 @@ TEST_CASE("RTCIceServer") {
     }
 
     SECTION("username and credential") {
-      auto iceServer = JSON::Parse(context, Nan::New(R"({
+      auto iceServer = NanJSON.Parse(Nan::New(R"({
   "urls": "foo.com",
   "username": "foo",
   "credential": "bar"
@@ -182,14 +256,14 @@ TEST_CASE("RTCIceServer") {
   SECTION("invalid") {
     RequireInvalid<IceServer>(Nan::New<Object>());
 
-    auto oAuth1 = JSON::Parse(context, Nan::New(R"({
+    auto oAuth1 = NanJSON.Parse(Nan::New(R"({
   "urls": "foo.com",
   "credentialType": "oauth"
 })").ToLocalChecked()).ToLocalChecked();
     auto maybeOAuth1 = From<IceServer>(oAuth1);
     REQUIRE(maybeOAuth1.ToErrors()[0] == "OAuth is not currently supported");
 
-    auto oAuth2 = JSON::Parse(context, Nan::New(R"({
+    auto oAuth2 = NanJSON.Parse(Nan::New(R"({
   "urls": "foo.com",
   "credential": {
     "macKey": "foo",
@@ -214,10 +288,8 @@ TEST_CASE("RTCIceTransportPolicy") {
 }
 
 TEST_CASE("RTCOAuthCredential") {
-  Local<Context> context = Nan::GetCurrentContext();
-
   SECTION("valid") {
-    auto rtcOAuthCredential = JSON::Parse(context, Nan::New(R"({
+    auto rtcOAuthCredential = NanJSON.Parse(Nan::New(R"({
   "macKey": "foo",
   "accessToken": "bar"
 })").ToLocalChecked()).ToLocalChecked();
@@ -230,17 +302,31 @@ TEST_CASE("RTCOAuthCredential") {
     Local<Value> emptyObject = Nan::New<Object>();
     RequireInvalid<RTCOAuthCredential>(emptyObject);
 
-    auto invalidMacKey = JSON::Parse(context, Nan::New(R"({
+    auto invalidMacKey = NanJSON.Parse(Nan::New(R"({
   "macKey": {},
   "accessToken": "foo"
 })").ToLocalChecked()).ToLocalChecked();
     RequireInvalid<RTCOAuthCredential>(invalidMacKey);
 
-    auto invalidAccessToken = JSON::Parse(context, Nan::New(R"({
+    auto invalidAccessToken = NanJSON.Parse(Nan::New(R"({
   "macKey": "foo",
   "accessToken": {}
 })").ToLocalChecked()).ToLocalChecked();
     RequireInvalid<RTCOAuthCredential>(invalidAccessToken);
+  }
+}
+
+TEST_CASE("RTCPriorityType") {
+  SECTION("valid") {
+    RequireEnum<RTCPriorityType>("very-low", RTCPriorityType::kVeryLow);
+    RequireEnum<RTCPriorityType>("low", RTCPriorityType::kLow);
+    RequireEnum<RTCPriorityType>("medium", RTCPriorityType::kMedium);
+    RequireEnum<RTCPriorityType>("high", RTCPriorityType::kHigh);
+  }
+
+  SECTION("invalid") {
+    RequireInvalid<RtcpMuxPolicy>(Nan::New("").ToLocalChecked());
+    RequireInvalid<RtcpMuxPolicy>(Nan::New("bogus").ToLocalChecked());
   }
 }
 
@@ -271,8 +357,6 @@ TEST_CASE("RTCSdpType") {
 }
 
 TEST_CASE("RTCSessionDescriptionInit") {
-  Local<Context> context = Nan::GetCurrentContext();
-
   SECTION("valid") {
     SECTION("offer") {
       auto sdp = "v=0\r\n"

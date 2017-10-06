@@ -232,6 +232,59 @@ struct Converter<v8::Local<v8::Value>, webrtc::SessionDescriptionInterface*> {
   static Validation<webrtc::SessionDescriptionInterface*> Convert(const v8::Local<v8::Value> value);
 };
 
+/*
+ * dictionary RTCIceCandidateInit {
+ *     DOMString       candidate = "";
+ *     DOMString?      sdpMid = null;
+ *     unsigned short? sdpMLineIndex = null;
+ *     DOMString       usernameFragment;
+ * };
+ */
+
+template <>
+struct Converter<v8::Local<v8::Value>, webrtc::IceCandidateInterface*> {
+  static Validation<webrtc::IceCandidateInterface*> Convert(const v8::Local<v8::Value> value);
+};
+
+/*
+ * enum RTCPriorityType {
+ *   "very-low",
+ *   "low",
+ *   "medium",
+ *   "high"
+ * };
+ */
+
+enum RTCPriorityType {
+  kVeryLow,
+  kLow,
+  kMedium,
+  kHigh
+};
+
+template <>
+struct Converter<v8::Local<v8::Value>, RTCPriorityType> {
+  static Validation<RTCPriorityType> Convert(const v8::Local<v8::Value> value);
+};
+
+/*
+ * dictionary RTCDataChannelInit {
+ *   boolean         ordered = true;
+ *   unsigned short  maxPacketLifeTime;
+ *   unsigned short  maxRetransmits;
+ *   USVString       protocol = "";
+ *   boolean         negotiated = false;
+ *   [EnforceRange]
+ *   unsigned short  id;
+ *   RTCPriorityType priority = "low";
+ * };
+ */
+
+template <>
+struct Converter<v8::Local<v8::Value>, webrtc::DataChannelInit> {
+  static Validation<webrtc::DataChannelInit> Convert(const v8::Local<v8::Value> value);
+};
+
 }  // namespace node_webrtc
 
 #endif  // SRC_CONVERTERS_WEBRTC_H_
