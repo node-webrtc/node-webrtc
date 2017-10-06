@@ -52,8 +52,11 @@ using webrtc::DataChannelInit;
 using webrtc::IceCandidateInterface;
 using webrtc::SessionDescriptionInterface;
 
+using IceConnectionState = webrtc::PeerConnectionInterface::IceConnectionState;
+using IceGatheringState = webrtc::PeerConnectionInterface::IceGatheringState;
 using RTCConfiguration = webrtc::PeerConnectionInterface::RTCConfiguration;
 using RTCOfferAnswerOptions = webrtc::PeerConnectionInterface::RTCOfferAnswerOptions;
+using SignalingState = webrtc::PeerConnectionInterface::SignalingState;
 
 Nan::Persistent<Function>* PeerConnection::constructor = nullptr;
 rtc::Thread* PeerConnection::_signalingThread;
@@ -169,7 +172,7 @@ void PeerConnection::HandleVoidEvent() const {
 void PeerConnection::HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event) {
   Nan::HandleScope scope;
 
-  if (event.state == webrtc::PeerConnectionInterface::kClosed) {
+  if (event.state == SignalingState::kClosed) {
     this->Stop();
   }
 
@@ -553,9 +556,32 @@ NAN_GETTER(PeerConnection::GetSignalingState) {
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
   auto state = self->_jinglePeerConnection
       ? self->_jinglePeerConnection->signaling_state()
-      : webrtc::PeerConnectionInterface::kClosed;
+      : SignalingState::kClosed;
+
+  Local<String> value;
+  switch (state) {
+    case SignalingState::kStable:
+      value = Nan::New("stable").ToLocalChecked();
+      break;
+    case SignalingState::kHaveLocalOffer:
+      value = Nan::New("have-local-offer").ToLocalChecked();
+      break;
+    case SignalingState::kHaveRemoteOffer:
+      value = Nan::New("have-remote-offer").ToLocalChecked();
+      break;
+    case SignalingState::kHaveLocalPrAnswer:
+      value = Nan::New("have-local-pranswer").ToLocalChecked();
+      break;
+    case SignalingState::kHaveRemotePrAnswer:
+      value = Nan::New("have-remote-pranswer").ToLocalChecked();
+      break;
+    case SignalingState::kClosed:
+      value = Nan::New("closed").ToLocalChecked();
+      break;
+  }
+
   TRACE_END;
-  info.GetReturnValue().Set(Nan::New(state));
+  info.GetReturnValue().Set(value);
 }
 
 NAN_GETTER(PeerConnection::GetIceConnectionState) {
@@ -563,9 +589,39 @@ NAN_GETTER(PeerConnection::GetIceConnectionState) {
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
   auto state = self->_jinglePeerConnection
       ? self->_jinglePeerConnection->ice_connection_state()
-      : webrtc::PeerConnectionInterface::kIceConnectionClosed;
+      : IceConnectionState::kIceConnectionClosed;
+
+  Local<Value> value;
+  switch (state) {
+    case IceConnectionState::kIceConnectionChecking:
+      value = Nan::New("checking").ToLocalChecked();
+      break;
+    case IceConnectionState::kIceConnectionClosed:
+      value = Nan::New("closed").ToLocalChecked();
+      break;
+    case IceConnectionState::kIceConnectionCompleted:
+      value = Nan::New("completed").ToLocalChecked();
+      break;
+    case IceConnectionState::kIceConnectionConnected:
+      value = Nan::New("connected").ToLocalChecked();
+      break;
+    case IceConnectionState::kIceConnectionDisconnected:
+      value = Nan::New("disconnected").ToLocalChecked();
+      break;
+    case IceConnectionState::kIceConnectionFailed:
+      value = Nan::New("failed").ToLocalChecked();
+      break;
+    case IceConnectionState::kIceConnectionMax:
+      TRACE_END;
+      return Nan::ThrowTypeError("WebRTC\'s RTCPeerConnection has an ICE connection state \"max\", but I have no idea"
+          "what this means. If you see this error, file a bug on https://github.com/js-platform/node-webrtc");
+    case IceConnectionState::kIceConnectionNew:
+      value = Nan::New("new").ToLocalChecked();
+      break;
+  }
+
   TRACE_END;
-  info.GetReturnValue().Set(Nan::New(state));
+  info.GetReturnValue().Set(value);
 }
 
 NAN_GETTER(PeerConnection::GetIceGatheringState) {
@@ -573,9 +629,23 @@ NAN_GETTER(PeerConnection::GetIceGatheringState) {
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
   auto state = self->_jinglePeerConnection
       ? self->_jinglePeerConnection->ice_gathering_state()
-      : webrtc::PeerConnectionInterface::kIceGatheringComplete;
+      : IceGatheringState::kIceGatheringComplete;
+
+  Local<Value> value;
+  switch (state) {
+    case IceGatheringState::kIceGatheringNew:
+      value = Nan::New("new").ToLocalChecked();
+      break;
+    case IceGatheringState::kIceGatheringGathering:
+      value = Nan::New("gathering").ToLocalChecked();
+      break;
+    case IceGatheringState::kIceGatheringComplete:
+      value = Nan::New("complete").ToLocalChecked();
+      break;
+  }
+
   TRACE_END;
-  info.GetReturnValue().Set(Nan::New(state));
+  info.GetReturnValue().Set(value);
 }
 
 NAN_SETTER(PeerConnection::ReadOnly) {
