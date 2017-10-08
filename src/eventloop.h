@@ -31,13 +31,16 @@ class EventLoop: EventQueue<T> {
    * @param event the event to dispatch
    */
   void Dispatch(std::unique_ptr<Event<T>> event) {
+    if (_should_stop) {
+      return;
+    }
     this->Enqueue(std::move(event));
     uv_async_send(&_async);
   }
 
  protected:
   explicit EventLoop(T& target): EventQueue<T>(), _loop(uv_default_loop()), _target(target) {
-    uv_async_init(_loop, &_async, reinterpret_cast<uv_async_cb>(Run));
+    uv_async_init(_loop, &_async, Callback);
     _async.data = this;
   }
 
@@ -48,6 +51,10 @@ class EventLoop: EventQueue<T> {
     // Do nothing.
   }
 
+  bool should_stop() const {
+    return _should_stop;
+  }
+
   /**
    * Stop the EventLoop.
    */
@@ -55,24 +62,27 @@ class EventLoop: EventQueue<T> {
     _should_stop = true;
   }
 
+  virtual void Run() {
+    while (auto event = this->Dequeue()) {
+      event->Dispatch(this->_target);
+    }
+
+    if (this->_should_stop) {
+      uv_close(reinterpret_cast<uv_handle_t*>(&this->_async), nullptr);
+      this->DidStop();
+    }
+  }
+
  private:
+  static void Callback(uv_async_t* handle) {
+    auto self = reinterpret_cast<EventLoop<T> *>(handle->data);
+    self->Run();
+  }
+
   uv_async_t _async;
   uv_loop_t* _loop;
   bool _should_stop = false;
   T& _target;
-
-  static void Run(uv_async_t* handle, int) {
-    auto self = reinterpret_cast<EventLoop<T>*>(handle->data);
-
-    while (auto event = self->Dequeue()) {
-      event->Dispatch(self->_target);
-    }
-
-    if (self->_should_stop) {
-      uv_close(reinterpret_cast<uv_handle_t*>(&self->_async), nullptr);
-      self->DidStop();
-    }
-  }
 };
 
 }  // namespace node_webrtc

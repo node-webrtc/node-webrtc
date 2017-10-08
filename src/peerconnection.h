@@ -22,8 +22,8 @@
 #include "webrtc/api/statstypes.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 
-#include "src/eventloop.h"
 #include "src/events.h"
+#include "src/promisefulfillingeventloop.h"
 
 namespace node_webrtc {
 
@@ -34,7 +34,7 @@ class SetLocalDescriptionObserver;
 class SetRemoteDescriptionObserver;
 
 class PeerConnection
-: public EventLoop<PeerConnection>
+: public PromiseFulfillingEventLoop<PeerConnection>
 , public Nan::ObjectWrap
 , public webrtc::PeerConnectionObserver {
  public:
@@ -102,8 +102,6 @@ class PeerConnection
  private:
   rtc::scoped_refptr<CreateOfferObserver> _createOfferObserver;
   rtc::scoped_refptr<CreateAnswerObserver> _createAnswerObserver;
-  rtc::scoped_refptr<SetLocalDescriptionObserver> _setLocalDescriptionObserver;
-  rtc::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
   webrtc::AudioDeviceModule *_audioDeviceModule;
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;

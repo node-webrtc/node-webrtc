@@ -36,34 +36,44 @@ class Event {
   }
 };
 
-class AddIceCandidateSuccessEvent: public Event<PeerConnection> {
+template <typename T>
+class PromiseEvent: public Event<T> {
  public:
-  static std::unique_ptr<AddIceCandidateSuccessEvent> Create() {
-    return std::unique_ptr<AddIceCandidateSuccessEvent>(new AddIceCandidateSuccessEvent());
+  virtual void Dispatch(T&) {
+    Nan::HandleScope scope;
+    auto resolver = (*_resolver).Get(Nan::GetCurrentContext()->GetIsolate());
+    resolver->Resolve(Nan::Undefined());
   }
 
- private:
-  AddIceCandidateSuccessEvent() = default;
+ protected:
+  explicit PromiseEvent(std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver)
+  : _resolver(std::move(resolver)) {}
+
+  std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
 };
 
-class SetLocalDescriptionSuccessEvent: public Event<PeerConnection> {
+class SetLocalDescriptionSuccessEvent: public PromiseEvent<PeerConnection> {
  public:
-  static std::unique_ptr<SetLocalDescriptionSuccessEvent> Create() {
-    return std::unique_ptr<SetLocalDescriptionSuccessEvent>(new SetLocalDescriptionSuccessEvent());
+  static std::unique_ptr<SetLocalDescriptionSuccessEvent> Create(
+      std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver) {
+    return std::unique_ptr<SetLocalDescriptionSuccessEvent>(new SetLocalDescriptionSuccessEvent(std::move(resolver)));
   }
 
  private:
-  SetLocalDescriptionSuccessEvent() = default;
+  explicit SetLocalDescriptionSuccessEvent(std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver)
+  : PromiseEvent<PeerConnection>(std::move(resolver)) {}
 };
 
-class SetRemoteDescriptionSuccessEvent: public Event<PeerConnection> {
+class SetRemoteDescriptionSuccessEvent: public PromiseEvent<PeerConnection> {
  public:
-  static std::unique_ptr<SetRemoteDescriptionSuccessEvent> Create() {
-    return std::unique_ptr<SetRemoteDescriptionSuccessEvent>(new SetRemoteDescriptionSuccessEvent());
+  static std::unique_ptr<SetRemoteDescriptionSuccessEvent> Create(
+      std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver) {
+    return std::unique_ptr<SetRemoteDescriptionSuccessEvent>(new SetRemoteDescriptionSuccessEvent(std::move(resolver)));
   }
 
  private:
-  SetRemoteDescriptionSuccessEvent() = default;
+  explicit SetRemoteDescriptionSuccessEvent(std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver)
+  : PromiseEvent<PeerConnection>(std::move(resolver)) {}
 };
 
 template <typename T>
@@ -75,16 +85,6 @@ class ErrorEvent: public Event<T> {
 
  protected:
   explicit ErrorEvent(const std::string&& msg): msg(msg) {}
-};
-
-class AddIceCandidateErrorEvent: public ErrorEvent<PeerConnection> {
- public:
-  static std::unique_ptr<AddIceCandidateErrorEvent> Create(const std::string& msg) {
-    return std::unique_ptr<AddIceCandidateErrorEvent>(new AddIceCandidateErrorEvent(std::string(msg)));
-  }
-
- private:
-  explicit AddIceCandidateErrorEvent(const std::string&& msg): ErrorEvent(std::string(msg)) {}
 };
 
 class CreateAnswerErrorEvent: public ErrorEvent<PeerConnection> {
