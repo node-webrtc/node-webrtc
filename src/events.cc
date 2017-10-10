@@ -7,9 +7,14 @@
  */
 #include "src/events.h"
 
+#include <nan.h>
+
 #include "src/datachannel.h"
 #include "src/peerconnection.h"
 
+using v8::Local;
+using v8::Object;
+using v8::Value;
 using node_webrtc::Event;
 using node_webrtc::DataChannel;
 using node_webrtc::DataChannelEvent;
@@ -24,11 +29,6 @@ using node_webrtc::PeerConnection;
 using node_webrtc::SdpEvent;
 using node_webrtc::SignalingStateChangeEvent;
 
-template <>
-void Event<PeerConnection>::Dispatch(PeerConnection& peerConnection) {
-  peerConnection.HandleVoidEvent();
-}
-
 void DataChannelEvent::Dispatch(PeerConnection& peerConnection) {
   peerConnection.HandleDataChannelEvent(*this);
 }
@@ -40,11 +40,6 @@ void DataChannelStateChangeEvent::Dispatch(DataChannel& dataChannel) {
 template <>
 void ErrorEvent<DataChannel>::Dispatch(DataChannel& dataChannel) {
   dataChannel.HandleErrorEvent(*this);
-}
-
-template <>
-void ErrorEvent<PeerConnection>::Dispatch(PeerConnection& peerConnection) {
-  peerConnection.HandleErrorEvent(*this);
 }
 
 void MessageEvent::Dispatch(DataChannel& dataChannel) {
@@ -68,7 +63,23 @@ void IceGatheringStateChangeEvent::Dispatch(PeerConnection& peerConnection) {
 }
 
 void SdpEvent::Dispatch(PeerConnection& peerConnection) {
-  peerConnection.HandleSdpEvent(*this);
+  Nan::HandleScope scope;
+
+  auto resolver = (*_resolver).Get(Nan::GetCurrentContext()->GetIsolate());
+
+  // TODO(mroberts): Handle error scenarios.
+  Local<Value> result = Nan::Null();
+
+  std::string sdp;
+  if (_sdp->ToString(&sdp)) {
+    auto type = _sdp->type();
+    Local<Object> description = Nan::New<Object>();
+    Nan::Set(description, Nan::New("type").ToLocalChecked(), Nan::New(type).ToLocalChecked());
+    Nan::Set(description, Nan::New("sdp").ToLocalChecked(), Nan::New(sdp).ToLocalChecked());
+    result = description;
+  }
+
+  resolver->Resolve(result);
 }
 
 void SignalingStateChangeEvent::Dispatch(PeerConnection& peerConnection) {

@@ -12,15 +12,17 @@
 
 using node_webrtc::CreateOfferObserver;
 using node_webrtc::PeerConnection;
+using webrtc::SessionDescriptionInterface;
 
-void CreateOfferObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp) {
+void CreateOfferObserver::OnSuccess(SessionDescriptionInterface* sdp) {
   TRACE_CALL;
-  parent->Dispatch(CreateOfferSuccessEvent::Create(sdp));
+  _target->Dispatch(CreateOfferSuccessEvent::Create(
+      std::move(_resolver), std::unique_ptr<SessionDescriptionInterface>(sdp)));
   TRACE_END;
 }
 
 void CreateOfferObserver::OnFailure(const std::string& msg) {
   TRACE_CALL;
-  parent->Dispatch(CreateOfferErrorEvent::Create(msg));
+  _target->Dispatch(CreateOfferErrorEvent::Create(std::move(_resolver), msg));
   TRACE_END;
 }

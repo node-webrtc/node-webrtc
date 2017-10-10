@@ -21,6 +21,6 @@ void SetLocalDescriptionObserver::OnSuccess() {
 
 void SetLocalDescriptionObserver::OnFailure(const std::string& msg) {
   TRACE_CALL;
-  _target->Dispatch(SetLocalDescriptionErrorEvent::Create(msg));
+  _target->Dispatch(SetLocalDescriptionErrorEvent::Create(std::move(_resolver), msg));
   TRACE_END;
 }

@@ -12,15 +12,17 @@
 
 using node_webrtc::CreateAnswerObserver;
 using node_webrtc::PeerConnection;
+using webrtc::SessionDescriptionInterface;
 
-void CreateAnswerObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp) {
+void CreateAnswerObserver::OnSuccess(SessionDescriptionInterface* sdp) {
   TRACE_CALL;
-  parent->Dispatch(CreateAnswerSuccessEvent::Create(sdp));
+  _target->Dispatch(CreateAnswerSuccessEvent::Create(
+      std::move(_resolver), std::unique_ptr<SessionDescriptionInterface>(sdp)));
   TRACE_END;
 }
 
 void CreateAnswerObserver::OnFailure(const std::string& msg) {
   TRACE_CALL;
-  parent->Dispatch(CreateAnswerErrorEvent::Create(msg));
+  _target->Dispatch(CreateAnswerErrorEvent::Create(std::move(_resolver), msg));
   TRACE_END;
 }

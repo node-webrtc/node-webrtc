@@ -21,6 +21,6 @@ void SetRemoteDescriptionObserver::OnSuccess() {
 
 void SetRemoteDescriptionObserver::OnFailure(const std::string& msg) {
   TRACE_CALL;
-  _target->Dispatch(SetRemoteDescriptionErrorEvent::Create(msg));
+  _target->Dispatch(SetRemoteDescriptionErrorEvent::Create(std::move(_resolver), msg));
   TRACE_END;
 }

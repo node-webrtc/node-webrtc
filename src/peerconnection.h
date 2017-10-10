@@ -89,10 +89,7 @@ class PeerConnection
   static NAN_GETTER(GetIceGatheringState);
   static NAN_SETTER(ReadOnly);
 
-  void HandleErrorEvent(const ErrorEvent<PeerConnection>& event) const;
-  void HandleSdpEvent(const SdpEvent& event) const;
   void HandleGetStatsEvent(const GetStatsEvent& event) const;
-  void HandleVoidEvent() const;
   void HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event);
   void HandleIceConnectionStateChangeEvent(const IceConnectionStateChangeEvent& event) const;
   void HandleIceGatheringStateChangeEvent(const IceGatheringStateChangeEvent& event) const;
@@ -100,9 +97,6 @@ class PeerConnection
   void HandleDataChannelEvent(const DataChannelEvent& event) const;
 
  private:
-  rtc::scoped_refptr<CreateOfferObserver> _createOfferObserver;
-  rtc::scoped_refptr<CreateAnswerObserver> _createAnswerObserver;
-
   webrtc::AudioDeviceModule *_audioDeviceModule;
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _jinglePeerConnectionFactory;

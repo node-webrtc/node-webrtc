@@ -342,8 +342,8 @@ test('close the connections', function(t) {
 
   // make sure nothing crashes after connection is closed and _jinglePeerConnection is null
   for (var i = 0; i < 2; i++) {
-    peers[i].createOffer();
-    peers[i].createAnswer();
+    peers[i].createOffer().catch(() => {});
+    peers[i].createAnswer().catch(() => {});
     peers[i].setLocalDescription({}, function() {}, function(){});
     peers[i].setRemoteDescription({}, function() {}, function(){});
     peers[i].addIceCandidate({}, function() {}, function(){});

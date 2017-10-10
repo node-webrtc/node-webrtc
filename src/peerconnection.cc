@@ -67,9 +67,6 @@ rtc::Thread* PeerConnection::_workerThread;
 //
 
 PeerConnection::PeerConnection(RTCConfiguration configuration): PromiseFulfillingEventLoop<PeerConnection>(*this) {
-  _createOfferObserver = new rtc::RefCountedObject<CreateOfferObserver>(this);
-  _createAnswerObserver = new rtc::RefCountedObject<CreateAnswerObserver>(this);
-
   webrtc::FakeConstraints constraints;
 
   constraints.AddOptional(
@@ -108,36 +105,6 @@ PeerConnection::~PeerConnection() {
   TRACE_END;
 }
 
-void PeerConnection::HandleErrorEvent(const ErrorEvent<PeerConnection>& event) const {
-  Nan::HandleScope scope;
-
-  auto pc = this->handle();
-  auto callback = Local<Function>::Cast(pc->Get(Nan::New("onerror").ToLocalChecked()));
-  if (callback.IsEmpty()) {
-    return;
-  }
-
-  Local<Value> argv[] = {
-      Nan::Error(event.msg.c_str())
-  };
-  Nan::MakeCallback(pc, callback, 1, argv);
-}
-
-void PeerConnection::HandleSdpEvent(const SdpEvent& event) const {
-  Nan::HandleScope scope;
-
-  auto self = this->handle();
-  auto callback = Local<Function>::Cast(self->Get(Nan::New("onsuccess").ToLocalChecked()));
-  if (callback.IsEmpty()) {
-    return;
-  }
-
-  Local<Value> argv[] = {
-    Nan::New(event.desc.c_str()).ToLocalChecked()
-  };
-  Nan::MakeCallback(self, callback, 1, argv);
-}
-
 void PeerConnection::HandleGetStatsEvent(const GetStatsEvent& event) const {
   Nan::HandleScope scope;
 
@@ -153,18 +120,6 @@ void PeerConnection::HandleGetStatsEvent(const GetStatsEvent& event) const {
       Nan::NewInstance(Nan::New(*RTCStatsResponse::constructor), 1, cargv).ToLocalChecked()
   };
   event.callback->Call(1, argv);
-}
-
-void PeerConnection::HandleVoidEvent() const {
-  Nan::HandleScope scope;
-
-  auto self = this->handle();
-  auto callback = Local<Function>::Cast(self->Get(Nan::New("onsuccess").ToLocalChecked()));
-  if (callback.IsEmpty()) {
-    return;
-  }
-
-  Nan::MakeCallback(self, callback, 0, nullptr);
 }
 
 void PeerConnection::HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event) {
@@ -319,40 +274,54 @@ NAN_METHOD(PeerConnection::New) {
 
 NAN_METHOD(PeerConnection::CreateOffer) {
   TRACE_CALL;
+  auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()->GetIsolate());
+
   auto validationOptions = From<Maybe<RTCOfferOptions>, Nan::NAN_METHOD_ARGS_TYPE>(info).Map(
       [](const Maybe<RTCOfferOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCOfferOptions()); });
   if (validationOptions.IsInvalid()) {
-    auto error = validationOptions.ToErrors()[0];
-    return Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    resolver->Reject(Nan::TypeError(Nan::New(validationOptions.ToErrors()[0]).ToLocalChecked()));
+    TRACE_END;
+    info.GetReturnValue().Set(resolver->GetPromise());
+    return;
   }
 
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
   if (self->_jinglePeerConnection) {
-    self->_jinglePeerConnection->CreateOffer(self->_createOfferObserver, nullptr); // options.options);
+    auto observer = new rtc::RefCountedObject<CreateOfferObserver>(self, resolver);
+    self->_jinglePeerConnection->CreateOffer(observer, nullptr); // options.options);
+  } else {
+    resolver->Reject(Nan::Error("InvalidStateError"));
   }
 
   TRACE_END;
-  info.GetReturnValue().Set(Nan::Undefined());
+  info.GetReturnValue().Set(resolver->GetPromise());
 }
 
 NAN_METHOD(PeerConnection::CreateAnswer) {
   TRACE_CALL;
+  auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()->GetIsolate());
+
   // NOTE(mroberts): We do the validation per the Web IDL here, but we don't
   // actually use the RTCAnswerOptions.
   auto validationOptions = From<Maybe<RTCAnswerOptions>, Nan::NAN_METHOD_ARGS_TYPE>(info).Map(
       [](const Maybe<RTCAnswerOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCAnswerOptions()); });
   if (validationOptions.IsInvalid()) {
-    auto error = validationOptions.ToErrors()[0];
-    return Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    resolver->Reject(Nan::TypeError(Nan::New(validationOptions.ToErrors()[0]).ToLocalChecked()));
+    TRACE_END;
+    info.GetReturnValue().Set(resolver->GetPromise());
+    return;
   }
 
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
   if (self->_jinglePeerConnection) {
-    self->_jinglePeerConnection->CreateAnswer(self->_createAnswerObserver, nullptr);
+    auto observer = new rtc::RefCountedObject<CreateAnswerObserver>(self, resolver);
+    self->_jinglePeerConnection->CreateAnswer(observer, nullptr);
+  } else {
+    resolver->Reject(Nan::Error("InvalidStateError"));
   }
 
   TRACE_END;
-  info.GetReturnValue().Set(Nan::Undefined());
+  info.GetReturnValue().Set(resolver->GetPromise());
 }
 
 NAN_METHOD(PeerConnection::SetLocalDescription) {
