@@ -5,45 +5,25 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/events.h"
-
-#include <nan.h>
+#include "src/events/peerconnection.h"
 
 #include "src/datachannel.h"
 #include "src/peerconnection.h"
 
-using v8::Local;
-using v8::Object;
-using v8::Value;
-using node_webrtc::Event;
-using node_webrtc::DataChannel;
 using node_webrtc::DataChannelEvent;
-using node_webrtc::DataChannelStateChangeEvent;
-using node_webrtc::ErrorEvent;
 using node_webrtc::GetStatsEvent;
+using node_webrtc::IceEvent;
 using node_webrtc::IceConnectionStateChangeEvent;
 using node_webrtc::IceGatheringStateChangeEvent;
-using node_webrtc::IceEvent;
-using node_webrtc::MessageEvent;
 using node_webrtc::PeerConnection;
 using node_webrtc::SdpEvent;
 using node_webrtc::SignalingStateChangeEvent;
+using v8::Local;
+using v8::Object;
+using v8::Value;
 
 void DataChannelEvent::Dispatch(PeerConnection& peerConnection) {
   peerConnection.HandleDataChannelEvent(*this);
-}
-
-void DataChannelStateChangeEvent::Dispatch(DataChannel& dataChannel) {
-  dataChannel.HandleStateEvent(*this);
-}
-
-template <>
-void ErrorEvent<DataChannel>::Dispatch(DataChannel& dataChannel) {
-  dataChannel.HandleErrorEvent(*this);
-}
-
-void MessageEvent::Dispatch(DataChannel& dataChannel) {
-  dataChannel.HandleMessageEvent(*this);
 }
 
 void GetStatsEvent::Dispatch(PeerConnection &peerConnection) {

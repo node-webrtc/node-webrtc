@@ -8,17 +8,12 @@
 #ifndef SRC_EVENTS_H_
 #define SRC_EVENTS_H_
 
-#include <nan.h>
-
-#include <memory>
-
-#include "webrtc/api/peerconnectioninterface.h"
+#include <string>
 
 namespace node_webrtc {
 
 class DataChannel;
 class DataChannelObserver;
-class PeerConnection;
 
 /**
  * Event represents an event that can be dispatched to a target.
@@ -37,66 +32,6 @@ class Event {
 };
 
 template <typename T>
-class PromiseEvent: public Event<T> {
- public:
-  virtual void Dispatch(T&) override {
-    Nan::HandleScope scope;
-    auto resolver = (*_resolver).Get(Nan::GetCurrentContext()->GetIsolate());
-    resolver->Resolve(Nan::Undefined());
-  }
-
- protected:
-  explicit PromiseEvent(std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver)
-  : _resolver(std::move(resolver)) {}
-
-  std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
-};
-
-template <typename T>
-class PromiseRejectionEvent: public PromiseEvent<T> {
- public:
-  void Dispatch(T&) override {
-    Nan::HandleScope scope;
-    auto resolver = (*this->_resolver).Get(Nan::GetCurrentContext()->GetIsolate());
-    resolver->Reject(Nan::Error(Nan::New(_reason).ToLocalChecked()));
-  }
-
- protected:
-  explicit PromiseRejectionEvent(
-    std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver,
-    const std::string reason)
-  : PromiseEvent<T>(std::move(resolver))
-  , _reason(reason) {}
-
- private:
-  const std::string _reason;
-};
-
-class SetLocalDescriptionSuccessEvent: public PromiseEvent<PeerConnection> {
- public:
-  static std::unique_ptr<SetLocalDescriptionSuccessEvent> Create(
-      std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver) {
-    return std::unique_ptr<SetLocalDescriptionSuccessEvent>(new SetLocalDescriptionSuccessEvent(std::move(resolver)));
-  }
-
- private:
-  explicit SetLocalDescriptionSuccessEvent(std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver)
-  : PromiseEvent<PeerConnection>(std::move(resolver)) {}
-};
-
-class SetRemoteDescriptionSuccessEvent: public PromiseEvent<PeerConnection> {
- public:
-  static std::unique_ptr<SetRemoteDescriptionSuccessEvent> Create(
-      std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver) {
-    return std::unique_ptr<SetRemoteDescriptionSuccessEvent>(new SetRemoteDescriptionSuccessEvent(std::move(resolver)));
-  }
-
- private:
-  explicit SetRemoteDescriptionSuccessEvent(std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver)
-  : PromiseEvent<PeerConnection>(std::move(resolver)) {}
-};
-
-template <typename T>
 class ErrorEvent: public Event<T> {
  public:
   const std::string msg;
@@ -107,154 +42,6 @@ class ErrorEvent: public Event<T> {
   explicit ErrorEvent(const std::string&& msg): msg(msg) {}
 };
 
-class CreateAnswerErrorEvent: public PromiseRejectionEvent<PeerConnection> {
- public:
-  static std::unique_ptr<CreateAnswerErrorEvent> Create(
-      std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver,
-      const std::string& msg) {
-    return std::unique_ptr<CreateAnswerErrorEvent>(new CreateAnswerErrorEvent(std::move(resolver), std::string(msg)));
-  }
-
- private:
-  explicit CreateAnswerErrorEvent(
-    std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver
-  , const std::string&& msg)
-  : PromiseRejectionEvent(std::move(resolver), std::string(msg)) {}
-};
-
-class CreateOfferErrorEvent: public PromiseRejectionEvent<PeerConnection> {
- public:
-  static std::unique_ptr<CreateOfferErrorEvent> Create(
-      std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver,
-      const std::string& msg) {
-    return std::unique_ptr<CreateOfferErrorEvent>(new CreateOfferErrorEvent(std::move(resolver), std::string(msg)));
-  }
-
- private:
-  explicit CreateOfferErrorEvent(
-    std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver
-  , const std::string&& msg)
-  : PromiseRejectionEvent(std::move(resolver), std::string(msg)) {}
-};
-
-class SetLocalDescriptionErrorEvent: public PromiseRejectionEvent<PeerConnection> {
- public:
-  static std::unique_ptr<SetLocalDescriptionErrorEvent> Create(
-      std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver,
-      const std::string reason) {
-    return std::unique_ptr<SetLocalDescriptionErrorEvent>(
-        new SetLocalDescriptionErrorEvent(std::move(resolver), reason));
-  }
-
- private:
-  explicit SetLocalDescriptionErrorEvent(
-    std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver
-  , const std::string reason)
-  : PromiseRejectionEvent<PeerConnection>(std::move(resolver), reason) {}
-};
-
-class SetRemoteDescriptionErrorEvent: public PromiseRejectionEvent<PeerConnection> {
- public:
-  static std::unique_ptr<SetRemoteDescriptionErrorEvent> Create(
-      std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver,
-      const std::string reason) {
-    return std::unique_ptr<SetRemoteDescriptionErrorEvent>(
-        new SetRemoteDescriptionErrorEvent(std::move(resolver), reason));
-  }
-
- private:
-  explicit SetRemoteDescriptionErrorEvent(
-    std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver
-  , const std::string reason)
-  : PromiseRejectionEvent<PeerConnection>(std::move(resolver), reason) {}
-};
-
-class MessageEvent: public Event<DataChannel> {
- public:
-  bool binary;
-  char* message;
-  size_t size;
-
-  void Dispatch(DataChannel& dataChannel) override;
-
-  static std::unique_ptr<MessageEvent> Create(const webrtc::DataBuffer* buffer) {
-    return std::unique_ptr<MessageEvent>(new MessageEvent(buffer));
-  }
-
- private:
-  explicit MessageEvent(const webrtc::DataBuffer* buffer) {
-    binary = buffer->binary;
-    size = buffer->size();
-    message = new char[size];
-    memcpy(reinterpret_cast<void*>(message), reinterpret_cast<const void*>(buffer->data.data()), size);
-  }
-};
-
-class SdpEvent: public PromiseEvent<PeerConnection> {
- public:
-  void Dispatch(PeerConnection& peerConnection) override;
-
- protected:
-  explicit SdpEvent(
-    std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver
-  , std::unique_ptr<webrtc::SessionDescriptionInterface> sdp)
-  : PromiseEvent(std::move(resolver))
-  , _sdp(std::move(sdp)) {}
-
- private:
-  std::unique_ptr<webrtc::SessionDescriptionInterface> _sdp;
-};
-
-class CreateAnswerSuccessEvent: public SdpEvent {
- public:
-  static std::unique_ptr<CreateAnswerSuccessEvent> Create(
-      std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver,
-      std::unique_ptr<webrtc::SessionDescriptionInterface> sdp) {
-    return std::unique_ptr<CreateAnswerSuccessEvent>(new CreateAnswerSuccessEvent(std::move(resolver), std::move(sdp)));
-  }
-
- private:
-  explicit CreateAnswerSuccessEvent(
-      std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver,
-      std::unique_ptr<webrtc::SessionDescriptionInterface> sdp)
-  : SdpEvent(std::move(resolver), std::move(sdp)) {}
-};
-
-class CreateOfferSuccessEvent: public SdpEvent {
- public:
-  static std::unique_ptr<CreateOfferSuccessEvent> Create(
-      std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver,
-      std::unique_ptr<webrtc::SessionDescriptionInterface> sdp) {
-    return std::unique_ptr<CreateOfferSuccessEvent>(new CreateOfferSuccessEvent(std::move(resolver), std::move(sdp)));
-  }
-
- private:
-  explicit CreateOfferSuccessEvent(
-      std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver,
-      std::unique_ptr<webrtc::SessionDescriptionInterface> sdp)
-  : SdpEvent(std::move(resolver), std::move(sdp)) {}
-};
-
-class IceEvent: public Event<PeerConnection> {
- public:
-  const uint32_t sdpMLineIndex;
-  const std::string sdpMid;
-  std::string candidate = "";
-
-  void Dispatch(PeerConnection& peerConnection) override;
-
-  static std::unique_ptr<IceEvent> Create(const webrtc::IceCandidateInterface* ice_candidate) {
-    return std::unique_ptr<IceEvent>(new IceEvent(ice_candidate));
-  }
-
- private:
-  explicit IceEvent(const webrtc::IceCandidateInterface* ice_candidate)
-      : sdpMLineIndex(static_cast<uint32_t>(ice_candidate->sdp_mline_index()))
-      , sdpMid(ice_candidate->sdp_mid()) {
-    ice_candidate->ToString(&candidate);
-  }
-};
-
 template <typename T, typename S>
 class StateEvent: public Event<T> {
  public:
@@ -262,91 +49,6 @@ class StateEvent: public Event<T> {
 
  protected:
   explicit StateEvent(const S state): state(state) {}
-};
-
-class DataChannelStateChangeEvent: public StateEvent<DataChannel, webrtc::DataChannelInterface::DataState> {
- public:
-  void Dispatch(DataChannel& dataChannel) override;
-
-  static std::unique_ptr<DataChannelStateChangeEvent> Create(const webrtc::DataChannelInterface::DataState state) {
-    return std::unique_ptr<DataChannelStateChangeEvent>(new DataChannelStateChangeEvent(state));
-  }
-
- protected:
-  explicit DataChannelStateChangeEvent(const webrtc::DataChannelInterface::DataState state): StateEvent(state) {}
-};
-
-class IceConnectionStateChangeEvent
-    : public StateEvent<PeerConnection, webrtc::PeerConnectionInterface::IceConnectionState> {
- public:
-  void Dispatch(PeerConnection& peerConnection) override;
-
-  static std::unique_ptr<IceConnectionStateChangeEvent> Create(
-      const webrtc::PeerConnectionInterface::IceConnectionState state) {
-    return std::unique_ptr<IceConnectionStateChangeEvent>(new IceConnectionStateChangeEvent(state));
-  }
-
- private:
-  explicit IceConnectionStateChangeEvent(const webrtc::PeerConnectionInterface::IceConnectionState state)
-      : StateEvent(state) {}
-};
-
-class IceGatheringStateChangeEvent
-    : public StateEvent<PeerConnection, webrtc::PeerConnectionInterface::IceGatheringState> {
- public:
-  void Dispatch(PeerConnection& peerConnection) override;
-
-  static std::unique_ptr<IceGatheringStateChangeEvent> Create(
-      const webrtc::PeerConnectionInterface::IceGatheringState state) {
-    return std::unique_ptr<IceGatheringStateChangeEvent>(new IceGatheringStateChangeEvent(state));
-  }
-
- private:
-  explicit IceGatheringStateChangeEvent(const webrtc::PeerConnectionInterface::IceGatheringState state)
-      : StateEvent(state) {}
-};
-
-class SignalingStateChangeEvent: public StateEvent<PeerConnection, webrtc::PeerConnectionInterface::SignalingState> {
- public:
-  void Dispatch(PeerConnection& peerConnection) override;
-
-  static std::unique_ptr<SignalingStateChangeEvent> Create(
-      const webrtc::PeerConnectionInterface::SignalingState state) {
-    return std::unique_ptr<SignalingStateChangeEvent>(new SignalingStateChangeEvent(state));
-  }
-
- private:
-  explicit SignalingStateChangeEvent(const webrtc::PeerConnectionInterface::SignalingState state): StateEvent(state) {}
-};
-
-class DataChannelEvent: public Event<PeerConnection> {
- public:
-  DataChannelObserver* observer;
-
-  void Dispatch(PeerConnection& peerConnection) override;
-
-  static std::unique_ptr<DataChannelEvent> Create(DataChannelObserver* observer) {
-    return std::unique_ptr<DataChannelEvent>(new DataChannelEvent(observer));
-  }
-
- private:
-  explicit DataChannelEvent(DataChannelObserver* observer): observer(observer) {}
-};
-
-class GetStatsEvent: public Event<PeerConnection> {
- public:
-  const Nan::Callback* callback;
-  const webrtc::StatsReports reports;
-
-  void Dispatch(PeerConnection& peerConnection) override;
-
-  static std::unique_ptr<GetStatsEvent> Create(const Nan::Callback* callback, const webrtc::StatsReports& reports) {
-    return std::unique_ptr<GetStatsEvent>(new GetStatsEvent(callback, reports));
-  }
-
- private:
-  GetStatsEvent(const Nan::Callback* callback, const webrtc::StatsReports& reports)
-      : callback(callback), reports(reports) {}
 };
 
 }  // namespace node_webrtc
