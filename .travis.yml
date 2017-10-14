@@ -17,6 +17,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
+      - doxygen
       - g++-4.8
       - valgrind
 
@@ -40,6 +41,14 @@ script:
   - cd cmake-build-debug
   - cmake -DCMAKE_BUILD_TYPE=Debug ..
   - cd ..
+  - doxygen .doxygen.txt
+  - |
+    if [[ -s doxygen_warnings.txt ]]; then
+      echo "You must fix doxygen before submitting a pull request"
+      echo ""
+      cat doxygen_warnings.txt
+      exit -1
+    fi
   - cmake --build cmake-build-debug --target wrtc -- -j 2
   - ./bin/test
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then

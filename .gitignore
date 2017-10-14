@@ -5,6 +5,8 @@
 build
 build.log
 cmake-build-debug
+doc
+doxygen_warnings.txt
 node_modules
 npm-debug.log*
 package-lock.json
