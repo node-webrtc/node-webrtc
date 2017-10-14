@@ -13,7 +13,7 @@
 #ifndef SRC_CONVERTERS_V8_H_
 #define SRC_CONVERTERS_V8_H_
 
-#include <nan.h>
+#include "nan.h"
 
 #include "src/converters.h"
 #include "src/functional/validation.h"

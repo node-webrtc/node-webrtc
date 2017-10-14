@@ -15,7 +15,8 @@
 #define SRC_FUNCTIONAL_MAYBE_H_
 
 #include <cassert>
-#include <functional>
+// #include <functional>
+#include <type_traits>
 
 namespace node_webrtc {
 

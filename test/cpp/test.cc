@@ -2,9 +2,8 @@
 #define CATCH_CONFIG_RUNNER
 #include "test.h"
 
-#include <nan.h>
-
 #include "catch.hpp"
+#include "nan.h"
 #include "webrtc/api/peerconnectioninterface.h"
 
 #include "src/functional/maybe.h"

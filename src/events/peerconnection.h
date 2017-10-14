@@ -8,11 +8,10 @@
 #ifndef SRC_EVENTS_PEERCONNECTION_H_
 #define SRC_EVENTS_PEERCONNECTION_H_
 
-#include <nan.h>
-#include <v8.h>
-
 #include <memory>
 
+#include "nan.h"
+#include "v8.h"
 #include "webrtc/api/peerconnectioninterface.h"
 
 #include "src/events.h"

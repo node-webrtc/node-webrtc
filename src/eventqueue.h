@@ -8,10 +8,10 @@
 #ifndef SRC_EVENTQUEUE_H_
 #define SRC_EVENTQUEUE_H_
 
-#include <uv.h>
-
 #include <memory>
 #include <queue>
+
+#include "uv.h"
 
 #include "src/events.h"
 

@@ -6,7 +6,6 @@ build
 build.log
 cmake-build-debug
 node_modules
-NodeJS.cmake
 npm-debug.log*
 package-lock.json
 third_party

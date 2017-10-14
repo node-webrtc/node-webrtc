@@ -38,7 +38,9 @@ using RTCOfferAnswerOptions = webrtc::PeerConnectionInterface::RTCOfferAnswerOpt
 using RtcpMuxPolicy = webrtc::PeerConnectionInterface::RtcpMuxPolicy;
 using SdpParseError = webrtc::SdpParseError;
 
-static RTCOAuthCredential CreateRTCOAuthCredential(const std::string macKey, const std::string accessToken) {
+static RTCOAuthCredential CreateRTCOAuthCredential(
+    const std::string& macKey,
+    const std::string& accessToken) {
   return RTCOAuthCredential(macKey, accessToken);
 }
 
@@ -59,14 +61,14 @@ Validation<RTCIceCredentialType> Converter<Local<Value>, RTCIceCredentialType>::
           } else if (string == "oauth") {
             return Validation<RTCIceCredentialType>::Valid(kOAuth);
           }
-          return Validation<RTCIceCredentialType>::Invalid("Expected \"password\" or \"oauth\"");
+          return Validation<RTCIceCredentialType>::Invalid(R"(Expected "password" or "oauth")");
         });
 }
 
 static Validation<IceServer> CreateIceServer(
-    const Either<std::string, std::vector<std::string>> urlOrUrls,
-    const std::string username,
-    const Either<std::string, RTCOAuthCredential> credential,
+    const Either<std::string, std::vector<std::string>>& urlOrUrls,
+    const std::string& username,
+    const Either<std::string, RTCOAuthCredential>& credential,
     const RTCIceCredentialType credentialType) {
   if (credential.IsRight() || credentialType != RTCIceCredentialType::kPassword) {
     return Validation<IceServer>::Invalid("OAuth is not currently supported");
@@ -98,7 +100,7 @@ Validation<IceTransportsType> Converter<Local<Value>, IceTransportsType>::Conver
         } else if (string == "relay") {
           return Validation<IceTransportsType>::Valid(IceTransportsType::kRelay);
         }
-        return Validation<IceTransportsType>::Invalid("Expected \"all\" or \"relay\"");
+        return Validation<IceTransportsType>::Invalid(R"(Expected "all" or "relay")");
       });
 }
 
@@ -112,7 +114,7 @@ Validation<BundlePolicy> Converter<Local<Value>, BundlePolicy>::Convert(const Lo
         } else if (string == "max-bundle") {
           return Validation<BundlePolicy>::Valid(BundlePolicy::kBundlePolicyMaxBundle);
         }
-        return Validation<BundlePolicy>::Invalid("Expected \"balanced\", \"max-compat\" or \"max-bundle\"");
+        return Validation<BundlePolicy>::Invalid(R"(Expected "balanced", "max-compat" or "max-bundle")");
       });
 };
 
@@ -124,11 +126,13 @@ Validation<RtcpMuxPolicy> Converter<Local<Value>, RtcpMuxPolicy>::Convert(const 
         } else if (string == "require") {
           return Validation<RtcpMuxPolicy>::Valid(RtcpMuxPolicy::kRtcpMuxPolicyRequire);
         }
-        return Validation<RtcpMuxPolicy>::Invalid("Expected \"negotiate\" or \"require\"");
+        return Validation<RtcpMuxPolicy>::Invalid(R"(Expected "negotiate" or "require")");
       });
 };
 
-static RTCDtlsFingerprint CreateRTCDtlsFingerprint(const Maybe<std::string> algorithm, const Maybe<std::string> value) {
+static RTCDtlsFingerprint CreateRTCDtlsFingerprint(
+    const Maybe<std::string>& algorithm,
+    const Maybe<std::string>& value) {
   return RTCDtlsFingerprint(algorithm, value);
 }
 
@@ -142,12 +146,12 @@ Validation<RTCDtlsFingerprint> Converter<Local<Value>, RTCDtlsFingerprint>::Conv
 }
 
 static RTCConfiguration CreateRTCConfiguration(
-    const std::vector<IceServer> iceServers,
+    const std::vector<IceServer>& iceServers,
     const IceTransportsType iceTransportsPolicy,
     const BundlePolicy bundlePolicy,
     const RtcpMuxPolicy rtcpMuxPolicy,
-    const Maybe<std::string>,
-    const Maybe<std::vector<Local<Object>>>,
+    const Maybe<std::string>&,
+    const Maybe<std::vector<Local<Object>>>&,
     const uint32_t) {
   RTCConfiguration configuration;
   configuration.servers = iceServers;
@@ -226,7 +230,7 @@ Validation<RTCSdpType> Converter<Local<Value>, RTCSdpType>::Convert(const Local<
         } else if (string == "rollback") {
           return Validation<RTCSdpType>::Valid(RTCSdpType::kRollback);
         }
-        return Validation<RTCSdpType>::Invalid("Expected \"offer\", \"pranswer\", \"answer\" or \"rollback\"");
+        return Validation<RTCSdpType>::Invalid(R"(Expected "offer", "pranswer", "answer" or "rollback")");
       });
 };
 
@@ -266,10 +270,10 @@ Validation<SessionDescriptionInterface*> Converter<Local<Value>, SessionDescript
 };
 
 static Validation<IceCandidateInterface*> CreateIceCandidateInterface(
-    const std::string candidate,
-    const std::string sdpMid,
+    const std::string& candidate,
+    const std::string& sdpMid,
     const int sdpMLineIndex,
-    const Maybe<std::string>) {
+    const Maybe<std::string>&) {
   SdpParseError error;
   auto candidate_ = webrtc::CreateIceCandidate(sdpMid, sdpMLineIndex, candidate, &error);
   if (!candidate_) {
@@ -301,7 +305,7 @@ Validation<RTCPriorityType> Converter<Local<Value>, RTCPriorityType>::Convert(co
         } else if (string == "high") {
           return Validation<RTCPriorityType>::Valid(RTCPriorityType::kHigh);
         }
-        return Validation<RTCPriorityType>::Invalid("Expected \"very-low\", \"low\", \"medium\" or \"high\"");
+        return Validation<RTCPriorityType>::Invalid(R"(Expected "very-low", "low", "medium" or "high")");
       });
 };
 
@@ -309,10 +313,10 @@ static DataChannelInit CreateDataChannelInit(
     const bool ordered,
     const Maybe<uint32_t> maxPacketLifeTime,
     const Maybe<uint32_t> maxRetransmits,
-    const std::string protocol,
+    const std::string& protocol,
     const bool negotiated,
     const Maybe<uint32_t> id,
-    const RTCPriorityType priority) {
+    const RTCPriorityType) {
   DataChannelInit init;
   init.ordered = ordered;
   init.maxRetransmitTime = maxPacketLifeTime.Map([](const uint32_t i) { return static_cast<int>(i); }).FromMaybe(-1);

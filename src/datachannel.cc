@@ -235,6 +235,8 @@ NAN_METHOD(DataChannel::Shutdown) {
 
 NAN_GETTER(DataChannel::GetBufferedAmount) {
   TRACE_CALL;
+  (void) property;
+
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
   auto buffered_amount = self->_jingleDataChannel != nullptr
     ? self->_jingleDataChannel->buffered_amount()
@@ -245,6 +247,8 @@ NAN_GETTER(DataChannel::GetBufferedAmount) {
 
 NAN_GETTER(DataChannel::GetLabel) {
   TRACE_CALL;
+  (void) property;
+
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
   auto label = self->_jingleDataChannel != nullptr
     ? self->_jingleDataChannel->label()
@@ -255,6 +259,8 @@ NAN_GETTER(DataChannel::GetLabel) {
 
 NAN_GETTER(DataChannel::GetReadyState) {
   TRACE_CALL;
+  (void) property;
+
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
   auto state = self->_jingleDataChannel != nullptr
     ? self->_jingleDataChannel->state()
@@ -265,6 +271,8 @@ NAN_GETTER(DataChannel::GetReadyState) {
 
 NAN_GETTER(DataChannel::GetBinaryType) {
   TRACE_CALL;
+  (void) property;
+
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
   TRACE_END;
   info.GetReturnValue().Set(Nan::New(self->_binaryType));
@@ -272,12 +280,18 @@ NAN_GETTER(DataChannel::GetBinaryType) {
 
 NAN_SETTER(DataChannel::SetBinaryType) {
   TRACE_CALL;
+  (void) property;
+  (void) value;
+
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
   self->_binaryType = static_cast<BinaryType>(value->Uint32Value());
   TRACE_END;
 }
 
 NAN_SETTER(DataChannel::ReadOnly) {
+  (void) property;
+  (void) value;
+  (void) info;
   INFO("PeerConnection::ReadOnly");
 }
 

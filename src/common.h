@@ -8,10 +8,10 @@
 #ifndef SRC_COMMON_H_
 #define SRC_COMMON_H_
 
-#include <nan.h>
-
 #include <cstdio>
 #include <cstring>
+
+#include "nan.h"
 
 #define WARN(msg) fprintf(stdout, "\033[01;33m native:%s \033[00m\n", msg)
 #define ERROR(msg) fprintf(stdout, "\033[01;32m native:%s \033[00m\n", msg)

@@ -26,7 +26,7 @@ class Event {
    * Dispatch the Event to the target.
    * @param target the target to dispatch to
    */
-  virtual void Dispatch(T& target) {
+  virtual void Dispatch(T&) {
     // Do nothing.
   }
 };

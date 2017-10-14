@@ -42,7 +42,7 @@ void IceGatheringStateChangeEvent::Dispatch(PeerConnection& peerConnection) {
   peerConnection.HandleIceGatheringStateChangeEvent(*this);
 }
 
-void SdpEvent::Dispatch(PeerConnection& peerConnection) {
+void SdpEvent::Dispatch(PeerConnection&) {
   Nan::HandleScope scope;
 
   auto resolver = (*_resolver).Get(Nan::GetCurrentContext()->GetIsolate());

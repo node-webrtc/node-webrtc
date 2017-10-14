@@ -9,7 +9,7 @@
 #define TEST_H_
 #ifdef DEBUG
 
-#include <v8.h>
+#include "v8.h"
 
 namespace node_webrtc {
 

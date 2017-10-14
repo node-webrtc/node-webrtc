@@ -8,10 +8,10 @@
 #ifndef SRC_EVENTS_PROMISE_H_
 #define SRC_EVENTS_PROMISE_H_
 
-#include <nan.h>
-#include <v8.h>
-
 #include <memory>
+
+#include "nan.h"
+#include "v8.h"
 
 #include "src/events.h"
 
@@ -64,7 +64,7 @@ class PromiseRejectionEvent: public PromiseEvent<T> {
  protected:
   explicit PromiseRejectionEvent(
       std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver,
-      const std::string reason)
+      const std::string& reason)
       : PromiseEvent<T>(std::move(resolver))
       , _reason(reason) {}
 

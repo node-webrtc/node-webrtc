@@ -8,9 +8,8 @@
 #ifndef SRC_RTCSTATSREPORT_H_
 #define SRC_RTCSTATSREPORT_H_
 
-#include <nan.h>
-#include <v8.h>
-
+#include "nan.h"
+#include "v8.h"
 #include "webrtc/api/statstypes.h"
 
 namespace node_webrtc {

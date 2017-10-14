@@ -8,11 +8,11 @@
 #ifndef SRC_PROMISEFULFILLINGEVENTLOOP_H_
 #define SRC_PROMISEFULFILLINGEVENTLOOP_H_
 
-#include <uv.h>
-
 #include <iostream>
 #include <memory>
 #include <queue>
+
+#include "uv.h"
 
 #include "src/eventloop.h"
 #include "src/events.h"

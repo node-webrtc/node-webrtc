@@ -8,8 +8,7 @@
 #ifndef SRC_STATS_OBSERVER_H_
 #define SRC_STATS_OBSERVER_H_
 
-#include <nan.h>
-
+#include "nan.h"
 #include "webrtc/api/peerconnectioninterface.h"
 #include "webrtc/api/statstypes.h"
 

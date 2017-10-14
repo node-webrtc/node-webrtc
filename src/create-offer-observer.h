@@ -10,9 +10,8 @@
 
 #include <string>
 
-#include <nan.h>
-#include <v8.h>
-
+#include "nan.h"
+#include "v8.h"
 #include "webrtc/api/jsep.h"
 
 namespace node_webrtc {
@@ -25,9 +24,9 @@ class CreateOfferObserver
   explicit CreateOfferObserver(
     PeerConnection* target
   , v8::Local<v8::Promise::Resolver> resolver)
-  : _target(target)
-  , _resolver(std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>>(
-          new Nan::Persistent<v8::Promise::Resolver>(resolver))) {}
+  : _resolver(std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>>(
+          new Nan::Persistent<v8::Promise::Resolver>(resolver)))
+  , _target(target) {}
 
   void OnSuccess(webrtc::SessionDescriptionInterface* sdp) override;
   void OnFailure(const std::string& msg) override;

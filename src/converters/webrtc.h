@@ -14,8 +14,7 @@
 #ifndef SRC_CONVERTERS_WEBRTC_H_
 #define SRC_CONVERTERS_WEBRTC_H_
 
-#include <nan.h>
-
+#include "nan.h"
 #include "webrtc/api/peerconnectioninterface.h"
 
 #include "src/converters.h"
@@ -42,7 +41,7 @@ struct RTCOAuthCredential {
 
 template <>
 struct Converter<v8::Local<v8::Value>, RTCOAuthCredential> {
-  static Validation<RTCOAuthCredential> Convert(const v8::Local<v8::Value> value);
+  static Validation<RTCOAuthCredential> Convert(v8::Local<v8::Value> value);
 };
 
 /*
@@ -59,7 +58,7 @@ enum RTCIceCredentialType {
 
 template <>
 struct Converter<v8::Local<v8::Value>, RTCIceCredentialType> {
-  static Validation<RTCIceCredentialType> Convert(const v8::Local<v8::Value> value);
+  static Validation<RTCIceCredentialType> Convert(v8::Local<v8::Value> value);
 };
 
 /*
@@ -73,7 +72,7 @@ struct Converter<v8::Local<v8::Value>, RTCIceCredentialType> {
 
 template <>
 struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::IceServer> {
-  static Validation<webrtc::PeerConnectionInterface::IceServer> Convert(const v8::Local<v8::Value> value);
+  static Validation<webrtc::PeerConnectionInterface::IceServer> Convert(v8::Local<v8::Value> value);
 };
 
 /*
@@ -85,7 +84,7 @@ struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::IceServe
 
 template <>
 struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::IceTransportsType> {
-  static Validation<webrtc::PeerConnectionInterface::IceTransportsType> Convert(const v8::Local<v8::Value> value);
+  static Validation<webrtc::PeerConnectionInterface::IceTransportsType> Convert(v8::Local<v8::Value> value);
 };
 
 /*
@@ -150,7 +149,7 @@ struct Converter<v8::Local<v8::Value>, RTCDtlsFingerprint> {
 
 template <>
 struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::RTCConfiguration> {
-  static Validation<webrtc::PeerConnectionInterface::RTCConfiguration> Convert(const v8::Local<v8::Value> value);
+  static Validation<webrtc::PeerConnectionInterface::RTCConfiguration> Convert(v8::Local<v8::Value> value);
 };
 
 /*
@@ -173,13 +172,13 @@ struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::RTCConfi
 // NOTE(mroberts): I'm just doing something akin to a newtype here.
 struct RTCOfferOptions {
   RTCOfferOptions(): options(webrtc::PeerConnectionInterface::RTCOfferAnswerOptions()) {}
-  RTCOfferOptions(const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options): options(options) {}
+  explicit RTCOfferOptions(const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options): options(options) {}
   const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
 };
 
 template <>
 struct Converter<v8::Local<v8::Value>, RTCOfferOptions> {
-  static Validation<RTCOfferOptions> Convert(const v8::Local<v8::Value> value);
+  static Validation<RTCOfferOptions> Convert(v8::Local<v8::Value> value);
 };
 
 /*
@@ -190,13 +189,13 @@ struct Converter<v8::Local<v8::Value>, RTCOfferOptions> {
 // NOTE(mroberts): I'm just doing something akin to a newtype here.
 struct RTCAnswerOptions {
   RTCAnswerOptions(): options(webrtc::PeerConnectionInterface::RTCOfferAnswerOptions()) {}
-  RTCAnswerOptions(const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options): options(options) {}
+  explicit RTCAnswerOptions(const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options): options(options) {}
   const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
 };
 
 template <>
 struct Converter<v8::Local<v8::Value>, RTCAnswerOptions> {
-  static Validation<RTCAnswerOptions> Convert(const v8::Local<v8::Value> value);
+  static Validation<RTCAnswerOptions> Convert(v8::Local<v8::Value> value);
 };
 
 /*
@@ -217,7 +216,7 @@ enum RTCSdpType {
 
 template <>
 struct Converter<v8::Local<v8::Value>, RTCSdpType> {
-  static Validation<RTCSdpType> Convert(const v8::Local<v8::Value> value);
+  static Validation<RTCSdpType> Convert(v8::Local<v8::Value> value);
 };
 
 /*
@@ -229,7 +228,7 @@ struct Converter<v8::Local<v8::Value>, RTCSdpType> {
 
 template <>
 struct Converter<v8::Local<v8::Value>, webrtc::SessionDescriptionInterface*> {
-  static Validation<webrtc::SessionDescriptionInterface*> Convert(const v8::Local<v8::Value> value);
+  static Validation<webrtc::SessionDescriptionInterface*> Convert(v8::Local<v8::Value> value);
 };
 
 /*
@@ -243,7 +242,7 @@ struct Converter<v8::Local<v8::Value>, webrtc::SessionDescriptionInterface*> {
 
 template <>
 struct Converter<v8::Local<v8::Value>, webrtc::IceCandidateInterface*> {
-  static Validation<webrtc::IceCandidateInterface*> Convert(const v8::Local<v8::Value> value);
+  static Validation<webrtc::IceCandidateInterface*> Convert(v8::Local<v8::Value> value);
 };
 
 /*
@@ -264,7 +263,7 @@ enum RTCPriorityType {
 
 template <>
 struct Converter<v8::Local<v8::Value>, RTCPriorityType> {
-  static Validation<RTCPriorityType> Convert(const v8::Local<v8::Value> value);
+  static Validation<RTCPriorityType> Convert(v8::Local<v8::Value> value);
 };
 
 /*
@@ -282,7 +281,7 @@ struct Converter<v8::Local<v8::Value>, RTCPriorityType> {
 
 template <>
 struct Converter<v8::Local<v8::Value>, webrtc::DataChannelInit> {
-  static Validation<webrtc::DataChannelInit> Convert(const v8::Local<v8::Value> value);
+  static Validation<webrtc::DataChannelInit> Convert(v8::Local<v8::Value> value);
 };
 
 }  // namespace node_webrtc

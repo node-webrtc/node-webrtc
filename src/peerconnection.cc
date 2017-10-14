@@ -483,6 +483,8 @@ NAN_METHOD(PeerConnection::Close) {
 
 NAN_GETTER(PeerConnection::GetLocalDescription) {
   TRACE_CALL;
+  (void) property;
+
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
   Local<Value> result = Nan::Null();
@@ -505,6 +507,8 @@ NAN_GETTER(PeerConnection::GetLocalDescription) {
 
 NAN_GETTER(PeerConnection::GetRemoteDescription) {
   TRACE_CALL;
+  (void) property;
+
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
   Local<Value> result = Nan::Null();
@@ -527,6 +531,8 @@ NAN_GETTER(PeerConnection::GetRemoteDescription) {
 
 NAN_GETTER(PeerConnection::GetSignalingState) {
   TRACE_CALL;
+  (void) property;
+
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
   auto state = self->_jinglePeerConnection
       ? self->_jinglePeerConnection->signaling_state()
@@ -560,6 +566,8 @@ NAN_GETTER(PeerConnection::GetSignalingState) {
 
 NAN_GETTER(PeerConnection::GetIceConnectionState) {
   TRACE_CALL;
+  (void) property;
+
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
   auto state = self->_jinglePeerConnection
       ? self->_jinglePeerConnection->ice_connection_state()
@@ -600,6 +608,8 @@ NAN_GETTER(PeerConnection::GetIceConnectionState) {
 
 NAN_GETTER(PeerConnection::GetIceGatheringState) {
   TRACE_CALL;
+  (void) property;
+
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
   auto state = self->_jinglePeerConnection
       ? self->_jinglePeerConnection->ice_gathering_state()
@@ -623,6 +633,9 @@ NAN_GETTER(PeerConnection::GetIceGatheringState) {
 }
 
 NAN_SETTER(PeerConnection::ReadOnly) {
+  (void) property;
+  (void) value;
+  (void) info;
   INFO("PeerConnection::ReadOnly");
 }
 

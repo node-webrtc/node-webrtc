@@ -13,7 +13,9 @@
 #ifndef SRC_CONVERTERS_ARGUMENTS_H_
 #define SRC_CONVERTERS_ARGUMENTS_H_
 
-#include <nan.h>
+#include <tuple>
+
+#include "nan.h"
 
 #include "src/converters.h"
 #include "src/functional/curry.h"

@@ -9,18 +9,16 @@
 #define SRC_PEERCONNECTION_H_
 
 #include <cstdint>
-
 #include <string>
 #include <queue>
 
-#include <nan.h>
-#include <v8.h>
-
-#include "webrtc/api/datachannelinterface.h"
-#include "webrtc/api/jsep.h"
-#include "webrtc/api/peerconnectioninterface.h"
-#include "webrtc/api/statstypes.h"
-#include "webrtc/base/scoped_ref_ptr.h"
+#include "nan.h"
+#include "v8.h"
+#include <webrtc/api/datachannelinterface.h>
+#include <webrtc/api/jsep.h>
+#include <webrtc/api/peerconnectioninterface.h>
+#include <webrtc/api/statstypes.h>
+#include <webrtc/base/scoped_ref_ptr.h>
 
 #include "src/events/peerconnection.h"
 #include "src/promisefulfillingeventloop.h"

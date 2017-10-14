@@ -8,10 +8,9 @@
 #ifndef SRC_EVENTS_DATACHANNEL_H_
 #define SRC_EVENTS_DATACHANNEL_H_
 
-#include <nan.h>
-
 #include <memory>
 
+#include "nan.h"
 #include "webrtc/api/peerconnectioninterface.h"
 
 #include "src/events.h"
