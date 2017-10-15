@@ -47,13 +47,12 @@ script:
       echo "You must fix doxygen before submitting a pull request"
       echo ""
       cat doxygen_warnings.txt
-      exit -1
     fi
   - cmake --build cmake-build-debug --target wrtc -- -j 2
   - ./bin/test
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
       cd cmake-build-debug;
-      ctest -T memcheck;
+      ctest -V --output-on-failure -T memcheck;
       cd ..;
     fi
   - rm -rf cmake-build-debug

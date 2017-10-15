@@ -49,7 +49,7 @@ target_link_libraries(${MODULE} PRIVATE
 
 if(WIN32)
 else()
-    target_compile_options(${MODULE} PRIVATE
+    target_compile_options(${MODULE} PUBLIC
       -Werror
       -Wall
       -Wpedantic
@@ -88,4 +88,4 @@ include(CTest)
 
 enable_testing()
 
-add_test(test node ${CMAKE_SOURCE_DIR}/bin/test)
+add_test(test node ${CMAKE_SOURCE_DIR}/bin/test -s)

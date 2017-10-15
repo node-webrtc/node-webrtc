@@ -116,7 +116,7 @@ Validation<BundlePolicy> Converter<Local<Value>, BundlePolicy>::Convert(const Lo
         }
         return Validation<BundlePolicy>::Invalid(R"(Expected "balanced", "max-compat" or "max-bundle")");
       });
-};
+}
 
 Validation<RtcpMuxPolicy> Converter<Local<Value>, RtcpMuxPolicy>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<RtcpMuxPolicy>(
@@ -128,7 +128,7 @@ Validation<RtcpMuxPolicy> Converter<Local<Value>, RtcpMuxPolicy>::Convert(const 
         }
         return Validation<RtcpMuxPolicy>::Invalid(R"(Expected "negotiate" or "require")");
       });
-};
+}
 
 static RTCDtlsFingerprint CreateRTCDtlsFingerprint(
     const Maybe<std::string>& algorithm,
@@ -174,7 +174,7 @@ Validation<RTCConfiguration> Converter<Local<Value>, RTCConfiguration>::Convert(
             // TODO(mroberts): Implement EnforceRange and change to uint8_t.
             * GetOptional<uint32_t>(object, "iceCandidatePoolSize", 0);
       });
-};
+}
 
 static RTCOfferOptions CreateRTCOfferOptions(
     const bool voiceActivityDetection,
@@ -202,7 +202,7 @@ Validation<RTCOfferOptions> Converter<Local<Value>, RTCOfferOptions>::Convert(co
             * GetOptional<bool>(object, "offerToReceiveAudio")
             * GetOptional<bool>(object, "offerToReceiveVideo");
       });
-};
+}
 
 static RTCAnswerOptions CreateRTCAnswerOptions(const bool voiceActivityDetection) {
   RTCOfferAnswerOptions options;
@@ -216,7 +216,7 @@ Validation<RTCAnswerOptions> Converter<Local<Value>, RTCAnswerOptions>::Convert(
         return curry(CreateRTCAnswerOptions)
             % GetOptional<bool>(object, "voiceActivityDetection", true);
       });
-};
+}
 
 Validation<RTCSdpType> Converter<Local<Value>, RTCSdpType>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<RTCSdpType>(
@@ -232,7 +232,7 @@ Validation<RTCSdpType> Converter<Local<Value>, RTCSdpType>::Convert(const Local<
         }
         return Validation<RTCSdpType>::Invalid(R"(Expected "offer", "pranswer", "answer" or "rollback")");
       });
-};
+}
 
 Validation<SessionDescriptionInterface*> CreateSessionDescriptionInterface(
     const RTCSdpType type,
@@ -267,7 +267,7 @@ Validation<SessionDescriptionInterface*> Converter<Local<Value>, SessionDescript
             % GetRequired<RTCSdpType>(object, "type")
             * GetOptional<std::string>(object, "sdp", ""));
       });
-};
+}
 
 static Validation<IceCandidateInterface*> CreateIceCandidateInterface(
     const std::string& candidate,
@@ -291,7 +291,7 @@ Validation<IceCandidateInterface*> Converter<Local<Value>, IceCandidateInterface
             * GetOptional<int>(object, "sdpMLineIndex", 0)
             * GetOptional<std::string>(object, "usernameFragment"));
       });
-};
+}
 
 Validation<RTCPriorityType> Converter<Local<Value>, RTCPriorityType>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<RTCPriorityType>(
@@ -307,7 +307,7 @@ Validation<RTCPriorityType> Converter<Local<Value>, RTCPriorityType>::Convert(co
         }
         return Validation<RTCPriorityType>::Invalid(R"(Expected "very-low", "low", "medium" or "high")");
       });
-};
+}
 
 static DataChannelInit CreateDataChannelInit(
     const bool ordered,
@@ -339,4 +339,4 @@ Validation<DataChannelInit> Converter<Local<Value>, DataChannelInit>::Convert(co
             * GetOptional<uint32_t>(object, "id")
             * GetOptional<RTCPriorityType>(object, "priority", kLow);
       });
-};
+}

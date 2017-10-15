@@ -33,7 +33,7 @@ struct Converter<Nan::NAN_METHOD_ARGS_TYPE, A> {
 template <typename A, typename B>
 static std::tuple<A, B> Make2Tuple(A a, B b) {
   return std::make_tuple(a, b);
-};
+}
 
 template <typename A, typename B>
 struct Converter<Nan::NAN_METHOD_ARGS_TYPE, std::tuple<A, B>> {
@@ -47,7 +47,7 @@ struct Converter<Nan::NAN_METHOD_ARGS_TYPE, std::tuple<A, B>> {
 template <typename A, typename B, typename C>
 static std::tuple<A, B> Make3Tuple(A a, B b, C c) {
   return std::make_tuple(a, b, c);
-};
+}
 
 template <typename A, typename B, typename C>
 struct Converter<Nan::NAN_METHOD_ARGS_TYPE, std::tuple<A, B, C>> {

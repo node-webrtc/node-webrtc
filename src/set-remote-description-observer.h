@@ -8,6 +8,7 @@
 #ifndef SRC_SET_REMOTE_DESCRIPTION_OBSERVER_H_
 #define SRC_SET_REMOTE_DESCRIPTION_OBSERVER_H_
 
+#include <memory>
 #include <string>
 
 #include "nan.h"

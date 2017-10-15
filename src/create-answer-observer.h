@@ -8,6 +8,7 @@
 #ifndef SRC_CREATE_ANSWER_OBSERVER_H_
 #define SRC_CREATE_ANSWER_OBSERVER_H_
 
+#include <memory>
 #include <string>
 
 #include "nan.h"

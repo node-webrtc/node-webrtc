@@ -60,7 +60,7 @@ void requeue(DataChannelObserver& observer, DataChannel& channel) {
   while (auto event = observer.Dequeue()) {
     channel.Dispatch(std::move(event));
   }
-};
+}
 
 DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
     : EventLoop(*this), _binaryType(DataChannel::ARRAY_BUFFER) {

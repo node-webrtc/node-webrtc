@@ -31,7 +31,7 @@ class PromiseEvent: public Event<T> {
   virtual void Dispatch(T&) override {
     Nan::HandleScope scope;
     if (_resolver) {
-      auto resolver = (*_resolver).Get(Nan::GetCurrentContext()->GetIsolate());
+      auto resolver = Nan::New(*_resolver);
       resolver->Resolve(Nan::Undefined());
     }
   }
@@ -57,7 +57,7 @@ class PromiseRejectionEvent: public PromiseEvent<T> {
    */
   void Dispatch(T&) override {
     Nan::HandleScope scope;
-    auto resolver = (*this->_resolver).Get(Nan::GetCurrentContext()->GetIsolate());
+    auto resolver = Nan::New(*this->_resolver);
     resolver->Reject(Nan::Error(Nan::New(_reason).ToLocalChecked()));
   }
 

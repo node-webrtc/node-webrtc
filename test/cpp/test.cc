@@ -204,7 +204,6 @@ TEST_CASE("RTCIceCandidateInit") {
   SECTION("invalid") {
     // NOTE(mroberts): Although the IDL says we can default to the empty string,
     // WebRTC wants a valid SDP fragment.
-    Local<Value> emptyObject = Nan::New<Object>();
     RequireInvalid<IceCandidateInterface*>(Nan::New<Object>());
   }
 }
@@ -269,7 +268,7 @@ TEST_CASE("RTCIceServer") {
     "accessToken": "bar"
   }
 })").ToLocalChecked()).ToLocalChecked();
-    auto maybeOAuth2 = From<IceServer>(oAuth1);
+    auto maybeOAuth2 = From<IceServer>(oAuth2);
     REQUIRE(maybeOAuth2.ToErrors()[0] == "OAuth is not currently supported");
   }
 }

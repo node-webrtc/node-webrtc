@@ -47,7 +47,7 @@ class Maybe {
   template <typename F>
   Maybe<typename std::result_of<F(T)>::type> Apply(const Maybe<F> f) const {
     return f.IsJust() && _is_just ? Maybe(f.UnsafeFromJust()(_value)) : Nothing();
-  };
+  }
 
   /**
    * Eliminate a Maybe. You must provide a default value to handle the empty

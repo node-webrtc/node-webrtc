@@ -150,7 +150,7 @@ class Either {
    */
   static Either<L, R> Right(const R right) {
     return Either(true, L(), right);
-  };
+  }
 
  private:
   Either(bool is_right, const L left, const R right): _is_right(is_right), _left(left), _right(right) {}

@@ -18,9 +18,11 @@ void DataChannelStateChangeEvent::Dispatch(DataChannel& dataChannel) {
   dataChannel.HandleStateEvent(*this);
 }
 
-template <>
-void ErrorEvent<DataChannel>::Dispatch(DataChannel& dataChannel) {
+namespace node_webrtc {
+template<>
+void ErrorEvent<DataChannel>::Dispatch(DataChannel &dataChannel) {
   dataChannel.HandleErrorEvent(*this);
+}
 }
 
 void MessageEvent::Dispatch(DataChannel& dataChannel) {

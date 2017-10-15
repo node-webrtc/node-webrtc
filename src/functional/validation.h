@@ -60,7 +60,7 @@ class Validation {
       return Validation<typename std::result_of<F(T)>::type>::Invalid(_errors);
     }
     return Validation<typename std::result_of<F(T)>::type>::Valid(f.UnsafeFromValid()(_value));
-  };
+  }
 
   /**
    * Validation does not form a lawful Monad. Nevertheless, this is a useful
