@@ -19,7 +19,6 @@ addons:
     packages:
       - doxygen
       - g++-4.8
-      - valgrind
 
 notifications:
   email: false
@@ -34,6 +33,14 @@ install:
       export CXX=g++-4.8;
     fi
   - npm install
+  - |
+    wget ftp://sourceware.org/pub/valgrind/valgrind-3.13.0.tar.bz2
+    tar xf valgrind-3.13.0.tar.bz2
+    cd valgrind-3.13.0
+    ./configure
+    make
+    sudo make install
+    cd ..
 
 script:
   - rm -rf build
@@ -50,10 +57,14 @@ script:
     fi
   - cmake --build cmake-build-debug --target wrtc -- -j 2
   - ./bin/test
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      cd cmake-build-debug;
-      ctest -V --output-on-failure -T memcheck;
-      cd ..;
+  - |
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      cd cmake-build-debug
+      ctest -T memcheck
+      if [[ -s Testing/Temporary/MemoryChecker.1.log ]]; then
+        cat Testing/Temporary/MemoryCheckery.1.log
+      fi
+      cd ..
     fi
   - rm -rf cmake-build-debug
   - npm install
