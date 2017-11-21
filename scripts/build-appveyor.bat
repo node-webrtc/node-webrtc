@@ -80,13 +80,14 @@ IF /I "%NPM_BIN_DIR%"=="%CD%" ECHO ERROR npm bin -g equals local directory && SE
 ECHO ===== where npm puts stuff END ============
 
 ECHO updating npm
-CALL npm install -g npm
+::see here for why we use 5.3.x: https://github.com/npm/npm/issues/19019#issuecomment-340940842
+CALL npm install -g npm@5.3.x
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO updating node-gyp (maybe)
-IF "%nodejs_version:~0,1%"=="0" npm install https://github.com/springmeyer/node-gyp/tarball/v3.x
+IF "%nodejs_version:~0,1%"=="0" CALL npm install https://github.com/springmeyer/node-gyp/tarball/v3.x
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-IF "%nodejs_version:~0,1%"=="4" npm install node-gyp@3.x
+IF "%nodejs_version:~0,1%"=="4" CALL npm install node-gyp@3.x
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO building from source
