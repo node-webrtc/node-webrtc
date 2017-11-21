@@ -10,13 +10,13 @@ var RTCIceCandidate   = wrtc.RTCIceCandidate;
 var RTCPeerConnection = wrtc.RTCPeerConnection;
 
 var captureCandidates = require('./helpers/capture-candidates');
-
+var candidatesPromises;
 
 var peers = [];
-var candidates = [ [], [] ];
+var candidates = [];
 var dcs = [];
 var localDesc;
-
+var dcPromise;
 
 test('create the peer connections', function(t) {
   t.plan(2);
@@ -24,6 +24,21 @@ test('create the peer connections', function(t) {
     new RTCPeerConnection({ iceServers: [] }),
     new RTCPeerConnection({ iceServers: [] })
   ];
+
+  dcPromise = new Promise(function(resolve) {
+    peers[1].ondatachannel = function(evt) {
+      dcs[1] = evt.channel;
+      resolve(dcs[1]);
+    };
+  });
+
+  candidatesPromises = peers.map(function(pc, i) {
+    var candidatesPromise = captureCandidates(pc);
+    return candidatesPromise.then(function(_candidates) {
+      candidates[i] = _candidates;
+      return _candidates;
+    });
+  });
 
   t.ok(peers[0] instanceof RTCPeerConnection, 'peer:0 created ok');
   t.ok(peers[1] instanceof RTCPeerConnection, 'peer:1 created ok');
@@ -69,7 +84,7 @@ test('setLocalDescription for peer:0', function(t) {
 
 test('capture ice candidates for peer:0', function(t) {
   t.plan(1);
-  captureCandidates(peers[0], candidates[0], function() {
+  candidatesPromises[0].then(function() {
     t.equal(peers[0].iceGatheringState, 'complete', 'have candidates for peer:0');
   });
 });
@@ -125,7 +140,7 @@ test('setLocalDescription for peer:1', function(t) {
 
 test('capture ice candidates for peer:1', function(t) {
   t.plan(1);
-  captureCandidates(peers[1], candidates[1], function() {
+  candidatesPromises[1].then(function() {
     t.equal(peers[1].iceGatheringState, 'complete', 'have candidates for peer:1');
   });
 });
@@ -156,11 +171,11 @@ test('provide peer:0 with the peer:1 gathered ice candidates', function(t) {
 
 test('peer:1 triggers data channel event', function(t) {
   t.plan(2);
-  peers[1].ondatachannel = function(evt) {
-    dcs[1] = evt.channel;
-    t.ok(dcs[1], 'got data channel');
-    t.equal(dcs[1].label, 'test', 'data channel has correct label');
-  };
+
+  dcPromise.then(function(dc) {
+    t.ok(dc, 'got data channel');
+    t.equal(dc.label, 'test', 'data channel has correct label');
+  });
 });
 
 test('monitor the ice connection state of peer:0', function(t) {
