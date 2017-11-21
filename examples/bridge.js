@@ -182,7 +182,7 @@ wss.on('connection', function(ws)
       if(remoteReceived)
       {
         if(data.sdp.candidate) {
-          pc.addIceCandidate(new webrtc.RTCIceCandidate(data.sdp.candidate));
+          pc.addIceCandidate(new webrtc.RTCIceCandidate(data.sdp));
         }
       } else
       {
