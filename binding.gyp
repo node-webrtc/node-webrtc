@@ -49,7 +49,7 @@
         '-std=c++11',
       ],
       'xcode_settings': {
-        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+        'MACOSX_DEPLOYMENT_TARGET': '10.9',
         'OTHER_CFLAGS': [
           '-std=gnu++0x',
           '-Wno-c++0x-extensions',
@@ -108,7 +108,7 @@
           }],
           ['OS=="win"', {
             'libraries': [
-              '../third_party/webrtc/lib/libwebrtc.lib',
+              '../third_party/webrtc/lib/webrtc.lib',
               'dmoguids.lib',
               'msdmo.lib',
               'secur32.lib',

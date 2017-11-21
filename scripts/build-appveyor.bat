@@ -48,13 +48,10 @@ IF %NODE_MAJOR% GTR 0 ECHO node version greater than zero, not updating npm && G
 
 powershell Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-CALL npm install --global --production npm-windows-upgrade
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-CALL npm-windows-upgrade --npm-version 2.15.6 --no-dns-check --no-prompt
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 :SKIP_APPVEYOR_INSTALL
 IF /I "%msvs_toolset%"=="12" GOTO NODE_INSTALLED
+GOTO NODE_INSTALLED
 
 
 ::custom node for VS2015
@@ -114,8 +111,9 @@ IF /I "%NPM_BIN_DIR%"=="%CD%" ECHO ERROR npm bin -g equals local directory && SE
 ECHO ===== where npm puts stuff END ============
 
 
-ECHO installing node-gyp
-CALL npm install -g node-gyp
+IF "%nodejs_version:~0,1%"=="0" npm install https://github.com/springmeyer/node-gyp/tarball/v3.x
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+IF "%nodejs_version:~0,1%"=="4" npm install node-gyp@3.x
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 CALL npm install --build-from-source --msvs_version=%msvs_version% %TOOLSET_ARGS% --loglevel=http
@@ -160,7 +158,6 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 CALL node_modules\.bin\node-pre-gyp package %TOOLSET_ARGS%
 ::make commit message env var shorter
 SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
-ECHO checking if commit message contains the string "[publish binary]": %CM%
 IF NOT "%CM%" == "%CM:[publish binary]=%" (ECHO publishing && CALL node_modules\.bin\node-pre-gyp --msvs_version=%msvs_version% publish %TOOLSET_ARGS%) ELSE (ECHO not publishing)
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 

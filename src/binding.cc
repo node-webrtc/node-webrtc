@@ -2,7 +2,6 @@
 #include "v8.h"
 
 #include "webrtc/api/peerconnectioninterface.h"
-#include "webrtc/base/scoped_ptr.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 #include "webrtc/base/ssladapter.h"
 #include "webrtc/base/thread.h"
