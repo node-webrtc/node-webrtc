@@ -10,7 +10,7 @@
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "http://js-platform.github.io/node-webrtc/",
   "bugs": "https://github.com/js-platform/node-webrtc/issues",
-  "license": "BSD",
+  "license": "BSD-2-Clause",
   "repository": {
     "type": "git",
     "url": "http://github.com/js-platform/node-webrtc.git"
