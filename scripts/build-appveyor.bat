@@ -50,37 +50,6 @@ powershell Set-ExecutionPolicy Unrestricted -Scope CurrentUser -Force
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 :SKIP_APPVEYOR_INSTALL
-IF /I "%msvs_toolset%"=="12" GOTO NODE_INSTALLED
-GOTO NODE_INSTALLED
-
-
-::custom node for VS2015
-SET ARCHPATH=
-IF "%platform%"=="X64" (SET ARCHPATH=x64/)
-IF "%platform%"=="x64" (SET ARCHPATH=x64/)
-SET NODE_URL=https://mapbox.s3.amazonaws.com/node-cpp11/v%nodejs_version%/%ARCHPATH%node.exe
-ECHO downloading node^: %NODE_URL%
-powershell Invoke-WebRequest "${env:NODE_URL}" -OutFile node.exe
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-
-ECHO deleting node ...
-SET NODE_EXE_PRG=%ProgramFiles%\nodejs\node.exe
-IF EXIST "%NODE_EXE_PRG%" ECHO found %NODE_EXE_PRG%, deleting... && DEL /F "%NODE_EXE_PRG%"
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-IF EXIST "%ProgramFiles%\nodejs" ECHO copy custom node.exe to %ProgramFiles%\nodejs\ && COPY node.exe "%ProgramFiles%\nodejs\"
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-
-SET NODE_EXE_PRG=%ProgramFiles(x86)%\nodejs\node.exe
-IF EXIST "%NODE_EXE_PRG%" ECHO found %NODE_EXE_PRG%, deleting... && DEL /F "%NODE_EXE_PRG%"
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-IF EXIST "%ProgramFiles(x86)%\nodejs" ECHO copy custom node.exe to %ProgramFiles(x86)%\nodejs\ && COPY node.exe "%ProgramFiles(x86)%\nodejs\"
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-
-ECHO delete node.exe in current directory && DEL node.exe
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-
-:NODE_INSTALLED
-
 ECHO available node.exe^:
 call where node
 ECHO available npm^:
@@ -110,12 +79,17 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 IF /I "%NPM_BIN_DIR%"=="%CD%" ECHO ERROR npm bin -g equals local directory && SET ERRORLEVEL=1 && GOTO ERROR
 ECHO ===== where npm puts stuff END ============
 
-npm install -g npm
+ECHO updating npm
+CALL npm install -g npm
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+ECHO updating node-gyp (maybe)
 IF "%nodejs_version:~0,1%"=="0" npm install https://github.com/springmeyer/node-gyp/tarball/v3.x
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 IF "%nodejs_version:~0,1%"=="4" npm install node-gyp@3.x
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
+ECHO building from source
 CALL npm install --build-from-source --msvs_version=%msvs_version% %TOOLSET_ARGS% --loglevel=http
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
