@@ -208,7 +208,7 @@ test('monitor the ice connection state of peer:1', function(t) {
 });
 
 test('data channel connectivity', function(t) {
-  t.plan(6);
+  t.plan(10);
   dcs[1].onmessage = function(evt) {
     var data = evt.data && new Uint8Array(evt.data);
 
