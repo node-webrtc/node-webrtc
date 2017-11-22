@@ -208,7 +208,7 @@ test('monitor the ice connection state of peer:1', function(t) {
 });
 
 test('data channel connectivity', function(t) {
-  t.plan(5);
+  t.plan(10);
   dcs[1].onmessage = function(evt) {
     var data = evt.data && new Uint8Array(evt.data);
 
@@ -219,8 +219,12 @@ test('data channel connectivity', function(t) {
     // t.equal(evt.data, 'hello', 'dc:1 received message correctly');
   };
 
-  dcs[0].send(new Uint8Array([10, 11]));
+  var arrayBuffer = new Uint8Array([10, 11]);
+  dcs[0].send(arrayBuffer);
   t.pass('successfully called send on dc:0');
+  dcs[0].send(arrayBuffer);
+  t.pass('successfully re-used arrayBuffer');
+
 });
 
 test('getStats', function(t) {
