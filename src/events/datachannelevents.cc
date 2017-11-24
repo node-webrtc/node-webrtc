@@ -5,7 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/events/datachannel.h"
+#include "src/events/datachannelevents.h"
 
 #include "src/datachannel.h"
 

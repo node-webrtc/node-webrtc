@@ -20,7 +20,7 @@
 #include <webrtc/api/statstypes.h>
 #include <webrtc/base/scoped_ref_ptr.h>
 
-#include "src/events/peerconnection.h"
+#include "src/events/peerconnectionevents.h"
 #include "src/promisefulfillingeventloop.h"
 
 namespace node_webrtc {

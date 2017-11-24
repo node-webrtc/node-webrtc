@@ -5,7 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/events/peerconnection.h"
+#include "src/events/peerconnectionevents.h"
 
 #include "src/datachannel.h"
 #include "src/peerconnection.h"

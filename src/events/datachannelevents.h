@@ -5,8 +5,8 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_EVENTS_DATACHANNEL_H_
-#define SRC_EVENTS_DATACHANNEL_H_
+#ifndef SRC_EVENTS_DATACHANNELEVENTS_H_
+#define SRC_EVENTS_DATACHANNELEVENTS_H_
 
 #include <memory>
 
@@ -54,4 +54,4 @@ class DataChannelStateChangeEvent: public StateEvent<DataChannel, webrtc::DataCh
 
 }  // namespace node_webrtc
 
-#endif  // SRC_EVENTS_DATACHANNEL_H_
+#endif  // SRC_EVENTS_DATACHANNELEVENTS_H_

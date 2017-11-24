@@ -5,8 +5,8 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_EVENTS_PEERCONNECTION_H_
-#define SRC_EVENTS_PEERCONNECTION_H_
+#ifndef SRC_EVENTS_PEERCONNECTIONEVENTS_H_
+#define SRC_EVENTS_PEERCONNECTIONEVENTS_H_
 
 #include <memory>
 
@@ -249,4 +249,4 @@ class GetStatsEvent: public Event<PeerConnection> {
 
 }  // namespace node_webrtc
 
-#endif  // SRC_EVENTS_PEERCONNECTION_H_
+#endif  // SRC_EVENTS_PEERCONNECTIONEVENTS_H_

@@ -20,7 +20,7 @@
 #include "webrtc/base/scoped_ref_ptr.h"
 
 #include "src/eventloop.h"
-#include "src/events/datachannel.h"
+#include "src/events/datachannelevents.h"
 
 namespace node_webrtc {
 
