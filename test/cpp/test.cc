@@ -36,8 +36,6 @@ using IceTransportsType = webrtc::PeerConnectionInterface::IceTransportsType;
 using BundlePolicy = webrtc::PeerConnectionInterface::BundlePolicy;
 using RtcpMuxPolicy = webrtc::PeerConnectionInterface::RtcpMuxPolicy;
 
-static Nan::JSON NanJSON;
-
 template <typename T>
 static void RequireInvalid(const Local<Value> value) {
   REQUIRE(From<T>(value).IsInvalid());
@@ -101,6 +99,8 @@ TEST_CASE("RTCBundlePolicy") {
 }
 
 TEST_CASE("RTCDataChannelInit") {
+  Nan::JSON NanJSON;
+
   SECTION("valid") {
     Local<Value> emptyObject = Nan::New<Object>();
     auto emptyObject_ = RequireValid<DataChannelInit>(emptyObject);
@@ -134,6 +134,8 @@ TEST_CASE("RTCDataChannelInit") {
 }
 
 TEST_CASE("RTCDtlsFingerprint") {
+  Nan::JSON NanJSON;
+
   SECTION("valid") {
     Local<Value> emptyObject = Nan::New<Object>();
     auto emptyObject_ = RequireValid<RTCDtlsFingerprint>(emptyObject);
@@ -221,6 +223,8 @@ TEST_CASE("RTCIceCredentialType") {
 }
 
 TEST_CASE("RTCIceServer") {
+  Nan::JSON NanJSON;
+
   SECTION("valid") {
     SECTION("url") {
       auto iceServer = NanJSON.Parse(Nan::New(R"({
@@ -286,6 +290,8 @@ TEST_CASE("RTCIceTransportPolicy") {
 }
 
 TEST_CASE("RTCOAuthCredential") {
+  Nan::JSON NanJSON;
+
   SECTION("valid") {
     auto rtcOAuthCredential = NanJSON.Parse(Nan::New(R"({
   "macKey": "foo",
