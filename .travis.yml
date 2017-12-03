@@ -19,6 +19,7 @@ addons:
     packages:
       - doxygen
       - g++-4.8
+      - libc6-dbg
 
 notifications:
   email: false
@@ -29,48 +30,59 @@ env:
     - secure: "TboT8Z9uoFCb2ocvP+Srbm+rU799Fv2vJ+Za3+DcVLqG7IJyYOHUK7BNogSkbjO70+Ns2vFcDY1OZYwAbqXQ+1ah0Sh186u0PJaCyR3wTTbPdoHSNCFXLvcD82GE/NkLWurBmpDXB+3NaPgvEz3Xpy0O1Shl2bQMwW2m5NaV3eg="
 
 install:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+  - |
+    echo "Setting CXX, installing Valgrind, etc. (if on Linux)"
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       export CXX=g++-4.8;
-    fi
-  - npm install
-  - |
-    wget ftp://sourceware.org/pub/valgrind/valgrind-3.13.0.tar.bz2
-    tar xf valgrind-3.13.0.tar.bz2
-    cd valgrind-3.13.0
-    ./configure
-    make
-    sudo make install
-    cd ..
 
-script:
-  - rm -rf build
-  - mkdir cmake-build-debug
-  - cd cmake-build-debug
-  - cmake -DCMAKE_BUILD_TYPE=Debug ..
-  - cd ..
-  - doxygen .doxygen.txt
-  - |
-    if [[ -s doxygen_warnings.txt ]]; then
-      echo "You must fix doxygen before submitting a pull request"
-      echo ""
-      cat doxygen_warnings.txt
-    fi
-  - cmake --build cmake-build-debug --target wrtc -- -j 2
-  - ./bin/test
-  - |
-    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      cd cmake-build-debug
-      ctest -T memcheck
-      if [[ -s Testing/Temporary/MemoryChecker.1.log ]]; then
-        cat Testing/Temporary/MemoryCheckery.1.log
-      fi
+      wget ftp://sourceware.org/pub/valgrind/valgrind-3.13.0.tar.bz2
+      tar xf valgrind-3.13.0.tar.bz2
+      cd valgrind-3.13.0
+      ./configure
+      make
+      sudo make install
       cd ..
     fi
-  - rm -rf cmake-build-debug
-  - npm install
-  - npm test
-  - if [[ $TRAVIS_TAG ]] ||
-       [[ `git show -s --format=%B $TRAVIS_COMMIT` == *'[publish binary]'* ]];
-    then
+
+  - |
+    echo "Installing dependencies"
+    npm install --ignore-scripts
+
+script:
+  - |
+    echo "Running Doxygen (if available)"
+    if command -v doxygen 1>/dev/null; then
+      doxygen .doxygen.txt
+      if [[ -s doxygen_warnings.txt ]]; then
+        cat doxygen_warnings.txt
+      fi
+    fi
+
+  - |
+    echo "Building Debug version"
+    ncmake rebuild --debug
+
+  - |
+    echo "Running C++ tests"
+    ./bin/test
+
+  - |
+    echo "Running C++ tests with Valgrind (if available)"
+    if command -v valgrind 1>/dev/null; then
+      valgrind --error-exitcode=1 --smc-check=all --quiet node bin/test
+    fi
+
+  - |
+    echo "Building Release version"
+    ncmake rebuild
+
+  - |
+    echo "Running JavaScript tests"
+    npm test
+
+  - |
+    echo "Publishing binary (maybe)"
+    if [[ $TRAVIS_TAG ]] ||
+       [[ `git show -s --format=%B $TRAVIS_COMMIT` == *'[publish binary]'* ]]; then
       $RUN node_modules/.bin/node-pre-gyp package publish;
     fi

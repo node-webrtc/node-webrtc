@@ -41,6 +41,7 @@ void dispose(void*) {
 
 void init(Handle<Object> exports) {
   bool result;
+  (void) result;
 
   result = rtc::InitializeSSL();
   assert(result);

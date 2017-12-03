@@ -12,7 +12,7 @@ endif()
 
 if(EXISTS ${CMAKE_SOURCE_DIR}/third_party/webrtc)
 else()
-    execute_process(COMMAND node ${CMAKE_SOURCE_DIR}/scripts/download-webrtc-headers-and-libraries.js)
+    execute_process(COMMAND node ${CMAKE_SOURCE_DIR}/scripts/download-webrtc-libraries-and-headers.js)
 endif()
 
 set(MODULE wrtc)
@@ -22,14 +22,6 @@ nodejs_init()
 file(GLOB_RECURSE MODULE_SRC src/*.cc src/*.h)
 file(GLOB_RECURSE MODULE_TEST_SRC test/cpp/*.cc test/cpp/*.h)
 add_nodejs_module(${MODULE} ${MODULE_SRC} ${MODULE_TEST_SRC})
-
-execute_process(COMMAND node -e "process.stdout.write(require('../package.json').version)" OUTPUT_VARIABLE MODULE_VERSION)
-execute_process(COMMAND node -e "process.stdout.write(process.versions.modules)" OUTPUT_VARIABLE MODULE_ABI)
-execute_process(COMMAND node -e "process.stdout.write(process.arch)" OUTPUT_VARIABLE MODULE_ARCH)
-execute_process(COMMAND node -e "process.stdout.write(process.platform)" OUTPUT_VARIABLE MODULE_PLATFORM)
-set(MODULE_PATH ${CMAKE_SOURCE_DIR}/build/${MODULE}/v${MODULE_VERSION}/${CMAKE_BUILD_TYPE}/node-v${MODULE_ABI}-${MODULE_PLATFORM}-${MODULE_ARCH})
-file(MAKE_DIRECTORY ${MODULE_PATH})
-set_target_properties(${MODULE} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${MODULE_PATH})
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(${MODULE} PRIVATE -DDEBUG)

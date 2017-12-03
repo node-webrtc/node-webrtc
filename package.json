@@ -19,7 +19,7 @@
   "browser": "lib/browser.js",
   "binary": {
     "module_name": "wrtc",
-    "module_path": "./build/{module_name}/v{version}/{configuration}/{node_abi}-{platform}-{arch}/",
+    "module_path": "./build/{configuration}/",
     "remote_path": "./{module_name}/v{version}/{configuration}/",
     "package_name": "{node_abi}-{platform}-{arch}.tar.gz",
     "host": "https://node-webrtc.s3.amazonaws.com"
@@ -31,6 +31,7 @@
     "download": "^5.0.0",
     "gunzip-maybe": "^1.3.1",
     "nan": "^2.3.2",
+    "node-cmake": "^2.3.2",
     "node-pre-gyp": "0.6.x",
     "tar-fs": "^1.13.0",
     "unzip-stream": "^0.2.1"
@@ -39,7 +40,6 @@
     "aws-sdk": "^2.2.10",
     "minimist": "0.0.8",
     "mkdirp": "^0.5.1",
-    "node-cmake": "^2.3.2",
     "node-static-alias": "^0.1.2",
     "simple-peer": "^5.0.0",
     "tape": "~2.4.2",
@@ -47,7 +47,7 @@
   },
   "scripts": {
     "download-webrtc-libraries-and-headers": "node scripts/download-webrtc-libraries-and-headers.js",
-    "install": "node-pre-gyp install --fallback-to-build",
+    "install": "node-pre-gyp install --fallback-to-build=false || ncmake rebuild",
     "test": "node test/js/all.js"
   }
 }

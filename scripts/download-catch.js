@@ -1,27 +1,13 @@
 #!/usr/bin/env node
 
 var download = require('download');
-var execSync = require('child_process').execSync;
 var fs = require('fs');
-var gunzip = require('gunzip-maybe');
 var mkdirp = require('mkdirp').sync;
 var path = require('path');
-var tar = require('tar-fs');
-var url = require('url');
 
 /**
  * @typedef {object} Options
  * @property {string} [url] - the URL of the Catch header to use
- */
-
-/**
- * These options are modeled after node-pre-gyp.
- * @typedef {object} BinaryOptions
- * @property {string} [host] - the host to download libraries and headers from
- * @property {string} [module_name] - the name of the libraries and headers
- * @property {string} [module_path] - the path to extract the libraries and headers to
- * @property {string} [remote_path] - the path to the libraries and headers on the host
- * @property {string} [package_name] - the name of the package on the host
  */
 
 var defaults = {
