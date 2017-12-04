@@ -6,12 +6,16 @@
 #include "nan.h"
 #include "webrtc/api/peerconnectioninterface.h"
 
+#include "src/events.h"
+#include "src/eventqueue.h"
 #include "src/functional/maybe.h"
 #include "src/converters.h"
 #include "src/converters/arguments.h"
 #include "src/converters/webrtc.h"
 #include "src/converters/v8.h"
 
+using node_webrtc::Event;
+using node_webrtc::EventQueue;
 using node_webrtc::From;
 using node_webrtc::Maybe;
 using node_webrtc::RTCDtlsFingerprint;
@@ -54,6 +58,43 @@ template <typename T>
 static void RequireEnum(const std::string string, const T expected) {
   auto actual = RequireValid<T>(Nan::New(string).ToLocalChecked());
   REQUIRE(actual == expected);
+}
+
+// NOTE(mroberts): In these tests, I'm specializing the EventQueue to a
+// simple target type, `int`. The target type is not used.
+TEST_CASE("EventQueue") {
+  SECTION("constructor") {
+    auto eventQueue = std::unique_ptr<EventQueue<int>>(
+      new EventQueue<int>());
+  }
+
+  SECTION("Enqueue") {
+    auto eventQueue = std::unique_ptr<EventQueue<int>>(
+      new EventQueue<int>());
+    auto inputEvent1 = new Event<int>();
+    auto inputEvent2 = new Event<int>();
+    auto inputEvent3 = new Event<int>();
+    eventQueue->Enqueue(std::unique_ptr<Event<int>>(inputEvent1));
+    eventQueue->Enqueue(std::unique_ptr<Event<int>>(inputEvent2));
+    eventQueue->Enqueue(std::unique_ptr<Event<int>>(inputEvent3));
+  }
+
+  SECTION("Dequeue") {
+    auto eventQueue = std::unique_ptr<EventQueue<int>>(
+      new EventQueue<int>());
+    auto inputEvent1 = new Event<int>();
+    auto inputEvent2 = new Event<int>();
+    auto inputEvent3 = new Event<int>();
+    eventQueue->Enqueue(std::unique_ptr<Event<int>>(inputEvent1));
+    eventQueue->Enqueue(std::unique_ptr<Event<int>>(inputEvent2));
+    eventQueue->Enqueue(std::unique_ptr<Event<int>>(inputEvent3));
+    auto outputEvent1 = eventQueue->Dequeue();
+    auto outputEvent2 = eventQueue->Dequeue();
+    auto outputEvent3 = eventQueue->Dequeue();
+    REQUIRE(outputEvent1.get() == inputEvent1);
+    REQUIRE(outputEvent2.get() == inputEvent2);
+    REQUIRE(outputEvent3.get() == inputEvent3);
+  }
 }
 
 TEST_CASE("String") {

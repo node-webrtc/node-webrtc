@@ -25,6 +25,10 @@ namespace node_webrtc {
 template <typename T>
 class EventQueue {
  public:
+  EventQueue() {
+    uv_mutex_init(&_lock);
+  }
+
   /**
    * Enqueue an Event.
    * @param event the event to enqueue
@@ -51,11 +55,6 @@ class EventQueue {
     _events.pop();
     uv_mutex_unlock(&_lock);
     return event;
-  }
-
- protected:
-  EventQueue() {
-    uv_mutex_init(&_lock);
   }
 
  private:
