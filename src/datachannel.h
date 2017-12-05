@@ -71,9 +71,6 @@ class DataChannel
   void HandleStateEvent(const DataChannelStateChangeEvent& event);
   void HandleMessageEvent(const MessageEvent& event) const;
 
- protected:
-  void DidStop() override;
-
  private:
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
   BinaryType _binaryType;

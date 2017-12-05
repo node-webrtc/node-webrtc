@@ -75,6 +75,7 @@ DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
 
 DataChannel::~DataChannel() {
   TRACE_CALL;
+  this->_jingleDataChannel->UnregisterObserver();
   TRACE_END;
 }
 
@@ -159,11 +160,6 @@ void DataChannel::HandleMessageEvent(const MessageEvent& event) const {
     argv[0] = str;
     Nan::MakeCallback(self, callback, 1, argv);
   }
-}
-
-void DataChannel::DidStop() {
-  this->_jingleDataChannel->UnregisterObserver();
-  this->_jingleDataChannel = nullptr;
 }
 
 void DataChannel::OnStateChange() {

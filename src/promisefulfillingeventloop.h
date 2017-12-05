@@ -31,7 +31,7 @@ class PromiseFulfillingEventLoop: public EventLoop<T> {
   void Run() override {
     Nan::HandleScope scope;
     EventLoop<T>::Run();
-    if (!this->should_stop()) {
+    if (!this->stopped()) {
       Nan::GetCurrentContext()->GetIsolate()->RunMicrotasks();
     }
   }

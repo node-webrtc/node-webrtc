@@ -7,6 +7,7 @@
 #include "webrtc/api/peerconnectioninterface.h"
 
 #include "src/events.h"
+#include "src/eventloop.h"
 #include "src/eventqueue.h"
 #include "src/functional/maybe.h"
 #include "src/converters.h"
@@ -15,6 +16,7 @@
 #include "src/converters/v8.h"
 
 using node_webrtc::Event;
+using node_webrtc::EventLoop;
 using node_webrtc::EventQueue;
 using node_webrtc::From;
 using node_webrtc::Maybe;
@@ -60,17 +62,17 @@ static void RequireEnum(const std::string string, const T expected) {
   REQUIRE(actual == expected);
 }
 
-// NOTE(mroberts): In these tests, I'm specializing the EventQueue to a
-// simple target type, `int`. The target type is not used.
+using TestEventQueue = EventQueue<int>;
+
 TEST_CASE("EventQueue") {
   SECTION("constructor") {
-    auto eventQueue = std::unique_ptr<EventQueue<int>>(
-      new EventQueue<int>());
+    auto eventQueue = std::unique_ptr<TestEventQueue>(
+      new TestEventQueue());
   }
 
   SECTION("Enqueue") {
-    auto eventQueue = std::unique_ptr<EventQueue<int>>(
-      new EventQueue<int>());
+    auto eventQueue = std::unique_ptr<TestEventQueue>(
+      new TestEventQueue());
     auto inputEvent1 = new Event<int>();
     auto inputEvent2 = new Event<int>();
     auto inputEvent3 = new Event<int>();
@@ -80,8 +82,8 @@ TEST_CASE("EventQueue") {
   }
 
   SECTION("Dequeue") {
-    auto eventQueue = std::unique_ptr<EventQueue<int>>(
-      new EventQueue<int>());
+    auto eventQueue = std::unique_ptr<TestEventQueue>(
+      new TestEventQueue());
     auto inputEvent1 = new Event<int>();
     auto inputEvent2 = new Event<int>();
     auto inputEvent3 = new Event<int>();
@@ -94,6 +96,126 @@ TEST_CASE("EventQueue") {
     REQUIRE(outputEvent1.get() == inputEvent1);
     REQUIRE(outputEvent2.get() == inputEvent2);
     REQUIRE(outputEvent3.get() == inputEvent3);
+  }
+}
+
+class TestEventTarget {
+ public:
+  int Dequeue() {
+    if (_ids.empty()) {
+      return 0;
+    }
+    auto id = _ids.front();
+    _ids.pop();
+    return id;
+  }
+
+  void Enqueue(int id) {
+    _ids.push(id);
+  }
+
+ private:
+  std::queue<int> _ids;
+};
+
+class TestEvent: public Event<TestEventTarget> {
+ public:
+  explicit TestEvent(int id): _id(id) {}
+
+  void Dispatch(TestEventTarget& eventTarget) override {
+    eventTarget.Enqueue(this->_id);
+  }
+
+ private:
+  const int _id;
+};
+
+using TestEventLoop = EventLoop<TestEventTarget>;
+
+// NOTE(mroberts):
+class TrickyTestEvent: public TestEvent {
+ public:
+  explicit TrickyTestEvent(TestEventLoop* eventLoop, int id)
+  : TestEvent(id)
+  , _eventLoop(eventLoop) {}
+
+  void Dispatch(TestEventTarget& eventTarget) override {
+    this->_eventLoop->Stop();
+    TestEvent::Dispatch(eventTarget);
+  }
+
+ private:
+  TestEventLoop* _eventLoop;
+};
+
+TEST_CASE("EventLoop") {
+  SECTION("constructor") {
+    TestEventTarget eventTarget;
+    auto eventLoop = std::unique_ptr<TestEventLoop>(
+      new TestEventLoop(eventTarget));
+
+    eventLoop->Stop();
+
+    // NOTE(mroberts): I'm not completely sure if this is safe.
+    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+  }
+
+  SECTION("Dispatch") {
+    TestEventTarget eventTarget;
+    auto eventLoop1 = std::unique_ptr<TestEventLoop>(
+      new TestEventLoop(eventTarget));
+    eventLoop1->Dispatch(std::unique_ptr<TestEvent>(new TestEvent(1)));
+    eventLoop1->Dispatch(std::unique_ptr<TestEvent>(new TestEvent(2)));
+    eventLoop1->Dispatch(std::unique_ptr<TestEvent>(new TestEvent(3)));
+    REQUIRE(eventTarget.Dequeue() == 0);
+
+    // NOTE(mroberts): I'm not completely sure if this is safe.
+    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+
+    REQUIRE(eventTarget.Dequeue() == 1);
+    REQUIRE(eventTarget.Dequeue() == 2);
+    REQUIRE(eventTarget.Dequeue() == 3);
+
+    eventLoop1->Stop();
+
+    // NOTE(mroberts): I'm not completely sure if this is safe.
+    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+
+    // NOTE(mroberts): The point of this test is to ensure that, if dispatching
+    // an event causes the EventLoop to stop, nothing bad happens.
+    auto eventLoop2 = std::unique_ptr<TestEventLoop>(
+      new TestEventLoop(eventTarget));
+    eventLoop2->Dispatch(std::unique_ptr<TestEvent>(new TestEvent(1)));
+    eventLoop2->Dispatch(std::unique_ptr<TrickyTestEvent>(new TrickyTestEvent(
+      eventLoop2.get(), 2)));
+    eventLoop2->Dispatch(std::unique_ptr<TestEvent>(new TestEvent(3)));
+    REQUIRE(eventTarget.Dequeue() == 0);
+
+    // NOTE(mroberts): I'm not completely sure if this is safe.
+    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+
+    REQUIRE(eventTarget.Dequeue() == 1);
+    REQUIRE(eventTarget.Dequeue() == 2);
+    REQUIRE(eventTarget.Dequeue() == 0);
+  }
+
+  SECTION("Stop") {
+    TestEventTarget eventTarget;
+    auto eventLoop = std::unique_ptr<TestEventLoop>(
+      new TestEventLoop(eventTarget));
+
+    REQUIRE(eventLoop->stopped() == false);
+    eventLoop->Stop();
+    REQUIRE(eventLoop->stopped() == true);
+    eventLoop->Stop();
+    REQUIRE(eventLoop->stopped() == true);
+
+    // NOTE(mroberts): I'm not completely sure if this is safe.
+    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+
+    REQUIRE(eventLoop->stopped() == true);
+    eventLoop->Stop();
+    REQUIRE(eventLoop->stopped() == true);
   }
 }
 
