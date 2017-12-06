@@ -9,6 +9,7 @@
 #define SRC_DATACHANNEL_H_
 
 #include <cstring>
+#include <memory>
 #include <string>
 #include <queue>
 
@@ -31,14 +32,17 @@ class DataChannel
 , public Nan::ObjectWrap
 , public webrtc::DataChannelObserver {
   friend class node_webrtc::DataChannelObserver;
-
  public:
   enum BinaryType {
     BLOB = 0x0,
     ARRAY_BUFFER = 0x1
   };
 
-  explicit DataChannel(node_webrtc::DataChannelObserver* observer);
+  static std::shared_ptr<DataChannel> Create(node_webrtc::DataChannelObserver* observer) {
+    auto dataChannel = new DataChannel(observer);
+    return std::static_pointer_cast<DataChannel>(dataChannel->shared_from_this());
+  }
+
   ~DataChannel() override;
 
   //
@@ -72,6 +76,8 @@ class DataChannel
   void HandleMessageEvent(const MessageEvent& event) const;
 
  private:
+  explicit DataChannel(node_webrtc::DataChannelObserver* observer);
+
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
   BinaryType _binaryType;
 

@@ -265,7 +265,7 @@ NAN_METHOD(PeerConnection::New) {
   }
 
   // Tell em whats up
-  auto obj = new PeerConnection(maybeConfiguration.UnsafeFromValid().FromMaybe(RTCConfiguration()));
+  auto obj = PeerConnection::Create(maybeConfiguration.UnsafeFromValid().FromMaybe(RTCConfiguration()));
   obj->Wrap(info.This());
 
   TRACE_END;

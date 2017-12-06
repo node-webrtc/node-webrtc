@@ -24,22 +24,13 @@ namespace node_webrtc {
  * @tparam T the Event target type
  */
 template <typename T>
-class EventLoop: EventQueue<T> {
+class EventLoop
+: public std::enable_shared_from_this<EventLoop<T>>
+, EventQueue<T> {
  public:
-  explicit EventLoop(T& target)
-  : EventQueue<T>()
-  , _async(std::unique_ptr<uv_async_t>(new uv_async_t()))
-  , _loop(uv_default_loop())
-  , _target(target) {
-    uv_async_init(_loop, _async.get(), [](uv_async_t* handle) {
-      auto self = reinterpret_cast<EventLoop<T>*>(handle->data);
-      self->Run();
-    });
-    _async->data = this;
-  }
-
-  ~EventLoop() {
-    // NOTE(mroberts): We can't release this->_async; libuv still needs it.
+  static std::shared_ptr<EventLoop<T>> Create(T& target) {
+    auto eventLoop = new EventLoop<T>(target);
+    return eventLoop->shared_from_this();
   }
 
   /**
@@ -47,9 +38,9 @@ class EventLoop: EventQueue<T> {
    * @param event the event to dispatch
    */
   void Dispatch(std::unique_ptr<Event<T>> event) {
-    if (!this->stopped()) {
+    if (!stopped()) {
       this->Enqueue(std::move(event));
-      uv_async_send(_async.get());
+      uv_async_send(&_async);
     }
   }
 
@@ -57,9 +48,9 @@ class EventLoop: EventQueue<T> {
    * Stop the EventLoop.
    */
   void Stop() {
-    if (!this->stopped()) {
-      this->_should_stop = true;
-      uv_async_send(_async.get());
+    if (!stopped()) {
+      _should_stop = true;
+      uv_async_send(&_async);
     }
   }
 
@@ -67,30 +58,44 @@ class EventLoop: EventQueue<T> {
    * Returns true if Stop was called.
    */
   bool stopped() const {
-    return this->_should_stop;
+    return _should_stop;
   }
 
  protected:
+  explicit EventLoop(T& target)
+  : EventQueue<T>()
+  , _loop(uv_default_loop())
+  , _target(target) {
+    uv_async_init(_loop, &_async, [](uv_async_t* handle) {
+      auto data = reinterpret_cast<std::shared_ptr<EventLoop<T>>*>(handle->data);
+      auto self = *data;
+      self->Run();
+    });
+    _async.data = new std::shared_ptr<EventLoop<T>>(this);
+  }
+
   virtual void Run() {
-    if (!this->stopped()) {
+    if (!stopped()) {
       while (auto event = this->Dequeue()) {
-        if (!this->stopped()) {
-          event->Dispatch(this->_target);
+        if (!stopped()) {
+          event->Dispatch(_target);
         }
-        if (this->stopped()) {
+        if (stopped()) {
           break;
         }
       }
     }
-    if (this->stopped() && this->_async) {
-      uv_close(reinterpret_cast<uv_handle_t*>(this->_async.release()), [](uv_handle_t* handle) {
-        delete handle;
+    if (stopped()) {
+      uv_close(reinterpret_cast<uv_handle_t*>(&_async), [](uv_handle_t* handle) {
+        auto data = reinterpret_cast<std::shared_ptr<EventLoop<T>>*>(handle->data);
+        data->reset();
+        delete data;
       });
     }
   }
 
  private:
-  std::unique_ptr<uv_async_t> _async;
+  uv_async_t _async;
   uv_loop_t* _loop;
   bool _should_stop = false;
   T& _target;

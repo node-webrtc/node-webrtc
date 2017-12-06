@@ -63,7 +63,7 @@ void requeue(DataChannelObserver& observer, DataChannel& channel) {
 }
 
 DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
-    : EventLoop(*this), _binaryType(DataChannel::ARRAY_BUFFER) {
+    : EventLoop<DataChannel>(*this), _binaryType(DataChannel::ARRAY_BUFFER) {
   _jingleDataChannel = observer->_jingleDataChannel;
   _jingleDataChannel->RegisterObserver(this);
 
@@ -89,7 +89,7 @@ NAN_METHOD(DataChannel::New) {
   auto _observer = Local<External>::Cast(info[0]);
   auto observer = static_cast<node_webrtc::DataChannelObserver*>(_observer->Value());
 
-  auto obj = new DataChannel(observer);
+  auto obj = DataChannel::Create(observer);
   obj->Wrap(info.This());
 
   TRACE_END;

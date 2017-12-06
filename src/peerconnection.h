@@ -9,6 +9,7 @@
 #define SRC_PEERCONNECTION_H_
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <queue>
 
@@ -36,8 +37,11 @@ class PeerConnection
 , public Nan::ObjectWrap
 , public webrtc::PeerConnectionObserver {
  public:
+  static std::shared_ptr<PeerConnection> Create(webrtc::PeerConnectionInterface::RTCConfiguration configuration) {
+    auto peerConnection = new PeerConnection(configuration);
+    return std::static_pointer_cast<PeerConnection>(peerConnection->shared_from_this());
+  }
 
-  explicit PeerConnection(webrtc::PeerConnectionInterface::RTCConfiguration configuration);
   ~PeerConnection() override;
 
   //
@@ -95,6 +99,8 @@ class PeerConnection
   void HandleDataChannelEvent(const DataChannelEvent& event) const;
 
  private:
+  explicit PeerConnection(webrtc::PeerConnectionInterface::RTCConfiguration configuration);
+
   webrtc::AudioDeviceModule *_audioDeviceModule;
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _jinglePeerConnectionFactory;

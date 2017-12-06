@@ -123,7 +123,7 @@ class TestEvent: public Event<TestEventTarget> {
   explicit TestEvent(int id): _id(id) {}
 
   void Dispatch(TestEventTarget& eventTarget) override {
-    eventTarget.Enqueue(this->_id);
+    eventTarget.Enqueue(_id);
   }
 
  private:
@@ -132,27 +132,36 @@ class TestEvent: public Event<TestEventTarget> {
 
 using TestEventLoop = EventLoop<TestEventTarget>;
 
-// NOTE(mroberts):
+/**
+ * TrickyTestEvent calls Stop on the EventLoop once Dispatched, and it may
+ * release its reference to the EventLoop.
+ */
 class TrickyTestEvent: public TestEvent {
  public:
-  explicit TrickyTestEvent(TestEventLoop* eventLoop, int id)
+  explicit TrickyTestEvent(std::shared_ptr<TestEventLoop> eventLoop, int id): TrickyTestEvent(eventLoop, id, false) {}
+
+  explicit TrickyTestEvent(std::shared_ptr<TestEventLoop> eventLoop, int id, bool should_reset)
   : TestEvent(id)
-  , _eventLoop(eventLoop) {}
+  , _eventLoop(eventLoop)
+  , _should_reset(should_reset) {}
 
   void Dispatch(TestEventTarget& eventTarget) override {
-    this->_eventLoop->Stop();
+    _eventLoop->Stop();
+    if (_should_reset) {
+      _eventLoop.reset();
+    }
     TestEvent::Dispatch(eventTarget);
   }
 
  private:
-  TestEventLoop* _eventLoop;
+  std::shared_ptr<TestEventLoop> _eventLoop;
+  bool _should_reset;
 };
 
 TEST_CASE("EventLoop") {
   SECTION("constructor") {
     TestEventTarget eventTarget;
-    auto eventLoop = std::unique_ptr<TestEventLoop>(
-      new TestEventLoop(eventTarget));
+    auto eventLoop = TestEventLoop::Create(eventTarget);
 
     eventLoop->Stop();
 
@@ -162,8 +171,7 @@ TEST_CASE("EventLoop") {
 
   SECTION("Dispatch") {
     TestEventTarget eventTarget;
-    auto eventLoop1 = std::unique_ptr<TestEventLoop>(
-      new TestEventLoop(eventTarget));
+    auto eventLoop1 = TestEventLoop::Create(eventTarget);
     eventLoop1->Dispatch(std::unique_ptr<TestEvent>(new TestEvent(1)));
     eventLoop1->Dispatch(std::unique_ptr<TestEvent>(new TestEvent(2)));
     eventLoop1->Dispatch(std::unique_ptr<TestEvent>(new TestEvent(3)));
@@ -183,12 +191,28 @@ TEST_CASE("EventLoop") {
 
     // NOTE(mroberts): The point of this test is to ensure that, if dispatching
     // an event causes the EventLoop to stop, nothing bad happens.
-    auto eventLoop2 = std::unique_ptr<TestEventLoop>(
-      new TestEventLoop(eventTarget));
+    auto eventLoop2 = TestEventLoop::Create(eventTarget);
     eventLoop2->Dispatch(std::unique_ptr<TestEvent>(new TestEvent(1)));
     eventLoop2->Dispatch(std::unique_ptr<TrickyTestEvent>(new TrickyTestEvent(
-      eventLoop2.get(), 2)));
+      eventLoop2, 2)));
     eventLoop2->Dispatch(std::unique_ptr<TestEvent>(new TestEvent(3)));
+    REQUIRE(eventTarget.Dequeue() == 0);
+
+    // NOTE(mroberts): I'm not completely sure if this is safe.
+    uv_run(uv_default_loop(), UV_RUN_NOWAIT);
+
+    REQUIRE(eventTarget.Dequeue() == 1);
+    REQUIRE(eventTarget.Dequeue() == 2);
+    REQUIRE(eventTarget.Dequeue() == 0);
+
+    // NOTE(mroberts): The point of this test is to ensure that, if dispatching
+    // an event causes us to release our reference to the EventLoop, nothing bad happens.
+    auto eventLoop3 = TestEventLoop::Create(eventTarget);
+    eventLoop3->Dispatch(std::unique_ptr<TestEvent>(new TestEvent(1)));
+    eventLoop3->Dispatch(std::unique_ptr<TrickyTestEvent>(new TrickyTestEvent(
+        eventLoop3, 2, true)));
+    eventLoop3->Dispatch(std::unique_ptr<TestEvent>(new TestEvent(3)));
+    eventLoop3.reset();
     REQUIRE(eventTarget.Dequeue() == 0);
 
     // NOTE(mroberts): I'm not completely sure if this is safe.
@@ -201,8 +225,7 @@ TEST_CASE("EventLoop") {
 
   SECTION("Stop") {
     TestEventTarget eventTarget;
-    auto eventLoop = std::unique_ptr<TestEventLoop>(
-      new TestEventLoop(eventTarget));
+    auto eventLoop = TestEventLoop::Create(eventTarget);
 
     REQUIRE(eventLoop->stopped() == false);
     eventLoop->Stop();
