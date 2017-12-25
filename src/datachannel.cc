@@ -229,37 +229,39 @@ NAN_METHOD(DataChannel::Send) {
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.This());
 
-  if (info[0]->IsString()) {
-    Local<String> str = Local<String>::Cast(info[0]);
-    std::string data = *String::Utf8Value(str);
+  if (self->_jingleDataChannel != nullptr) {
+    if (info[0]->IsString()) {
+      Local<String> str = Local<String>::Cast(info[0]);
+      std::string data = *String::Utf8Value(str);
 
-    webrtc::DataBuffer buffer(data);
-    self->_jingleDataChannel->Send(buffer);
-  } else {
-#if NODE_MINOR_VERSION >= 11 || NODE_MAJOR_VERSION > 0
-    Local<v8::ArrayBuffer> arraybuffer;
-
-    if (info[0]->IsArrayBuffer()) {
-      arraybuffer = Local<v8::ArrayBuffer>::Cast(info[0]);
+      webrtc::DataBuffer buffer(data);
+      self->_jingleDataChannel->Send(buffer);
     } else {
-      Local<v8::ArrayBufferView> view = Local<v8::ArrayBufferView>::Cast(info[0]);
-      arraybuffer = view->Buffer();
-    }
+#if NODE_MINOR_VERSION >= 11 || NODE_MAJOR_VERSION > 0
+      Local<v8::ArrayBuffer> arraybuffer;
 
-    v8::ArrayBuffer::Contents content = arraybuffer->GetContents();
-    rtc::CopyOnWriteBuffer buffer(static_cast<char*>(content.Data()), content.ByteLength());
+      if (info[0]->IsArrayBuffer()) {
+        arraybuffer = Local<v8::ArrayBuffer>::Cast(info[0]);
+      } else {
+        Local<v8::ArrayBufferView> view = Local<v8::ArrayBufferView>::Cast(info[0]);
+        arraybuffer = view->Buffer();
+      }
+
+      v8::ArrayBuffer::Contents content = arraybuffer->GetContents();
+      rtc::CopyOnWriteBuffer buffer(static_cast<char*>(content.Data()), content.ByteLength());
 
 #else
-    Local<Object> arraybuffer = Local<Object>::Cast(info[0]);
-    void* data = arraybuffer->GetIndexedPropertiesExternalArrayData();
-    uint32_t data_len = arraybuffer->GetIndexedPropertiesExternalArrayDataLength();
+      Local<Object> arraybuffer = Local<Object>::Cast(info[0]);
+      void* data = arraybuffer->GetIndexedPropertiesExternalArrayData();
+      uint32_t data_len = arraybuffer->GetIndexedPropertiesExternalArrayDataLength();
 
-    rtc::CopyOnWriteBuffer buffer(data, data_len);
+      rtc::CopyOnWriteBuffer buffer(data, data_len);
 
 #endif
 
-    webrtc::DataBuffer data_buffer(buffer, true);
-    self->_jingleDataChannel->Send(data_buffer);
+      webrtc::DataBuffer data_buffer(buffer, true);
+      self->_jingleDataChannel->Send(data_buffer);
+    }
   }
 
   TRACE_END;
@@ -270,7 +272,10 @@ NAN_METHOD(DataChannel::Close) {
   TRACE_CALL;
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.This());
-  self->_jingleDataChannel->Close();
+
+  if (self->_jingleDataChannel != nullptr) {
+    self->_jingleDataChannel->Close();
+  }
 
   TRACE_END;
   return;
@@ -293,7 +298,13 @@ NAN_GETTER(DataChannel::GetBufferedAmount) {
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
-  uint64_t buffered_amount = self->_jingleDataChannel->buffered_amount();
+  uint64_t buffered_amount;
+
+  if (self->_jingleDataChannel != nullptr) {
+    buffered_amount = self->_jingleDataChannel->buffered_amount();
+  } else {
+    buffered_amount = 0;
+  }
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New<Number>(buffered_amount));
@@ -304,7 +315,13 @@ NAN_GETTER(DataChannel::GetLabel) {
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
-  std::string label = self->_jingleDataChannel->label();
+  std::string label;
+
+  if (self->_jingleDataChannel != nullptr) {
+    label = self->_jingleDataChannel->label();
+  } else {
+    label = "";
+  }
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New(label).ToLocalChecked());
@@ -315,7 +332,13 @@ NAN_GETTER(DataChannel::GetReadyState) {
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
-  webrtc::DataChannelInterface::DataState state = self->_jingleDataChannel->state();
+  webrtc::DataChannelInterface::DataState state;
+
+  if (self->_jingleDataChannel != nullptr) {
+    state = self->_jingleDataChannel->state();
+  } else {
+    state = webrtc::DataChannelInterface::kClosed;
+  }
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New<Number>(static_cast<uint32_t>(state)));

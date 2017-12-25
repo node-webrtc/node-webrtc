@@ -251,14 +251,14 @@ NAN_METHOD(PeerConnection::New) {
   }
 
   webrtc::PeerConnectionInterface::IceServers iceServerList;
-  
+
   // Check if we have a configuration object
   if (info[0]->IsObject()) {
     const Local<Object> obj = info[0]->ToObject();
 
     // Extract keys into array for iteration
     const Local<Array> props = obj->GetPropertyNames();
-    
+
     // Iterate all of the top-level config keys
     for (uint32_t i = 0; i < props->Length(); i++) {
       // Get the key and value for this particular config field
@@ -279,7 +279,7 @@ NAN_METHOD(PeerConnection::New) {
 
             const Local<Object> iceServerObj = iceServers->Get(j)->ToObject();
             webrtc::PeerConnectionInterface::IceServer iceServer;
-            
+
             const Local<Array> iceProps = iceServerObj->GetPropertyNames();
 
             // Now we have an iceserver object in iceServerObj - Lets iterate all of its fields
@@ -426,7 +426,7 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
     self->QueueEvent(PeerConnection::ADD_ICE_CANDIDATE_SUCCESS, static_cast<void*>(nullptr));
   } else {
     std::string error = std::string("Failed to set ICE candidate");
-    if( !self->_jinglePeerConnection ) {
+    if(self->_jinglePeerConnection == nullptr) {
       error += ", no jingle peer connection";
     } else if( sdpParseError.description.length() ) {
       error += std::string(", parse error: ") + sdpParseError.description;
@@ -557,8 +557,8 @@ NAN_GETTER(PeerConnection::GetLocalDescription) {
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
   const webrtc::SessionDescriptionInterface* sdi = nullptr;
-  
-  if ( self->_jinglePeerConnection != nullptr) {
+
+  if (self->_jinglePeerConnection != nullptr) {
     sdi = self->_jinglePeerConnection->local_description();
   }
 
@@ -584,8 +584,8 @@ NAN_GETTER(PeerConnection::GetRemoteDescription) {
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
   const webrtc::SessionDescriptionInterface* sdi = nullptr;
-  
-  if ( self->_jinglePeerConnection != nullptr) {
+
+  if (self->_jinglePeerConnection != nullptr) {
     sdi = self->_jinglePeerConnection->remote_description();
   }
 
