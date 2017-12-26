@@ -298,13 +298,9 @@ NAN_GETTER(DataChannel::GetBufferedAmount) {
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
-  uint64_t buffered_amount;
-
-  if (self->_jingleDataChannel != nullptr) {
-    buffered_amount = self->_jingleDataChannel->buffered_amount();
-  } else {
-    buffered_amount = 0;
-  }
+  uint64_t buffered_amount = self->_jingleDataChannel != nullptr
+    ? self->_jingleDataChannel->buffered_amount()
+    : 0;
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New<Number>(buffered_amount));
@@ -315,13 +311,9 @@ NAN_GETTER(DataChannel::GetLabel) {
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
-  std::string label;
-
-  if (self->_jingleDataChannel != nullptr) {
-    label = self->_jingleDataChannel->label();
-  } else {
-    label = "";
-  }
+  std::string label = self->_jingleDataChannel != nullptr
+    ? self->_jingleDataChannel->label()
+    : "";
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New(label).ToLocalChecked());
@@ -332,13 +324,9 @@ NAN_GETTER(DataChannel::GetReadyState) {
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
-  webrtc::DataChannelInterface::DataState state;
-
-  if (self->_jingleDataChannel != nullptr) {
-    state = self->_jingleDataChannel->state();
-  } else {
-    state = webrtc::DataChannelInterface::kClosed;
-  }
+  webrtc::DataChannelInterface::DataState state = self->_jingleDataChannel != nullptr
+    ? self->_jingleDataChannel->state()
+    : webrtc::DataChannelInterface::kClosed;
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New<Number>(static_cast<uint32_t>(state)));
