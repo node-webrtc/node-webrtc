@@ -207,24 +207,96 @@ test('monitor the ice connection state of peer:1', function(t) {
   checkState();
 });
 
+/**
+ * @param {Test} t
+ * @param {RTCDataChannel} sender
+ * @param {RTCDataChannel} receiver
+ * @param {string|Uint8Array} message
+ * @returns {Promise<void>}
+ */
+function testSendingAMessage(t, sender, receiver, message) {
+  var messageEventPromise = new Promise(function(resolve) {
+    receiver.addEventListener('message', resolve);
+  });
+  sender.send(message);
+  t.pass('successfully sent message');
+  return messageEventPromise.then(function(messageEvent) {
+    var data = messageEvent.data;
+    t.ok(data !== undefined, 'got valid data');
+    if (typeof message === 'string') {
+      t.equal(data.length, message.length);
+      t.equal(data, message);
+    } else {
+      data = new Uint8Array(data);
+      t.equal(data.length, message.length);
+      t.deepEqual([].slice.call(data), [].slice.call(message));
+    }
+  });
+}
+
+/**
+ * @param {Test} t
+ * @param {RTCDataChannel} sender
+ * @param {RTCDataChannel} receiver
+ * @param {string|Uint8Array} message
+ * @param {number} n
+ * @returns {Promise<void>}
+ */
+function testSendingAMessageNTimes(t, sender, receiver, message, n) {
+  return n <= 0
+    ? Promise.resolve()
+    : testSendingAMessage(t, sender, receiver, message).then(function() {
+        return testSendingAMessageNTimes(t, sender, receiver, message, n - 1);
+      });
+}
+
+/**
+ * @param {Test} t
+ * @param {RTCDataChannel} sender
+ * @param {RTCDataChannel} receiver
+ * @param {string} message
+ * @param {object} [options]
+ * @param {number} [options.times=1]
+ * @param {boolean} [options.type='string'] - one of "string", "arraybuffer", or
+ *   "buffer"
+ * @returns {Promise<void>}
+ */
+function testSendingAMessageWithOptions(t, sender, receiver, message, options) {
+  options = Object.assign({
+    times: 1,
+    type: 'string'
+  }, options);
+  if (options.type === 'arraybuffer') {
+    message = new Uint8Array(message.split('').map(function(char) {
+      return char.charCodeAt(0);
+    }));
+  } else if (options.type === 'buffer') {
+    message = new Buffer(message);
+  }
+  return testSendingAMessageNTimes(t, sender, receiver, message, options.times);
+}
+
 test('data channel connectivity', function(t) {
-  t.plan(10);
-  dcs[1].onmessage = function(evt) {
-    var data = evt.data && new Uint8Array(evt.data);
-
-    t.ok(data && typeof data.length !== 'undefined', 'got valid data');
-    t.equal(data.length, 2, 'two bytes sent');
-    t.equal(data[0], 10, 'byte:0 matches expected');
-    t.equal(data[1], 11, 'byte:1 matches expected');
-    // t.equal(evt.data, 'hello', 'dc:1 received message correctly');
-  };
-
-  var arrayBuffer = new Uint8Array([10, 11]);
-  dcs[0].send(arrayBuffer);
-  t.pass('successfully called send on dc:0');
-  dcs[0].send(arrayBuffer);
-  t.pass('successfully re-used arrayBuffer');
-
+  var sender = dcs[0];
+  var receiver = dcs[1];
+  var message1 = 'hello world';
+  var message2 = 'lorem ipsum';
+  // First, test sending strings.
+  testSendingAMessageWithOptions(t, sender, receiver, message1, { times: 3 }).then(function() {
+    // Then, test sending ArrayBuffers.
+    return testSendingAMessageWithOptions(t, sender, receiver, message1, {
+      times: 3,
+      type: 'arraybuffer'
+    });
+  }).then(function() {
+    // Finally, test sending Buffers.
+    return testSendingAMessageWithOptions(t, sender, receiver, message1, {
+      times: 3,
+      type: 'buffer'
+    });
+  }).then(function() {
+    t.end();
+  });
 });
 
 test('getStats', function(t) {
