@@ -17,7 +17,9 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
+      - doxygen
       - g++-4.8
+      - libc6-dbg
 
 notifications:
   email: false
@@ -28,15 +30,60 @@ env:
     - secure: "TboT8Z9uoFCb2ocvP+Srbm+rU799Fv2vJ+Za3+DcVLqG7IJyYOHUK7BNogSkbjO70+Ns2vFcDY1OZYwAbqXQ+1ah0Sh186u0PJaCyR3wTTbPdoHSNCFXLvcD82GE/NkLWurBmpDXB+3NaPgvEz3Xpy0O1Shl2bQMwW2m5NaV3eg="
 
 install:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+  - |
+    echo "Setting CXX, installing Valgrind, etc. (if on Linux)"
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       export CXX=g++-4.8;
+
+      wget ftp://sourceware.org/pub/valgrind/valgrind-3.13.0.tar.bz2
+      tar xf valgrind-3.13.0.tar.bz2
+      cd valgrind-3.13.0
+      ./configure
+      make
+      sudo make install
+      cd ..
     fi
-  - npm install
+
+  - |
+    echo "Installing dependencies"
+    npm install --ignore-scripts
 
 script:
-  - npm test
-  - if [[ $TRAVIS_TAG ]] ||
-       [[ `git show -s --format=%B $TRAVIS_COMMIT` == *'[publish binary]'* ]];
-    then
+  - |
+    echo "Running Doxygen (if available)"
+    if command -v doxygen 1>/dev/null; then
+      doxygen .doxygen.txt
+      if [[ -s doxygen_warnings.txt ]]; then
+        cat doxygen_warnings.txt
+      fi
+    fi
+
+  - |
+    echo "Building Debug version"
+    ncmake rebuild --debug
+
+  - |
+    echo "Running C++ tests"
+    ./bin/test
+
+  - |
+    echo "Running C++ tests with Valgrind (if available)"
+    if command -v valgrind 1>/dev/null; then
+      valgrind --error-exitcode=1 --leak-check=yes --smc-check=all --gen-suppressions=all 2>&1 node -e "require('./')" | grep -v '^=' >node.supp
+      valgrind --error-exitcode=1 --leak-check=yes --smc-check=all --suppressions=node.supp node bin/test
+    fi
+
+  - |
+    echo "Building Release version"
+    ncmake rebuild
+
+  - |
+    echo "Running JavaScript tests"
+    npm test
+
+  - |
+    echo "Publishing binary (maybe)"
+    if [[ $TRAVIS_TAG ]] ||
+       [[ `git show -s --format=%B $TRAVIS_COMMIT` == *'[publish binary]'* ]]; then
       $RUN node_modules/.bin/node-pre-gyp package publish;
     fi

@@ -4,7 +4,7 @@ var test = require('tape');
 // var detect = require('rtc-core/detect');
 // var RTCPeerConnection = detect('RTCPeerConnection');
 
-var wrtc = require('..');
+var wrtc = require('../..');
 
 var RTCIceCandidate   = wrtc.RTCIceCandidate;
 var RTCPeerConnection = wrtc.RTCPeerConnection;
@@ -342,8 +342,8 @@ test('close the connections', function(t) {
 
   // make sure nothing crashes after connection is closed and _jinglePeerConnection is null
   for (var i = 0; i < 2; i++) {
-    peers[i].createOffer();
-    peers[i].createAnswer();
+    peers[i].createOffer().catch(() => {});
+    peers[i].createAnswer().catch(() => {});
     peers[i].setLocalDescription({}, function() {}, function(){});
     peers[i].setRemoteDescription({}, function() {}, function(){});
     peers[i].addIceCandidate({}, function() {}, function(){});

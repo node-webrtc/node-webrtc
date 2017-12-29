@@ -2,7 +2,7 @@
 
 var tape = require('tape');
 var SimplePeer = require('simple-peer');
-var wrtc = require('..');
+var wrtc = require('../..');
 
 tape('connect once', function(t) {
     t.plan(1);

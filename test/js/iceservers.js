@@ -1,7 +1,7 @@
 'use strict';
 var test = require('tape');
 
-var wrtc = require('..');
+var wrtc = require('../..');
 
 var RTCPeerConnection       = wrtc.RTCPeerConnection;
 var RTCSessionDescription   = wrtc.RTCSessionDescription;

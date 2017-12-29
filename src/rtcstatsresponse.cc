@@ -1,9 +1,14 @@
-#include "rtcstatsresponse.h"
+/* Copyright (c) 2017 The node-webrtc project authors. All rights reserved.
+ *
+ * Use of this source code is governed by a BSD-style license that can be found
+ * in the LICENSE.md file in the root of the source tree. All contributing
+ * project authors may be found in the AUTHORS file in the root of the source
+ * tree.
+ */
+#include "src/rtcstatsresponse.h"
 
-#include <vector>
-
-#include "common.h"
-#include "rtcstatsreport.h"
+#include "src/common.h"
+#include "src/rtcstatsreport.h"
 
 using node_webrtc::RTCStatsResponse;
 using v8::Array;
@@ -15,7 +20,7 @@ using v8::Local;
 using v8::Object;
 using v8::Value;
 
-Nan::Persistent<Function> RTCStatsResponse::constructor;
+Nan::Persistent<Function>* RTCStatsResponse::constructor;
 
 NAN_METHOD(RTCStatsResponse::New) {
   TRACE_CALL;
@@ -25,7 +30,7 @@ NAN_METHOD(RTCStatsResponse::New) {
   }
 
   Local<External> _reports = Local<External>::Cast(info[0]);
-  webrtc::StatsReports* reports = static_cast<webrtc::StatsReports*>(_reports->Value());
+  auto reports = static_cast<webrtc::StatsReports*>(_reports->Value());
 
   RTCStatsResponse* obj = new RTCStatsResponse(*reports);
   obj->Wrap(info.This());
@@ -37,14 +42,17 @@ NAN_METHOD(RTCStatsResponse::New) {
 NAN_METHOD(RTCStatsResponse::result) {
   TRACE_CALL;
 
-  RTCStatsResponse* self = Nan::ObjectWrap::Unwrap<RTCStatsResponse>(info.This());
+  auto self = Nan::ObjectWrap::Unwrap<RTCStatsResponse>(info.This());
 
-  Local<Array> reports = Nan::New<Array>(self->reports.size());
+  auto reports = Nan::New<Array>(self->reports.size());
   for (std::vector<int>::size_type i = 0; i != self->reports.size(); i++) {
-    const void *copy = static_cast<const void*>(self->reports.at(i));
-    Local<Value> cargv[1];
-    cargv[0] = Nan::New<External>(const_cast<void*>(copy));
-    reports->Set(i, Nan::New(RTCStatsReport::constructor)->NewInstance(1, cargv));
+    auto copy = static_cast<const void*>(self->reports.at(i));
+    Local<Value> cargv[] = {
+        Nan::New<External>(const_cast<void*>(copy))
+    };
+    reports->Set(
+        static_cast<uint32_t>(i),
+        Nan::NewInstance(Nan::New(*RTCStatsReport::constructor), 1, cargv).ToLocalChecked());
   }
 
   TRACE_END;
@@ -52,10 +60,14 @@ NAN_METHOD(RTCStatsResponse::result) {
 }
 
 void RTCStatsResponse::Init(Handle<Object> exports) {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate> (New);
+  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("RTCStatsResponse").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   Nan::SetPrototypeMethod(tpl, "result", result);
-  constructor.Reset(tpl->GetFunction());
+  constructor = new Nan::Persistent<Function>(tpl->GetFunction());
   exports->Set(Nan::New("RTCStatsResponse").ToLocalChecked(), tpl->GetFunction());
+}
+
+void RTCStatsResponse::Dispose() {
+  delete constructor;
 }
