@@ -22,7 +22,7 @@ class DataChannel;
 class MessageEvent: public Event<DataChannel> {
  public:
   bool binary;
-  char* message;
+  std::unique_ptr<char[]> message;
   size_t size;
 
   void Dispatch(DataChannel& dataChannel) override;
@@ -35,8 +35,8 @@ class MessageEvent: public Event<DataChannel> {
   explicit MessageEvent(const webrtc::DataBuffer* buffer) {
     binary = buffer->binary;
     size = buffer->size();
-    message = new char[size];
-    memcpy(reinterpret_cast<void*>(message), reinterpret_cast<const void*>(buffer->data.data()), size);
+    message = std::unique_ptr<char[]>(new char[size]);
+    memcpy(reinterpret_cast<void*>(message.get()), reinterpret_cast<const void*>(buffer->data.data()), size);
   }
 };
 

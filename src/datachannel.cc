@@ -137,29 +137,19 @@ void DataChannel::HandleMessageEvent(const MessageEvent& event) const {
   auto callback = Local<Function>::Cast(self->Get(Nan::New("onmessage").ToLocalChecked()));
 
   Local<Value> argv[1];
+  auto message = event.message.get();
 
   if (event.binary) {
-#if NODE_MODULE_VERSION > 0x000B
-    auto array = v8::ArrayBuffer::New(
-        v8::Isolate::GetCurrent(), event.message, event.size);
-#else
-    Local<Object> array = Nan::New(ArrayBufferConstructor)->NewInstance();
-        array->SetIndexedPropertiesToExternalArrayData(
-            event.message, v8::kExternalByteArray, event.size);
-        array->ForceSet(Nan::New("byteLength").ToLocalChecked(), Nan::New<Integer>(static_cast<uint32_t>(event.size)));
-#endif
-
+    auto array = v8::ArrayBuffer::New(v8::Isolate::GetCurrent(), event.size);
+    auto data = array->GetContents().Data();
+    memcpy(data, message, event.size);
     argv[0] = array;
-    Nan::MakeCallback(self, callback, 1, argv);
   } else {
-    auto str = Nan::New(event.message, static_cast<int>(event.size)).ToLocalChecked();
-
-    // cleanup message event
-    delete[] event.message;
-
+    auto str = Nan::New(message, static_cast<int>(event.size)).ToLocalChecked();
     argv[0] = str;
-    Nan::MakeCallback(self, callback, 1, argv);
   }
+
+  Nan::MakeCallback(self, callback, 1, argv);
 }
 
 void DataChannel::OnStateChange() {
