@@ -84,26 +84,9 @@ ECHO updating npm
 CALL npm install -g npm@5.3.x
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-ECHO updating node-gyp (maybe)
-IF "%nodejs_version:~0,1%"=="0" CALL npm install https://github.com/springmeyer/node-gyp/tarball/v3.x
+ECHO npm install
+CALL npm install
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-IF "%nodejs_version:~0,1%"=="4" CALL npm install node-gyp@3.x
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-
-ECHO building from source
-CALL npm install --build-from-source --msvs_version=%msvs_version% %TOOLSET_ARGS% --loglevel=http
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-
-FOR /F "tokens=*" %%i in ('CALL node_modules\.bin\node-pre-gyp reveal module --silent') DO SET MODULE=%%i
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-FOR /F "tokens=*" %%i in ('node -e "console.log(process.execPath)"') DO SET NODE_EXE=%%i
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-
-dumpbin /DEPENDENTS "%NODE_EXE%"
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-dumpbin /DEPENDENTS "%MODULE%"
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-
 
 ::skipping check for errorlevel npm test result when using io.js
 ::@springmeyer: how to proceed?

@@ -26,7 +26,7 @@ This library will attempt to download pre-compiled binaries for your particular
 platform using [node-pre-gyp](https://github.com/mapbox/node-pre-gyp); however,
 if binaries are unavailable, it will fallback to building from source. In this
 case, the prerequisites for building from source are the same as
-[node-gyp](https://github.com/nodejs/node-gyp). Refer to node-gyp for the
+[node-cmake](https://github.com/cjntaylor/node-cmake). Refer to node-cmake for the
 particular prerequisites for your platform.
 
 ## Install
