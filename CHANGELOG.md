@@ -1,3 +1,19 @@
+0.0.65
+======
+
+New Features
+------------
+
+- Added support for sending Buffers (#103)
+
+Bug Fixes
+---------
+
+- Sending an ArrayBufferView over an RTCDataChannel did not take into account
+  the ArrayBufferView's `offset` or `length` properties. This resulted in
+  sending the entire backing ArrayBuffer instead of just the data in the
+  ArrayBufferView.
+
 0.0.64
 ======
 

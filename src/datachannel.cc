@@ -237,27 +237,26 @@ NAN_METHOD(DataChannel::Send) {
       webrtc::DataBuffer buffer(data);
       self->_jingleDataChannel->Send(buffer);
     } else {
-#if NODE_MINOR_VERSION >= 11 || NODE_MAJOR_VERSION > 0
       Local<v8::ArrayBuffer> arraybuffer;
+      size_t byte_offset = 0;
+      size_t byte_length = 0;
 
-      if (info[0]->IsArrayBuffer()) {
-        arraybuffer = Local<v8::ArrayBuffer>::Cast(info[0]);
-      } else {
+      if (info[0]->IsArrayBufferView()) {
         Local<v8::ArrayBufferView> view = Local<v8::ArrayBufferView>::Cast(info[0]);
         arraybuffer = view->Buffer();
+        byte_offset = view->ByteOffset();
+        byte_length = view->ByteLength();
+      } else if (info[0]->IsArrayBuffer()) {
+        arraybuffer = Local<v8::ArrayBuffer>::Cast(info[0]);
+        byte_length = arraybuffer->ByteLength();
+      } else {
+        // TODO(mroberts): Throw a TypeError.
       }
 
       v8::ArrayBuffer::Contents content = arraybuffer->GetContents();
-      rtc::CopyOnWriteBuffer buffer(static_cast<char*>(content.Data()), content.ByteLength());
-
-#else
-      Local<Object> arraybuffer = Local<Object>::Cast(info[0]);
-      void* data = arraybuffer->GetIndexedPropertiesExternalArrayData();
-      uint32_t data_len = arraybuffer->GetIndexedPropertiesExternalArrayDataLength();
-
-      rtc::CopyOnWriteBuffer buffer(data, data_len);
-
-#endif
+      rtc::CopyOnWriteBuffer buffer(
+          static_cast<char*>(content.Data()) + byte_offset,
+          byte_length);
 
       webrtc::DataBuffer data_buffer(buffer, true);
       self->_jingleDataChannel->Send(data_buffer);
