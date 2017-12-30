@@ -14,6 +14,11 @@ Bug Fixes
   sending the entire backing ArrayBuffer instead of just the data in the
   ArrayBufferView.
 
+Breaking Changes
+----------------
+
+- Building from source requires CMake 3.1 or newer
+
 0.0.64
 ======
 
