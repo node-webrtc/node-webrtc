@@ -88,6 +88,17 @@ ECHO npm install
 CALL npm install
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
+FOR /F "tokens=*" %%i in ('CALL node_modules\.bin\node-pre-gyp reveal module --silent') DO SET MODULE=%%i
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+FOR /F "tokens=*" %%i in ('node -e "console.log(process.execPath)"') DO SET NODE_EXE=%%i
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+dumpbin /DEPENDENTS "%NODE_EXE%"
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+dumpbin /DEPENDENTS "%MODULE%"
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+
 ::skipping check for errorlevel npm test result when using io.js
 ::@springmeyer: how to proceed?
 IF NOT "%nodejs_version%"=="1.8.1" IF NOT "%nodejs_version%"=="2.0.0" GOTO CHECK_NPM_TEST_ERRORLEVEL
