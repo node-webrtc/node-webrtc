@@ -1,7 +1,8 @@
-(function() {
+var test = require('tape');
+test('Bridge Example', function(t) {
 
 var host = window.location.host.split(':')[0];
-var bridge = window.location.toString().split('?')[1] || host + ':9001';
+var bridge = window.location.toString().split('?')[1] || host + ':8080';
 
 var dataChannelSettings = {
   'reliable': {
@@ -32,6 +33,8 @@ function doComplete()
   var data = new Uint8Array([97, 99, 107, 0]);
   dataChannels['reliable'].send(data.buffer);
   dataChannels['reliable'].send("Hello bridge!");
+  t.pass('it worked');
+  t.end();
 }
 
 function doWaitforDataChannels()
@@ -177,4 +180,4 @@ function doSetRemoteDesc(desc)
   );
 }
 
-})();
+});
