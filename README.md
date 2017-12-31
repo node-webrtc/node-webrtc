@@ -53,7 +53,7 @@ Once everything is built, try `npm test` as a sanity check.
 
 ## bridge.js
 
-You can run the data channel demo by `node examples/bridge.js` and browsing to `examples/peer.html` in `chrome --enable-data-channels`.
+You can run the data channel demo by `node examples/bridge.js` and browsing to [localhost:8080/peer.html](http:localhost:8080/peer.html).
 
 Usage:
 
@@ -66,7 +66,7 @@ Options:
 ````
 -h  host IP for the webserver that will serve the static files (default 127.0.0.1)
 -p  host port for the webserver that will serve the static files (default 8080)
--ws port of the Web Socket server (default 9001)
+-ws port of the Web Socket server (default 8080)
 ````
 
 If the bridge and peer are on different machines, you can pass the bridge address to the peer by:
@@ -74,7 +74,7 @@ If the bridge and peer are on different machines, you can pass the bridge addres
 http://<webserver>/peer.html?<sockertserver:port>
 ````
 
-By default the bridge will be the same IP as the webserver and will listen on port 9001.
+By default the bridge will be the same IP as the webserver and will listen on port 8080.
 
 ## ping-pong-test.js
 

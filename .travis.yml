@@ -18,24 +18,61 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - g++-4.8
+      - pulseaudio
 
 notifications:
   email: false
 
 env:
   global:
+    - BVER=stable
+    - DBUS_SESSION_BUS_ADDRESS=/dev/null
+    - DISPLAY=:99.0
     - secure: "SFMrz/7qLPlVUN0clzthZlkILAdMoRClAggSux61wSITGvor6+jXx245muW66b1U3BoO5bjy1BwXSQwTNSc9uHfq0to9b7QwGCh04X4MDtAgcVwOCEXWkIKTZLVLkBQpxG+XPkLCwxA0Mkc8amFGEHSqn0w664UwoSqlRgUnAvg="
     - secure: "TboT8Z9uoFCb2ocvP+Srbm+rU799Fv2vJ+Za3+DcVLqG7IJyYOHUK7BNogSkbjO70+Ns2vFcDY1OZYwAbqXQ+1ah0Sh186u0PJaCyR3wTTbPdoHSNCFXLvcD82GE/NkLWurBmpDXB+3NaPgvEz3Xpy0O1Shl2bQMwW2m5NaV3eg="
 
 install:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+  - |
+    set -e
+
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
       export CXX=g++-4.8;
     fi
-  - npm install
+
+    # karma-tap has an annoying peer dependency that fails
+    if [[ $(npm -v) == 2.* ]]; then
+      npm install -g npm@3
+    fi
+
+    npm install
+
+before_script:
+  - |
+    set -e
+
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      cd node_modules/travis-multirunner
+      BROWSER=chrome ./setup.sh
+      BROWSER=firefox ./setup.sh
+      export CHROME_BIN=$(pwd)/browsers/bin/chrome-$BVER
+      export FIREFOX_BIN=$(pwd)/browsers/bin/firefox-$BVER
+      cd ../..
+
+      sh -e /etc/init.d/xvfb start
+      pulseaudio --start
+    fi
 
 script:
-  - npm test
-  - if [[ $TRAVIS_TAG ]] ||
+  - |
+    set -e
+
+    npm test
+
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      npm run test:bridge
+    fi
+
+    if [[ $TRAVIS_TAG ]] ||
        [[ `git show -s --format=%B $TRAVIS_COMMIT` == *'[publish binary]'* ]];
     then
       $RUN node_modules/.bin/node-pre-gyp package publish;

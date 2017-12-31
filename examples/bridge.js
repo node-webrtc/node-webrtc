@@ -1,7 +1,10 @@
-var static = require('node-static-alias');
+var express = require('express');
+var expressBrowserify = require('express-browserify');
 var http = require('http');
-var webrtc = require('..');
+var join = require('path').join;
 var ws = require('ws');
+
+var webrtc = require('..');
 
 var args = require('minimist')(process.argv.slice(2));
 var MAX_REQUEST_LENGHT = 1024;
@@ -25,24 +28,20 @@ var host = args.h || '127.0.0.1';
 var port = args.p || 8080;
 var socketPort = args.ws || 9001;
 
-var file = new static.Server('./examples', {
-    alias: {
-        match: '/dist/wrtc.js',
-        serve: '../dist/wrtc.js',
-        allowOutside: true
-      }
-    });
+var app = express();
 
-var app = http.createServer(function (req, res) {
-    console.log(req.url);
-    req.addListener('end', function() {
-        file.serve(req, res);
-      }).resume();
+var server = http.createServer(app);
 
-}).listen(port, host);
-console.log('Server running at http://' + host + ':' + port + '/');
+app.get('/peer.js', expressBrowserify(join(__dirname, 'peer.js')));
 
-var wss = new ws.Server({'port': socketPort});
+app.use(express.static(__dirname));
+
+server.listen(port, function() {
+  var address = server.address();
+  console.log('Server running at ' + address.port);
+});
+
+var wss = new ws.Server({ server: server });
 wss.on('connection', function(ws)
 {
   console.info('ws connected');
