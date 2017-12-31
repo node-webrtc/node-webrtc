@@ -3,10 +3,6 @@
 var host = window.location.host.split(':')[0];
 var bridge = window.location.toString().split('?')[1] || host + ':9001';
 
-var RTCPeerConnection     = wrtc.RTCPeerConnection;
-var RTCSessionDescription = wrtc.RTCSessionDescription;
-var RTCIceCandidate       = wrtc.RTCIceCandidate;
-
 var dataChannelSettings = {
   'reliable': {
         ordered: false,
