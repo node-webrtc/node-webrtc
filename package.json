@@ -34,7 +34,7 @@
     "node-cmake": "^2.3.2",
     "node-pre-gyp": "0.6.x",
     "tar-fs": "^1.13.0",
-    "unzip-stream": "^0.2.1"
+    "unzip-stream": "0.2.1"
   },
   "bundledDependencies": [
     "node-pre-gyp"
