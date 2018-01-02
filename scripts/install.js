@@ -12,17 +12,17 @@ if (process.platform === 'win32') {
 }
 
 try {
-  console.log('Searching for a pre-build binary');
+  console.log('Searching for a pre-built wrtc binary');
   var result = spawnSync('node-pre-gyp', ['install', '--fallback-to-build=false'], {
     shell: true,
     stdio: 'inherit'
   });
   if (result.status) {
-    throw new Error('Unable to install a pre-built binary');
+    throw new Error('Unable to install a pre-built wrtc binary');
   }
-  console.log('Installed a pre-built binary');
+  console.log('Installed a pre-built wrtc binary');
 } catch (error) {
-  console.log('Unable to install a pre-built binary; falling back to ncmake');
+  console.log('Unable to install a pre-built wrtc binary; falling back to ncmake');
   console.log('Running ncmake ' + args.join(' '));
   spawnSync('ncmake', args, {
     shell: true,
@@ -33,4 +33,5 @@ try {
     shell: true,
     stdio: 'inherit'
   });
+  console.log('Built wrtc');
 }
