@@ -46,6 +46,8 @@ install:
 
     SKIP_DOWNLOAD=true DEBUG=true npm install
 
+    set +e
+
 before_script:
   - |
     set -e
@@ -61,6 +63,8 @@ before_script:
       sh -e /etc/init.d/xvfb start
       pulseaudio --start
     fi
+
+    set +e
 
 script:
   - |
@@ -83,3 +87,5 @@ script:
     then
       $RUN node_modules/.bin/node-pre-gyp package publish;
     fi
+
+    set +e
