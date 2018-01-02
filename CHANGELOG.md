@@ -13,6 +13,8 @@ Bug Fixes
   the ArrayBufferView's `offset` or `length` properties. This resulted in
   sending the entire backing ArrayBuffer instead of just the data in the
   ArrayBufferView.
+- unzip-stream 0.2.2 breaks compatibility with Node 4 and 5. This release pins
+  to unzip-stream 0.2.1.
 
 Breaking Changes
 ----------------
