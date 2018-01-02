@@ -4,12 +4,11 @@ var test = require('tape');
 
 var wrtc = require('..');
 
-var RTCPeerConnection     = wrtc.RTCPeerConnection;
+var RTCPeerConnection = wrtc.RTCPeerConnection;
 var RTCSessionDescription = wrtc.RTCSessionDescription;
 
 var peer;
 var localDesc;
-
 
 test('create a peer connection', function(t) {
   t.plan(1);

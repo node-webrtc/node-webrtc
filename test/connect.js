@@ -1,12 +1,10 @@
 'use strict';
-var test = require('tape');
 
-// var detect = require('rtc-core/detect');
-// var RTCPeerConnection = detect('RTCPeerConnection');
+var test = require('tape');
 
 var wrtc = require('..');
 
-var RTCIceCandidate   = wrtc.RTCIceCandidate;
+var RTCIceCandidate = wrtc.RTCIceCandidate;
 var RTCPeerConnection = wrtc.RTCPeerConnection;
 
 var captureCandidates = require('./helpers/capture-candidates');
@@ -99,7 +97,8 @@ test('setRemoteDescription for peer:1', function(t) {
 
 test('provide peer:1 with the peer:0 gathered ice candidates', function(t) {
   if (!candidates[0].length) {
-    return t.end();
+    t.end();
+    return;
   }
 
   t.plan(candidates[0].length);
@@ -155,7 +154,8 @@ test('setRemoteDescription for peer:0', function(t) {
 
 test('provide peer:0 with the peer:1 gathered ice candidates', function(t) {
   if (!candidates[1].length) {
-    return t.end();
+    t.end();
+    return;
   }
 
   t.plan(candidates[1].length);
@@ -183,7 +183,7 @@ test('monitor the ice connection state of peer:0', function(t) {
 
   function checkState() {
     if (peers[0].iceConnectionState === 'connected' ||
-        peers[0].iceConnectionState === 'completed') {
+      peers[0].iceConnectionState === 'completed') {
       t.pass('peer:0 in connected state');
       peers[0].oniceconnectionstatechange = null;
     }
@@ -222,7 +222,7 @@ function testSendingAMessage(t, sender, receiver, message) {
   t.pass('successfully sent message');
   return messageEventPromise.then(function(messageEvent) {
     var data = messageEvent.data;
-    t.ok(data !== undefined, 'got valid data');
+    t.ok(data, 'got valid data');
     if (typeof message === 'string') {
       t.equal(data.length, message.length);
       t.equal(data, message);
@@ -246,8 +246,8 @@ function testSendingAMessageNTimes(t, sender, receiver, message, n) {
   return n <= 0
     ? Promise.resolve()
     : testSendingAMessage(t, sender, receiver, message).then(function() {
-        return testSendingAMessageNTimes(t, sender, receiver, message, n - 1);
-      });
+      return testSendingAMessageNTimes(t, sender, receiver, message, n - 1);
+    });
 }
 
 /**
@@ -280,7 +280,6 @@ test('data channel connectivity', function(t) {
   var sender = dcs[0];
   var receiver = dcs[1];
   var message1 = 'hello world';
-  var message2 = 'lorem ipsum';
   // First, test sending strings.
   testSendingAMessageWithOptions(t, sender, receiver, message1, { times: 3 }).then(function() {
     // Then, test sending ArrayBuffers.
@@ -323,8 +322,10 @@ test('getStats', function(t) {
 
   function done(error, reports) {
     if (error) {
-      return t.fail(error);
+      t.fail(error);
+      return;
     }
+    // eslint-disable-next-line no-console
     console.log(reports);
     t.pass('successfully called getStats');
   }
@@ -344,12 +345,12 @@ test('close the connections', function(t) {
   for (var i = 0; i < 2; i++) {
     peers[i].createOffer();
     peers[i].createAnswer();
-    peers[i].setLocalDescription({}, function() {}, function(){});
-    peers[i].setRemoteDescription({}, function() {}, function(){});
-    peers[i].addIceCandidate({}, function() {}, function(){});
+    peers[i].setLocalDescription({}, function() {}, function() {});
+    peers[i].setRemoteDescription({}, function() {}, function() {});
+    peers[i].addIceCandidate({}, function() {}, function() {});
     peers[i].createDataChannel('test');
-    peers[i].getStats(function(){}, function(err){
-        t.ok(err);
+    peers[i].getStats(function() {}, function(err) {
+      t.ok(err);
     });
     peers[i].close();
   }

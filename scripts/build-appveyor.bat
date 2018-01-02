@@ -117,9 +117,13 @@ GOTO NPM_TEST_FINISHED
 
 
 :CHECK_NPM_TEST_ERRORLEVEL
-ECHO calling npm test
+ECHO calling npm run lint
+CALL npm run lint
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+ECHO calling npm run test
 CALL npm test
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+ECHO calling npm run test:bridge
 CALL npm run test:bridge
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 

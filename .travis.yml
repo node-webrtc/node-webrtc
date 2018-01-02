@@ -66,6 +66,7 @@ script:
   - |
     set -e
 
+    npm run lint
     npm test
 
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then

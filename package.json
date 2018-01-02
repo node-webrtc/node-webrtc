@@ -41,6 +41,7 @@
   ],
   "devDependencies": {
     "aws-sdk": "^2.2.10",
+    "eslint": "^4.14.0",
     "express": "^4.16.2",
     "express-browserify": "^1.0.2",
     "karma": "^2.0.0",
@@ -58,6 +59,7 @@
   },
   "scripts": {
     "install": "node scripts/install.js",
+    "lint": "eslint lib/*.js lib/**/*.js test/*.js test/**/*.js",
     "test": "node test/all.js",
     "test:bridge": "node scripts/karma.js"
   }
