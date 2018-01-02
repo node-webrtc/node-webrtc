@@ -1,3 +1,6 @@
+/* eslint no-console:0 */
+'use strict';
+
 var express = require('express');
 var expressBrowserify = require('express-browserify');
 var http = require('http');
@@ -7,26 +10,23 @@ var ws = require('ws');
 var webrtc = require('..');
 
 var args = require('minimist')(process.argv.slice(2));
-var MAX_REQUEST_LENGHT = 1024;
 var pc = null;
 var offer = null;
 var answer = null;
 var remoteReceived = false;
 
 var dataChannelSettings = {
-  'reliable': {
-        ordered: false,
-        maxRetransmits: 0
-      }
+  reliable: {
+    ordered: false,
+    maxRetransmits: 0
+  }
 };
 
 var pendingDataChannels = {};
-var dataChannels = {}
+var dataChannels = {};
 var pendingCandidates = [];
 
-var host = args.h || '127.0.0.1';
 var port = args.p || 8080;
-var socketPort = args.ws || 9001;
 
 var app = express();
 
@@ -42,25 +42,20 @@ server.listen(port, function() {
 });
 
 var wss = new ws.Server({ server: server });
-wss.on('connection', function(ws)
-{
+wss.on('connection', function(ws) {
   console.info('ws connected');
-  function doComplete()
-  {
+  function doComplete() {
     console.info('complete');
   }
 
-  function doHandleError(error)
-  {
+  function doHandleError(error) {
     throw error;
   }
 
-  function doCreateAnswer()
-  {
+  function doCreateAnswer() {
     remoteReceived = true;
-    pendingCandidates.forEach(function(candidate)
-    {
-      if(candidate.sdp) {
+    pendingCandidates.forEach(function(candidate) {
+      if (candidate.sdp) {
         pc.addIceCandidate(new webrtc.RTCIceCandidate(candidate.sdp));
       }
     });
@@ -68,10 +63,9 @@ wss.on('connection', function(ws)
       doSetLocalDesc,
       doHandleError
     );
-  };
+  }
 
-  function doSetLocalDesc(desc)
-  {
+  function doSetLocalDesc(desc) {
     answer = desc;
     console.info(desc);
     pc.setLocalDescription(
@@ -79,16 +73,14 @@ wss.on('connection', function(ws)
       doSendAnswer,
       doHandleError
     );
-  };
+  }
 
-  function doSendAnswer()
-  {
+  function doSendAnswer() {
     ws.send(JSON.stringify(answer));
     console.log('awaiting data channels');
   }
 
-  function doHandleDataChannels()
-  {
+  function doHandleDataChannels() {
     var labels = Object.keys(dataChannelSettings);
     pc.ondatachannel = function(evt) {
       var channel = evt.channel;
@@ -101,19 +93,19 @@ wss.on('connection', function(ws)
         console.info('onopen');
         dataChannels[label] = channel;
         delete pendingDataChannels[label];
-        if(Object.keys(dataChannels).length === labels.length) {
+        if (Object.keys(dataChannels).length === labels.length) {
           doComplete();
         }
       };
       channel.onmessage = function(evt) {
         var data = evt.data;
         if (typeof data === 'string') {
-            console.log('onmessage:', evt.data);
+          console.log('onmessage:', evt.data);
         } else {
-            console.log('onmessage:', new Uint8Array(evt.data));
+          console.log('onmessage:', new Uint8Array(evt.data));
         }
-        if('string' == typeof data) {
-          channel.send("Hello peer!");
+        if ('string' === typeof data) {
+          channel.send('Hello peer!');
         } else {
           var response = new Uint8Array([107, 99, 97, 0]);
           channel.send(response.buffer);
@@ -125,10 +117,9 @@ wss.on('connection', function(ws)
       channel.onerror = doHandleError;
     };
     doSetRemoteDesc();
-  };
+  }
 
-  function doSetRemoteDesc()
-  {
+  function doSetRemoteDesc() {
     console.info(offer);
     pc.setRemoteDescription(
       offer,
@@ -137,54 +128,45 @@ wss.on('connection', function(ws)
     );
   }
 
-  ws.on('message', function(data)
-  {
+  ws.on('message', function(data) {
     data = JSON.parse(data);
-    if('offer' == data.type)
-    {
+    if ('offer' === data.type) {
       offer = new webrtc.RTCSessionDescription(data);
       answer = null;
       remoteReceived = false;
 
-      pc = new webrtc.RTCPeerConnection(
-        {
-          iceServers: [{url:'stun:stun.l.google.com:19302'}]
-        },
-        {
-          'optional': [{DtlsSrtpKeyAgreement: false}]
-        }
-      );
-      pc.onsignalingstatechange = function(state)
-      {
+      pc = new webrtc.RTCPeerConnection({
+        iceServers: [{ url: 'stun:stun.l.google.com:19302' }]
+      }, {
+        optional: [{ DtlsSrtpKeyAgreement: false }]
+      });
+      pc.onsignalingstatechange = function(state) {
         console.info('signaling state change:', state);
-      }
-      pc.oniceconnectionstatechange = function(state)
-      {
+      };
+      pc.oniceconnectionstatechange = function(state) {
         console.info('ice connection state change:', state);
-      }
-      pc.onicegatheringstatechange = function(state)
-      {
+      };
+      pc.onicegatheringstatechange = function(state) {
         console.info('ice gathering state change:', state);
-      }
-      pc.onicecandidate = function(candidate)
-      {
-        ws.send(JSON.stringify(
-          {'type': 'ice',
-           'sdp': {'candidate': candidate.candidate, 'sdpMid': candidate.sdpMid, 'sdpMLineIndex': candidate.sdpMLineIndex}
-          })
-        );
-      }
+      };
+      pc.onicecandidate = function(candidate) {
+        ws.send(JSON.stringify({
+          type: 'ice',
+          sdp: {
+            candidate: candidate.candidate,
+            sdpMid: candidate.sdpMid,
+            sdpMLineIndex: candidate.sdpMLineIndex
+          }
+        }));
+      };
 
       doHandleDataChannels();
-    } else if('ice' == data.type)
-    {
-      if(remoteReceived)
-      {
-        if(data.sdp.candidate) {
+    } else if ('ice' === data.type) {
+      if (remoteReceived) {
+        if (data.sdp.candidate) {
           pc.addIceCandidate(new webrtc.RTCIceCandidate(data.sdp));
         }
-      } else
-      {
+      } else {
         pendingCandidates.push(data);
       }
     }
