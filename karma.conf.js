@@ -1,3 +1,4 @@
+/* eslint no-process-env:0 */
 'use strict';
 
 var tapSpec = require('tap-spec');
@@ -53,6 +54,6 @@ function makeConf(config) {
     singleRun: true,
     tapReporter: { prettify: tapSpec }
   });
-};
+}
 
 module.exports = makeConf;
