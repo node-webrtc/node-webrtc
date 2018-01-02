@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint no-console:0, no-process-env:0, no-process-exit:0 */
 'use strict';
 
 var fork = require('child_process').fork;
