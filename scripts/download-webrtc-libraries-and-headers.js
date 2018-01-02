@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+/* eslint no-console:0, no-process-env:0, no-process-exit:0 */
+'use strict';
 
 var download = require('download');
 var fs = require('fs');
@@ -23,6 +25,7 @@ var unzip = require('unzip-stream');
 var defaults = {
   arch: process.arch,
   binary: {
+    // eslint-disable-next-line camelcase
     module_path: 'third_party/webrtc'
   },
   platform: process.platform
@@ -80,7 +83,7 @@ function exists(path) {
 function main(options) {
   var modulePath = computeModulePath(options.binary);
   if (exists(path.join(modulePath, 'include')) && exists(path.join(modulePath, 'lib'))) {
-    return;
+    return Promise.resolve();
   }
   var url = computeUrl(options);
   console.log(
@@ -88,6 +91,7 @@ function main(options) {
     'and architecture "%s" from\n', options.platform, options.arch);
   console.log('  %s\n', url);
   var extract = url.endsWith('.zip')
+    // eslint-disable-next-line new-cap
     ? unzip.Extract({ path: modulePath })
     : tar.extract(modulePath);
   return new Promise(function(resolve, reject) {

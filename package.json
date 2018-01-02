@@ -59,7 +59,7 @@
   },
   "scripts": {
     "install": "node scripts/install.js",
-    "lint": "eslint lib/*.js lib/**/*.js test/*.js test/**/*.js examples/*.js examples/**/*.js karma.conf.js",
+    "lint": "eslint lib/*.js lib/**/*.js test/*.js test/**/*.js examples/*.js examples/**/*.js karma.conf.js scripts/*.js",
     "test": "node test/all.js",
     "test:bridge": "node scripts/karma.js"
   }
