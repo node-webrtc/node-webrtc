@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 
+include(ExternalProject)
+
 if(EXISTS ${CMAKE_SOURCE_DIR}/third_party/webrtc)
 else()
   execute_process(COMMAND node ${CMAKE_SOURCE_DIR}/scripts/download-webrtc-libraries-and-headers.js)
@@ -68,4 +70,35 @@ elseif(UNIX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
   target_compile_definitions(${MODULE} PRIVATE
     -DWEBRTC_POSIX=1)
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  list(APPEND CPPCHECK_CMAKE_ARGS
+    "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}")
+
+  ExternalProject_Add(
+    cppcheck
+    GIT_REPOSITORY      https://github.com/danmar/cppcheck.git
+    GIT_TAG             1.79
+    GIT_SHALLOW         1
+    CMAKE_ARGS          ${CPPCHECK_CMAKE_ARGS}
+    PREFIX              ${CMAKE_BINARY_DIR}/external/cppcheck/prefix
+    TMP_DIR             ${CMAKE_BINARY_DIR}/external/cppcheck/tmp
+    STAMP_DIR           ${CMAKE_BINARY_DIR}/external/cppcheck/stamp
+    DOWNLOAD_DIR        ${CMAKE_BINARY_DIR}/external/cppcheck/download
+    SOURCE_DIR          ${CMAKE_BINARY_DIR}/external/cppcheck/src
+    BINARY_DIR          ${CMAKE_BINARY_DIR}/external/cppcheck/build)
+
+  list(APPEND CPPCHECK_ARGS
+    --enable=warning,style,performance,portability,unusedFunction
+    --std=c++11
+    --verbose
+    --error-exitcode=1
+    --language=c++
+    ${CMAKE_SOURCE_DIR}/src/*.cc)
+
+  add_custom_target(
+    check
+    COMMAND ${CMAKE_BINARY_DIR}/bin/cppcheck ${CPPCHECK_ARGS}
+    COMMENT "running cppcheck")
 endif()

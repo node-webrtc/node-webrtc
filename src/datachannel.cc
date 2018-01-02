@@ -184,11 +184,11 @@ void DataChannel::Run(uv_async_t* handle, int status) {
       if (data->binary) {
 #if NODE_MODULE_VERSION > 0x000B
         Local<v8::ArrayBuffer> array = v8::ArrayBuffer::New(
-            v8::Isolate::GetCurrent(), data->message, data->size);
+            v8::Isolate::GetCurrent(), data->message.get(), data->size);
 #else
         Local<Object> array = Nan::New(ArrayBufferConstructor)->NewInstance();
         array->SetIndexedPropertiesToExternalArrayData(
-            data->message, v8::kExternalByteArray, data->size);
+            data->message.get(), v8::kExternalByteArray, data->size);
         array->ForceSet(Nan::New("byteLength").ToLocalChecked(), Nan::New<Integer>(static_cast<uint32_t>(data->size)));
 #endif
         // NanMakeWeakPersistent(callback, data, &MessageWeakCallback);
@@ -196,11 +196,9 @@ void DataChannel::Run(uv_async_t* handle, int status) {
         argv[0] = array;
         Nan::MakeCallback(dc, callback, 1, argv);
       } else {
-        Local<String> str = Nan::New(data->message, data->size).ToLocalChecked();
+        Local<String> str = Nan::New(data->message.get(), data->size).ToLocalChecked();
 
         // cleanup message event
-        delete[] data->message;
-        data->message = nullptr;
         delete data;
 
         argv[0] = str;

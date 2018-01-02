@@ -42,12 +42,12 @@ class DataChannel
     explicit MessageEvent(const webrtc::DataBuffer* buffer) {
       binary = buffer->binary;
       size = buffer->size();
-      message = new char[size];
-      memcpy(static_cast<void*>(message), static_cast<const void*>(buffer->data.data()), size);
+      message = std::shared_ptr<char>(new char[size], std::default_delete<char>());
+      memcpy(static_cast<void*>(message.get()), static_cast<const void*>(buffer->data.data()), size);
     }
 
     bool binary;
-    char* message;
+    std::shared_ptr<char> message;
     size_t size;
   };
 

@@ -85,6 +85,8 @@ CALL npm install -g npm@5.3.x
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO npm install
+SET SKIP_DOWNLOAD=true
+SET DEBUG=true
 CALL npm install
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 

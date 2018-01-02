@@ -44,7 +44,7 @@ install:
       npm install -g npm@3
     fi
 
-    npm install
+    SKIP_DOWNLOAD=true DEBUG=true npm install
 
 before_script:
   - |
@@ -67,6 +67,11 @@ script:
     set -e
 
     npm run lint
+
+    cd build
+    make check
+    cd ..
+
     npm test
 
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
