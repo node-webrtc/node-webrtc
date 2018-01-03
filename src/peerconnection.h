@@ -32,12 +32,12 @@ class SetLocalDescriptionObserver;
 class SetRemoteDescriptionObserver;
 
 class PeerConnection
-: public Nan::ObjectWrap
-, public webrtc::PeerConnectionObserver {
+  : public Nan::ObjectWrap
+  , public webrtc::PeerConnectionObserver {
  public:
   struct ErrorEvent {
     explicit ErrorEvent(const std::string& msg)
-    : msg(msg) {}
+      : msg(msg) {}
 
     std::string msg;
   };
@@ -56,8 +56,8 @@ class PeerConnection
 
   struct IceEvent {
     explicit IceEvent(const webrtc::IceCandidateInterface* ice_candidate)
-    : sdpMLineIndex(ice_candidate->sdp_mline_index())
-    , sdpMid(ice_candidate->sdp_mid()) {
+      : sdpMLineIndex(ice_candidate->sdp_mline_index())
+      , sdpMid(ice_candidate->sdp_mid()) {
       ice_candidate->ToString(&candidate);
     }
 
@@ -68,21 +68,21 @@ class PeerConnection
 
   struct StateEvent {
     explicit StateEvent(uint32_t state)
-    : state(state) {}
+      : state(state) {}
 
     uint32_t state;
   };
 
   struct DataChannelEvent {
     explicit DataChannelEvent(DataChannelObserver* observer)
-    : observer(observer) {}
+      : observer(observer) {}
 
     DataChannelObserver* observer;
   };
 
   struct GetStatsEvent {
     GetStatsEvent(Nan::Callback* callback, webrtc::StatsReports reports)
-    : callback(callback), reports(reports) {}
+      : callback(callback), reports(reports) {}
 
     Nan::Callback* callback;
     webrtc::StatsReports reports;
@@ -111,13 +111,13 @@ class PeerConnection
     GET_STATS_SUCCESS = 0x1 << 19,  // 524288
 
     ERROR_EVENT = CREATE_OFFER_ERROR | CREATE_ANSWER_ERROR |
-                  SET_LOCAL_DESCRIPTION_ERROR | SET_REMOTE_DESCRIPTION_ERROR |
-                  ADD_ICE_CANDIDATE_ERROR,
+        SET_LOCAL_DESCRIPTION_ERROR | SET_REMOTE_DESCRIPTION_ERROR |
+        ADD_ICE_CANDIDATE_ERROR,
     SDP_EVENT = CREATE_OFFER_SUCCESS | CREATE_ANSWER_SUCCESS,
     VOID_EVENT = SET_LOCAL_DESCRIPTION_SUCCESS | SET_REMOTE_DESCRIPTION_SUCCESS |
-                 ADD_ICE_CANDIDATE_SUCCESS | GET_STATS_SUCCESS,
+        ADD_ICE_CANDIDATE_SUCCESS | GET_STATS_SUCCESS,
     STATE_EVENT = SIGNALING_STATE_CHANGE | ICE_CONNECTION_STATE_CHANGE |
-                  ICE_GATHERING_STATE_CHANGE
+        ICE_GATHERING_STATE_CHANGE
   };
 
   explicit PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList);
@@ -183,7 +183,7 @@ class PeerConnection
 
   uv_mutex_t lock;
   uv_async_t async;
-  uv_loop_t *loop;
+  uv_loop_t* loop;
   std::queue<AsyncEvent> _events;
   webrtc::PeerConnectionInterface::IceServers _iceServers;
 
@@ -192,7 +192,7 @@ class PeerConnection
   rtc::scoped_refptr<SetLocalDescriptionObserver> _setLocalDescriptionObserver;
   rtc::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
-  webrtc::AudioDeviceModule *_audioDeviceModule;
+  webrtc::AudioDeviceModule* _audioDeviceModule;
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _jinglePeerConnectionFactory;
 

@@ -44,7 +44,7 @@ rtc::Thread* PeerConnection::_workerThread;
 //
 
 PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList)
-: loop(uv_default_loop()) {
+  : loop(uv_default_loop()) {
   _createOfferObserver = new rtc::RefCountedObject<CreateOfferObserver>(this);
   _createAnswerObserver = new rtc::RefCountedObject<CreateAnswerObserver>(this);
   _setLocalDescriptionObserver = new rtc::RefCountedObject<SetLocalDescriptionObserver>(this);
@@ -123,7 +123,7 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
       Nan::MakeCallback(pc, callback, 1, argv);
     } else if (PeerConnection::GET_STATS_SUCCESS & evt.type) {
       PeerConnection::GetStatsEvent* data = static_cast<PeerConnection::GetStatsEvent*>(evt.data);
-      Nan::Callback *callback = data->callback;
+      Nan::Callback* callback = data->callback;
       Local<Value> cargv[1];
       cargv[0] = Nan::New<External>(static_cast<void*>(&data->reports));
       Local<Value> argv[1];
@@ -299,8 +299,7 @@ NAN_METHOD(PeerConnection::New) {
                 std::string iceUrl = std::string(*_iceUrl);
 
                 iceServer.uri = iceUrl;
-              }
-              else if ((iceServerKey == "url" || iceServerKey == "urls") && iceValue->IsArray()) {
+              } else if ((iceServerKey == "url" || iceServerKey == "urls") && iceValue->IsArray()) {
                 Handle<Array> iceUrls = Handle<Array>::Cast(iceValue);
 
                 for (uint32_t x = 0; x < iceUrls->Length(); x++) {
@@ -309,14 +308,12 @@ NAN_METHOD(PeerConnection::New) {
 
                   iceServer.urls.push_back(iceUrlsEntry);
                 }
-              }
-              else if (iceServerKey == "credential" && iceValue->IsString()) {
+              } else if (iceServerKey == "credential" && iceValue->IsString()) {
                 String::Utf8Value _icePassword(iceValue->ToString());
                 std::string icePassword = std::string(*_icePassword);
 
                 iceServer.password = icePassword;
-              }
-              else if (iceServerKey == "username" && iceValue->IsString()) {
+              } else if (iceServerKey == "username" && iceValue->IsString()) {
                 String::Utf8Value _iceUsername(iceValue->ToString());
                 std::string iceUsername = std::string(*_iceUsername);
 
@@ -430,9 +427,9 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
     self->QueueEvent(PeerConnection::ADD_ICE_CANDIDATE_SUCCESS, static_cast<void*>(nullptr));
   } else {
     std::string error = std::string("Failed to set ICE candidate");
-    if(self->_jinglePeerConnection == nullptr) {
+    if (self->_jinglePeerConnection == nullptr) {
       error += ", no jingle peer connection";
-    } else if( sdpParseError.description.length() ) {
+    } else if (sdpParseError.description.length()) {
       error += std::string(", parse error: ") + sdpParseError.description;
     }
     error += ".";
@@ -511,10 +508,10 @@ NAN_METHOD(PeerConnection::GetStats) {
 
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
-  Nan::Callback *onSuccess = new Nan::Callback(info[0].As<Function>());
-  Nan::Callback *onFailure = new Nan::Callback(info[1].As<Function>());
+  Nan::Callback* onSuccess = new Nan::Callback(info[0].As<Function>());
+  Nan::Callback* onFailure = new Nan::Callback(info[1].As<Function>());
   rtc::scoped_refptr<StatsObserver> statsObserver =
-     new rtc::RefCountedObject<StatsObserver>(self, onSuccess);
+      new rtc::RefCountedObject<StatsObserver>(self, onSuccess);
 
   if (self->_jinglePeerConnection == nullptr) {
     Local<Value> argv[] = {
@@ -522,7 +519,7 @@ NAN_METHOD(PeerConnection::GetStats) {
     };
     onFailure->Call(1, argv);
   } else if (!self->_jinglePeerConnection->GetStats(statsObserver, nullptr,
-    webrtc::PeerConnectionInterface::kStatsOutputLevelStandard)) {
+          webrtc::PeerConnectionInterface::kStatsOutputLevelStandard)) {
     // TODO: Include error?
     Local<Value> argv[] = {
       Nan::Null()

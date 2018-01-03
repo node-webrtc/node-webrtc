@@ -77,7 +77,7 @@
   Local<Object> name; \
   Handle<Value> ctorArgs[3] = { name ## _buf, Nan::New<Integer>(length), Nan::New<Integer>(0) }; \
   name = Local<Function>::Cast(\
-        Nan::GetCurrentContext() \
+          Nan::GetCurrentContext() \
           ->Global() \
           ->Get(Nan::New("Buffer").ToLocalChecked()) \
       )->NewInstance(3, ctorArgs);

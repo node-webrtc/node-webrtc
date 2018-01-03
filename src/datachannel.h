@@ -26,14 +26,14 @@ namespace node_webrtc {
 class DataChannelObserver;
 
 class DataChannel
-: public Nan::ObjectWrap
-, public webrtc::DataChannelObserver {
+  : public Nan::ObjectWrap
+  , public webrtc::DataChannelObserver {
   friend class node_webrtc::DataChannelObserver;
 
  public:
   struct ErrorEvent {
     explicit ErrorEvent(const std::string& msg)
-    : msg(msg) {}
+      : msg(msg) {}
 
     std::string msg;
   };
@@ -53,7 +53,7 @@ class DataChannel
 
   struct StateEvent {
     explicit StateEvent(const webrtc::DataChannelInterface::DataState state)
-    : state(state) {}
+      : state(state) {}
 
     webrtc::DataChannelInterface::DataState state;
   };
@@ -109,7 +109,7 @@ class DataChannel
 
   uv_mutex_t lock;
   uv_async_t async;
-  uv_loop_t *loop;
+  uv_loop_t* loop;
   std::queue<AsyncEvent> _events;
 
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
@@ -122,7 +122,7 @@ class DataChannel
 };
 
 class DataChannelObserver
-: public webrtc::DataChannelObserver {
+  : public webrtc::DataChannelObserver {
  public:
   explicit DataChannelObserver(rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel);
   virtual ~DataChannelObserver();

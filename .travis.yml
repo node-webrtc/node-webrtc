@@ -74,7 +74,14 @@ script:
 
     cd build
     make check
+    make format
     cd ..
+    if [[ -n $(git diff) ]]; then
+      echo "You must run make format before submitting a pull request"
+      echo ""
+      git diff
+      exit -1
+    fi
 
     npm test
 

@@ -16,7 +16,7 @@
 namespace node_webrtc {
 
 class RTCStatsResponse
-: public Nan::ObjectWrap {
+  : public Nan::ObjectWrap {
  public:
   explicit RTCStatsResponse(webrtc::StatsReports reports): reports(reports) {}
   ~RTCStatsResponse() {}
