@@ -17,7 +17,7 @@ namespace node_webrtc {
 class PeerConnection;
 
 class SetLocalDescriptionObserver
-:  public webrtc::SetSessionDescriptionObserver {
+  : public webrtc::SetSessionDescriptionObserver {
  private:
   PeerConnection* parent;
 

@@ -18,14 +18,14 @@ namespace node_webrtc {
 class PeerConnection;
 
 class StatsObserver
-: public webrtc::StatsObserver {
+  : public webrtc::StatsObserver {
  private:
   PeerConnection* parent;
   Nan::Callback* callback;
 
  public:
-  explicit StatsObserver(PeerConnection* parent, Nan::Callback *callback)
-  : parent(parent), callback(callback) {}
+  explicit StatsObserver(PeerConnection* parent, Nan::Callback* callback)
+    : parent(parent), callback(callback) {}
 
   virtual void OnComplete(const webrtc::StatsReports& reports);
 };

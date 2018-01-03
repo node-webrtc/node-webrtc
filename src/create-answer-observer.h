@@ -17,7 +17,7 @@ namespace node_webrtc {
 class PeerConnection;
 
 class CreateAnswerObserver
-: public webrtc::CreateSessionDescriptionObserver {
+  : public webrtc::CreateSessionDescriptionObserver {
  private:
   PeerConnection* parent;
 

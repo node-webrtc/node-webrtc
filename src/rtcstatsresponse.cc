@@ -48,7 +48,7 @@ NAN_METHOD(RTCStatsResponse::result) {
 
   Local<Array> reports = Nan::New<Array>(self->reports.size());
   for (std::vector<int>::size_type i = 0; i != self->reports.size(); i++) {
-    const void *copy = static_cast<const void*>(self->reports.at(i));
+    const void* copy = static_cast<const void*>(self->reports.at(i));
     Local<Value> cargv[1];
     cargv[0] = Nan::New<External>(const_cast<void*>(copy));
     reports->Set(i, Nan::New(RTCStatsReport::constructor)->NewInstance(1, cargv));

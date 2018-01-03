@@ -73,6 +73,59 @@ elseif(UNIX)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  list(APPEND ASTYLE_CMAKE_ARGS
+    "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}")
+
+  ExternalProject_Add(
+    astyle
+    GIT_REPOSITORY      https://github.com/Bareflank/astyle.git
+    GIT_TAG             v1.2
+    GIT_SHALLOW         1
+    CMAKE_ARGS          ${ASTYLE_CMAKE_ARGS}
+    PREFIX              ${CMAKE_BINARY_DIR}/external/astyle/prefix
+    TMP_DIR             ${CMAKE_BINARY_DIR}/external/astyle/tmp
+    STAMP_DIR           ${CMAKE_BINARY_DIR}/external/astyle/stamp
+    DOWNLOAD_DIR        ${CMAKE_BINARY_DIR}/external/astyle/download
+    SOURCE_DIR          ${CMAKE_BINARY_DIR}/external/astyle/src
+    BINARY_DIR          ${CMAKE_BINARY_DIR}/external/astyle/build)
+
+  list(APPEND ASTYLE_ARGS
+    --style=google
+    --lineend=linux
+    --suffix=none
+    --pad-oper
+    --unpad-paren
+    --align-pointer=type
+    --align-reference=type
+    --indent-preproc-define
+    --indent-switches
+    --indent-col1-comments
+    --keep-one-line-statements
+    --keep-one-line-blocks
+    --pad-header
+    --convert-tabs
+    --min-conditional-indent=0
+    --indent=spaces=2
+    --indent-continuation=2
+    --indent-after-parens
+    --close-templates
+    --add-brackets
+    --break-after-logical
+    ${CMAKE_SOURCE_DIR}/src/*.cc
+    ${CMAKE_SOURCE_DIR}/src/*.h)
+
+  if(NOT WIN32 STREQUAL "1")
+    add_custom_target(
+      format
+      COMMAND ${CMAKE_BINARY_DIR}/bin/astyle ${ASTYLE_ARGS}
+      COMMENT "running astyle")
+  else()
+    add_custom_target(
+      format
+      COMMAND ${CMAKE_BINARY_DIR}/bin/astyle.exe ${ASTYLE_ARGS}
+      COMMENT "running astyle")
+  endif()
+
   list(APPEND CPPCHECK_CMAKE_ARGS
     "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}")
 

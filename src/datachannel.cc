@@ -51,8 +51,8 @@ void DataChannelObserver::OnStateChange() {
 
 void DataChannelObserver::OnMessage(const webrtc::DataBuffer& buffer) {
   TRACE_CALL;
-    DataChannel::MessageEvent* data = new DataChannel::MessageEvent(&buffer);
-    QueueEvent(DataChannel::MESSAGE, static_cast<void*>(data));
+  DataChannel::MessageEvent* data = new DataChannel::MessageEvent(&buffer);
+  QueueEvent(DataChannel::MESSAGE, static_cast<void*>(data));
   TRACE_END;
 }
 
@@ -68,8 +68,8 @@ void DataChannelObserver::QueueEvent(DataChannel::AsyncEventType type, void* dat
 }
 
 DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
-: loop(uv_default_loop()),
-  _binaryType(DataChannel::ARRAY_BUFFER) {
+  : loop(uv_default_loop()),
+    _binaryType(DataChannel::ARRAY_BUFFER) {
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, reinterpret_cast<uv_async_cb>(Run));
 
@@ -184,7 +184,7 @@ void DataChannel::Run(uv_async_t* handle, int status) {
       if (data->binary) {
 #if NODE_MODULE_VERSION > 0x000B
         Local<v8::ArrayBuffer> array = v8::ArrayBuffer::New(
-            v8::Isolate::GetCurrent(), data->message.get(), data->size);
+                v8::Isolate::GetCurrent(), data->message.get(), data->size);
 #else
         Local<Object> array = Nan::New(ArrayBufferConstructor)->NewInstance();
         array->SetIndexedPropertiesToExternalArrayData(
@@ -304,8 +304,8 @@ NAN_GETTER(DataChannel::GetBufferedAmount) {
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
   uint64_t buffered_amount = self->_jingleDataChannel != nullptr
-    ? self->_jingleDataChannel->buffered_amount()
-    : 0;
+      ? self->_jingleDataChannel->buffered_amount()
+      : 0;
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New<Number>(buffered_amount));
@@ -317,8 +317,8 @@ NAN_GETTER(DataChannel::GetLabel) {
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
   std::string label = self->_jingleDataChannel != nullptr
-    ? self->_jingleDataChannel->label()
-    : "";
+      ? self->_jingleDataChannel->label()
+      : "";
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New(label).ToLocalChecked());
@@ -330,8 +330,8 @@ NAN_GETTER(DataChannel::GetReadyState) {
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
   webrtc::DataChannelInterface::DataState state = self->_jingleDataChannel != nullptr
-    ? self->_jingleDataChannel->state()
-    : webrtc::DataChannelInterface::kClosed;
+      ? self->_jingleDataChannel->state()
+      : webrtc::DataChannelInterface::kClosed;
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New<Number>(static_cast<uint32_t>(state)));
