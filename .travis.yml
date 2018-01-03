@@ -34,6 +34,9 @@ env:
 install:
   - |
     set -e
+    unset -f cd
+    unset -f pushd
+    unset -f popd
 
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
       export CXX=g++-4.8;
@@ -46,11 +49,12 @@ install:
 
     SKIP_DOWNLOAD=true DEBUG=true npm install
 
-    set +e
-
 before_script:
   - |
     set -e
+    unset -f cd
+    unset -f pushd
+    unset -f popd
 
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
       cd node_modules/travis-multirunner
@@ -64,11 +68,12 @@ before_script:
       pulseaudio --start
     fi
 
-    set +e
-
 script:
   - |
     set -e
+    unset -f cd
+    unset -f pushd
+    unset -f popd
 
     npm run lint
 
@@ -94,5 +99,3 @@ script:
     then
       $RUN node_modules/.bin/node-pre-gyp package publish;
     fi
-
-    set +e
