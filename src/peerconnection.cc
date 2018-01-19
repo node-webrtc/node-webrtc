@@ -73,6 +73,7 @@ PeerConnection::~PeerConnection() {
   TRACE_CALL;
   _jinglePeerConnection = nullptr;
   _jinglePeerConnectionFactory = nullptr;
+  uv_mutex_destroy(&lock);
   TRACE_END;
 }
 

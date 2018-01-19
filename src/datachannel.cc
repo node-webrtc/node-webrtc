@@ -39,6 +39,7 @@ DataChannelObserver::DataChannelObserver(rtc::scoped_refptr<webrtc::DataChannelI
 
 DataChannelObserver::~DataChannelObserver() {
   _jingleDataChannel = nullptr;
+  uv_mutex_destroy(&lock);
 }
 
 void DataChannelObserver::OnStateChange() {
