@@ -10,6 +10,7 @@
 #include "webrtc/base/refcountedobject.h"
 
 #include "common.h"
+#include "mediastream.h"
 #include "create-answer-observer.h"
 #include "create-offer-observer.h"
 #include "datachannel.h"
@@ -18,6 +19,8 @@
 #include "set-local-description-observer.h"
 #include "set-remote-description-observer.h"
 #include "stats-observer.h"
+#include "videosink.h"
+#include "decoderproxy.h"
 
 using node_webrtc::PeerConnection;
 using node_webrtc::PeerConnectionFactory;
@@ -35,6 +38,8 @@ using v8::Value;
 using v8::Array;
 
 Nan::Persistent<Function> PeerConnection::constructor;
+
+#include <map>
 
 //
 // PeerConnection
@@ -115,12 +120,14 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
       Local<Value> argv[1];
       argv[0] = Nan::Error(data->msg.c_str());
       Nan::MakeCallback(pc, callback, 1, argv);
+      delete data;
     } else if (PeerConnection::SDP_EVENT & evt.type) {
       PeerConnection::SdpEvent* data = static_cast<PeerConnection::SdpEvent*>(evt.data);
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onsuccess").ToLocalChecked()));
       Local<Value> argv[1];
       argv[0] = Nan::New(data->desc.c_str()).ToLocalChecked();
       Nan::MakeCallback(pc, callback, 1, argv);
+      delete data;
     } else if (PeerConnection::GET_STATS_SUCCESS & evt.type) {
       PeerConnection::GetStatsEvent* data = static_cast<PeerConnection::GetStatsEvent*>(evt.data);
       Nan::Callback* callback = data->callback;
@@ -129,6 +136,7 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
       Local<Value> argv[1];
       argv[0] = Nan::New(RTCStatsResponse::constructor)->NewInstance(1, cargv);
       callback->Call(1, argv);
+      delete data;
     } else if (PeerConnection::VOID_EVENT & evt.type) {
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onsuccess").ToLocalChecked()));
       Local<Value> argv[1];
@@ -144,6 +152,7 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
       if (webrtc::PeerConnectionInterface::kClosed == data->state) {
         do_shutdown = true;
       }
+      delete data;
     } else if (PeerConnection::ICE_CONNECTION_STATE_CHANGE & evt.type) {
       PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("oniceconnectionstatechange").ToLocalChecked()));
@@ -152,6 +161,7 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
         argv[0] = Nan::New<Uint32>(data->state);
         Nan::MakeCallback(pc, callback, 1, argv);
       }
+      delete data;
     } else if (PeerConnection::ICE_GATHERING_STATE_CHANGE & evt.type) {
       PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onicegatheringstatechange").ToLocalChecked()));
@@ -160,6 +170,7 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
         argv[0] = Nan::New<Uint32>(data->state);
         Nan::MakeCallback(pc, callback, 1, argv);
       }
+      delete data;
     } else if (PeerConnection::ICE_CANDIDATE & evt.type) {
       PeerConnection::IceEvent* data = static_cast<PeerConnection::IceEvent*>(evt.data);
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onicecandidate").ToLocalChecked()));
@@ -170,6 +181,7 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
         argv[2] = Nan::New<Integer>(data->sdpMLineIndex);
         Nan::MakeCallback(pc, callback, 3, argv);
       }
+      delete data;
     } else if (PeerConnection::NOTIFY_DATA_CHANNEL & evt.type) {
       PeerConnection::DataChannelEvent* data = static_cast<PeerConnection::DataChannelEvent*>(evt.data);
       DataChannelObserver* observer = data->observer;
@@ -181,6 +193,65 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
       Local<Value> argv[1];
       argv[0] = dc;
       Nan::MakeCallback(pc, callback, 1, argv);
+      delete data;
+    }
+    else if(PeerConnection::NOTIFY_ADD_STREAM & evt.type) {
+      Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onaddstream").ToLocalChecked()));
+      if(callback->IsFunction()) {
+        webrtc::MediaStreamInterface* interface = static_cast<webrtc::MediaStreamInterface*>(evt.data);
+        Local<Value> cargv[1];
+        cargv[0] = Nan::New<External>(static_cast<void*>(interface));
+        Local<Value> ms = Nan::New(MediaStream::constructor)->NewInstance(1, cargv);
+        Local<Value> argv[1];
+        argv[0] = ms;
+        Nan::MakeCallback(pc, callback, 1, argv);
+      }
+    }
+    else if(PeerConnection::NOTIFY_ON_FRAME & evt.type) {
+      VideoFrameEvent* event = static_cast<VideoFrameEvent*>(evt.data);
+
+      Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onvideoframe").ToLocalChecked()));
+      if(callback->IsFunction()) {
+        Local<Value> cargv[6];
+        Local<Value> label = Nan::New(event->label.c_str()).ToLocalChecked();
+        cargv[0] = label;
+        cargv[1] = Nan::New<Uint32>(event->width);
+        cargv[2] = Nan::New<Uint32>(event->height);
+        v8::Isolate* isolate = v8::Isolate::GetCurrent();
+        cargv[3] = Nan::New<v8::ArrayBuffer>(v8::ArrayBuffer::New(isolate, (void*)event->buffer->DataY(),
+                                                                  event->buffer->width() * event->buffer->height()));
+        cargv[4] = Nan::New<v8::ArrayBuffer>(v8::ArrayBuffer::New(isolate, (void*)event->buffer->DataU(),
+                                                                  (event->buffer->width() * event->buffer->height()) / 4));
+        cargv[5] = Nan::New<v8::ArrayBuffer>(v8::ArrayBuffer::New(isolate, (void*)event->buffer->DataV(),
+                                                                  (event->buffer->width() * event->buffer->height()) / 4));
+
+        Nan::MakeCallback(pc, callback, 6, cargv);
+      }
+      delete event;
+    }
+    else if(PeerConnection::NOTIFY_ON_ENCODED_FRAME & evt.type) {
+      EncodedVideoFrameEvent* event = static_cast<EncodedVideoFrameEvent*>(evt.data);
+      Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onencodedvideoframe").ToLocalChecked()));
+      if(callback->IsFunction()) {
+        Local<Value> cargv[6];
+        Local<Value> label = Nan::New(event->label.c_str()).ToLocalChecked();
+        cargv[0] = label;
+        cargv[1] = Nan::New<Uint32>(event->width);
+        cargv[2] = Nan::New<Uint32>(event->height);
+        v8::Isolate* isolate = v8::Isolate::GetCurrent();
+        cargv[3] = Nan::New<v8::ArrayBuffer>(v8::ArrayBuffer::New(isolate, (void*)&event->buffer[0],
+                                                                  event->buffer.size()));
+        cargv[4] = Nan::New<Uint32>(event->frameType);
+        cargv[5] = Nan::New<Number>(event->timestamp);
+        Nan::MakeCallback(pc, callback, 6, cargv);
+      }
+      delete event;
+    }
+    else if(PeerConnection::NEGOTIATION_NEEDED & evt.type) {
+      Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onnegotiationneeded").ToLocalChecked()));
+      if(callback->IsFunction()) {
+        Nan::MakeCallback(pc, callback, 0, nullptr);
+      }
     }
   }
 
@@ -192,6 +263,87 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
 
   TRACE_END;
 }
+
+
+
+NAN_METHOD(PeerConnection::OnStreamVideoFrame) {
+  TRACE_CALL;
+  PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+
+  node_webrtc::MediaStream* ms = Nan::ObjectWrap::Unwrap<MediaStream>(info[0]->ToObject());
+
+  auto mediaStreamInterface = ms->GetInterface();
+  auto videoTracks = mediaStreamInterface->GetVideoTracks();
+  string label = mediaStreamInterface->label();
+  for(auto videoTrack : videoTracks) {
+    videoTrack->AddOrUpdateSink(new rtc::RefCountedObject<VideoSink>([label, self](const webrtc::VideoFrame& frame, string inLabel) {
+      VideoFrameEvent* event = new VideoFrameEvent(label);
+      event->width = frame.width();
+      event->height = frame.height();
+      event->buffer = frame.video_frame_buffer();
+      self->QueueEvent(PeerConnection::NOTIFY_ON_FRAME, event);
+    }, label), rtc::VideoSinkWants());
+  }
+
+  TRACE_END;
+}
+
+#include <iostream>
+using namespace std;
+
+struct PTSWraparoundData {
+  bool hasTimeStamp = false;
+  uint32_t lastTimeStamp = 0;
+  int wrapAroundCounter = 0;
+};
+
+// Store data to calculate 64-bit pts and detect wraparound.
+static std::map<std::string, PTSWraparoundData> wrapAroundDatas;
+
+NAN_METHOD(PeerConnection::OnStreamEncodedVideoFrame) {
+  TRACE_CALL;
+  PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+
+  node_webrtc::MediaStream* ms = Nan::ObjectWrap::Unwrap<MediaStream>(info[0]->ToObject());
+
+  Nan::Callback onFrame(info[1].As<Function>());
+  auto mediaStreamInterface = ms->GetInterface();
+  auto videoTracks = mediaStreamInterface->GetVideoTracks();
+  string label = mediaStreamInterface->label();
+  for(auto videoTrack : videoTracks) {
+    wrapAroundDatas[label] = PTSWraparoundData();
+    DecoderProxy::RegisterProxyCallback(videoTrack->id(), [label, self](const webrtc::EncodedImage& frame,
+                                          string inLabel) {
+      auto& wrapAroundData = wrapAroundDatas[label];
+      if(!wrapAroundData.hasTimeStamp) {
+        wrapAroundData.hasTimeStamp = true;
+        wrapAroundData.lastTimeStamp = frame._timeStamp;
+      }
+
+      EncodedVideoFrameEvent* event = new EncodedVideoFrameEvent(inLabel);
+
+      event->frameType = frame._frameType;
+
+      if(frame._timeStamp < wrapAroundData.lastTimeStamp)
+        wrapAroundData.wrapAroundCounter ++;
+
+      uint64_t bigPts = frame._timeStamp + (wrapAroundData.wrapAroundCounter*UINT32_MAX);
+
+      event->timestamp = bigPts;
+      wrapAroundData.lastTimeStamp = event->timestamp;
+
+      event->width = frame._encodedWidth;
+      event->height = frame._encodedHeight;
+
+      event->buffer.insert(event->buffer.begin(), frame._buffer, frame._buffer + frame._length);
+      self->QueueEvent(PeerConnection::NOTIFY_ON_ENCODED_FRAME, event);
+    });
+  }
+
+  TRACE_END;
+}
+
+
 
 void PeerConnection::OnError() {
   TRACE_CALL;
@@ -236,16 +388,19 @@ void PeerConnection::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterfa
 
 void PeerConnection::OnAddStream(webrtc::MediaStreamInterface* stream) {
   TRACE_CALL;
+  QueueEvent(PeerConnection::NOTIFY_ADD_STREAM, static_cast<void*>(stream));
   TRACE_END;
 }
 
 void PeerConnection::OnRemoveStream(webrtc::MediaStreamInterface* stream) {
   TRACE_CALL;
+  QueueEvent(PeerConnection::NOTIFY_REMOVE_STREAM, static_cast<void*>(stream));
   TRACE_END;
 }
 
 void PeerConnection::OnRenegotiationNeeded() {
   TRACE_CALL;
+  QueueEvent(PeerConnection::NEGOTIATION_NEEDED, nullptr);
   TRACE_END;
 }
 
@@ -506,6 +661,16 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   info.GetReturnValue().Set(dc);
 }
 
+NAN_METHOD(PeerConnection::AddStream) {
+  TRACE_CALL;
+  PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  node_webrtc::MediaStream* ms = Nan::ObjectWrap::Unwrap<MediaStream>(info[0]->ToObject());
+  self->_jinglePeerConnection->AddStream(ms->GetInterface());
+  self->QueueEvent(PeerConnection::ADD_STREAM_SUCCESS, static_cast<void*>(nullptr));
+  TRACE_END;
+  info.GetReturnValue().Set(Nan::Undefined());
+}
+
 NAN_METHOD(PeerConnection::GetStats) {
   TRACE_CALL;
 
@@ -522,7 +687,7 @@ NAN_METHOD(PeerConnection::GetStats) {
     };
     onFailure->Call(1, argv);
   } else if (!self->_jinglePeerConnection->GetStats(statsObserver, nullptr,
-          webrtc::PeerConnectionInterface::kStatsOutputLevelStandard)) {
+    webrtc::PeerConnectionInterface::kStatsOutputLevelStandard)) {
     // TODO: Include error?
     Local<Value> argv[] = {
       Nan::Null()
@@ -681,9 +846,12 @@ void PeerConnection::Init(Handle<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "setLocalDescription", SetLocalDescription);
   Nan::SetPrototypeMethod(tpl, "setRemoteDescription", SetRemoteDescription);
   Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
+  Nan::SetPrototypeMethod(tpl, "addStream", AddStream);
   Nan::SetPrototypeMethod(tpl, "updateIce", UpdateIce);
   Nan::SetPrototypeMethod(tpl, "addIceCandidate", AddIceCandidate);
   Nan::SetPrototypeMethod(tpl, "createDataChannel", CreateDataChannel);
+  Nan::SetPrototypeMethod(tpl, "onStreamVideoFrame", OnStreamVideoFrame);
+  Nan::SetPrototypeMethod(tpl, "onStreamEncodedVideoFrame", OnStreamEncodedVideoFrame);
   Nan::SetPrototypeMethod(tpl, "close", Close);
 
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("localDescription").ToLocalChecked(), GetLocalDescription, ReadOnly);

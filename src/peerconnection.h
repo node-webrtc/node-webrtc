@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2017 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -68,6 +68,28 @@ class PeerConnection
     std::string candidate;
   };
 
+  struct VideoFrameEvent {
+    explicit VideoFrameEvent(std::string label)
+        : label(label) {}
+    rtc::scoped_refptr<webrtc::VideoFrameBuffer> buffer;
+    int width;
+    int height;
+
+    std::string label;
+  };
+
+  struct EncodedVideoFrameEvent {
+    explicit EncodedVideoFrameEvent(std::string label)
+        : label(label) {}
+    std::vector<uint8_t> buffer;
+    int width;
+    int height;
+    int frameType;
+    uint64_t timestamp;
+
+    std::string label;
+  };
+
   struct StateEvent {
     explicit StateEvent(uint32_t state)
       : state(state) {}
@@ -111,13 +133,17 @@ class PeerConnection
     NOTIFY_ADD_STREAM = 0x1 << 17,  // 131072
     NOTIFY_REMOVE_STREAM = 0x1 << 18,  // 262144
     GET_STATS_SUCCESS = 0x1 << 19,  // 524288
+    NOTIFY_ON_FRAME = 0x1 << 20,
+    NOTIFY_ON_ENCODED_FRAME = 0x1 << 21,
+    NEGOTIATION_NEEDED = 0x1 << 22,
+    ADD_STREAM_SUCCESS = 0x1 << 23,
 
     ERROR_EVENT = CREATE_OFFER_ERROR | CREATE_ANSWER_ERROR |
         SET_LOCAL_DESCRIPTION_ERROR | SET_REMOTE_DESCRIPTION_ERROR |
         ADD_ICE_CANDIDATE_ERROR,
     SDP_EVENT = CREATE_OFFER_SUCCESS | CREATE_ANSWER_SUCCESS,
     VOID_EVENT = SET_LOCAL_DESCRIPTION_SUCCESS | SET_REMOTE_DESCRIPTION_SUCCESS |
-        ADD_ICE_CANDIDATE_SUCCESS | GET_STATS_SUCCESS,
+        ADD_ICE_CANDIDATE_SUCCESS | GET_STATS_SUCCESS | ADD_STREAM_SUCCESS,
     STATE_EVENT = SIGNALING_STATE_CHANGE | ICE_CONNECTION_STATE_CHANGE |
         ICE_GATHERING_STATE_CHANGE
   };
@@ -163,6 +189,9 @@ class PeerConnection
   static NAN_METHOD(AddStream);
   static NAN_METHOD(RemoveStream);
   */
+  static NAN_METHOD(OnStreamVideoFrame);
+  static NAN_METHOD(OnStreamEncodedVideoFrame);
+  static NAN_METHOD(AddStream);
   static NAN_METHOD(GetStats);
   static NAN_METHOD(Close);
 
@@ -194,8 +223,8 @@ class PeerConnection
   rtc::scoped_refptr<SetLocalDescriptionObserver> _setLocalDescriptionObserver;
   rtc::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
-  webrtc::AudioDeviceModule* _audioDeviceModule;
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
+  rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _jinglePeerConnectionFactory;
 
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   bool _shouldReleaseFactory;

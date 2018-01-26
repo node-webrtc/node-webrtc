@@ -12,6 +12,9 @@
 #include "rtcstatsresponse.h"
 #include "peerconnection.h"
 #include "peerconnectionfactory.h"
+#include "mediadevices.h"
+#include "mediastreamtrack.h"
+#include "mediastream.h"
 
 using v8::Handle;
 using v8::Object;
@@ -26,6 +29,9 @@ void init(Handle<Object> exports) {
   node_webrtc::DataChannel::Init(exports);
   node_webrtc::RTCStatsReport::Init(exports);
   node_webrtc::RTCStatsResponse::Init(exports);
+  node_webrtc::MediaDevices::Init(exports);
+  node_webrtc::MediaStreamTrack::Init(exports);
+  node_webrtc::MediaStream::Init(exports);
   node::AtExit(dispose);
 }
 

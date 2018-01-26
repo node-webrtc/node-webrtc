@@ -15,6 +15,7 @@
 #include "webrtc/api/peerconnectionfactory.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 #include "webrtc/modules/audio_device/include/audio_device.h"
+#include "decoderfactory.h"
 
 namespace node_webrtc {
 
@@ -64,6 +65,8 @@ class PeerConnectionFactory
   static NAN_METHOD(New);
 
  private:
+  NodeDecoderFactory* _decoderFactory;
+
   static std::shared_ptr<PeerConnectionFactory> _default;
   static uv_mutex_t _lock;
   static int _references;
