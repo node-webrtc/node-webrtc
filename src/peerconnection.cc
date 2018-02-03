@@ -10,17 +10,18 @@
 #include "webrtc/api/mediaconstraintsinterface.h"
 #include "webrtc/api/test/fakeconstraints.h"
 #include "webrtc/base/refcount.h"
-#include "webrtc/modules/audio_device/include/fake_audio_device.h"
 
 #include "common.h"
 #include "create-answer-observer.h"
 #include "create-offer-observer.h"
 #include "datachannel.h"
+#include "fake_audio_device/fake_audio_device.h"
 #include "rtcstatsresponse.h"
 #include "set-local-description-observer.h"
 #include "set-remote-description-observer.h"
 #include "stats-observer.h"
 
+using node_webrtc::FakeAudioDevice;
 using node_webrtc::PeerConnection;
 using v8::External;
 using v8::Function;
@@ -59,7 +60,7 @@ PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceSe
   constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveAudio, webrtc::MediaConstraintsInterface::kValueFalse);
   constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveVideo, webrtc::MediaConstraintsInterface::kValueFalse);
 
-  _audioDeviceModule = new webrtc::FakeAudioDeviceModule();
+  _audioDeviceModule = new FakeAudioDevice(nullptr, nullptr);
   _jinglePeerConnectionFactory = webrtc::CreatePeerConnectionFactory(_workerThread, _signalingThread, _audioDeviceModule, nullptr, nullptr);
   _jinglePeerConnection = _jinglePeerConnectionFactory->CreatePeerConnection(configuration, &constraints, nullptr, nullptr, this);
 
@@ -74,6 +75,8 @@ PeerConnection::~PeerConnection() {
   _jinglePeerConnection = nullptr;
   _jinglePeerConnectionFactory = nullptr;
   uv_mutex_destroy(&lock);
+  delete _audioDeviceModule;
+  _audioDeviceModule = nullptr;
   TRACE_END;
 }
 

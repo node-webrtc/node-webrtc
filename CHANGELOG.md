@@ -1,3 +1,13 @@
+0.0.66 (in progress)
+====================
+
+Bug Fixes
+---------
+
+- The FakeAudioDeviceModule introduced in v0.0.63 used too much CPU. v0.0.66
+  introduces FakeAudioDevice from the WebRTC test code, which has reasonable CPU
+  usage.
+
 0.0.65
 ======
 
