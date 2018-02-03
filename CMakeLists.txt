@@ -11,7 +11,7 @@ set(MODULE wrtc)
 include(${CMAKE_SOURCE_DIR}/NodeJS.cmake)
 nodejs_init()
 
-file(GLOB_RECURSE MODULE_SRC src/*.cc src/*.h)
+file(GLOB_RECURSE MODULE_SRC src/*.cc src/*.h src/**/*.cc src/**/*.h)
 add_nodejs_module(${MODULE} ${MODULE_SRC})
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")

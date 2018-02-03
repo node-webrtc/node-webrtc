@@ -23,6 +23,8 @@
 #include "webrtc/api/statstypes.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 
+#include "fake_audio_device/fake_audio_device.h"
+
 namespace node_webrtc {
 
 class CreateOfferObserver;
@@ -192,7 +194,7 @@ class PeerConnection
   rtc::scoped_refptr<SetLocalDescriptionObserver> _setLocalDescriptionObserver;
   rtc::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
-  webrtc::AudioDeviceModule* _audioDeviceModule;
+  FakeAudioDevice* _audioDeviceModule;
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _jinglePeerConnectionFactory;
 
