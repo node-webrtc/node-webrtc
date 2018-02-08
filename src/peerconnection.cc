@@ -10,18 +10,19 @@
 #include "webrtc/api/mediaconstraintsinterface.h"
 #include "webrtc/api/test/fakeconstraints.h"
 #include "webrtc/base/refcount.h"
-#include "webrtc/modules/audio_device/include/fake_audio_device.h"
 
 #include "common.h"
 #include "create-answer-observer.h"
 #include "create-offer-observer.h"
 #include "datachannel.h"
+#include "peerconnectionfactory.h"
 #include "rtcstatsresponse.h"
 #include "set-local-description-observer.h"
 #include "set-remote-description-observer.h"
 #include "stats-observer.h"
 
 using node_webrtc::PeerConnection;
+using node_webrtc::PeerConnectionFactory;
 using v8::External;
 using v8::Function;
 using v8::FunctionTemplate;
@@ -36,8 +37,6 @@ using v8::Value;
 using v8::Array;
 
 Nan::Persistent<Function> PeerConnection::constructor;
-rtc::Thread* PeerConnection::_signalingThread;
-rtc::Thread* PeerConnection::_workerThread;
 
 //
 // PeerConnection
@@ -59,9 +58,11 @@ PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceSe
   constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveAudio, webrtc::MediaConstraintsInterface::kValueFalse);
   constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveVideo, webrtc::MediaConstraintsInterface::kValueFalse);
 
-  _audioDeviceModule = new webrtc::FakeAudioDeviceModule();
-  _jinglePeerConnectionFactory = webrtc::CreatePeerConnectionFactory(_workerThread, _signalingThread, _audioDeviceModule, nullptr, nullptr);
-  _jinglePeerConnection = _jinglePeerConnectionFactory->CreatePeerConnection(configuration, &constraints, nullptr, nullptr, this);
+  // TODO(mroberts): Read `factory` (non-standard) from RTCConfiguration?
+  _factory = PeerConnectionFactory::GetOrCreateDefault();
+  _shouldReleaseFactory = true;
+
+  _jinglePeerConnection = _factory->factory()->CreatePeerConnection(configuration, &constraints, nullptr, nullptr, this);
 
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, reinterpret_cast<uv_async_cb>(Run));
@@ -72,7 +73,12 @@ PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceSe
 PeerConnection::~PeerConnection() {
   TRACE_CALL;
   _jinglePeerConnection = nullptr;
-  _jinglePeerConnectionFactory = nullptr;
+  if (_factory) {
+    if (_shouldReleaseFactory) {
+      PeerConnectionFactory::Release();
+    }
+    _factory = nullptr;
+  }
   uv_mutex_destroy(&lock);
   TRACE_END;
 }
@@ -548,7 +554,13 @@ NAN_METHOD(PeerConnection::Close) {
   }
 
   self->_jinglePeerConnection = nullptr;
-  self->_jinglePeerConnectionFactory = nullptr;
+
+  if (self->_factory) {
+    if (self->_shouldReleaseFactory) {
+      PeerConnectionFactory::Release();
+    }
+    self->_factory = nullptr;
+  }
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::Undefined());
@@ -663,10 +675,7 @@ NAN_SETTER(PeerConnection::ReadOnly) {
   INFO("PeerConnection::ReadOnly");
 }
 
-void PeerConnection::Init(rtc::Thread* signalingThread, rtc::Thread* workerThread, Handle<Object> exports) {
-  _signalingThread = signalingThread;
-  _workerThread = workerThread;
-
+void PeerConnection::Init(Handle<Object> exports) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("PeerConnection").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);

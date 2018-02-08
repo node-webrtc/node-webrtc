@@ -23,6 +23,8 @@
 #include "webrtc/api/statstypes.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 
+#include "peerconnectionfactory.h"
+
 namespace node_webrtc {
 
 class CreateOfferObserver;
@@ -143,7 +145,7 @@ class PeerConnection
   //
   // Nodejs wrapping.
   //
-  static void Init(rtc::Thread* signalingThread, rtc::Thread* workerThread, v8::Handle<v8::Object> exports);
+  static void Init(v8::Handle<v8::Object> exports);
   static Nan::Persistent<v8::Function> constructor;
   static NAN_METHOD(New);
 
@@ -194,10 +196,9 @@ class PeerConnection
 
   webrtc::AudioDeviceModule* _audioDeviceModule;
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
-  rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _jinglePeerConnectionFactory;
 
-  static rtc::Thread* _signalingThread;
-  static rtc::Thread* _workerThread;
+  std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
+  bool _shouldReleaseFactory;
 };
 
 }  // namespace node_webrtc

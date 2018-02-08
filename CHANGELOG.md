@@ -1,3 +1,13 @@
+0.0.66 (in progress)
+====================
+
+Bug Fixes
+---------
+
+- Fixed a CPU regression introduced in 0.0.63. We now share a single
+  PeerConnectionFactoryInterface across PeerConnectionInterfaces, and we now use
+  a "dummy" AudioDeviceModule instead of FakeAudioDeviceModule.
+
 0.0.65
 ======
 

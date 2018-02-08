@@ -172,7 +172,7 @@ void DataChannel::Run(uv_async_t* handle, int status) {
       argv[0] = state;
       Nan::MakeCallback(dc, callback, 1, argv);
 
-      if (self->_jingleDataChannel && webrtc::DataChannelInterface::kClosed == self->_jingleDataChannel->state()) {
+      if (data->state == webrtc::DataChannelInterface::kClosed) {
         do_shutdown = true;
       }
     } else if (DataChannel::MESSAGE & evt.type) {
@@ -209,8 +209,6 @@ void DataChannel::Run(uv_async_t* handle, int status) {
 
   if (do_shutdown) {
     uv_close(reinterpret_cast<uv_handle_t*>(&self->async), nullptr);
-    self->_jingleDataChannel->UnregisterObserver();
-    self->_jingleDataChannel = nullptr;
   }
 
   TRACE_END;
@@ -220,6 +218,10 @@ void DataChannel::OnStateChange() {
   TRACE_CALL;
   StateEvent* data = new StateEvent(_jingleDataChannel->state());
   QueueEvent(DataChannel::STATE, static_cast<void*>(data));
+  if (_jingleDataChannel->state() == webrtc::DataChannelInterface::kClosed) {
+    _jingleDataChannel->UnregisterObserver();
+    _jingleDataChannel = nullptr;
+  }
   TRACE_END;
 }
 
