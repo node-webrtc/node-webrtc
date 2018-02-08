@@ -7,9 +7,7 @@
  */
 #include "peerconnection.h"
 
-#include "webrtc/api/mediaconstraintsinterface.h"
-#include "webrtc/api/test/fakeconstraints.h"
-#include "webrtc/base/refcount.h"
+#include "webrtc/base/refcountedobject.h"
 
 #include "common.h"
 #include "create-answer-observer.h"
@@ -52,17 +50,11 @@ PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceSe
   webrtc::PeerConnectionInterface::RTCConfiguration configuration;
   configuration.servers = iceServerList;
 
-  webrtc::FakeConstraints constraints;
-  constraints.AddOptional(webrtc::MediaConstraintsInterface::kEnableDtlsSrtp, webrtc::MediaConstraintsInterface::kValueTrue);
-  // FIXME: crashes without these constraints, why?
-  constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveAudio, webrtc::MediaConstraintsInterface::kValueFalse);
-  constraints.AddMandatory(webrtc::MediaConstraintsInterface::kOfferToReceiveVideo, webrtc::MediaConstraintsInterface::kValueFalse);
-
   // TODO(mroberts): Read `factory` (non-standard) from RTCConfiguration?
   _factory = PeerConnectionFactory::GetOrCreateDefault();
   _shouldReleaseFactory = true;
 
-  _jinglePeerConnection = _factory->factory()->CreatePeerConnection(configuration, &constraints, nullptr, nullptr, this);
+  _jinglePeerConnection = _factory->factory()->CreatePeerConnection(configuration, nullptr, nullptr, nullptr, this);
 
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, reinterpret_cast<uv_async_cb>(Run));
