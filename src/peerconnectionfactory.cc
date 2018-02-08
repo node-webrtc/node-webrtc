@@ -46,7 +46,7 @@ PeerConnectionFactory::PeerConnectionFactory(rtc::scoped_refptr<webrtc::AudioDev
   assert(result);
 
   _factory = webrtc::CreatePeerConnectionFactory(_workerThread.get(), _signalingThread.get(), audioDeviceModule,
-                                                 nullptr, nullptr);
+          nullptr, nullptr);
   assert(_factory);
 }
 
