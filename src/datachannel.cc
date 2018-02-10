@@ -293,18 +293,6 @@ NAN_METHOD(DataChannel::Close) {
   return;
 }
 
-NAN_METHOD(DataChannel::Shutdown) {
-  TRACE_CALL;
-
-  DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.This());
-  if (!uv_is_closing(reinterpret_cast<uv_handle_t*>(&self->async))) {
-    uv_close(reinterpret_cast<uv_handle_t*>(&self->async), nullptr);
-  }
-
-  TRACE_END;
-  return;
-}
-
 NAN_GETTER(DataChannel::GetBufferedAmount) {
   TRACE_CALL;
 
@@ -372,7 +360,6 @@ void DataChannel::Init(Handle<Object> exports) {
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   Nan::SetPrototypeMethod(tpl, "close", Close);
-  Nan::SetPrototypeMethod(tpl, "shutdown", Shutdown);
   Nan::SetPrototypeMethod(tpl, "send", Send);
 
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("bufferedAmount").ToLocalChecked(), GetBufferedAmount, ReadOnly);
