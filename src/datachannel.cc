@@ -112,6 +112,7 @@ NAN_METHOD(DataChannel::New) {
 
   DataChannel* obj = new DataChannel(observer);
   obj->Wrap(info.This());
+  obj->Ref();
 
   TRACE_END;
   info.GetReturnValue().Set(info.This());
@@ -141,12 +142,14 @@ void DataChannel::QueueEvent(AsyncEventType type, void* data) {
 
 void DataChannel::Run(uv_async_t* handle, int status) {
   Nan::HandleScope scope;
-  DataChannel* self = static_cast<DataChannel*>(handle->data);
+
+  auto self = static_cast<DataChannel*>(handle->data);
   TRACE_CALL_P((uintptr_t)self);
-  Local<Object> dc = self->handle();
-  bool do_shutdown = false;
+  auto do_shutdown = false;
 
   while (true) {
+    auto dc = self->handle();
+
     uv_mutex_lock(&self->lock);
     bool empty = self->_events.empty();
     if (empty) {
@@ -208,6 +211,8 @@ void DataChannel::Run(uv_async_t* handle, int status) {
   }
 
   if (do_shutdown) {
+    self->async.data = nullptr;
+    self->Unref();
     uv_close(reinterpret_cast<uv_handle_t*>(&self->async), nullptr);
   }
 
