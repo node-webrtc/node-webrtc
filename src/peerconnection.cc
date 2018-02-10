@@ -91,12 +91,13 @@ void PeerConnection::QueueEvent(AsyncEventType type, void* data) {
 void PeerConnection::Run(uv_async_t* handle, int status) {
   Nan::HandleScope scope;
 
-  PeerConnection* self = static_cast<PeerConnection*>(handle->data);
+  auto self = static_cast<PeerConnection*>(handle->data);
   TRACE_CALL_P((uintptr_t)self);
-  Local<Object> pc = self->handle();
-  bool do_shutdown = false;
+  auto do_shutdown = false;
 
   while (true) {
+    auto pc = self->handle();
+
     uv_mutex_lock(&self->lock);
     bool empty = self->_events.empty();
     if (empty) {
@@ -184,7 +185,9 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
   }
 
   if (do_shutdown) {
-    uv_close(reinterpret_cast<uv_handle_t*>(&self->async), nullptr);
+    self->async.data = nullptr;
+    self->Unref();
+    uv_close(reinterpret_cast<uv_handle_t*>(handle), nullptr);
   }
 
   TRACE_END;
@@ -332,6 +335,7 @@ NAN_METHOD(PeerConnection::New) {
   // Tell em whats up
   PeerConnection* obj = new PeerConnection(iceServerList);
   obj->Wrap(info.This());
+  obj->Ref();
 
   TRACE_END;
   info.GetReturnValue().Set(info.This());
