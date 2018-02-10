@@ -88,7 +88,6 @@ class DataChannel
 
   static NAN_METHOD(Send);
   static NAN_METHOD(Close);
-  static NAN_METHOD(Shutdown);
 
   static NAN_GETTER(GetBufferedAmount);
   static NAN_GETTER(GetLabel);
