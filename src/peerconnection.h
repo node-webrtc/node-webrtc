@@ -137,7 +137,7 @@ class PeerConnection
   virtual void OnIceCandidate(const webrtc::IceCandidateInterface* candidate);
   virtual void OnRenegotiationNeeded();
 
-  virtual void OnDataChannel(webrtc::DataChannelInterface* data_channel);
+  virtual void OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel);
 
   virtual void OnAddStream(webrtc::MediaStreamInterface* stream);
   virtual void OnRemoveStream(webrtc::MediaStreamInterface* stream);

@@ -226,7 +226,7 @@ void PeerConnection::OnIceCandidate(const webrtc::IceCandidateInterface* candida
   TRACE_END;
 }
 
-void PeerConnection::OnDataChannel(webrtc::DataChannelInterface* jingle_data_channel) {
+void PeerConnection::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> jingle_data_channel) {
   TRACE_CALL;
   DataChannelObserver* observer = new DataChannelObserver(jingle_data_channel);
   PeerConnection::DataChannelEvent* data = new PeerConnection::DataChannelEvent(observer);
