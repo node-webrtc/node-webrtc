@@ -6,3 +6,5 @@ require('./connect');
 require('./iceservers');
 // require('./bwtest').tape();
 // require('./multiconnect');
+require('./closing-peer-connection');
+require('./closing-data-channel');
