@@ -31,6 +31,8 @@ uv_mutex_t PeerConnectionFactory::_lock;
 int PeerConnectionFactory::_references = 0;
 
 PeerConnectionFactory::PeerConnectionFactory(rtc::scoped_refptr<webrtc::AudioDeviceModule> audioDeviceModule) {
+  TRACE_CALL;
+
   bool result;
 
   _workerThread = std::unique_ptr<rtc::Thread>(new rtc::Thread());
@@ -48,9 +50,13 @@ PeerConnectionFactory::PeerConnectionFactory(rtc::scoped_refptr<webrtc::AudioDev
   _factory = webrtc::CreatePeerConnectionFactory(_workerThread.get(), _signalingThread.get(), audioDeviceModule,
           nullptr, nullptr);
   assert(_factory);
+
+  TRACE_END;
 }
 
 PeerConnectionFactory::~PeerConnectionFactory() {
+  TRACE_CALL;
+
   _factory = nullptr;
 
   _workerThread->Stop();
@@ -58,6 +64,8 @@ PeerConnectionFactory::~PeerConnectionFactory() {
 
   _workerThread = nullptr;
   _signalingThread = nullptr;
+
+  TRACE_END;
 }
 
 NAN_METHOD(PeerConnectionFactory::New) {

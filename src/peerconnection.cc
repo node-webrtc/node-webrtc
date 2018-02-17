@@ -228,7 +228,7 @@ void PeerConnection::OnIceCandidate(const webrtc::IceCandidateInterface* candida
 
 void PeerConnection::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> jingle_data_channel) {
   TRACE_CALL;
-  DataChannelObserver* observer = new DataChannelObserver(jingle_data_channel);
+  DataChannelObserver* observer = new DataChannelObserver(_factory, jingle_data_channel);
   PeerConnection::DataChannelEvent* data = new PeerConnection::DataChannelEvent(observer);
   QueueEvent(PeerConnection::NOTIFY_DATA_CHANNEL, static_cast<void*>(data));
   TRACE_END;
@@ -496,7 +496,7 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   }
 
   rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel_interface = self->_jinglePeerConnection->CreateDataChannel(*label, &dataChannelInit);
-  DataChannelObserver* observer = new DataChannelObserver(data_channel_interface);
+  DataChannelObserver* observer = new DataChannelObserver(self->_factory, data_channel_interface);
 
   Local<Value> cargv[1];
   cargv[0] = Nan::New<External>(static_cast<void*>(observer));
