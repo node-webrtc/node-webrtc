@@ -30,7 +30,7 @@ Nan::Persistent<Function> DataChannel::ArrayBufferConstructor;
 #endif
 
 DataChannelObserver::DataChannelObserver(std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,
-                                         rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel) {
+    rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel) {
   TRACE_CALL;
   uv_mutex_init(&lock);
   _factory = factory;

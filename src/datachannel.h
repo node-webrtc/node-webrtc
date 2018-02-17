@@ -127,7 +127,7 @@ class DataChannelObserver
   friend class node_webrtc::DataChannel;
  public:
   explicit DataChannelObserver(std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,
-                               rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel);
+      rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel);
   virtual ~DataChannelObserver();
 
   virtual void OnStateChange();
