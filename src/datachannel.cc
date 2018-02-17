@@ -29,15 +29,18 @@ Nan::Persistent<Function> DataChannel::constructor;
 Nan::Persistent<Function> DataChannel::ArrayBufferConstructor;
 #endif
 
-DataChannelObserver::DataChannelObserver(rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel) {
+DataChannelObserver::DataChannelObserver(std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,
+                                         rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel) {
   TRACE_CALL;
   uv_mutex_init(&lock);
+  _factory = factory;
   _jingleDataChannel = jingleDataChannel;
   _jingleDataChannel->RegisterObserver(this);
   TRACE_END;
 }
 
 DataChannelObserver::~DataChannelObserver() {
+  _factory = nullptr;
   _jingleDataChannel = nullptr;
   uv_mutex_destroy(&lock);
 }
@@ -73,6 +76,7 @@ DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, reinterpret_cast<uv_async_cb>(Run));
 
+  _factory = observer->_factory;
   _jingleDataChannel = observer->_jingleDataChannel;
   _jingleDataChannel->RegisterObserver(this);
 
@@ -97,6 +101,9 @@ DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
 
 DataChannel::~DataChannel() {
   TRACE_CALL;
+  _factory = nullptr;
+  _jingleDataChannel = nullptr;
+  uv_mutex_destroy(&lock);
   TRACE_END;
 }
 

@@ -21,6 +21,8 @@
 #include "webrtc/base/buffer.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 
+#include "peerconnectionfactory.h"
+
 namespace node_webrtc {
 
 class DataChannelObserver;
@@ -29,7 +31,6 @@ class DataChannel
   : public Nan::ObjectWrap
   , public webrtc::DataChannelObserver {
   friend class node_webrtc::DataChannelObserver;
-
  public:
   struct ErrorEvent {
     explicit ErrorEvent(const std::string& msg)
@@ -111,6 +112,7 @@ class DataChannel
   uv_loop_t* loop;
   std::queue<AsyncEvent> _events;
 
+  std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
   BinaryType _binaryType;
 
@@ -122,16 +124,21 @@ class DataChannel
 
 class DataChannelObserver
   : public webrtc::DataChannelObserver {
+  friend class node_webrtc::DataChannel;
  public:
-  explicit DataChannelObserver(rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel);
+  explicit DataChannelObserver(std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,
+                               rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel);
   virtual ~DataChannelObserver();
 
   virtual void OnStateChange();
   virtual void OnMessage(const webrtc::DataBuffer& buffer);
+
+ private:
   void QueueEvent(DataChannel::AsyncEventType type, void* data);
 
   uv_mutex_t lock;
   std::queue<DataChannel::AsyncEvent> _events;
+  std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
 };
 
