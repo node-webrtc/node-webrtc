@@ -1,12 +1,12 @@
 'use strict';
 
-const test = require('tape');
-const { RTCPeerConnection } = require('..');
+var test = require('tape');
+var RTCPeerConnection = require('..').RTCPeerConnection;
 
-test('make sure closing an RTCDataChannel after an RTCPeerConnection has been garbage collected doesn\'t segfault', t => {
-  const dc = (() => {
-    const pc = new RTCPeerConnection();
-    const dc = pc.createDataChannel();
+test('make sure closing an RTCDataChannel after an RTCPeerConnection has been garbage collected doesn\'t segfault', function(t) {
+  var dc = (function() {
+    var pc = new RTCPeerConnection();
+    var dc = pc.createDataChannel();
     pc.close();
     return dc;
   })();
