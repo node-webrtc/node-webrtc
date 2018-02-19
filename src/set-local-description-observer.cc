@@ -15,13 +15,12 @@ using node_webrtc::SetLocalDescriptionObserver;
 
 void SetLocalDescriptionObserver::OnSuccess() {
   TRACE_CALL;
-  parent->QueueEvent(PeerConnection::SET_LOCAL_DESCRIPTION_SUCCESS, static_cast<void*>(nullptr));
+  parent->Dispatch(SetLocalDescriptionSuccessEvent::Create());
   TRACE_END;
 }
 
 void SetLocalDescriptionObserver::OnFailure(const std::string& msg) {
   TRACE_CALL;
-  PeerConnection::ErrorEvent* data = new PeerConnection::ErrorEvent(msg);
-  parent->QueueEvent(PeerConnection::SET_LOCAL_DESCRIPTION_ERROR, static_cast<void*>(data));
+  parent->Dispatch(SetLocalDescriptionErrorEvent::Create(msg));
   TRACE_END;
 }
