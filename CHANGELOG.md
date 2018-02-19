@@ -1,3 +1,17 @@
+0.0.67
+======
+
+Bug Fixes
+---------
+
+- ObjectWrap instances accessed in an event loop (like PeerConnection and
+  DataChannel) were getting freed before the event loop completed, which caused
+  segfaults. Now, we call `Ref` in the ObjectWrap instances' constructors and
+  `Unref` in their event loops.
+- Fixed another source of segfaults, where, if a DataChannel's
+  PeerConnectionFactory was freed, accessing the underlying DataChannelInterface
+  would try to use Threads which had been freed.
+
 0.0.66
 ======
 
