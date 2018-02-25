@@ -10,6 +10,7 @@
 
 #include <uv.h>
 
+#include <atomic>
 #include <memory>
 #include <queue>
 
@@ -58,7 +59,7 @@ class EventLoop: private EventQueue<T> {
  private:
   uv_async_t _async;
   uv_loop_t* _loop;
-  bool _should_stop = false;
+  std::atomic<bool> _should_stop = {false};
   T& _target;
 
   static void Run(uv_async_t* handle, int) {
