@@ -10,7 +10,7 @@
 #include "src/datachannel.h"
 #include "src/peerconnection.h"
 
-using node_webrtc::Event;
+using node_webrtc::AddIceCandidateSuccessEvent;
 using node_webrtc::DataChannel;
 using node_webrtc::DataChannelEvent;
 using node_webrtc::DataChannelStateChangeEvent;
@@ -22,10 +22,11 @@ using node_webrtc::IceEvent;
 using node_webrtc::MessageEvent;
 using node_webrtc::PeerConnection;
 using node_webrtc::SdpEvent;
+using node_webrtc::SetLocalDescriptionSuccessEvent;
+using node_webrtc::SetRemoteDescriptionSuccessEvent;
 using node_webrtc::SignalingStateChangeEvent;
 
-template <>
-void Event<PeerConnection>::Dispatch(PeerConnection& peerConnection) {
+void AddIceCandidateSuccessEvent::Dispatch(PeerConnection& peerConnection) {
   peerConnection.HandleVoidEvent();
 }
 
@@ -69,6 +70,14 @@ void IceGatheringStateChangeEvent::Dispatch(PeerConnection& peerConnection) {
 
 void SdpEvent::Dispatch(PeerConnection& peerConnection) {
   peerConnection.HandleSdpEvent(*this);
+}
+
+void SetLocalDescriptionSuccessEvent::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleVoidEvent();
+}
+
+void SetRemoteDescriptionSuccessEvent::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleVoidEvent();
 }
 
 void SignalingStateChangeEvent::Dispatch(PeerConnection& peerConnection) {

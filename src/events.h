@@ -38,6 +38,8 @@ class Event {
 
 class AddIceCandidateSuccessEvent: public Event<PeerConnection> {
  public:
+  void Dispatch(PeerConnection&) override;
+
   static std::unique_ptr<AddIceCandidateSuccessEvent> Create() {
     return std::unique_ptr<AddIceCandidateSuccessEvent>(new AddIceCandidateSuccessEvent());
   }
@@ -48,6 +50,8 @@ class AddIceCandidateSuccessEvent: public Event<PeerConnection> {
 
 class SetLocalDescriptionSuccessEvent: public Event<PeerConnection> {
  public:
+  void Dispatch(PeerConnection&) override;
+
   static std::unique_ptr<SetLocalDescriptionSuccessEvent> Create() {
     return std::unique_ptr<SetLocalDescriptionSuccessEvent>(new SetLocalDescriptionSuccessEvent());
   }
@@ -58,6 +62,8 @@ class SetLocalDescriptionSuccessEvent: public Event<PeerConnection> {
 
 class SetRemoteDescriptionSuccessEvent: public Event<PeerConnection> {
  public:
+  void Dispatch(PeerConnection&) override;
+
   static std::unique_ptr<SetRemoteDescriptionSuccessEvent> Create() {
     return std::unique_ptr<SetRemoteDescriptionSuccessEvent>(new SetRemoteDescriptionSuccessEvent());
   }
