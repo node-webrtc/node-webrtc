@@ -14,6 +14,7 @@
 #include <memory>
 #include <queue>
 
+#include "src/common.h"
 #include "src/eventqueue.h"
 #include "src/events.h"
 
@@ -32,8 +33,10 @@ class EventLoop: private EventQueue<T> {
    * @param event the event to dispatch
    */
   void Dispatch(std::unique_ptr<Event<T>> event) {
+    TRACE_CALL;
     this->Enqueue(std::move(event));
     uv_async_send(&_async);
+    TRACE_END;
   }
 
  protected:
@@ -53,7 +56,9 @@ class EventLoop: private EventQueue<T> {
    * Stop the EventLoop.
    */
   void Stop() {
+    TRACE_CALL;
     _should_stop = true;
+    TRACE_END;
   }
 
  private:
@@ -63,20 +68,28 @@ class EventLoop: private EventQueue<T> {
   T& _target;
 
   static void Run(uv_async_t* handle, int) {
+    TRACE_CALL;
+
     auto self = reinterpret_cast<EventLoop<T>*>(handle->data);
 
     while (auto event = self->Dequeue()) {
+      TRACE("Got event");
       event->Dispatch(self->_target);
       if (self->_should_stop) {
+        TRACE("Event set _should_stop");
         break;
       }
     }
+    TRACE("No more events");
 
     if (self->_should_stop) {
+      TRACE("Stopping");
       self->_async.data = nullptr;
       self->DidStop();
       uv_close(reinterpret_cast<uv_handle_t*>(&self->_async), nullptr);
     }
+
+    TRACE_END;
   }
 };
 
