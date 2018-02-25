@@ -8,8 +8,9 @@
 #ifndef SRC_COMMON_H_
 #define SRC_COMMON_H_
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <iostream>
+#include <string>
 
 #include "nan.h"
 
@@ -28,12 +29,12 @@
 #define TRACE_PTR(msg, p) printf("   TRACE: %s : %p\n", msg, p)
 
 #ifdef _WIN32
-#define TRACE_CALL printf("-> TRACE: Call::%s\n", __FUNCSIG__)
-#define TRACE_CALL_I(p1) printf("-> TRACE: Call::%s(%d)\n", __FUNCSIG__, p1)
-#define TRACE_CALL_P(p1) printf("-> TRACE: Call::%s(%lx)\n", __FUNCSIG__, p1)
-#define TRACE_END printf("<- Call::%s\n", __FUNCSIG__)
+#define TRACE_CALL printf("-> TRACE: Call::%s\n", __FUNCSIG__); std::cout << std::endl
+#define TRACE_CALL_I(p1) printf("-> TRACE: Call::%s(%d)\n", __FUNCSIG__, p1); std::cout << std::endl
+#define TRACE_CALL_P(p1) printf("-> TRACE: Call::%s(%lx)\n", __FUNCSIG__, p1); std::cout << std::endl
+#define TRACE_END printf("<- Call::%s\n", __FUNCSIG__); std::cout << std::endl
 #else
-#define TRACE_CALL printf("-> TRACE: Call::%s\n", __PRETTY_FUNCTION__)
+#define TRACE_CALL printf("-> TRACE: Call::%s\n", __PRETTY_FUNCTION__); std::cout << std::endl
 #define TRACE_CALL_I(p1) printf("-> TRACE: Call::%s(%d)\n", __PRETTY_FUNCTION__, p1)
 #define TRACE_CALL_P(p1) printf("-> TRACE: Call::%s(%lx)\n", __PRETTY_FUNCTION__, p1)
 #define TRACE_END printf("<- Call::%s\n", __PRETTY_FUNCTION__)
