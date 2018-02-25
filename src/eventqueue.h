@@ -55,7 +55,7 @@ class EventQueue {
 
  protected:
   EventQueue() {
-    uv_mutex_init(&_lock);
+    uv_mutex_init_recursive(&_lock);
   }
 
  private:
