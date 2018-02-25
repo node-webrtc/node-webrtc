@@ -26,10 +26,18 @@
 #define TRACE_U(msg, u) printf("   TRACE: %s : %u\n", msg, u)
 #define TRACE_X(msg, x) printf("   TRACE: %s : 0x%x\n", msg, x)
 #define TRACE_PTR(msg, p) printf("   TRACE: %s : %p\n", msg, p)
+
+#ifdef _WIN32
+#define TRACE_CALL printf("-> TRACE: Call::%s\n", __FUNCSIG__)
+#define TRACE_CALL_I(p1) printf("-> TRACE: Call::%s(%d)\n", __FUNCSIG__, p1)
+#define TRACE_CALL_P(p1) printf("-> TRACE: Call::%s(%lx)\n", __FUNCSIG__, p1)
+#define TRACE_END printf("<- Call::%s\n", __FUNCSIG__)
+#else
 #define TRACE_CALL printf("-> TRACE: Call::%s\n", __PRETTY_FUNCTION__)
 #define TRACE_CALL_I(p1) printf("-> TRACE: Call::%s(%d)\n", __PRETTY_FUNCTION__, p1)
 #define TRACE_CALL_P(p1) printf("-> TRACE: Call::%s(%lx)\n", __PRETTY_FUNCTION__, p1)
 #define TRACE_END printf("<- Call::%s\n", __PRETTY_FUNCTION__)
+#endif
 
 #else
 
