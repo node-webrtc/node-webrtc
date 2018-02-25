@@ -4,7 +4,7 @@
 
 var spawnSync = require('child_process').spawnSync;
 
-var args = ['configure'];
+var args = ['rebuild'];
 
 if (process.env.DEBUG) {
   args.push('--debug');
@@ -37,11 +37,6 @@ function download() {
 function build() {
   console.log('Running ncmake ' + args.join(' '));
   spawnSync('ncmake', args, {
-    shell: true,
-    stdio: 'inherit'
-  });
-  console.log('Running ncmake build');
-  spawnSync('ncmake', ['build'], {
     shell: true,
     stdio: 'inherit'
   });
