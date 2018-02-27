@@ -45,6 +45,29 @@ cd node-webrtc
 npm install
 ````
 
+## Build
+
+If you would like to build from source (You must if you're using arm)
+
+````
+git clone https://github.com/aisouard/libwebrtc
+cd libwebrtc
+mkdir out
+cd out
+cmake -DWEBRTC_BRANCH_HEAD=refs/branch-heads/57 ..
+make
+\# wait for a while
+cd \<path of node-webrtc\>
+mkdir -p third_party/webrtc
+cp -r \<path of libwebrtc\>/out/lib third_party/webrtc
+cp -r \<path of libwebrtc\>/out/include third_party/webrtc
+export SKIP_DOWNLOAD=true
+export CC=gcc-4.8
+export CXX=g++-4.8
+npm run install
+````
+
+
 # Tests
 
 ## Unit tests
