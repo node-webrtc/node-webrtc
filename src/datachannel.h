@@ -21,6 +21,8 @@
 #include "webrtc/base/buffer.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 
+#include "eventloop.h"
+#include "events.h"
 #include "peerconnectionfactory.h"
 
 namespace node_webrtc {
@@ -28,43 +30,11 @@ namespace node_webrtc {
 class DataChannelObserver;
 
 class DataChannel
-  : public Nan::ObjectWrap
+  : public EventLoop<DataChannel>
+  , public Nan::ObjectWrap
   , public webrtc::DataChannelObserver {
   friend class node_webrtc::DataChannelObserver;
  public:
-  struct ErrorEvent {
-    explicit ErrorEvent(const std::string& msg)
-      : msg(msg) {}
-
-    std::string msg;
-  };
-
-  struct MessageEvent {
-    explicit MessageEvent(const webrtc::DataBuffer* buffer) {
-      binary = buffer->binary;
-      size = buffer->size();
-      message = std::shared_ptr<char>(new char[size], std::default_delete<char>());
-      memcpy(static_cast<void*>(message.get()), static_cast<const void*>(buffer->data.data()), size);
-    }
-
-    bool binary;
-    std::shared_ptr<char> message;
-    size_t size;
-  };
-
-  struct StateEvent {
-    explicit StateEvent(const webrtc::DataChannelInterface::DataState state)
-      : state(state) {}
-
-    webrtc::DataChannelInterface::DataState state;
-  };
-
-  enum AsyncEventType {
-    MESSAGE = 0x1 << 0,  // 1
-    ERROR = 0x1 << 1,  // 2
-    STATE = 0x1 << 2,  // 4
-  };
-
   enum BinaryType {
     BLOB = 0x0,
     ARRAY_BUFFER = 0x1
@@ -77,8 +47,8 @@ class DataChannel
   // DataChannelObserver implementation.
   //
 
-  virtual void OnStateChange();
-  virtual void OnMessage(const webrtc::DataBuffer& buffer);
+  void OnStateChange() override;
+  void OnMessage(const webrtc::DataBuffer& buffer) override;
 
   //
   // Nodejs wrapping.
@@ -97,21 +67,14 @@ class DataChannel
   static NAN_SETTER(SetBinaryType);
   static NAN_SETTER(ReadOnly);
 
-  void QueueEvent(DataChannel::AsyncEventType type, void* data);
+  void HandleErrorEvent(const ErrorEvent<DataChannel>& event) const;
+  void HandleStateEvent(const DataChannelStateChangeEvent& event);
+  void HandleMessageEvent(const MessageEvent& event) const;
+
+ protected:
+  void DidStop() override;
 
  private:
-  static void Run(uv_async_t* handle, int status);
-
-  struct AsyncEvent {
-    AsyncEventType type;
-    void* data;
-  };
-
-  uv_mutex_t lock;
-  uv_async_t async;
-  uv_loop_t* loop;
-  std::queue<AsyncEvent> _events;
-
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
   BinaryType _binaryType;
@@ -123,7 +86,8 @@ class DataChannel
 };
 
 class DataChannelObserver
-  : public webrtc::DataChannelObserver {
+  : public EventQueue<DataChannel>
+  , public webrtc::DataChannelObserver {
   friend class node_webrtc::DataChannel;
  public:
   explicit DataChannelObserver(std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,
@@ -134,10 +98,6 @@ class DataChannelObserver
   virtual void OnMessage(const webrtc::DataBuffer& buffer);
 
  private:
-  void QueueEvent(DataChannel::AsyncEventType type, void* data);
-
-  uv_mutex_t lock;
-  std::queue<DataChannel::AsyncEvent> _events;
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
 };

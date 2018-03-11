@@ -348,7 +348,8 @@ test('close the connections', function(t) {
     peers[i].setLocalDescription({}, function() {}, function() {});
     peers[i].setRemoteDescription({}, function() {}, function() {});
     peers[i].addIceCandidate({}, function() {}, function() {});
-    peers[i].createDataChannel('test');
+    // eslint-disable-next-line no-loop-func
+    t.throws(function() { peers[i].createDataChannel('test'); });
     peers[i].getStats(function() {}, function(err) {
       t.ok(err);
     });
