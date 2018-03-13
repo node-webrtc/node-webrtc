@@ -8,6 +8,7 @@
 #include "peerconnection.h"
 
 #include "webrtc/base/refcountedobject.h"
+#include "webrtc/p2p/client/basicportallocator.h"
 
 #include "common.h"
 #include "create-answer-observer.h"
@@ -40,7 +41,7 @@ Nan::Persistent<Function> PeerConnection::constructor;
 // PeerConnection
 //
 
-PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList)
+PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList, int minPort, int maxPort)
   : loop(uv_default_loop()) {
   _createOfferObserver = new rtc::RefCountedObject<CreateOfferObserver>(this);
   _createAnswerObserver = new rtc::RefCountedObject<CreateAnswerObserver>(this);
@@ -54,7 +55,13 @@ PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceSe
   _factory = PeerConnectionFactory::GetOrCreateDefault();
   _shouldReleaseFactory = true;
 
-  _jinglePeerConnection = _factory->factory()->CreatePeerConnection(configuration, nullptr, nullptr, nullptr, this);
+  std::unique_ptr<cricket::PortAllocator> portAllocator = std::unique_ptr<cricket::PortAllocator>(new cricket::BasicPortAllocator(
+	_factory->getNetworkManager(),
+	_factory->getSocketFactory()
+  ));
+  portAllocator.get()->SetPortRange(minPort, maxPort);
+  
+  _jinglePeerConnection = _factory->factory()->CreatePeerConnection(configuration, nullptr, std::move(portAllocator), nullptr, this);
 
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, reinterpret_cast<uv_async_cb>(Run));
@@ -258,6 +265,10 @@ NAN_METHOD(PeerConnection::New) {
 
   webrtc::PeerConnectionInterface::IceServers iceServerList;
 
+  int minPort = 0;
+  int maxPort = 0;
+  bool disableTCP = false;
+
   // Check if we have a configuration object
   if (info[0]->IsObject()) {
     const Local<Object> obj = info[0]->ToObject();
@@ -295,7 +306,7 @@ NAN_METHOD(PeerConnection::New) {
 
               Local<Value> iceValue = iceServerObj->Get(iceProps->Get(y)->ToString());
 
-              // Handle each field by casting the data and assigning to our iceServer intsance
+              // Handle each field by casting the data and assigning to our iceServer instance
               if ((iceServerKey == "url" || iceServerKey == "urls") && iceValue->IsString()) {
                 String::Utf8Value _iceUrl(iceValue->ToString());
                 std::string iceUrl = std::string(*_iceUrl);
@@ -328,12 +339,37 @@ NAN_METHOD(PeerConnection::New) {
           }
         }
       }
+      else if (strKey == "portRange" && value->IsString()) {
+		std::string _portRange = std::string(*String::Utf8Value(value->ToString()));
+
+		int pos = _portRange.find("-");
+		
+		if (pos != std::string::npos) {		
+			try {
+				size_t minIdx, maxIdx;
+				std::string minStr = _portRange.substr(0, pos);
+				std::string maxStr = _portRange.substr(pos + 1);
+				
+				minPort = std::stoi(minStr, &minIdx);
+				maxPort = std::stoi(maxStr, &maxIdx);
+				
+				if (minIdx < minStr.size() || maxIdx < maxStr.size()) throw std::invalid_argument("invalid characters");
+			} 
+			catch (const std::invalid_argument& ia) {
+				Nan::ThrowError("Port range must follow the format `MIN-MAX`");
+			}
+			
+			if (minPort < 0 || minPort > 65535 || maxPort < 0 || maxPort > 65535 || minPort > maxPort) {
+				Nan::ThrowRangeError("Port range must be between 0-65535 and MIN <= MAX");
+			}
+		}
+      }
       // else if (strKey == "offerToReceiveAudio") ... Handle more config here. For now i just need ICE
     }
   }
 
   // Tell em whats up
-  PeerConnection* obj = new PeerConnection(iceServerList);
+  PeerConnection* obj = new PeerConnection(iceServerList, minPort, maxPort);
   obj->Wrap(info.This());
   obj->Ref();
 

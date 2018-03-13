@@ -22,7 +22,6 @@
 #include "webrtc/api/peerconnectioninterface.h"
 #include "webrtc/api/statstypes.h"
 #include "webrtc/base/scoped_ref_ptr.h"
-
 #include "peerconnectionfactory.h"
 
 namespace node_webrtc {
@@ -122,7 +121,7 @@ class PeerConnection
         ICE_GATHERING_STATE_CHANGE
   };
 
-  explicit PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList);
+  explicit PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList, int minPort = 0, int maxPort = 0);
   ~PeerConnection();
 
   //
