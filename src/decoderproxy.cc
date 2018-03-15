@@ -10,12 +10,12 @@ using namespace std;
 
 std::map<std::string, std::function<void(const webrtc::EncodedImage&, std::string label)> > encodedImageCallbacks;
 
-static void DecoderProxy::RegisterProxyCallback(std::string label,
+void DecoderProxy::RegisterProxyCallback(std::string label,
                                                    std::function<void(const webrtc::EncodedImage&,
                                                                       std::string label)> encodedImageCallback) {
   encodedImageCallbacks[label] = encodedImageCallback;
 }
-static DecoderProxy* DecoderProxy::Create(std::string label, VideoDecoder* decoder) {
+DecoderProxy* DecoderProxy::Create(std::string label, VideoDecoder* decoder) {
 
   return new DecoderProxy(label, decoder);
 }
@@ -33,8 +33,8 @@ int32_t DecoderProxy::InitDecode(const webrtc::VideoCodec* codec_settings,
 int32_t DecoderProxy::Decode(const webrtc::EncodedImage& input_image,
                        bool missing_frames,
                        const webrtc::RTPFragmentationHeader* fragmentation,
-                       const webrtc::CodecSpecificInfo* codec_specific_info = NULL,
-                       int64_t render_time_ms = -1) {
+                       const webrtc::CodecSpecificInfo* codec_specific_info,
+                       int64_t render_time_ms) {
   if(encodedImageCallbacks.find(label) != encodedImageCallbacks.end()) {
     encodedImageCallbacks[label](input_image, label);
   }
