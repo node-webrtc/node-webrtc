@@ -54,6 +54,7 @@ class MediaStream
     static NAN_METHOD(New);
 
     static NAN_METHOD(GetVideoTracks);
+    static NAN_METHOD(GetAudioTracks);
 
     static NAN_GETTER(GetId);
 

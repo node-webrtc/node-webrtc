@@ -20,6 +20,7 @@
 #include "set-remote-description-observer.h"
 #include "stats-observer.h"
 #include "videosink.h"
+#include "audiosink.h"
 #include "decoderproxy.h"
 
 using node_webrtc::PeerConnection;
@@ -207,6 +208,18 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
         Nan::MakeCallback(pc, callback, 1, argv);
       }
     }
+    else if(PeerConnection::NOTIFY_REMOVE_STREAM & evt.type) {
+      Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onremovestream").ToLocalChecked()));
+      if(callback->IsFunction()) {
+        webrtc::MediaStreamInterface* interface = static_cast<webrtc::MediaStreamInterface*>(evt.data);
+        Local<Value> cargv[1];
+        cargv[0] = Nan::New<External>(static_cast<void*>(interface));
+        Local<Value> ms = Nan::New(MediaStream::constructor)->NewInstance(1, cargv);
+        Local<Value> argv[1];
+        argv[0] = ms;
+        Nan::MakeCallback(pc, callback, 1, argv);
+      }
+    }
     else if(PeerConnection::NOTIFY_ON_FRAME & evt.type) {
       VideoFrameEvent* event = static_cast<VideoFrameEvent*>(evt.data);
 
@@ -247,6 +260,64 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
       }
       delete event;
     }
+    else if(PeerConnection::NOTIFY_ON_AUDIO_FRAME & evt.type) {
+      Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onaudioframe").ToLocalChecked()));
+      AudioFrameEvent* event = static_cast<AudioFrameEvent*>(evt.data);
+      if(callback->IsFunction()) {
+        Local<Value> cargv[6];
+        Local<Value> label = Nan::New(event->label.c_str()).ToLocalChecked();
+        cargv[0] = label;
+        cargv[1] = Nan::New<Uint32>(static_cast<uint32_t>(sizeof(float)));
+        cargv[2] = Nan::New<Uint32>(event->sample_rate);
+        cargv[3] = Nan::New<Uint32>(static_cast<uint32_t>(event->number_of_channels));
+        cargv[4] = Nan::New<Uint32>(static_cast<uint32_t>(event->number_of_frames));
+        v8::Isolate* isolate = v8::Isolate::GetCurrent();
+        cargv[5] = Nan::New<v8::ArrayBuffer>(v8::ArrayBuffer::New(isolate, (void*)&event->buffer[0],
+                                                                  event->buffer.size()*sizeof(float)));
+        Nan::MakeCallback(pc, callback, 6, cargv);
+      }
+      delete event;
+    }
+    else if(PeerConnection::REGISTER_SINK_AUDIO_FRAME & evt.type) {
+      MediaStream *ms = static_cast<MediaStream *>(evt.data);
+      auto mediaStreamInterface = ms->GetInterface();
+      auto audioTracks = mediaStreamInterface->GetAudioTracks();
+
+      for (auto audioTrack : audioTracks) {
+        string label = audioTrack->id();
+
+        // Retain Audio Sink.
+        AudioSink *sink = new AudioSink([label, self](const uint8_t *audio_data,
+                                                      int bits_per_sample, int sample_rate,
+                                                      size_t number_of_channels, size_t number_of_frames,
+                                                      string label) {
+          if (bits_per_sample == 16) {
+            size_t audioFrameSize = ((bits_per_sample / 8) * number_of_channels * number_of_frames) / 2;
+
+            vector<float> asFloat(audioFrameSize);
+            // S16LE input samples.
+            const int16_t *s16LEBuf = reinterpret_cast<const int16_t *>(audio_data);
+
+            // Converts to FLTP since it is the format supported by WebAudio APIs.
+            for (int i = 0; i < audioFrameSize; i++) {
+              asFloat[i] = (static_cast<float>(s16LEBuf[i]) / 32768.0f);
+              if (asFloat[i] < -1.0f) {
+                asFloat[i] = -1.0f;
+              } else if (s16LEBuf[i] > 1.0f) {
+                asFloat[i] = 1.0f;
+              }
+            }
+
+            auto audioFrameEvent = new AudioFrameEvent(label, bits_per_sample, sample_rate,
+                                                       number_of_channels, number_of_frames);
+            audioFrameEvent->buffer.reserve(sizeof(float) * audioFrameSize);
+            audioFrameEvent->buffer.insert(audioFrameEvent->buffer.begin(), asFloat.begin(), asFloat.end());
+            self->QueueEvent(PeerConnection::NOTIFY_ON_AUDIO_FRAME, audioFrameEvent);
+          }
+        }, label);
+        audioTrack->GetSource()->AddSink(sink);
+      }
+    }
     else if(PeerConnection::NEGOTIATION_NEEDED & evt.type) {
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onnegotiationneeded").ToLocalChecked()));
       if(callback->IsFunction()) {
@@ -284,6 +355,18 @@ NAN_METHOD(PeerConnection::OnStreamVideoFrame) {
       self->QueueEvent(PeerConnection::NOTIFY_ON_FRAME, event);
     }, label), rtc::VideoSinkWants());
   }
+
+  TRACE_END;
+}
+
+NAN_METHOD(PeerConnection::OnStreamAudioFrame) {
+  TRACE_CALL;
+
+  PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+
+  node_webrtc::MediaStream* ms = Nan::ObjectWrap::Unwrap<MediaStream>(info[0]->ToObject());
+
+  self->QueueEvent(PeerConnection::REGISTER_SINK_AUDIO_FRAME, ms);
 
   TRACE_END;
 }
@@ -394,6 +477,7 @@ void PeerConnection::OnAddStream(webrtc::MediaStreamInterface* stream) {
 
 void PeerConnection::OnRemoveStream(webrtc::MediaStreamInterface* stream) {
   TRACE_CALL;
+
   QueueEvent(PeerConnection::NOTIFY_REMOVE_STREAM, static_cast<void*>(stream));
   TRACE_END;
 }
@@ -851,6 +935,7 @@ void PeerConnection::Init(Handle<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "addIceCandidate", AddIceCandidate);
   Nan::SetPrototypeMethod(tpl, "createDataChannel", CreateDataChannel);
   Nan::SetPrototypeMethod(tpl, "onStreamVideoFrame", OnStreamVideoFrame);
+  Nan::SetPrototypeMethod(tpl, "onStreamAudioFrame", OnStreamAudioFrame);
   Nan::SetPrototypeMethod(tpl, "onStreamEncodedVideoFrame", OnStreamEncodedVideoFrame);
   Nan::SetPrototypeMethod(tpl, "close", Close);
 

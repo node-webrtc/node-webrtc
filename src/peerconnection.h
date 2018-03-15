@@ -24,6 +24,7 @@
 #include "webrtc/base/scoped_ref_ptr.h"
 
 #include "peerconnectionfactory.h"
+#include "audiosink.h"
 
 namespace node_webrtc {
 
@@ -74,6 +75,21 @@ class PeerConnection
     rtc::scoped_refptr<webrtc::VideoFrameBuffer> buffer;
     int width;
     int height;
+
+    std::string label;
+  };
+
+  struct AudioFrameEvent {
+    explicit AudioFrameEvent(std::string label, int bits_per_sample, int sample_rate,
+                             size_t number_of_channels, size_t number_of_frames)
+        : label(label), bits_per_sample(bits_per_sample),
+          sample_rate(sample_rate), number_of_channels(number_of_channels),
+          number_of_frames(number_of_frames) {}
+    std::vector<float> buffer;
+    int bits_per_sample;
+    int sample_rate;
+    size_t number_of_channels;
+    size_t number_of_frames;
 
     std::string label;
   };
@@ -137,6 +153,8 @@ class PeerConnection
     NOTIFY_ON_ENCODED_FRAME = 0x1 << 21,
     NEGOTIATION_NEEDED = 0x1 << 22,
     ADD_STREAM_SUCCESS = 0x1 << 23,
+    NOTIFY_ON_AUDIO_FRAME = 0x1 << 24,
+    REGISTER_SINK_AUDIO_FRAME = 0x1 << 25,
 
     ERROR_EVENT = CREATE_OFFER_ERROR | CREATE_ANSWER_ERROR |
         SET_LOCAL_DESCRIPTION_ERROR | SET_REMOTE_DESCRIPTION_ERROR |
@@ -189,6 +207,7 @@ class PeerConnection
   static NAN_METHOD(AddStream);
   static NAN_METHOD(RemoveStream);
   */
+  static NAN_METHOD(OnStreamAudioFrame);
   static NAN_METHOD(OnStreamVideoFrame);
   static NAN_METHOD(OnStreamEncodedVideoFrame);
   static NAN_METHOD(AddStream);
@@ -227,6 +246,7 @@ class PeerConnection
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _jinglePeerConnectionFactory;
 
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
+
   bool _shouldReleaseFactory;
 };
 

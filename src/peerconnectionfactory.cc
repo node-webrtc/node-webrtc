@@ -11,6 +11,10 @@
 
 #include "common.h"
 
+#include "proxyaudiomixer.h"
+#include "webrtc/api/audio/audio_mixer.h"
+#include "webrtc/api/test/fakeaudiocapturemodule.h"
+
 using node_webrtc::PeerConnectionFactory;
 using v8::External;
 using v8::Function;
@@ -37,7 +41,6 @@ PeerConnectionFactory::PeerConnectionFactory(rtc::scoped_refptr<webrtc::AudioDev
 
   _workerThread = std::unique_ptr<rtc::Thread>(new rtc::Thread());
   assert(_workerThread);
-
   result = _workerThread->Start();
   assert(result);
 
@@ -47,9 +50,18 @@ PeerConnectionFactory::PeerConnectionFactory(rtc::scoped_refptr<webrtc::AudioDev
   result = _signalingThread->Start();
   assert(result);
 
+  _networkThread = std::unique_ptr<rtc::Thread>(new rtc::Thread());
+  assert(_networkThread);
+  result = _networkThread->Start();
+  assert(result);
+
+
+  adm = FakeAudioCaptureModule::Create();
+
   _decoderFactory = new NodeDecoderFactory();
-  _factory = webrtc::CreatePeerConnectionFactory(_workerThread.get(), _signalingThread.get(), audioDeviceModule,
+  _factory = webrtc::CreatePeerConnectionFactory(_workerThread.get(), _signalingThread.get(), adm,
           nullptr, _decoderFactory);
+
   assert(_factory);
 
   TRACE_END;

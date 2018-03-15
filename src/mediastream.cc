@@ -133,6 +133,43 @@ void MediaStream::OnChanged()
   TRACE_END;
 }
 
+NAN_METHOD(MediaStream::GetAudioTracks) {
+  TRACE_CALL;
+  MediaStream* self = ObjectWrap::Unwrap<MediaStream>( info.Holder() );
+
+  auto audioTracks = self->GetInterface()->GetAudioTracks();
+  auto audioTracksJSArray = Nan::New<v8::Array>(audioTracks.size());
+  int i = 0;
+  for(auto track : audioTracks) {
+    auto jsAudioTrack = Nan::New<v8::Object>();
+    Nan::Set(jsAudioTrack, Nan::New<v8::String>("id").ToLocalChecked(),
+             Nan::New<v8::String>(track->id()).ToLocalChecked());
+
+    Nan::Set(jsAudioTrack, Nan::New<v8::String>("kind").ToLocalChecked(),
+             Nan::New<v8::String>(track->kind()).ToLocalChecked());
+
+    Nan::Set(jsAudioTrack, Nan::New<v8::String>("label").ToLocalChecked(),
+             Nan::New<v8::String>("").ToLocalChecked());
+
+    Nan::Set(jsAudioTrack, Nan::New<v8::String>("muted").ToLocalChecked(),
+             Nan::New<v8::Boolean>(track->GetSource()->state()
+                                   == track->GetSource()->kMuted));
+
+    // ToDO: Determine if track is read only.
+    Nan::Set(jsAudioTrack, Nan::New<v8::String>("readonly").ToLocalChecked(),
+             Nan::New<v8::Boolean>(true));
+
+    Nan::Set(jsAudioTrack, Nan::New<v8::String>("remote").ToLocalChecked(),
+             Nan::New<v8::Boolean>(track->GetSource()->remote()));
+
+    Nan::Set(audioTracksJSArray, Nan::New<Number>(i++), jsAudioTrack);
+  }
+  TRACE_END;
+  info.GetReturnValue().Set(audioTracksJSArray);
+
+  TRACE_END;
+}
+
 NAN_METHOD(MediaStream::GetVideoTracks) {
   TRACE_CALL;
   MediaStream* self = ObjectWrap::Unwrap<MediaStream>( info.Holder() );
@@ -226,6 +263,7 @@ void MediaStream::Init( Handle<Object> exports ) {
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("id").ToLocalChecked(), GetId, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("state").ToLocalChecked(), GetState, ReadOnly);
   Nan::SetPrototypeMethod(tpl, "getVideoTracks", GetVideoTracks);
+  Nan::SetPrototypeMethod(tpl, "getAudioTracks", GetAudioTracks);
 
   constructor.Reset(tpl->GetFunction());
   exports->Set(Nan::New("MediaStream").ToLocalChecked(), tpl->GetFunction());
