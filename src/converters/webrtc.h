@@ -163,12 +163,25 @@ struct Converter<v8::Local<v8::Value>, UnsignedShortRange> {
  *   sequence<RTCCertificate> certificates;
  *   [EnforceRange]
  *   octet                    iceCandidatePoolSize = 0;
+ *   UnsignedShortRange       portRange;
  * };
  */
 
 template <>
 struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::RTCConfiguration> {
   static Validation<webrtc::PeerConnectionInterface::RTCConfiguration> Convert(v8::Local<v8::Value> value);
+};
+
+struct ExtendedRTCConfiguration {
+  ExtendedRTCConfiguration(): configuration(webrtc::PeerConnectionInterface::RTCConfiguration()), portRange(UnsignedShortRange()) {}
+  ExtendedRTCConfiguration(const webrtc::PeerConnectionInterface::RTCConfiguration configuration, const UnsignedShortRange portRange): configuration(configuration), portRange(portRange) {}
+  const webrtc::PeerConnectionInterface::RTCConfiguration configuration;
+  const UnsignedShortRange portRange;
+};
+
+template <>
+struct Converter<v8::Local<v8::Value>, ExtendedRTCConfiguration> {
+  static Validation<ExtendedRTCConfiguration> Convert(v8::Local<v8::Value> value);
 };
 
 /*

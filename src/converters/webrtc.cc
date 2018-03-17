@@ -11,6 +11,7 @@
 
 using node_webrtc::Converter;
 using node_webrtc::Either;
+using node_webrtc::ExtendedRTCConfiguration;
 using node_webrtc::From;
 using node_webrtc::GetOptional;
 using node_webrtc::GetRequired;
@@ -194,6 +195,21 @@ Validation<RTCConfiguration> Converter<Local<Value>, RTCConfiguration>::Convert(
             * GetOptional<std::vector<Local<Object>>>(object, "certificates")
             // TODO(mroberts): Implement EnforceRange and change to uint8_t.
             * GetOptional<uint32_t>(object, "iceCandidatePoolSize", 0);
+      });
+}
+
+static ExtendedRTCConfiguration CreateExtendedRTCConfiguration(
+    const RTCConfiguration configuration,
+    const UnsignedShortRange portRange) {
+  return ExtendedRTCConfiguration(configuration, portRange);
+}
+
+Validation<ExtendedRTCConfiguration> Converter<Local<Value>, ExtendedRTCConfiguration>::Convert(const Local<Value> value) {
+  return From<Local<Object>>(value).FlatMap<ExtendedRTCConfiguration>(
+      [](const Local<Object> object) {
+        return curry(CreateExtendedRTCConfiguration)
+            % From<RTCConfiguration>(static_cast<Local<Value>>(object))
+            * GetOptional<UnsignedShortRange>(object, "portRange", UnsignedShortRange());
       });
 }
 
