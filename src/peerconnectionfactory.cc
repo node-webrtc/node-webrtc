@@ -69,6 +69,9 @@ PeerConnectionFactory::~PeerConnectionFactory() {
   _workerThread = nullptr;
   _signalingThread = nullptr;
 
+  _networkManager = nullptr;
+  _socketFactory = nullptr;
+
   TRACE_END;
 }
 
