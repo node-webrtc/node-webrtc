@@ -121,7 +121,7 @@ class PeerConnection
         ICE_GATHERING_STATE_CHANGE
   };
 
-  explicit PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList, int minPort = 0, int maxPort = 0);
+  explicit PeerConnection(webrtc::PeerConnectionInterface::RTCConfiguration configuration);
   ~PeerConnection();
 
   //
