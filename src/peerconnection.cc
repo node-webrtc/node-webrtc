@@ -55,12 +55,12 @@ PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceSe
   _factory = PeerConnectionFactory::GetOrCreateDefault();
   _shouldReleaseFactory = true;
 
-  std::unique_ptr<cricket::PortAllocator> portAllocator = std::unique_ptr<cricket::PortAllocator>(new cricket::BasicPortAllocator(
-	_factory->getNetworkManager(),
-	_factory->getSocketFactory()
-  ));
-  portAllocator.get()->SetPortRange(minPort, maxPort);
-  
+  auto portAllocator = std::unique_ptr<cricket::PortAllocator>(new cricket::BasicPortAllocator(
+              _factory->getNetworkManager(),
+              _factory->getSocketFactory()
+          ));
+  portAllocator->SetPortRange(minPort, maxPort);
+
   _jinglePeerConnection = _factory->factory()->CreatePeerConnection(configuration, nullptr, std::move(portAllocator), nullptr, this);
 
   uv_mutex_init(&lock);
@@ -267,7 +267,6 @@ NAN_METHOD(PeerConnection::New) {
 
   int minPort = 0;
   int maxPort = 0;
-  bool disableTCP = false;
 
   // Check if we have a configuration object
   if (info[0]->IsObject()) {
@@ -338,31 +337,29 @@ NAN_METHOD(PeerConnection::New) {
             iceServerList.push_back(iceServer);
           }
         }
-      }
-      else if (strKey == "portRange" && value->IsString()) {
-		std::string _portRange = std::string(*String::Utf8Value(value->ToString()));
+      } else if (strKey == "portRange" && value->IsString()) {
+        std::string _portRange = std::string(*String::Utf8Value(value->ToString()));
 
-		int pos = _portRange.find("-");
-		
-		if (pos != std::string::npos) {		
-			try {
-				size_t minIdx, maxIdx;
-				std::string minStr = _portRange.substr(0, pos);
-				std::string maxStr = _portRange.substr(pos + 1);
-				
-				minPort = std::stoi(minStr, &minIdx);
-				maxPort = std::stoi(maxStr, &maxIdx);
-				
-				if (minIdx < minStr.size() || maxIdx < maxStr.size()) throw std::invalid_argument("invalid characters");
-			} 
-			catch (const std::invalid_argument& ia) {
-				Nan::ThrowError("Port range must follow the format `MIN-MAX`");
-			}
-			
-			if (minPort < 0 || minPort > 65535 || maxPort < 0 || maxPort > 65535 || minPort > maxPort) {
-				Nan::ThrowRangeError("Port range must be between 0-65535 and MIN <= MAX");
-			}
-		}
+        int pos = _portRange.find("-");
+
+        if (pos != std::string::npos) {
+          try {
+            size_t minIdx, maxIdx;
+            std::string minStr = _portRange.substr(0, pos);
+            std::string maxStr = _portRange.substr(pos + 1);
+
+            minPort = std::stoi(minStr, &minIdx);
+            maxPort = std::stoi(maxStr, &maxIdx);
+
+            if (minIdx < minStr.size() || maxIdx < maxStr.size()) { throw std::invalid_argument("invalid characters"); }
+          } catch (const std::invalid_argument& ia) {
+            Nan::ThrowError("Port range must follow the format `MIN-MAX`");
+          }
+
+          if (minPort < 0 || minPort > 65535 || maxPort < 0 || maxPort > 65535 || minPort > maxPort) {
+            Nan::ThrowRangeError("Port range must be between 0-65535 and MIN <= MAX");
+          }
+        }
       }
       // else if (strKey == "offerToReceiveAudio") ... Handle more config here. For now i just need ICE
     }
