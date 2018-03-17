@@ -22,6 +22,7 @@ using node_webrtc::RTCOAuthCredential;
 using node_webrtc::RTCOfferOptions;
 using node_webrtc::RTCPriorityType ;
 using node_webrtc::RTCSdpType;
+using node_webrtc::UnsignedShortRange;
 using node_webrtc::Validation;
 using v8::Local;
 using v8::Object;
@@ -144,6 +145,26 @@ Validation<RTCDtlsFingerprint> Converter<Local<Value>, RTCDtlsFingerprint>::Conv
             * GetOptional<std::string>(object, "value");
       });
 }
+
+static Validation<UnsignedShortRange> CreateUnsignedShortRange(
+    const Maybe<uint16_t>& maybeMin,
+    const Maybe<uint16_t>& maybeMax) {
+  auto min = maybeMin.FromMaybe(0);
+  auto max = maybeMax.FromMaybe(65535);
+  if (min > max) {
+    return Validation<UnsignedShortRange>::Invalid("Expected min to be less than max");
+  }
+  return Validation<UnsignedShortRange>::Valid(UnsignedShortRange(maybeMin, maybeMax));
+}
+
+Validation<UnsignedShortRange> Converter<Local<Value>, UnsignedShortRange>::Convert(const Local<Value> value) {
+  return From<Local<Object>>(value).FlatMap<UnsignedShortRange>(
+      [](const Local<Object> object) {
+        return Validation<UnsignedShortRange>::Join(curry(CreateUnsignedShortRange)
+            % GetOptional<uint16_t>(object, "min")
+            * GetOptional<uint16_t>(object, "max"));
+      });
+};
 
 static RTCConfiguration CreateRTCConfiguration(
     const std::vector<IceServer>& iceServers,

@@ -135,6 +135,25 @@ struct Converter<v8::Local<v8::Value>, RTCDtlsFingerprint> {
 };
 
 /*
+ * dictionary UnsignedShortRange {
+ *   unsigned short min;
+ *   unsigned short max;
+ * }
+ */
+
+struct UnsignedShortRange {
+  UnsignedShortRange(): min(Maybe<uint16_t>::Nothing()), max(Maybe<uint16_t>::Nothing()) {}
+  UnsignedShortRange(const Maybe<uint16_t> min, const Maybe<uint16_t> max): min(min), max(max) {}
+  const Maybe<uint16_t> min;
+  const Maybe<uint16_t> max;
+};
+
+template <>
+struct Converter<v8::Local<v8::Value>, UnsignedShortRange> {
+  static Validation<UnsignedShortRange> Convert(v8::Local<v8::Value> value);
+};
+
+/*
  * dictionary RTCConfiguration {
  *   sequence<RTCIceServer>   iceServers;
  *   RTCIceTransportPolicy    iceTransportPolicy = "all";
