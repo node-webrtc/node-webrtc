@@ -21,6 +21,7 @@
 #include "webrtc/base/buffer.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 
+#include "converters/webrtc.h"
 #include "peerconnectionfactory.h"
 
 namespace node_webrtc {
@@ -63,11 +64,6 @@ class DataChannel
     MESSAGE = 0x1 << 0,  // 1
     ERROR = 0x1 << 1,  // 2
     STATE = 0x1 << 2,  // 4
-  };
-
-  enum BinaryType {
-    BLOB = 0x0,
-    ARRAY_BUFFER = 0x1
   };
 
   explicit DataChannel(node_webrtc::DataChannelObserver* observer);
@@ -114,7 +110,7 @@ class DataChannel
 
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
-  BinaryType _binaryType;
+  node_webrtc::BinaryType _binaryType;
 
 #if NODE_MODULE_VERSION < 0x000C
   static Nan::Persistent<v8::Function> ArrayBufferConstructor;

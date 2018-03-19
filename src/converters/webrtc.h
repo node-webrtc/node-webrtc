@@ -376,6 +376,28 @@ struct Converter<webrtc::DataChannelInterface::DataState, v8::Local<v8::Value>> 
   static Validation<v8::Local<v8::Value>> Convert(webrtc::DataChannelInterface::DataState value);
 };
 
+/*
+ * enum BinaryType {
+ *   "blob",
+ *   "arraybuffer"
+ * }
+ */
+
+enum BinaryType {
+  kBlob,
+  kArrayBuffer,
+};
+
+template <>
+struct Converter<BinaryType, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(BinaryType value);
+};
+
+template <>
+struct Converter<v8::Local<v8::Value>, BinaryType> {
+  static Validation<BinaryType> Convert(v8::Local<v8::Value> value);
+};
+
 }  // namespace node_webrtc
 
 #endif  // SRC_CONVERTERS_WEBRTC_H_

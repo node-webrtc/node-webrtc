@@ -10,6 +10,7 @@
 #include "src/converters/object.h"
 
 using Nan::EscapableHandleScope;
+using node_webrtc::BinaryType;
 using node_webrtc::Converter;
 using node_webrtc::Either;
 using node_webrtc::ExtendedRTCConfiguration;
@@ -449,4 +450,27 @@ Validation<Local<Value>> Converter<DataState, Local<Value>>::Convert(const DataS
     case DataState::kOpen:
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("open").ToLocalChecked()));
   }
+};
+
+Validation<Local<Value>> Converter<BinaryType, Local<Value>>::Convert(const BinaryType binaryType) {
+  EscapableHandleScope scope;
+  switch (binaryType) {
+    case BinaryType::kArrayBuffer:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("arraybuffer").ToLocalChecked()));
+    case BinaryType::kBlob:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("blob").ToLocalChecked()));
+  }
+};
+
+Validation<BinaryType> Converter<Local<Value>, BinaryType>::Convert(const Local<Value> value) {
+  return From<std::string>(value).FlatMap<BinaryType>(
+      [](const std::string string) {
+          if (string == "blob") {
+            return Validation<BinaryType>::Invalid(R"("blob" is not supported at this time; file a bug on https://github.com/js-platform/node-webrtc)");
+          } else if (string == "arraybuffer") {
+            return Validation<BinaryType>::Valid(BinaryType::kArrayBuffer);
+          } else {
+            return Validation<BinaryType>::Invalid(R"(Expected "blob" or "arraybuffer")");
+          }
+      });
 };
