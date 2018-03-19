@@ -153,6 +153,11 @@ struct Converter<v8::Local<v8::Value>, UnsignedShortRange> {
   static Validation<UnsignedShortRange> Convert(v8::Local<v8::Value> value);
 };
 
+template <>
+struct Converter<UnsignedShortRange, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(UnsignedShortRange value);
+};
+
 /*
  * dictionary RTCConfiguration {
  *   sequence<RTCIceServer>   iceServers;

@@ -173,6 +173,18 @@ Validation<UnsignedShortRange> Converter<Local<Value>, UnsignedShortRange>::Conv
       });
 };
 
+Validation<Local<Value>> Converter<UnsignedShortRange, Local<Value>>::Convert(const UnsignedShortRange value) {
+  EscapableHandleScope scope;
+  auto object = Nan::New<Object>();
+  if (value.min.IsJust()) {
+    object->Set(Nan::New("min").ToLocalChecked(), Nan::New(value.min.UnsafeFromJust()));
+  }
+  if (value.max.IsJust()) {
+    object->Set(Nan::New("max").ToLocalChecked(), Nan::New(value.max.UnsafeFromJust()));
+  }
+  return Validation<Local<Value>>::Valid(scope.Escape(object));
+};
+
 static RTCConfiguration CreateRTCConfiguration(
     const std::vector<IceServer>& iceServers,
     const IceTransportsType iceTransportsPolicy,
