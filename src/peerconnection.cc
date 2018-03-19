@@ -562,30 +562,16 @@ NAN_GETTER(PeerConnection::GetSignalingState) {
       ? self->_jinglePeerConnection->signaling_state()
       : SignalingState::kClosed;
 
-  Local<String> value;
-  switch (state) {
-    case SignalingState::kStable:
-      value = Nan::New("stable").ToLocalChecked();
-      break;
-    case SignalingState::kHaveLocalOffer:
-      value = Nan::New("have-local-offer").ToLocalChecked();
-      break;
-    case SignalingState::kHaveRemoteOffer:
-      value = Nan::New("have-remote-offer").ToLocalChecked();
-      break;
-    case SignalingState::kHaveLocalPrAnswer:
-      value = Nan::New("have-local-pranswer").ToLocalChecked();
-      break;
-    case SignalingState::kHaveRemotePrAnswer:
-      value = Nan::New("have-remote-pranswer").ToLocalChecked();
-      break;
-    case SignalingState::kClosed:
-      value = Nan::New("closed").ToLocalChecked();
-      break;
+  auto maybeStateString = From<Local<Value>>(state);
+  if (maybeStateString.IsInvalid()) {
+    auto error = maybeStateString.ToErrors()[0];
+    TRACE_END;
+    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    return;
   }
 
   TRACE_END;
-  info.GetReturnValue().Set(value);
+  info.GetReturnValue().Set(maybeStateString.UnsafeFromValid());
 }
 
 NAN_GETTER(PeerConnection::GetIceConnectionState) {
@@ -597,37 +583,16 @@ NAN_GETTER(PeerConnection::GetIceConnectionState) {
       ? self->_jinglePeerConnection->ice_connection_state()
       : IceConnectionState::kIceConnectionClosed;
 
-  Local<Value> value;
-  switch (state) {
-    case IceConnectionState::kIceConnectionChecking:
-      value = Nan::New("checking").ToLocalChecked();
-      break;
-    case IceConnectionState::kIceConnectionClosed:
-      value = Nan::New("closed").ToLocalChecked();
-      break;
-    case IceConnectionState::kIceConnectionCompleted:
-      value = Nan::New("completed").ToLocalChecked();
-      break;
-    case IceConnectionState::kIceConnectionConnected:
-      value = Nan::New("connected").ToLocalChecked();
-      break;
-    case IceConnectionState::kIceConnectionDisconnected:
-      value = Nan::New("disconnected").ToLocalChecked();
-      break;
-    case IceConnectionState::kIceConnectionFailed:
-      value = Nan::New("failed").ToLocalChecked();
-      break;
-    case IceConnectionState::kIceConnectionMax:
-      TRACE_END;
-      return Nan::ThrowTypeError("WebRTC\'s RTCPeerConnection has an ICE connection state \"max\", but I have no idea"
-              "what this means. If you see this error, file a bug on https://github.com/js-platform/node-webrtc");
-    case IceConnectionState::kIceConnectionNew:
-      value = Nan::New("new").ToLocalChecked();
-      break;
+  auto maybeStateString = From<Local<Value>>(state);
+  if (maybeStateString.IsInvalid()) {
+    auto error = maybeStateString.ToErrors()[0];
+    TRACE_END;
+    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    return;
   }
 
   TRACE_END;
-  info.GetReturnValue().Set(value);
+  info.GetReturnValue().Set(maybeStateString.UnsafeFromValid());
 }
 
 NAN_GETTER(PeerConnection::GetIceGatheringState) {
@@ -639,21 +604,16 @@ NAN_GETTER(PeerConnection::GetIceGatheringState) {
       ? self->_jinglePeerConnection->ice_gathering_state()
       : IceGatheringState::kIceGatheringComplete;
 
-  Local<Value> value;
-  switch (state) {
-    case IceGatheringState::kIceGatheringNew:
-      value = Nan::New("new").ToLocalChecked();
-      break;
-    case IceGatheringState::kIceGatheringGathering:
-      value = Nan::New("gathering").ToLocalChecked();
-      break;
-    case IceGatheringState::kIceGatheringComplete:
-      value = Nan::New("complete").ToLocalChecked();
-      break;
+  auto maybeStateString = From<Local<Value>>(state);
+  if (maybeStateString.IsInvalid()) {
+    auto error = maybeStateString.ToErrors()[0];
+    TRACE_END;
+    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    return;
   }
 
   TRACE_END;
-  info.GetReturnValue().Set(value);
+  info.GetReturnValue().Set(maybeStateString.UnsafeFromValid());
 }
 
 NAN_SETTER(PeerConnection::ReadOnly) {

@@ -9,6 +9,7 @@
 
 #include "src/converters/object.h"
 
+using Nan::EscapableHandleScope;
 using node_webrtc::Converter;
 using node_webrtc::Either;
 using node_webrtc::ExtendedRTCConfiguration;
@@ -33,12 +34,15 @@ using webrtc::IceCandidateInterface;
 using webrtc::SessionDescriptionInterface;
 
 using BundlePolicy = webrtc::PeerConnectionInterface::BundlePolicy;
+using IceConnectionState = webrtc::PeerConnectionInterface::IceConnectionState;
+using IceGatheringState = webrtc::PeerConnectionInterface::IceGatheringState;
 using IceServer = webrtc::PeerConnectionInterface::IceServer;
 using IceTransportsType = webrtc::PeerConnectionInterface::IceTransportsType;
 using RTCConfiguration = webrtc::PeerConnectionInterface::RTCConfiguration;
 using RTCOfferAnswerOptions = webrtc::PeerConnectionInterface::RTCOfferAnswerOptions;
 using RtcpMuxPolicy = webrtc::PeerConnectionInterface::RtcpMuxPolicy;
 using SdpParseError = webrtc::SdpParseError;
+using SignalingState = webrtc::PeerConnectionInterface::SignalingState ;
 
 static RTCOAuthCredential CreateRTCOAuthCredential(
     const std::string& macKey,
@@ -377,3 +381,57 @@ Validation<DataChannelInit> Converter<Local<Value>, DataChannelInit>::Convert(co
             * GetOptional<RTCPriorityType>(object, "priority", kLow);
       });
 }
+
+Validation<Local<Value>> Converter<SignalingState, Local<Value>>::Convert(const SignalingState state) {
+  EscapableHandleScope scope;
+  switch (state) {
+    case SignalingState::kStable:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("stable").ToLocalChecked()));
+    case SignalingState::kHaveLocalOffer:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("have-local-offer").ToLocalChecked()));
+    case SignalingState::kHaveRemoteOffer:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("have-remote-offer").ToLocalChecked()));
+    case SignalingState::kHaveLocalPrAnswer:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("have-local-pranswer").ToLocalChecked()));
+    case SignalingState::kHaveRemotePrAnswer:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("have-remote-pranswer").ToLocalChecked()));
+    case SignalingState::kClosed:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("closed").ToLocalChecked()));
+  }
+};
+
+Validation<Local<Value>> Converter<IceGatheringState, Local<Value>>::Convert(const IceGatheringState state) {
+  EscapableHandleScope scope;
+  switch (state) {
+    case IceGatheringState::kIceGatheringNew:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("new").ToLocalChecked()));
+    case IceGatheringState::kIceGatheringGathering:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("gathering").ToLocalChecked()));
+    case IceGatheringState::kIceGatheringComplete:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("complete").ToLocalChecked()));
+  }
+};
+
+Validation<Local<Value>> Converter<IceConnectionState, Local<Value>>::Convert(const IceConnectionState state) {
+  EscapableHandleScope scope;
+  switch (state) {
+    case IceConnectionState::kIceConnectionChecking:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("checking").ToLocalChecked()));
+    case IceConnectionState::kIceConnectionClosed:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("closed").ToLocalChecked()));
+    case IceConnectionState::kIceConnectionCompleted:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("completed").ToLocalChecked()));
+    case IceConnectionState::kIceConnectionConnected:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("connected").ToLocalChecked()));
+    case IceConnectionState::kIceConnectionDisconnected:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("disconnected").ToLocalChecked()));
+    case IceConnectionState::kIceConnectionFailed:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("failed").ToLocalChecked()));
+    case IceConnectionState::kIceConnectionMax:
+      return Validation<Local<Value>>::Invalid(
+              "WebRTC\'s RTCPeerConnection has an ICE connection state \"max\", but I have no idea"
+              "what this means. If you see this error, file a bug on https://github.com/js-platform/node-webrtc");
+    case IceConnectionState::kIceConnectionNew:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("new").ToLocalChecked()));
+  }
+};

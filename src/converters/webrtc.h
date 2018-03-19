@@ -316,6 +316,52 @@ struct Converter<v8::Local<v8::Value>, webrtc::DataChannelInit> {
   static Validation<webrtc::DataChannelInit> Convert(v8::Local<v8::Value> value);
 };
 
+/*
+ * enum RTCSignalingState {
+ *   "stable",
+ *   "have-local-offer",
+ *   "have-remote-offer",
+ *   "have-local-pranswer",
+ *   "have-remote-pranswer",
+ *   "closed"
+ * }
+ */
+
+template <>
+struct Converter<webrtc::PeerConnectionInterface::SignalingState, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::SignalingState value);
+};
+
+/*
+ * enum RTCIceGatheringState {
+ *   "new",
+ *   "gathering",
+ *   "complete"
+ * }
+ */
+
+template <>
+struct Converter<webrtc::PeerConnectionInterface::IceGatheringState, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::IceGatheringState value);
+};
+
+/*
+ * enum RTCIceConnectionState {
+ *   "new",
+ *   "checking",
+ *   "connected",
+ *   "completed",
+ *   "disconnected",
+ *   "failed",
+ *   "closed"
+ * }
+ */
+
+template <>
+struct Converter<webrtc::PeerConnectionInterface::IceConnectionState, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::IceConnectionState value);
+};
+
 }  // namespace node_webrtc
 
 #endif  // SRC_CONVERTERS_WEBRTC_H_
