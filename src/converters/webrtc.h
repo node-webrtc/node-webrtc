@@ -362,6 +362,20 @@ struct Converter<webrtc::PeerConnectionInterface::IceConnectionState, v8::Local<
   static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::IceConnectionState value);
 };
 
+/*
+ * enum RTCDataChannelState {
+ *   "connecting",
+ *   "open",
+ *   "closing",
+ *   "closed"
+ * }
+ */
+
+template <>
+struct Converter<webrtc::DataChannelInterface::DataState, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::DataChannelInterface::DataState value);
+};
+
 }  // namespace node_webrtc
 
 #endif  // SRC_CONVERTERS_WEBRTC_H_

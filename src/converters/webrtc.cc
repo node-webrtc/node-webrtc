@@ -34,6 +34,7 @@ using webrtc::IceCandidateInterface;
 using webrtc::SessionDescriptionInterface;
 
 using BundlePolicy = webrtc::PeerConnectionInterface::BundlePolicy;
+using DataState = webrtc::DataChannelInterface::DataState;
 using IceConnectionState = webrtc::PeerConnectionInterface::IceConnectionState;
 using IceGatheringState = webrtc::PeerConnectionInterface::IceGatheringState;
 using IceServer = webrtc::PeerConnectionInterface::IceServer;
@@ -433,5 +434,19 @@ Validation<Local<Value>> Converter<IceConnectionState, Local<Value>>::Convert(co
               "what this means. If you see this error, file a bug on https://github.com/js-platform/node-webrtc");
     case IceConnectionState::kIceConnectionNew:
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("new").ToLocalChecked()));
+  }
+};
+
+Validation<Local<Value>> Converter<DataState, Local<Value>>::Convert(const DataState state) {
+  EscapableHandleScope scope;
+  switch (state) {
+    case DataState::kClosed:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("closed").ToLocalChecked()));
+    case DataState::kClosing:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("closing").ToLocalChecked()));
+    case DataState::kConnecting:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("connecting").ToLocalChecked()));
+    case DataState::kOpen:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("open").ToLocalChecked()));
   }
 };

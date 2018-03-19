@@ -10,6 +10,8 @@
 #include <stdint.h>
 
 #include "common.h"
+#include "converters.h"
+#include "converters/webrtc.h"
 
 using node_webrtc::DataChannel;
 using node_webrtc::DataChannelObserver;
@@ -335,8 +337,16 @@ NAN_GETTER(DataChannel::GetReadyState) {
       ? self->_jingleDataChannel->state()
       : webrtc::DataChannelInterface::kClosed;
 
+  auto maybeStateString = From<Local<Value>>(state);
+  if (maybeStateString.IsInvalid()) {
+    auto error = maybeStateString.ToErrors()[0];
+    TRACE_END;
+    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    return;
+  }
+
   TRACE_END;
-  info.GetReturnValue().Set(Nan::New<Number>(static_cast<uint32_t>(state)));
+  info.GetReturnValue().Set(maybeStateString.UnsafeFromValid());
 }
 
 NAN_GETTER(DataChannel::GetBinaryType) {
