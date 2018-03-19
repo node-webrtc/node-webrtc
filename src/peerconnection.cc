@@ -67,8 +67,7 @@ PeerConnection::PeerConnection(ExtendedRTCConfiguration configuration)
 
   auto portAllocator = std::unique_ptr<cricket::PortAllocator>(new cricket::BasicPortAllocator(
               _factory->getNetworkManager(),
-              _factory->getSocketFactory()
-          ));
+              _factory->getSocketFactory()));
   portAllocator->SetPortRange(
       configuration.portRange.min.FromMaybe(0),
       configuration.portRange.max.FromMaybe(65535));
