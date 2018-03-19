@@ -23,6 +23,7 @@
 #include "webrtc/api/statstypes.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 
+#include "converters/webrtc.h"
 #include "peerconnectionfactory.h"
 
 namespace node_webrtc {
@@ -122,7 +123,7 @@ class PeerConnection
         ICE_GATHERING_STATE_CHANGE
   };
 
-  explicit PeerConnection(webrtc::PeerConnectionInterface::RTCConfiguration configuration);
+  explicit PeerConnection(ExtendedRTCConfiguration configuration);
   ~PeerConnection();
 
   //

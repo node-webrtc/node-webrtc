@@ -135,6 +135,25 @@ struct Converter<v8::Local<v8::Value>, RTCDtlsFingerprint> {
 };
 
 /*
+ * dictionary UnsignedShortRange {
+ *   unsigned short min;
+ *   unsigned short max;
+ * }
+ */
+
+struct UnsignedShortRange {
+  UnsignedShortRange(): min(Maybe<uint16_t>::Nothing()), max(Maybe<uint16_t>::Nothing()) {}
+  UnsignedShortRange(const Maybe<uint16_t> min, const Maybe<uint16_t> max): min(min), max(max) {}
+  const Maybe<uint16_t> min;
+  const Maybe<uint16_t> max;
+};
+
+template <>
+struct Converter<v8::Local<v8::Value>, UnsignedShortRange> {
+  static Validation<UnsignedShortRange> Convert(v8::Local<v8::Value> value);
+};
+
+/*
  * dictionary RTCConfiguration {
  *   sequence<RTCIceServer>   iceServers;
  *   RTCIceTransportPolicy    iceTransportPolicy = "all";
@@ -144,12 +163,25 @@ struct Converter<v8::Local<v8::Value>, RTCDtlsFingerprint> {
  *   sequence<RTCCertificate> certificates;
  *   [EnforceRange]
  *   octet                    iceCandidatePoolSize = 0;
+ *   UnsignedShortRange       portRange;
  * };
  */
 
 template <>
 struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::RTCConfiguration> {
   static Validation<webrtc::PeerConnectionInterface::RTCConfiguration> Convert(v8::Local<v8::Value> value);
+};
+
+struct ExtendedRTCConfiguration {
+  ExtendedRTCConfiguration(): configuration(webrtc::PeerConnectionInterface::RTCConfiguration()), portRange(UnsignedShortRange()) {}
+  ExtendedRTCConfiguration(const webrtc::PeerConnectionInterface::RTCConfiguration configuration, const UnsignedShortRange portRange): configuration(configuration), portRange(portRange) {}
+  const webrtc::PeerConnectionInterface::RTCConfiguration configuration;
+  const UnsignedShortRange portRange;
+};
+
+template <>
+struct Converter<v8::Local<v8::Value>, ExtendedRTCConfiguration> {
+  static Validation<ExtendedRTCConfiguration> Convert(v8::Local<v8::Value> value);
 };
 
 /*

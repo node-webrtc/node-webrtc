@@ -8,6 +8,7 @@
 #include "peerconnection.h"
 
 #include "webrtc/base/refcountedobject.h"
+#include "webrtc/p2p/client/basicportallocator.h"
 
 #include "common.h"
 #include "converters/arguments.h"
@@ -22,6 +23,7 @@
 #include "set-remote-description-observer.h"
 #include "stats-observer.h"
 
+using node_webrtc::ExtendedRTCConfiguration;
 using node_webrtc::From;
 using node_webrtc::Maybe;
 using node_webrtc::PeerConnection;
@@ -44,7 +46,6 @@ using webrtc::SessionDescriptionInterface;
 
 using IceConnectionState = webrtc::PeerConnectionInterface::IceConnectionState;
 using IceGatheringState = webrtc::PeerConnectionInterface::IceGatheringState;
-using RTCConfiguration = webrtc::PeerConnectionInterface::RTCConfiguration;
 using SignalingState = webrtc::PeerConnectionInterface::SignalingState;
 
 Nan::Persistent<Function> PeerConnection::constructor;
@@ -53,7 +54,7 @@ Nan::Persistent<Function> PeerConnection::constructor;
 // PeerConnection
 //
 
-PeerConnection::PeerConnection(RTCConfiguration configuration)
+PeerConnection::PeerConnection(ExtendedRTCConfiguration configuration)
   : loop(uv_default_loop()) {
   _createOfferObserver = new rtc::RefCountedObject<CreateOfferObserver>(this);
   _createAnswerObserver = new rtc::RefCountedObject<CreateAnswerObserver>(this);
@@ -64,7 +65,19 @@ PeerConnection::PeerConnection(RTCConfiguration configuration)
   _factory = PeerConnectionFactory::GetOrCreateDefault();
   _shouldReleaseFactory = true;
 
-  _jinglePeerConnection = _factory->factory()->CreatePeerConnection(configuration, nullptr, nullptr, nullptr, this);
+  auto portAllocator = std::unique_ptr<cricket::PortAllocator>(new cricket::BasicPortAllocator(
+              _factory->getNetworkManager(),
+              _factory->getSocketFactory()));
+  portAllocator->SetPortRange(
+      configuration.portRange.min.FromMaybe(0),
+      configuration.portRange.max.FromMaybe(65535));
+
+  _jinglePeerConnection = _factory->factory()->CreatePeerConnection(
+          configuration.configuration,
+          nullptr,
+          std::move(portAllocator),
+          nullptr,
+          this);
 
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, reinterpret_cast<uv_async_cb>(Run));
@@ -266,14 +279,14 @@ NAN_METHOD(PeerConnection::New) {
     return Nan::ThrowTypeError("Use the new operator to construct the PeerConnection.");
   }
 
-  auto maybeConfiguration = From<Maybe<RTCConfiguration>, Nan::NAN_METHOD_ARGS_TYPE>(info);
+  auto maybeConfiguration = From<Maybe<ExtendedRTCConfiguration>, Nan::NAN_METHOD_ARGS_TYPE>(info);
   if (maybeConfiguration.IsInvalid()) {
     auto error = maybeConfiguration.ToErrors()[0];
     return Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
   }
 
   // Tell em whats up
-  auto obj = new PeerConnection(maybeConfiguration.UnsafeFromValid().FromMaybe(RTCConfiguration()));
+  auto obj = new PeerConnection(maybeConfiguration.UnsafeFromValid().FromMaybe(ExtendedRTCConfiguration()));
   obj->Wrap(info.This());
   obj->Ref();
 

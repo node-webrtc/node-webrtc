@@ -8,6 +8,7 @@
 #include "peerconnectionfactory.h"
 
 #include "webrtc/base/ssladapter.h"
+#include "webrtc/p2p/base/basicpacketsocketfactory.h"
 
 #include "common.h"
 
@@ -51,6 +52,9 @@ PeerConnectionFactory::PeerConnectionFactory(rtc::scoped_refptr<webrtc::AudioDev
           nullptr, nullptr);
   assert(_factory);
 
+  _networkManager = std::unique_ptr<rtc::NetworkManager>(new rtc::BasicNetworkManager());
+  _socketFactory = std::unique_ptr<rtc::PacketSocketFactory>(new rtc::BasicPacketSocketFactory(_workerThread.get()));
+
   TRACE_END;
 }
 
@@ -64,6 +68,9 @@ PeerConnectionFactory::~PeerConnectionFactory() {
 
   _workerThread = nullptr;
   _signalingThread = nullptr;
+
+  _networkManager = nullptr;
+  _socketFactory = nullptr;
 
   TRACE_END;
 }

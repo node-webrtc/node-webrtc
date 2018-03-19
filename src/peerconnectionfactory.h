@@ -55,6 +55,10 @@ class PeerConnectionFactory
    */
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> factory() { return _factory; }
 
+  rtc::NetworkManager* getNetworkManager() { return _networkManager.get(); }
+
+  rtc::PacketSocketFactory* getSocketFactory() { return _socketFactory.get(); }
+
   //
   // Nodejs wrapping.
   //
@@ -71,6 +75,9 @@ class PeerConnectionFactory
   std::unique_ptr<rtc::Thread> _signalingThread;
   std::unique_ptr<rtc::Thread> _workerThread;
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _factory;
+
+  std::unique_ptr<rtc::NetworkManager> _networkManager;
+  std::unique_ptr<rtc::PacketSocketFactory> _socketFactory;
 };
 
 }  // namespace node_webrtc
