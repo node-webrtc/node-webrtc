@@ -282,6 +282,11 @@ struct Converter<v8::Local<v8::Value>, webrtc::IceCandidateInterface*> {
   static Validation<webrtc::IceCandidateInterface*> Convert(v8::Local<v8::Value> value);
 };
 
+template <>
+struct Converter<const webrtc::IceCandidateInterface*, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const webrtc::IceCandidateInterface* value);
+};
+
 /*
  * enum RTCPriorityType {
  *   "very-low",

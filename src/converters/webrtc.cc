@@ -355,6 +355,26 @@ Validation<IceCandidateInterface*> Converter<Local<Value>, IceCandidateInterface
       });
 }
 
+Validation<Local<Value>> Converter<const IceCandidateInterface*, Local<Value>>::Convert(const IceCandidateInterface* value) {
+  EscapableHandleScope scope;
+
+  if (!value) {
+    return Validation<Local<Value>>::Invalid("RTCIceCandidate is null");
+  }
+
+  std::string candidate;
+  if (!value->ToString(&candidate)) {
+    return Validation<Local<Value>>::Invalid("Failed to print the candidate string. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc");
+  }
+
+  auto object = Nan::New<Object>();
+  object->Set(Nan::New("candidate").ToLocalChecked(), Nan::New(candidate).ToLocalChecked());
+  object->Set(Nan::New("sdpMid").ToLocalChecked(), Nan::New(value->sdp_mid()).ToLocalChecked());
+  object->Set(Nan::New("sdpMLineIndex").ToLocalChecked(), Nan::New(value->sdp_mline_index()));
+
+  return Validation<Local<Value>>::Valid(scope.Escape(object));
+};
+
 Validation<RTCPriorityType> Converter<Local<Value>, RTCPriorityType>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<RTCPriorityType>(
       [](const std::string string) {

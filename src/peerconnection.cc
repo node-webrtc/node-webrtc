@@ -186,12 +186,13 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
     } else if (PeerConnection::ICE_CANDIDATE & evt.type) {
       PeerConnection::IceEvent* data = static_cast<PeerConnection::IceEvent*>(evt.data);
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onicecandidate").ToLocalChecked()));
-      if (!callback.IsEmpty()) {
-        Local<Value> argv[3];
-        argv[0] = Nan::New(data->candidate.c_str()).ToLocalChecked();
-        argv[1] = Nan::New(data->sdpMid.c_str()).ToLocalChecked();
-        argv[2] = Nan::New<Integer>(data->sdpMLineIndex);
-        Nan::MakeCallback(pc, callback, 3, argv);
+      if (!callback.IsEmpty() && data->error.empty()) {
+        auto maybeCandidate = From<Local<Value>>(data->candidate.get());
+        if (maybeCandidate.IsValid()) {
+          Local<Value> argv[1];
+          argv[0] = maybeCandidate.UnsafeFromValid();
+          Nan::MakeCallback(pc, callback, 1, argv);
+        }
       }
     } else if (PeerConnection::NOTIFY_DATA_CHANNEL & evt.type) {
       PeerConnection::DataChannelEvent* data = static_cast<PeerConnection::DataChannelEvent*>(evt.data);
