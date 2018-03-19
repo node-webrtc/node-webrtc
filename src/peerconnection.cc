@@ -511,17 +511,15 @@ NAN_GETTER(PeerConnection::GetLocalDescription) {
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
   Local<Value> result = Nan::Null();
-  if (self->_jinglePeerConnection) {
-    if (auto _description = self->_jinglePeerConnection->local_description()) {
-      std::string sdp;
-      if (_description->ToString(&sdp)) {
-        auto type = _description->type();
-        Local<Object> description = Nan::New<Object>();
-        Nan::Set(description, Nan::New("type").ToLocalChecked(), Nan::New(type).ToLocalChecked());
-        Nan::Set(description, Nan::New("sdp").ToLocalChecked(), Nan::New(sdp).ToLocalChecked());
-        result = description;
-      }
+  if (self->_jinglePeerConnection && self->_jinglePeerConnection->local_description()) {
+    auto maybeDescription = From<Local<Value>>(self->_jinglePeerConnection->local_description());
+    if (maybeDescription.IsInvalid()) {
+      auto error = maybeDescription.ToErrors()[0];
+      TRACE_END;
+      Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+      return;
     }
+    result = maybeDescription.UnsafeFromValid();
   }
 
   TRACE_END;
@@ -536,17 +534,15 @@ NAN_GETTER(PeerConnection::GetRemoteDescription) {
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
   Local<Value> result = Nan::Null();
-  if (self->_jinglePeerConnection) {
-    if (auto _description = self->_jinglePeerConnection->remote_description()) {
-      std::string sdp;
-      if (_description->ToString(&sdp)) {
-        auto type = _description->type();
-        Local<Object> description = Nan::New<Object>();
-        Nan::Set(description, Nan::New("type").ToLocalChecked(), Nan::New(type).ToLocalChecked());
-        Nan::Set(description, Nan::New("sdp").ToLocalChecked(), Nan::New(sdp).ToLocalChecked());
-        result = description;
-      }
+  if (self->_jinglePeerConnection && self->_jinglePeerConnection->remote_description()) {
+    auto maybeDescription = From<Local<Value>>(self->_jinglePeerConnection->remote_description());
+    if (maybeDescription.IsInvalid()) {
+      auto error = maybeDescription.ToErrors()[0];
+      TRACE_END;
+      Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+      return;
     }
+    result = maybeDescription.UnsafeFromValid();
   }
 
   TRACE_END;

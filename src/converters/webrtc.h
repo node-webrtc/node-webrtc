@@ -263,6 +263,11 @@ struct Converter<v8::Local<v8::Value>, webrtc::SessionDescriptionInterface*> {
   static Validation<webrtc::SessionDescriptionInterface*> Convert(v8::Local<v8::Value> value);
 };
 
+template <>
+struct Converter<const webrtc::SessionDescriptionInterface*, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const webrtc::SessionDescriptionInterface* value);
+};
+
 /*
  * dictionary RTCIceCandidateInit {
  *     DOMString       candidate = "";

@@ -312,6 +312,25 @@ Validation<SessionDescriptionInterface*> Converter<Local<Value>, SessionDescript
       });
 }
 
+Validation<Local<Value>> Converter<const SessionDescriptionInterface*, Local<Value>>::Convert(const SessionDescriptionInterface* value) {
+  EscapableHandleScope scope;
+
+  if (!value) {
+    return Validation<Local<Value>>::Invalid("RTCSessionDescription is null");
+  }
+
+  std::string sdp;
+  if (!value->ToString(&sdp)) {
+    return Validation<Local<Value>>::Invalid("Failed to print the SDP. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc");
+  }
+
+  auto object = Nan::New<Object>();
+  object->Set(Nan::New("sdp").ToLocalChecked(), Nan::New(sdp).ToLocalChecked());
+  object->Set(Nan::New("type").ToLocalChecked(), Nan::New(value->type()).ToLocalChecked());
+
+  return Validation<Local<Value>>::Valid(scope.Escape(object));
+};
+
 static Validation<IceCandidateInterface*> CreateIceCandidateInterface(
     const std::string& candidate,
     const std::string& sdpMid,
