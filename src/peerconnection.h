@@ -173,6 +173,7 @@ class PeerConnection
   static NAN_METHOD(AddStream);
   static NAN_METHOD(RemoveStream);
   */
+  static NAN_METHOD(GetConfiguration);
   static NAN_METHOD(GetStats);
   static NAN_METHOD(Close);
 
@@ -205,6 +206,8 @@ class PeerConnection
   rtc::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
   webrtc::AudioDeviceModule* _audioDeviceModule;
+  UnsignedShortRange _port_range;
+  ExtendedRTCConfiguration _cached_configuration;
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
 
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;

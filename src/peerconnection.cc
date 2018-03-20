@@ -68,9 +68,10 @@ PeerConnection::PeerConnection(ExtendedRTCConfiguration configuration)
   auto portAllocator = std::unique_ptr<cricket::PortAllocator>(new cricket::BasicPortAllocator(
               _factory->getNetworkManager(),
               _factory->getSocketFactory()));
+  _port_range = configuration.portRange;
   portAllocator->SetPortRange(
-      configuration.portRange.min.FromMaybe(0),
-      configuration.portRange.max.FromMaybe(65535));
+      _port_range.min.FromMaybe(0),
+      _port_range.max.FromMaybe(65535));
 
   _jinglePeerConnection = _factory->factory()->CreatePeerConnection(
           configuration.configuration,
@@ -449,6 +450,25 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   info.GetReturnValue().Set(dc);
 }
 
+NAN_METHOD(PeerConnection::GetConfiguration) {
+  TRACE_CALL;
+
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+
+  auto maybeConfiguration = From<Local<Value>>(self->_jinglePeerConnection
+          ? ExtendedRTCConfiguration(self->_jinglePeerConnection->GetConfiguration(), self->_port_range)
+          : self->_cached_configuration);
+  if (maybeConfiguration.IsInvalid()) {
+    auto error = maybeConfiguration.ToErrors()[0];
+    TRACE_END;
+    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    return;
+  }
+
+  TRACE_END;
+  info.GetReturnValue().Set(maybeConfiguration.UnsafeFromValid());
+}
+
 NAN_METHOD(PeerConnection::GetStats) {
   TRACE_CALL;
 
@@ -489,6 +509,9 @@ NAN_METHOD(PeerConnection::Close) {
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
   if (self->_jinglePeerConnection != nullptr) {
+    self->_cached_configuration = ExtendedRTCConfiguration(
+            self->_jinglePeerConnection->GetConfiguration(),
+            self->_port_range);
     self->_jinglePeerConnection->Close();
   }
 
@@ -626,6 +649,7 @@ void PeerConnection::Init(Handle<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "createAnswer", CreateAnswer);
   Nan::SetPrototypeMethod(tpl, "setLocalDescription", SetLocalDescription);
   Nan::SetPrototypeMethod(tpl, "setRemoteDescription", SetRemoteDescription);
+  Nan::SetPrototypeMethod(tpl, "getConfiguration", GetConfiguration);
   Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
   Nan::SetPrototypeMethod(tpl, "updateIce", UpdateIce);
   Nan::SetPrototypeMethod(tpl, "addIceCandidate", AddIceCandidate);

@@ -87,6 +87,11 @@ struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::IceTrans
   static Validation<webrtc::PeerConnectionInterface::IceTransportsType> Convert(v8::Local<v8::Value> value);
 };
 
+template <>
+struct Converter<webrtc::PeerConnectionInterface::IceTransportsType, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::IceTransportsType value);
+};
+
 /*
  * enum RTCBundlePolicy {
  *   "balanced",
@@ -100,6 +105,11 @@ struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::BundlePo
   static Validation<webrtc::PeerConnectionInterface::BundlePolicy> Convert(v8::Local<v8::Value> value);
 };
 
+template <>
+struct Converter<webrtc::PeerConnectionInterface::BundlePolicy, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::BundlePolicy value);
+};
+
 /*
  * enum RTCRtcpMuxPolicy {
  *   // At risk due to lack of implementers' interest.
@@ -111,6 +121,11 @@ struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::BundlePo
 template <>
 struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::RtcpMuxPolicy> {
   static Validation<webrtc::PeerConnectionInterface::RtcpMuxPolicy> Convert(v8::Local<v8::Value> value);
+};
+
+template <>
+struct Converter<webrtc::PeerConnectionInterface::RtcpMuxPolicy, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::RtcpMuxPolicy value);
 };
 
 /*
@@ -144,8 +159,8 @@ struct Converter<v8::Local<v8::Value>, RTCDtlsFingerprint> {
 struct UnsignedShortRange {
   UnsignedShortRange(): min(Maybe<uint16_t>::Nothing()), max(Maybe<uint16_t>::Nothing()) {}
   UnsignedShortRange(const Maybe<uint16_t> min, const Maybe<uint16_t> max): min(min), max(max) {}
-  const Maybe<uint16_t> min;
-  const Maybe<uint16_t> max;
+  Maybe<uint16_t> min;
+  Maybe<uint16_t> max;
 };
 
 template <>
@@ -180,13 +195,18 @@ struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::RTCConfi
 struct ExtendedRTCConfiguration {
   ExtendedRTCConfiguration(): configuration(webrtc::PeerConnectionInterface::RTCConfiguration()), portRange(UnsignedShortRange()) {}
   ExtendedRTCConfiguration(const webrtc::PeerConnectionInterface::RTCConfiguration configuration, const UnsignedShortRange portRange): configuration(configuration), portRange(portRange) {}
-  const webrtc::PeerConnectionInterface::RTCConfiguration configuration;
-  const UnsignedShortRange portRange;
+  webrtc::PeerConnectionInterface::RTCConfiguration configuration;
+  UnsignedShortRange portRange;
 };
 
 template <>
 struct Converter<v8::Local<v8::Value>, ExtendedRTCConfiguration> {
   static Validation<ExtendedRTCConfiguration> Convert(v8::Local<v8::Value> value);
+};
+
+template <>
+struct Converter<ExtendedRTCConfiguration, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(ExtendedRTCConfiguration value);
 };
 
 /*

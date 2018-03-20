@@ -123,8 +123,8 @@ class Maybe {
   }
 
  private:
-  const bool _is_just;
-  const T _value;
+  bool _is_just;
+  T _value;
 };
 
 }  // namespace node_webrtc

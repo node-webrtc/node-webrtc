@@ -112,6 +112,18 @@ Validation<IceTransportsType> Converter<Local<Value>, IceTransportsType>::Conver
       });
 }
 
+Validation<Local<Value>> Converter<IceTransportsType, Local<Value>>::Convert(const IceTransportsType type) {
+  EscapableHandleScope scope;
+  switch (type) {
+    case IceTransportsType::kAll:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("all").ToLocalChecked()));
+    case IceTransportsType::kRelay:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("relay").ToLocalChecked()));
+    default:
+      return Validation<Local<Value>>::Invalid("Somehow you've set RTCIceTransportPolicy to an unsupported value; please file a bug at https://github.com/js-platform/node-webrtc");
+  }
+};
+
 Validation<BundlePolicy> Converter<Local<Value>, BundlePolicy>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<BundlePolicy>(
       [](const std::string string) {
@@ -126,6 +138,18 @@ Validation<BundlePolicy> Converter<Local<Value>, BundlePolicy>::Convert(const Lo
       });
 }
 
+Validation<Local<Value>> Converter<BundlePolicy, Local<Value>>::Convert(const BundlePolicy type) {
+  EscapableHandleScope scope;
+  switch (type) {
+    case BundlePolicy::kBundlePolicyBalanced:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("balanced").ToLocalChecked()));
+    case BundlePolicy::kBundlePolicyMaxBundle:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("max-bundle").ToLocalChecked()));
+    case BundlePolicy::kBundlePolicyMaxCompat:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("max-compat").ToLocalChecked()));
+  }
+};
+
 Validation<RtcpMuxPolicy> Converter<Local<Value>, RtcpMuxPolicy>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<RtcpMuxPolicy>(
       [](const std::string string) {
@@ -137,6 +161,16 @@ Validation<RtcpMuxPolicy> Converter<Local<Value>, RtcpMuxPolicy>::Convert(const 
         return Validation<RtcpMuxPolicy>::Invalid(R"(Expected "negotiate" or "require")");
       });
 }
+
+Validation<Local<Value>> Converter<RtcpMuxPolicy, Local<Value>>::Convert(const RtcpMuxPolicy type) {
+  EscapableHandleScope scope;
+  switch (type) {
+    case RtcpMuxPolicy::kRtcpMuxPolicyNegotiate:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("negotiate").ToLocalChecked()));
+    case RtcpMuxPolicy::kRtcpMuxPolicyRequire:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("require").ToLocalChecked()));
+  }
+};
 
 static RTCDtlsFingerprint CreateRTCDtlsFingerprint(
     const Maybe<std::string>& algorithm,
@@ -230,6 +264,28 @@ Validation<ExtendedRTCConfiguration> Converter<Local<Value>, ExtendedRTCConfigur
             * GetOptional<UnsignedShortRange>(object, "portRange", UnsignedShortRange());
       });
 }
+
+static Local<Value> ExtendedRTCConfigurationToJavaScript(
+    const Local<Value> iceTransportPolicy,
+    const Local<Value> bundlePolicy,
+    const Local<Value> rtcpMuxPolicy,
+    const Local<Value> portRange) {
+  EscapableHandleScope scope;
+  auto object = Nan::New<Object>();
+  object->Set(Nan::New("iceTransportPolicy").ToLocalChecked(), iceTransportPolicy);
+  object->Set(Nan::New("bundlePolicy").ToLocalChecked(), bundlePolicy);
+  object->Set(Nan::New("rtcpMuxPolicy").ToLocalChecked(), rtcpMuxPolicy);
+  object->Set(Nan::New("portRange").ToLocalChecked(), portRange);
+  return scope.Escape(object);
+}
+
+Validation<Local<Value>> Converter<ExtendedRTCConfiguration, Local<Value>>::Convert(ExtendedRTCConfiguration configuration) {
+  return curry(ExtendedRTCConfigurationToJavaScript)
+      % From<Local<Value>>(configuration.configuration.type)
+      * From<Local<Value>>(configuration.configuration.bundle_policy)
+      * From<Local<Value>>(configuration.configuration.rtcp_mux_policy)
+      * From<Local<Value>>(configuration.portRange);
+};
 
 static RTCOfferOptions CreateRTCOfferOptions(
     const bool voiceActivityDetection,
