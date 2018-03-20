@@ -10,6 +10,8 @@
 #include <stdint.h>
 
 #include "common.h"
+#include "converters.h"
+#include "converters/webrtc.h"
 
 using node_webrtc::DataChannel;
 using node_webrtc::DataChannelObserver;
@@ -72,7 +74,7 @@ void DataChannelObserver::QueueEvent(DataChannel::AsyncEventType type, void* dat
 
 DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
   : loop(uv_default_loop()),
-    _binaryType(DataChannel::ARRAY_BUFFER) {
+    _binaryType(BinaryType::kArrayBuffer) {
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, reinterpret_cast<uv_async_cb>(Run));
 
@@ -335,8 +337,16 @@ NAN_GETTER(DataChannel::GetReadyState) {
       ? self->_jingleDataChannel->state()
       : webrtc::DataChannelInterface::kClosed;
 
+  auto maybeStateString = From<Local<Value>>(state);
+  if (maybeStateString.IsInvalid()) {
+    auto error = maybeStateString.ToErrors()[0];
+    TRACE_END;
+    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    return;
+  }
+
   TRACE_END;
-  info.GetReturnValue().Set(Nan::New<Number>(static_cast<uint32_t>(state)));
+  info.GetReturnValue().Set(maybeStateString.UnsafeFromValid());
 }
 
 NAN_GETTER(DataChannel::GetBinaryType) {
@@ -344,15 +354,32 @@ NAN_GETTER(DataChannel::GetBinaryType) {
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
+  auto maybeBinaryType = From<Local<Value>>(self->_binaryType);
+  if (maybeBinaryType.IsInvalid()) {
+    auto error = maybeBinaryType.ToErrors()[0];
+    TRACE_END;
+    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    return;
+  }
+
   TRACE_END;
-  info.GetReturnValue().Set(Nan::New<Number>(static_cast<uint32_t>(self->_binaryType)));
+  info.GetReturnValue().Set(maybeBinaryType.UnsafeFromValid());
 }
 
 NAN_SETTER(DataChannel::SetBinaryType) {
   TRACE_CALL;
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
-  self->_binaryType = static_cast<BinaryType>(value->Uint32Value());
+
+  auto maybeBinaryType = From<BinaryType>(value);
+  if (maybeBinaryType.IsInvalid()) {
+    auto error = maybeBinaryType.ToErrors()[0];
+    TRACE_END;
+    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    return;
+  }
+
+  self->_binaryType = maybeBinaryType.UnsafeFromValid();
 
   TRACE_END;
 }

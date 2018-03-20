@@ -68,9 +68,10 @@ PeerConnection::PeerConnection(ExtendedRTCConfiguration configuration)
   auto portAllocator = std::unique_ptr<cricket::PortAllocator>(new cricket::BasicPortAllocator(
               _factory->getNetworkManager(),
               _factory->getSocketFactory()));
+  _port_range = configuration.portRange;
   portAllocator->SetPortRange(
-      configuration.portRange.min.FromMaybe(0),
-      configuration.portRange.max.FromMaybe(65535));
+      _port_range.min.FromMaybe(0),
+      _port_range.max.FromMaybe(65535));
 
   _jinglePeerConnection = _factory->factory()->CreatePeerConnection(
           configuration.configuration,
@@ -186,12 +187,13 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
     } else if (PeerConnection::ICE_CANDIDATE & evt.type) {
       PeerConnection::IceEvent* data = static_cast<PeerConnection::IceEvent*>(evt.data);
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onicecandidate").ToLocalChecked()));
-      if (!callback.IsEmpty()) {
-        Local<Value> argv[3];
-        argv[0] = Nan::New(data->candidate.c_str()).ToLocalChecked();
-        argv[1] = Nan::New(data->sdpMid.c_str()).ToLocalChecked();
-        argv[2] = Nan::New<Integer>(data->sdpMLineIndex);
-        Nan::MakeCallback(pc, callback, 3, argv);
+      if (!callback.IsEmpty() && data->error.empty()) {
+        auto maybeCandidate = From<Local<Value>>(data->candidate.get());
+        if (maybeCandidate.IsValid()) {
+          Local<Value> argv[1];
+          argv[0] = maybeCandidate.UnsafeFromValid();
+          Nan::MakeCallback(pc, callback, 1, argv);
+        }
       }
     } else if (PeerConnection::NOTIFY_DATA_CHANNEL & evt.type) {
       PeerConnection::DataChannelEvent* data = static_cast<PeerConnection::DataChannelEvent*>(evt.data);
@@ -448,6 +450,25 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   info.GetReturnValue().Set(dc);
 }
 
+NAN_METHOD(PeerConnection::GetConfiguration) {
+  TRACE_CALL;
+
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+
+  auto maybeConfiguration = From<Local<Value>>(self->_jinglePeerConnection
+          ? ExtendedRTCConfiguration(self->_jinglePeerConnection->GetConfiguration(), self->_port_range)
+          : self->_cached_configuration);
+  if (maybeConfiguration.IsInvalid()) {
+    auto error = maybeConfiguration.ToErrors()[0];
+    TRACE_END;
+    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    return;
+  }
+
+  TRACE_END;
+  info.GetReturnValue().Set(maybeConfiguration.UnsafeFromValid());
+}
+
 NAN_METHOD(PeerConnection::GetStats) {
   TRACE_CALL;
 
@@ -488,6 +509,9 @@ NAN_METHOD(PeerConnection::Close) {
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
   if (self->_jinglePeerConnection != nullptr) {
+    self->_cached_configuration = ExtendedRTCConfiguration(
+            self->_jinglePeerConnection->GetConfiguration(),
+            self->_port_range);
     self->_jinglePeerConnection->Close();
   }
 
@@ -511,17 +535,15 @@ NAN_GETTER(PeerConnection::GetLocalDescription) {
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
   Local<Value> result = Nan::Null();
-  if (self->_jinglePeerConnection) {
-    if (auto _description = self->_jinglePeerConnection->local_description()) {
-      std::string sdp;
-      if (_description->ToString(&sdp)) {
-        auto type = _description->type();
-        Local<Object> description = Nan::New<Object>();
-        Nan::Set(description, Nan::New("type").ToLocalChecked(), Nan::New(type).ToLocalChecked());
-        Nan::Set(description, Nan::New("sdp").ToLocalChecked(), Nan::New(sdp).ToLocalChecked());
-        result = description;
-      }
+  if (self->_jinglePeerConnection && self->_jinglePeerConnection->local_description()) {
+    auto maybeDescription = From<Local<Value>>(self->_jinglePeerConnection->local_description());
+    if (maybeDescription.IsInvalid()) {
+      auto error = maybeDescription.ToErrors()[0];
+      TRACE_END;
+      Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+      return;
     }
+    result = maybeDescription.UnsafeFromValid();
   }
 
   TRACE_END;
@@ -536,17 +558,15 @@ NAN_GETTER(PeerConnection::GetRemoteDescription) {
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
   Local<Value> result = Nan::Null();
-  if (self->_jinglePeerConnection) {
-    if (auto _description = self->_jinglePeerConnection->remote_description()) {
-      std::string sdp;
-      if (_description->ToString(&sdp)) {
-        auto type = _description->type();
-        Local<Object> description = Nan::New<Object>();
-        Nan::Set(description, Nan::New("type").ToLocalChecked(), Nan::New(type).ToLocalChecked());
-        Nan::Set(description, Nan::New("sdp").ToLocalChecked(), Nan::New(sdp).ToLocalChecked());
-        result = description;
-      }
+  if (self->_jinglePeerConnection && self->_jinglePeerConnection->remote_description()) {
+    auto maybeDescription = From<Local<Value>>(self->_jinglePeerConnection->remote_description());
+    if (maybeDescription.IsInvalid()) {
+      auto error = maybeDescription.ToErrors()[0];
+      TRACE_END;
+      Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+      return;
     }
+    result = maybeDescription.UnsafeFromValid();
   }
 
   TRACE_END;
@@ -562,30 +582,16 @@ NAN_GETTER(PeerConnection::GetSignalingState) {
       ? self->_jinglePeerConnection->signaling_state()
       : SignalingState::kClosed;
 
-  Local<String> value;
-  switch (state) {
-    case SignalingState::kStable:
-      value = Nan::New("stable").ToLocalChecked();
-      break;
-    case SignalingState::kHaveLocalOffer:
-      value = Nan::New("have-local-offer").ToLocalChecked();
-      break;
-    case SignalingState::kHaveRemoteOffer:
-      value = Nan::New("have-remote-offer").ToLocalChecked();
-      break;
-    case SignalingState::kHaveLocalPrAnswer:
-      value = Nan::New("have-local-pranswer").ToLocalChecked();
-      break;
-    case SignalingState::kHaveRemotePrAnswer:
-      value = Nan::New("have-remote-pranswer").ToLocalChecked();
-      break;
-    case SignalingState::kClosed:
-      value = Nan::New("closed").ToLocalChecked();
-      break;
+  auto maybeStateString = From<Local<Value>>(state);
+  if (maybeStateString.IsInvalid()) {
+    auto error = maybeStateString.ToErrors()[0];
+    TRACE_END;
+    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    return;
   }
 
   TRACE_END;
-  info.GetReturnValue().Set(value);
+  info.GetReturnValue().Set(maybeStateString.UnsafeFromValid());
 }
 
 NAN_GETTER(PeerConnection::GetIceConnectionState) {
@@ -597,37 +603,16 @@ NAN_GETTER(PeerConnection::GetIceConnectionState) {
       ? self->_jinglePeerConnection->ice_connection_state()
       : IceConnectionState::kIceConnectionClosed;
 
-  Local<Value> value;
-  switch (state) {
-    case IceConnectionState::kIceConnectionChecking:
-      value = Nan::New("checking").ToLocalChecked();
-      break;
-    case IceConnectionState::kIceConnectionClosed:
-      value = Nan::New("closed").ToLocalChecked();
-      break;
-    case IceConnectionState::kIceConnectionCompleted:
-      value = Nan::New("completed").ToLocalChecked();
-      break;
-    case IceConnectionState::kIceConnectionConnected:
-      value = Nan::New("connected").ToLocalChecked();
-      break;
-    case IceConnectionState::kIceConnectionDisconnected:
-      value = Nan::New("disconnected").ToLocalChecked();
-      break;
-    case IceConnectionState::kIceConnectionFailed:
-      value = Nan::New("failed").ToLocalChecked();
-      break;
-    case IceConnectionState::kIceConnectionMax:
-      TRACE_END;
-      return Nan::ThrowTypeError("WebRTC\'s RTCPeerConnection has an ICE connection state \"max\", but I have no idea"
-              "what this means. If you see this error, file a bug on https://github.com/js-platform/node-webrtc");
-    case IceConnectionState::kIceConnectionNew:
-      value = Nan::New("new").ToLocalChecked();
-      break;
+  auto maybeStateString = From<Local<Value>>(state);
+  if (maybeStateString.IsInvalid()) {
+    auto error = maybeStateString.ToErrors()[0];
+    TRACE_END;
+    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    return;
   }
 
   TRACE_END;
-  info.GetReturnValue().Set(value);
+  info.GetReturnValue().Set(maybeStateString.UnsafeFromValid());
 }
 
 NAN_GETTER(PeerConnection::GetIceGatheringState) {
@@ -639,21 +624,16 @@ NAN_GETTER(PeerConnection::GetIceGatheringState) {
       ? self->_jinglePeerConnection->ice_gathering_state()
       : IceGatheringState::kIceGatheringComplete;
 
-  Local<Value> value;
-  switch (state) {
-    case IceGatheringState::kIceGatheringNew:
-      value = Nan::New("new").ToLocalChecked();
-      break;
-    case IceGatheringState::kIceGatheringGathering:
-      value = Nan::New("gathering").ToLocalChecked();
-      break;
-    case IceGatheringState::kIceGatheringComplete:
-      value = Nan::New("complete").ToLocalChecked();
-      break;
+  auto maybeStateString = From<Local<Value>>(state);
+  if (maybeStateString.IsInvalid()) {
+    auto error = maybeStateString.ToErrors()[0];
+    TRACE_END;
+    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    return;
   }
 
   TRACE_END;
-  info.GetReturnValue().Set(value);
+  info.GetReturnValue().Set(maybeStateString.UnsafeFromValid());
 }
 
 NAN_SETTER(PeerConnection::ReadOnly) {
@@ -669,6 +649,7 @@ void PeerConnection::Init(Handle<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "createAnswer", CreateAnswer);
   Nan::SetPrototypeMethod(tpl, "setLocalDescription", SetLocalDescription);
   Nan::SetPrototypeMethod(tpl, "setRemoteDescription", SetRemoteDescription);
+  Nan::SetPrototypeMethod(tpl, "getConfiguration", GetConfiguration);
   Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
   Nan::SetPrototypeMethod(tpl, "updateIce", UpdateIce);
   Nan::SetPrototypeMethod(tpl, "addIceCandidate", AddIceCandidate);

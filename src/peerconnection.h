@@ -58,15 +58,24 @@ class PeerConnection
   };
 
   struct IceEvent {
-    explicit IceEvent(const webrtc::IceCandidateInterface* ice_candidate)
-      : sdpMLineIndex(ice_candidate->sdp_mline_index())
-      , sdpMid(ice_candidate->sdp_mid()) {
-      ice_candidate->ToString(&candidate);
+    explicit IceEvent(const webrtc::IceCandidateInterface* ice_candidate) {
+      std::string sdp;
+      if (!ice_candidate->ToString(&sdp)) {
+        error = "Failed to print the candidate string. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc";
+        return;
+      }
+      webrtc::SdpParseError parseError;
+      candidate = std::unique_ptr<const webrtc::IceCandidateInterface>(
+              webrtc::CreateIceCandidate(ice_candidate->sdp_mid(), ice_candidate->sdp_mline_index(), sdp, &parseError));
+      if (!parseError.description.empty()) {
+        error = parseError.description;
+      } else if (!candidate) {
+        error = "Failed to copy RTCIceCandidate";
+      }
     }
 
-    uint32_t sdpMLineIndex;
-    std::string sdpMid;
-    std::string candidate;
+    std::string error;
+    std::unique_ptr<const webrtc::IceCandidateInterface> candidate;
   };
 
   struct StateEvent {
@@ -164,6 +173,7 @@ class PeerConnection
   static NAN_METHOD(AddStream);
   static NAN_METHOD(RemoveStream);
   */
+  static NAN_METHOD(GetConfiguration);
   static NAN_METHOD(GetStats);
   static NAN_METHOD(Close);
 
@@ -196,6 +206,8 @@ class PeerConnection
   rtc::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
   webrtc::AudioDeviceModule* _audioDeviceModule;
+  UnsignedShortRange _port_range;
+  ExtendedRTCConfiguration _cached_configuration;
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
 
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;

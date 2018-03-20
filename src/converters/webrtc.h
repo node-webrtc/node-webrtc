@@ -75,6 +75,11 @@ struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::IceServe
   static Validation<webrtc::PeerConnectionInterface::IceServer> Convert(v8::Local<v8::Value> value);
 };
 
+template <>
+struct Converter<webrtc::PeerConnectionInterface::IceServer, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::IceServer value);
+};
+
 /*
  * enum RTCIceTransportPolicy {
  *   "relay",
@@ -85,6 +90,11 @@ struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::IceServe
 template <>
 struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::IceTransportsType> {
   static Validation<webrtc::PeerConnectionInterface::IceTransportsType> Convert(v8::Local<v8::Value> value);
+};
+
+template <>
+struct Converter<webrtc::PeerConnectionInterface::IceTransportsType, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::IceTransportsType value);
 };
 
 /*
@@ -100,6 +110,11 @@ struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::BundlePo
   static Validation<webrtc::PeerConnectionInterface::BundlePolicy> Convert(v8::Local<v8::Value> value);
 };
 
+template <>
+struct Converter<webrtc::PeerConnectionInterface::BundlePolicy, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::BundlePolicy value);
+};
+
 /*
  * enum RTCRtcpMuxPolicy {
  *   // At risk due to lack of implementers' interest.
@@ -111,6 +126,11 @@ struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::BundlePo
 template <>
 struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::RtcpMuxPolicy> {
   static Validation<webrtc::PeerConnectionInterface::RtcpMuxPolicy> Convert(v8::Local<v8::Value> value);
+};
+
+template <>
+struct Converter<webrtc::PeerConnectionInterface::RtcpMuxPolicy, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::RtcpMuxPolicy value);
 };
 
 /*
@@ -144,13 +164,18 @@ struct Converter<v8::Local<v8::Value>, RTCDtlsFingerprint> {
 struct UnsignedShortRange {
   UnsignedShortRange(): min(Maybe<uint16_t>::Nothing()), max(Maybe<uint16_t>::Nothing()) {}
   UnsignedShortRange(const Maybe<uint16_t> min, const Maybe<uint16_t> max): min(min), max(max) {}
-  const Maybe<uint16_t> min;
-  const Maybe<uint16_t> max;
+  Maybe<uint16_t> min;
+  Maybe<uint16_t> max;
 };
 
 template <>
 struct Converter<v8::Local<v8::Value>, UnsignedShortRange> {
   static Validation<UnsignedShortRange> Convert(v8::Local<v8::Value> value);
+};
+
+template <>
+struct Converter<UnsignedShortRange, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(UnsignedShortRange value);
 };
 
 /*
@@ -175,13 +200,18 @@ struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::RTCConfi
 struct ExtendedRTCConfiguration {
   ExtendedRTCConfiguration(): configuration(webrtc::PeerConnectionInterface::RTCConfiguration()), portRange(UnsignedShortRange()) {}
   ExtendedRTCConfiguration(const webrtc::PeerConnectionInterface::RTCConfiguration configuration, const UnsignedShortRange portRange): configuration(configuration), portRange(portRange) {}
-  const webrtc::PeerConnectionInterface::RTCConfiguration configuration;
-  const UnsignedShortRange portRange;
+  webrtc::PeerConnectionInterface::RTCConfiguration configuration;
+  UnsignedShortRange portRange;
 };
 
 template <>
 struct Converter<v8::Local<v8::Value>, ExtendedRTCConfiguration> {
   static Validation<ExtendedRTCConfiguration> Convert(v8::Local<v8::Value> value);
+};
+
+template <>
+struct Converter<ExtendedRTCConfiguration, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(ExtendedRTCConfiguration value);
 };
 
 /*
@@ -263,6 +293,11 @@ struct Converter<v8::Local<v8::Value>, webrtc::SessionDescriptionInterface*> {
   static Validation<webrtc::SessionDescriptionInterface*> Convert(v8::Local<v8::Value> value);
 };
 
+template <>
+struct Converter<const webrtc::SessionDescriptionInterface*, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const webrtc::SessionDescriptionInterface* value);
+};
+
 /*
  * dictionary RTCIceCandidateInit {
  *     DOMString       candidate = "";
@@ -275,6 +310,11 @@ struct Converter<v8::Local<v8::Value>, webrtc::SessionDescriptionInterface*> {
 template <>
 struct Converter<v8::Local<v8::Value>, webrtc::IceCandidateInterface*> {
   static Validation<webrtc::IceCandidateInterface*> Convert(v8::Local<v8::Value> value);
+};
+
+template <>
+struct Converter<const webrtc::IceCandidateInterface*, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const webrtc::IceCandidateInterface* value);
 };
 
 /*
@@ -314,6 +354,88 @@ struct Converter<v8::Local<v8::Value>, RTCPriorityType> {
 template <>
 struct Converter<v8::Local<v8::Value>, webrtc::DataChannelInit> {
   static Validation<webrtc::DataChannelInit> Convert(v8::Local<v8::Value> value);
+};
+
+/*
+ * enum RTCSignalingState {
+ *   "stable",
+ *   "have-local-offer",
+ *   "have-remote-offer",
+ *   "have-local-pranswer",
+ *   "have-remote-pranswer",
+ *   "closed"
+ * }
+ */
+
+template <>
+struct Converter<webrtc::PeerConnectionInterface::SignalingState, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::SignalingState value);
+};
+
+/*
+ * enum RTCIceGatheringState {
+ *   "new",
+ *   "gathering",
+ *   "complete"
+ * }
+ */
+
+template <>
+struct Converter<webrtc::PeerConnectionInterface::IceGatheringState, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::IceGatheringState value);
+};
+
+/*
+ * enum RTCIceConnectionState {
+ *   "new",
+ *   "checking",
+ *   "connected",
+ *   "completed",
+ *   "disconnected",
+ *   "failed",
+ *   "closed"
+ * }
+ */
+
+template <>
+struct Converter<webrtc::PeerConnectionInterface::IceConnectionState, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::IceConnectionState value);
+};
+
+/*
+ * enum RTCDataChannelState {
+ *   "connecting",
+ *   "open",
+ *   "closing",
+ *   "closed"
+ * }
+ */
+
+template <>
+struct Converter<webrtc::DataChannelInterface::DataState, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::DataChannelInterface::DataState value);
+};
+
+/*
+ * enum BinaryType {
+ *   "blob",
+ *   "arraybuffer"
+ * }
+ */
+
+enum BinaryType {
+  kBlob,
+  kArrayBuffer,
+};
+
+template <>
+struct Converter<BinaryType, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(BinaryType value);
+};
+
+template <>
+struct Converter<v8::Local<v8::Value>, BinaryType> {
+  static Validation<BinaryType> Convert(v8::Local<v8::Value> value);
 };
 
 }  // namespace node_webrtc

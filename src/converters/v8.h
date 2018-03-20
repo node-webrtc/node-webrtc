@@ -107,6 +107,14 @@ struct Converter<v8::Local<v8::Value>, std::string> {
   }
 };
 
+template <>
+struct Converter<std::string, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const std::string value) {
+    Nan::EscapableHandleScope scope;
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(Nan::New(value).ToLocalChecked()));
+  }
+};
+
 template <typename T>
 struct Converter<v8::Local<v8::Value>, std::vector<T>> {
   static Validation<std::vector<T>> Convert(const v8::Local<v8::Value> value) {
@@ -119,6 +127,23 @@ struct Converter<v8::Local<v8::Value>, std::vector<T>> {
       validated.push_back(From<T>(array->Get(i)));
     }
     return Validation<T>::Sequence(validated);
+  }
+};
+
+template <typename T>
+struct Converter<std::vector<T>, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const std::vector<T> values) {
+    Nan::EscapableHandleScope scope;
+    auto array = Nan::New<v8::Array>();
+    uint32_t i = 0;
+    for (auto value : values) {
+      auto maybeValue = From<v8::Local<v8::Value>>(value);
+      if (maybeValue.IsInvalid()) {
+        return Validation<v8::Local<v8::Value>>::Invalid(maybeValue.ToErrors());
+      }
+      array->Set(i++, maybeValue.UnsafeFromValid());
+    }
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(array));
   }
 };
 

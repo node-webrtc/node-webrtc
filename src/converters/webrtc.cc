@@ -9,6 +9,8 @@
 
 #include "src/converters/object.h"
 
+using Nan::EscapableHandleScope;
+using node_webrtc::BinaryType;
 using node_webrtc::Converter;
 using node_webrtc::Either;
 using node_webrtc::ExtendedRTCConfiguration;
@@ -33,12 +35,16 @@ using webrtc::IceCandidateInterface;
 using webrtc::SessionDescriptionInterface;
 
 using BundlePolicy = webrtc::PeerConnectionInterface::BundlePolicy;
+using DataState = webrtc::DataChannelInterface::DataState;
+using IceConnectionState = webrtc::PeerConnectionInterface::IceConnectionState;
+using IceGatheringState = webrtc::PeerConnectionInterface::IceGatheringState;
 using IceServer = webrtc::PeerConnectionInterface::IceServer;
 using IceTransportsType = webrtc::PeerConnectionInterface::IceTransportsType;
 using RTCConfiguration = webrtc::PeerConnectionInterface::RTCConfiguration;
 using RTCOfferAnswerOptions = webrtc::PeerConnectionInterface::RTCOfferAnswerOptions;
 using RtcpMuxPolicy = webrtc::PeerConnectionInterface::RtcpMuxPolicy;
 using SdpParseError = webrtc::SdpParseError;
+using SignalingState = webrtc::PeerConnectionInterface::SignalingState ;
 
 static RTCOAuthCredential CreateRTCOAuthCredential(
     const std::string& macKey,
@@ -94,6 +100,28 @@ Validation<IceServer> Converter<Local<Value>, IceServer>::Convert(const Local<Va
       });
 }
 
+Validation<Local<Value>> Converter<IceServer, Local<Value>>::Convert(IceServer iceServer) {
+  EscapableHandleScope scope;
+  auto object = Nan::New<Object>();
+  if (!iceServer.uri.empty()) {
+    object->Set(Nan::New("urls").ToLocalChecked(), Nan::New(iceServer.uri).ToLocalChecked());
+  } else {
+    auto maybeArray = From<Local<Value>>(iceServer.urls);
+    if (maybeArray.IsInvalid()) {
+      return Validation<Local<Value>>::Invalid(maybeArray.ToErrors());
+    }
+    object->Set(Nan::New("urls").ToLocalChecked(), maybeArray.UnsafeFromValid());
+  }
+  if (!iceServer.username.empty()) {
+    object->Set(Nan::New("username").ToLocalChecked(), Nan::New(iceServer.username).ToLocalChecked());
+  }
+  if (!iceServer.password.empty()) {
+    object->Set(Nan::New("credential").ToLocalChecked(), Nan::New(iceServer.password).ToLocalChecked());
+    object->Set(Nan::New("credentialType").ToLocalChecked(), Nan::New("password").ToLocalChecked());
+  }
+  return Validation<Local<Value>>::Valid(scope.Escape(object));
+};
+
 Validation<IceTransportsType> Converter<Local<Value>, IceTransportsType>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<IceTransportsType>(
       [](const std::string string) {
@@ -105,6 +133,18 @@ Validation<IceTransportsType> Converter<Local<Value>, IceTransportsType>::Conver
         return Validation<IceTransportsType>::Invalid(R"(Expected "all" or "relay")");
       });
 }
+
+Validation<Local<Value>> Converter<IceTransportsType, Local<Value>>::Convert(const IceTransportsType type) {
+  EscapableHandleScope scope;
+  switch (type) {
+    case IceTransportsType::kAll:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("all").ToLocalChecked()));
+    case IceTransportsType::kRelay:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("relay").ToLocalChecked()));
+    default:
+      return Validation<Local<Value>>::Invalid("Somehow you've set RTCIceTransportPolicy to an unsupported value; please file a bug at https://github.com/js-platform/node-webrtc");
+  }
+};
 
 Validation<BundlePolicy> Converter<Local<Value>, BundlePolicy>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<BundlePolicy>(
@@ -120,6 +160,18 @@ Validation<BundlePolicy> Converter<Local<Value>, BundlePolicy>::Convert(const Lo
       });
 }
 
+Validation<Local<Value>> Converter<BundlePolicy, Local<Value>>::Convert(const BundlePolicy type) {
+  EscapableHandleScope scope;
+  switch (type) {
+    case BundlePolicy::kBundlePolicyBalanced:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("balanced").ToLocalChecked()));
+    case BundlePolicy::kBundlePolicyMaxBundle:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("max-bundle").ToLocalChecked()));
+    case BundlePolicy::kBundlePolicyMaxCompat:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("max-compat").ToLocalChecked()));
+  }
+};
+
 Validation<RtcpMuxPolicy> Converter<Local<Value>, RtcpMuxPolicy>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<RtcpMuxPolicy>(
       [](const std::string string) {
@@ -131,6 +183,16 @@ Validation<RtcpMuxPolicy> Converter<Local<Value>, RtcpMuxPolicy>::Convert(const 
         return Validation<RtcpMuxPolicy>::Invalid(R"(Expected "negotiate" or "require")");
       });
 }
+
+Validation<Local<Value>> Converter<RtcpMuxPolicy, Local<Value>>::Convert(const RtcpMuxPolicy type) {
+  EscapableHandleScope scope;
+  switch (type) {
+    case RtcpMuxPolicy::kRtcpMuxPolicyNegotiate:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("negotiate").ToLocalChecked()));
+    case RtcpMuxPolicy::kRtcpMuxPolicyRequire:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("require").ToLocalChecked()));
+  }
+};
 
 static RTCDtlsFingerprint CreateRTCDtlsFingerprint(
     const Maybe<std::string>& algorithm,
@@ -167,6 +229,18 @@ Validation<UnsignedShortRange> Converter<Local<Value>, UnsignedShortRange>::Conv
       });
 };
 
+Validation<Local<Value>> Converter<UnsignedShortRange, Local<Value>>::Convert(const UnsignedShortRange value) {
+  EscapableHandleScope scope;
+  auto object = Nan::New<Object>();
+  if (value.min.IsJust()) {
+    object->Set(Nan::New("min").ToLocalChecked(), Nan::New(value.min.UnsafeFromJust()));
+  }
+  if (value.max.IsJust()) {
+    object->Set(Nan::New("max").ToLocalChecked(), Nan::New(value.max.UnsafeFromJust()));
+  }
+  return Validation<Local<Value>>::Valid(scope.Escape(object));
+};
+
 static RTCConfiguration CreateRTCConfiguration(
     const std::vector<IceServer>& iceServers,
     const IceTransportsType iceTransportsPolicy,
@@ -174,12 +248,13 @@ static RTCConfiguration CreateRTCConfiguration(
     const RtcpMuxPolicy rtcpMuxPolicy,
     const Maybe<std::string>&,
     const Maybe<std::vector<Local<Object>>>&,
-    const uint32_t) {
+    const uint32_t iceCandidatePoolSize) {
   RTCConfiguration configuration;
   configuration.servers = iceServers;
   configuration.type = iceTransportsPolicy;
   configuration.bundle_policy = bundlePolicy;
   configuration.rtcp_mux_policy = rtcpMuxPolicy;
+  configuration.ice_candidate_pool_size = iceCandidatePoolSize;
   return configuration;
 }
 
@@ -212,6 +287,34 @@ Validation<ExtendedRTCConfiguration> Converter<Local<Value>, ExtendedRTCConfigur
             * GetOptional<UnsignedShortRange>(object, "portRange", UnsignedShortRange());
       });
 }
+
+static Local<Value> ExtendedRTCConfigurationToJavaScript(
+    const Local<Value> iceServers,
+    const Local<Value> iceTransportPolicy,
+    const Local<Value> bundlePolicy,
+    const Local<Value> rtcpMuxPolicy,
+    const Local<Value> iceCandidatePoolSize,
+    const Local<Value> portRange) {
+  EscapableHandleScope scope;
+  auto object = Nan::New<Object>();
+  object->Set(Nan::New("iceServers").ToLocalChecked(), iceServers);
+  object->Set(Nan::New("iceTransportPolicy").ToLocalChecked(), iceTransportPolicy);
+  object->Set(Nan::New("bundlePolicy").ToLocalChecked(), bundlePolicy);
+  object->Set(Nan::New("rtcpMuxPolicy").ToLocalChecked(), rtcpMuxPolicy);
+  object->Set(Nan::New("iceCandidatePoolSize").ToLocalChecked(), iceCandidatePoolSize);
+  object->Set(Nan::New("portRange").ToLocalChecked(), portRange);
+  return scope.Escape(object);
+}
+
+Validation<Local<Value>> Converter<ExtendedRTCConfiguration, Local<Value>>::Convert(ExtendedRTCConfiguration configuration) {
+  return curry(ExtendedRTCConfigurationToJavaScript)
+      % From<Local<Value>>(configuration.configuration.servers)
+      * From<Local<Value>>(configuration.configuration.type)
+      * From<Local<Value>>(configuration.configuration.bundle_policy)
+      * From<Local<Value>>(configuration.configuration.rtcp_mux_policy)
+      * Validation<Local<Value>>::Valid(Nan::New(configuration.configuration.ice_candidate_pool_size))
+      * From<Local<Value>>(configuration.portRange);
+};
 
 static RTCOfferOptions CreateRTCOfferOptions(
     const bool voiceActivityDetection,
@@ -306,6 +409,25 @@ Validation<SessionDescriptionInterface*> Converter<Local<Value>, SessionDescript
       });
 }
 
+Validation<Local<Value>> Converter<const SessionDescriptionInterface*, Local<Value>>::Convert(const SessionDescriptionInterface* value) {
+  EscapableHandleScope scope;
+
+  if (!value) {
+    return Validation<Local<Value>>::Invalid("RTCSessionDescription is null");
+  }
+
+  std::string sdp;
+  if (!value->ToString(&sdp)) {
+    return Validation<Local<Value>>::Invalid("Failed to print the SDP. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc");
+  }
+
+  auto object = Nan::New<Object>();
+  object->Set(Nan::New("sdp").ToLocalChecked(), Nan::New(sdp).ToLocalChecked());
+  object->Set(Nan::New("type").ToLocalChecked(), Nan::New(value->type()).ToLocalChecked());
+
+  return Validation<Local<Value>>::Valid(scope.Escape(object));
+};
+
 static Validation<IceCandidateInterface*> CreateIceCandidateInterface(
     const std::string& candidate,
     const std::string& sdpMid,
@@ -329,6 +451,26 @@ Validation<IceCandidateInterface*> Converter<Local<Value>, IceCandidateInterface
             * GetOptional<std::string>(object, "usernameFragment"));
       });
 }
+
+Validation<Local<Value>> Converter<const IceCandidateInterface*, Local<Value>>::Convert(const IceCandidateInterface* value) {
+  EscapableHandleScope scope;
+
+  if (!value) {
+    return Validation<Local<Value>>::Invalid("RTCIceCandidate is null");
+  }
+
+  std::string candidate;
+  if (!value->ToString(&candidate)) {
+    return Validation<Local<Value>>::Invalid("Failed to print the candidate string. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc");
+  }
+
+  auto object = Nan::New<Object>();
+  object->Set(Nan::New("candidate").ToLocalChecked(), Nan::New(candidate).ToLocalChecked());
+  object->Set(Nan::New("sdpMid").ToLocalChecked(), Nan::New(value->sdp_mid()).ToLocalChecked());
+  object->Set(Nan::New("sdpMLineIndex").ToLocalChecked(), Nan::New(value->sdp_mline_index()));
+
+  return Validation<Local<Value>>::Valid(scope.Escape(object));
+};
 
 Validation<RTCPriorityType> Converter<Local<Value>, RTCPriorityType>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<RTCPriorityType>(
@@ -377,3 +519,94 @@ Validation<DataChannelInit> Converter<Local<Value>, DataChannelInit>::Convert(co
             * GetOptional<RTCPriorityType>(object, "priority", kLow);
       });
 }
+
+Validation<Local<Value>> Converter<SignalingState, Local<Value>>::Convert(const SignalingState state) {
+  EscapableHandleScope scope;
+  switch (state) {
+    case SignalingState::kStable:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("stable").ToLocalChecked()));
+    case SignalingState::kHaveLocalOffer:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("have-local-offer").ToLocalChecked()));
+    case SignalingState::kHaveRemoteOffer:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("have-remote-offer").ToLocalChecked()));
+    case SignalingState::kHaveLocalPrAnswer:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("have-local-pranswer").ToLocalChecked()));
+    case SignalingState::kHaveRemotePrAnswer:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("have-remote-pranswer").ToLocalChecked()));
+    case SignalingState::kClosed:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("closed").ToLocalChecked()));
+  }
+};
+
+Validation<Local<Value>> Converter<IceGatheringState, Local<Value>>::Convert(const IceGatheringState state) {
+  EscapableHandleScope scope;
+  switch (state) {
+    case IceGatheringState::kIceGatheringNew:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("new").ToLocalChecked()));
+    case IceGatheringState::kIceGatheringGathering:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("gathering").ToLocalChecked()));
+    case IceGatheringState::kIceGatheringComplete:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("complete").ToLocalChecked()));
+  }
+};
+
+Validation<Local<Value>> Converter<IceConnectionState, Local<Value>>::Convert(const IceConnectionState state) {
+  EscapableHandleScope scope;
+  switch (state) {
+    case IceConnectionState::kIceConnectionChecking:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("checking").ToLocalChecked()));
+    case IceConnectionState::kIceConnectionClosed:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("closed").ToLocalChecked()));
+    case IceConnectionState::kIceConnectionCompleted:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("completed").ToLocalChecked()));
+    case IceConnectionState::kIceConnectionConnected:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("connected").ToLocalChecked()));
+    case IceConnectionState::kIceConnectionDisconnected:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("disconnected").ToLocalChecked()));
+    case IceConnectionState::kIceConnectionFailed:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("failed").ToLocalChecked()));
+    case IceConnectionState::kIceConnectionMax:
+      return Validation<Local<Value>>::Invalid(
+              "WebRTC\'s RTCPeerConnection has an ICE connection state \"max\", but I have no idea"
+              "what this means. If you see this error, file a bug on https://github.com/js-platform/node-webrtc");
+    case IceConnectionState::kIceConnectionNew:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("new").ToLocalChecked()));
+  }
+};
+
+Validation<Local<Value>> Converter<DataState, Local<Value>>::Convert(const DataState state) {
+  EscapableHandleScope scope;
+  switch (state) {
+    case DataState::kClosed:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("closed").ToLocalChecked()));
+    case DataState::kClosing:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("closing").ToLocalChecked()));
+    case DataState::kConnecting:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("connecting").ToLocalChecked()));
+    case DataState::kOpen:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("open").ToLocalChecked()));
+  }
+};
+
+Validation<Local<Value>> Converter<BinaryType, Local<Value>>::Convert(const BinaryType binaryType) {
+  EscapableHandleScope scope;
+  switch (binaryType) {
+    case BinaryType::kArrayBuffer:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("arraybuffer").ToLocalChecked()));
+    case BinaryType::kBlob:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("blob").ToLocalChecked()));
+  }
+};
+
+Validation<BinaryType> Converter<Local<Value>, BinaryType>::Convert(const Local<Value> value) {
+  return From<std::string>(value).FlatMap<BinaryType>(
+      [](const std::string string) {
+          if (string == "blob") {
+            return Validation<BinaryType>::Invalid(R"("blob" is not supported at this time; file a bug on https://github.com/js-platform/node-webrtc)");
+          } else if (string == "arraybuffer") {
+            return Validation<BinaryType>::Valid(BinaryType::kArrayBuffer);
+          } else {
+            return Validation<BinaryType>::Invalid(R"(Expected "blob" or "arraybuffer")");
+          }
+      });
+};
