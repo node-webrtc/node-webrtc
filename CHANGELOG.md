@@ -1,3 +1,20 @@
+0.0.68
+======
+
+New Features
+------------
+
+- Expanded RTCConfiguration support. We now support `iceTransportPolicy`,
+  `bundlePolicy`, `rtcpMuxPolicy`, and `iceCandidatePoolSize`.
+- Added support for a non-standard RTCConfiguration attribute, `portRange`. You
+  can use this to constrain the `min` and `max` ports to be used when creating
+  ICE transports. For example,
+
+  ```js
+  const { RTCPeerConnection } = require('wrtc');
+  const pc = new RTCPeerConnection({ portRange: { min: 0, max: 65535 } });
+  ```
+
 0.0.67
 ======
 
