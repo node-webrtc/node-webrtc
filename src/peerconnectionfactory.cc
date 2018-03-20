@@ -11,7 +11,6 @@
 
 #include "common.h"
 
-#include "proxyaudiomixer.h"
 #include "webrtc/api/audio/audio_mixer.h"
 #include "webrtc/api/test/fakeaudiocapturemodule.h"
 
