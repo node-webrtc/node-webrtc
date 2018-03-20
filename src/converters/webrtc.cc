@@ -100,6 +100,28 @@ Validation<IceServer> Converter<Local<Value>, IceServer>::Convert(const Local<Va
       });
 }
 
+Validation<Local<Value>> Converter<IceServer, Local<Value>>::Convert(IceServer iceServer) {
+  EscapableHandleScope scope;
+  auto object = Nan::New<Object>();
+  if (!iceServer.uri.empty()) {
+    object->Set(Nan::New("urls").ToLocalChecked(), Nan::New(iceServer.uri).ToLocalChecked());
+  } else {
+    auto maybeArray = From<Local<Value>>(iceServer.urls);
+    if (maybeArray.IsInvalid()) {
+      return Validation<Local<Value>>::Invalid(maybeArray.ToErrors());
+    }
+    object->Set(Nan::New("urls").ToLocalChecked(), maybeArray.UnsafeFromValid());
+  }
+  if (!iceServer.username.empty()) {
+    object->Set(Nan::New("username").ToLocalChecked(), Nan::New(iceServer.username).ToLocalChecked());
+  }
+  if (!iceServer.password.empty()) {
+    object->Set(Nan::New("credential").ToLocalChecked(), Nan::New(iceServer.password).ToLocalChecked());
+    object->Set(Nan::New("credentialType").ToLocalChecked(), Nan::New("password").ToLocalChecked());
+  }
+  return Validation<Local<Value>>::Valid(scope.Escape(object));
+};
+
 Validation<IceTransportsType> Converter<Local<Value>, IceTransportsType>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<IceTransportsType>(
       [](const std::string string) {
@@ -226,12 +248,13 @@ static RTCConfiguration CreateRTCConfiguration(
     const RtcpMuxPolicy rtcpMuxPolicy,
     const Maybe<std::string>&,
     const Maybe<std::vector<Local<Object>>>&,
-    const uint32_t) {
+    const uint32_t iceCandidatePoolSize) {
   RTCConfiguration configuration;
   configuration.servers = iceServers;
   configuration.type = iceTransportsPolicy;
   configuration.bundle_policy = bundlePolicy;
   configuration.rtcp_mux_policy = rtcpMuxPolicy;
+  configuration.ice_candidate_pool_size = iceCandidatePoolSize;
   return configuration;
 }
 
@@ -266,24 +289,30 @@ Validation<ExtendedRTCConfiguration> Converter<Local<Value>, ExtendedRTCConfigur
 }
 
 static Local<Value> ExtendedRTCConfigurationToJavaScript(
+    const Local<Value> iceServers,
     const Local<Value> iceTransportPolicy,
     const Local<Value> bundlePolicy,
     const Local<Value> rtcpMuxPolicy,
+    const Local<Value> iceCandidatePoolSize,
     const Local<Value> portRange) {
   EscapableHandleScope scope;
   auto object = Nan::New<Object>();
+  object->Set(Nan::New("iceServers").ToLocalChecked(), iceServers);
   object->Set(Nan::New("iceTransportPolicy").ToLocalChecked(), iceTransportPolicy);
   object->Set(Nan::New("bundlePolicy").ToLocalChecked(), bundlePolicy);
   object->Set(Nan::New("rtcpMuxPolicy").ToLocalChecked(), rtcpMuxPolicy);
+  object->Set(Nan::New("iceCandidatePoolSize").ToLocalChecked(), iceCandidatePoolSize);
   object->Set(Nan::New("portRange").ToLocalChecked(), portRange);
   return scope.Escape(object);
 }
 
 Validation<Local<Value>> Converter<ExtendedRTCConfiguration, Local<Value>>::Convert(ExtendedRTCConfiguration configuration) {
   return curry(ExtendedRTCConfigurationToJavaScript)
-      % From<Local<Value>>(configuration.configuration.type)
+      % From<Local<Value>>(configuration.configuration.servers)
+      * From<Local<Value>>(configuration.configuration.type)
       * From<Local<Value>>(configuration.configuration.bundle_policy)
       * From<Local<Value>>(configuration.configuration.rtcp_mux_policy)
+      * Validation<Local<Value>>::Valid(Nan::New(configuration.configuration.ice_candidate_pool_size))
       * From<Local<Value>>(configuration.portRange);
 };
 

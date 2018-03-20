@@ -75,6 +75,11 @@ struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::IceServe
   static Validation<webrtc::PeerConnectionInterface::IceServer> Convert(v8::Local<v8::Value> value);
 };
 
+template <>
+struct Converter<webrtc::PeerConnectionInterface::IceServer, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::IceServer value);
+};
+
 /*
  * enum RTCIceTransportPolicy {
  *   "relay",
