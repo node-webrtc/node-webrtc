@@ -40,8 +40,6 @@ using v8::Array;
 
 Nan::Persistent<Function> PeerConnection::constructor;
 
-#include <map>
-
 //
 // PeerConnection
 //
@@ -218,6 +216,14 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
         Local<Value> argv[1];
         argv[0] = ms;
         Nan::MakeCallback(pc, callback, 1, argv);
+
+        // Release audioTrack audio buffers.
+        auto audioTracks = interface->GetAudioTracks();
+        for(auto audioTrack : audioTracks) {
+          if(self->audioSampleBuffers.find(audioTrack->id()) != self->audioSampleBuffers.end()) {
+            self->audioSampleBuffers.erase(audioTrack->id());
+          }
+        }
       }
     }
     else if(PeerConnection::NOTIFY_ON_FRAME & evt.type) {
@@ -291,28 +297,40 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
                                                       int bits_per_sample, int sample_rate,
                                                       size_t number_of_channels, size_t number_of_frames,
                                                       string label) {
-          if (bits_per_sample == 16) {
-            size_t audioFrameSize = ((bits_per_sample / 8) * number_of_channels * number_of_frames) / 2;
+          size_t audioFrameSize = number_of_channels * number_of_frames;
 
-            vector<float> asFloat(audioFrameSize);
-            // S16LE input samples.
-            const int16_t *s16LEBuf = reinterpret_cast<const int16_t *>(audio_data);
+          auto& audioSampleBuffers = self->audioSampleBuffers;
+          if(audioSampleBuffers.find(label) == audioSampleBuffers.end()) {
+            audioSampleBuffers[label] = std::shared_ptr<vector<int16_t> >(new vector<int16_t>());
+            audioSampleBuffers[label]->reserve(sizeof(int16_t) * AUDIO_SAMPLE_DELIVERY_SIZE);
+          }
 
+          const int16_t *s16LEBuf = reinterpret_cast<const int16_t *>(audio_data);
+          auto audioSampleBuffer = audioSampleBuffers[label];
+          audioSampleBuffer->insert(audioSampleBuffer->end(), s16LEBuf, s16LEBuf + audioFrameSize);
+
+          // Deliver in distinct chunks.
+          if(audioSampleBuffer->size() >= AUDIO_SAMPLE_DELIVERY_SIZE) {
+            int16_t* s16LEChunk = static_cast<int16_t*>(&(*audioSampleBuffer)[0]);
+            auto audioFrameEvent = new AudioFrameEvent(label, bits_per_sample, sample_rate,
+                                                       number_of_channels, AUDIO_SAMPLE_DELIVERY_SIZE);
+
+            audioFrameEvent->buffer.resize(AUDIO_SAMPLE_DELIVERY_SIZE, 0);
             // Converts to FLTP since it is the format supported by WebAudio APIs.
-            for (int i = 0; i < audioFrameSize; i++) {
-              asFloat[i] = (static_cast<float>(s16LEBuf[i]) / 32768.0f);
-              if (asFloat[i] < -1.0f) {
-                asFloat[i] = -1.0f;
-              } else if (s16LEBuf[i] > 1.0f) {
-                asFloat[i] = 1.0f;
+            for (int i = 0; i < AUDIO_SAMPLE_DELIVERY_SIZE; i++) {
+              float convertedSample = (static_cast<float>(s16LEChunk[i]) / 32768.0f);
+              int planarIndex = ((i%number_of_channels)*number_of_frames)+(i/number_of_channels);
+              audioFrameEvent->buffer[planarIndex] = convertedSample;
+              if (convertedSample < -1.0f) {
+                audioFrameEvent->buffer[planarIndex] = -1.0f;
+              } else if (convertedSample > 1.0f) {
+                audioFrameEvent->buffer[planarIndex] = 1.0f;
               }
             }
 
-            auto audioFrameEvent = new AudioFrameEvent(label, bits_per_sample, sample_rate,
-                                                       number_of_channels, number_of_frames);
-            audioFrameEvent->buffer.reserve(sizeof(float) * audioFrameSize);
-            audioFrameEvent->buffer.insert(audioFrameEvent->buffer.begin(), asFloat.begin(), asFloat.end());
             self->QueueEvent(PeerConnection::NOTIFY_ON_AUDIO_FRAME, audioFrameEvent);
+
+            audioSampleBuffer->assign(audioSampleBuffer->begin() + AUDIO_SAMPLE_DELIVERY_SIZE, audioSampleBuffer->end());
           }
         }, label);
         audioTrack->GetSource()->AddSink(sink);

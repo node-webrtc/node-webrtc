@@ -26,6 +26,9 @@
 #include "peerconnectionfactory.h"
 #include "audiosink.h"
 
+// Number of samples to deliver to Javascript layer at a time.
+#define AUDIO_SAMPLE_DELIVERY_SIZE 2048
+
 namespace node_webrtc {
 
 class CreateOfferObserver;
@@ -38,6 +41,9 @@ class PeerConnection
   : public Nan::ObjectWrap
   , public webrtc::PeerConnectionObserver {
  public:
+
+  std::map<std::string, std::shared_ptr<std::vector<int16_t> > > audioSampleBuffers;
+
   struct ErrorEvent {
     explicit ErrorEvent(const std::string& msg)
       : msg(msg) {}
@@ -246,7 +252,6 @@ class PeerConnection
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _jinglePeerConnectionFactory;
 
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
-
   bool _shouldReleaseFactory;
 };
 
