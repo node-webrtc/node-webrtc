@@ -1,0 +1,11 @@
+DIR: webrtc
+
+RTCCertificate.html: [fail, 'RTCPeerConnection.generateCertificate is not a function']
+RTCConfiguration-bundlePolicy.html: [fail, 'pc.setConfiguration is not a function']
+RTCConfiguration-iceCandidatePoolSize.html: [fail, 'assert_idl_attribute: property "getConfiguration" found on object expected in prototype chain']
+RTCConfiguration-iceServers.html: [fail, 'assert_equals: expected (undefined) undefined but got (object) []']
+RTCConfiguration-iceTransportPolicy.html: [fail, 'pc.setConfiguration is not a function']
+RTCConfiguration-rtcpMuxPolicy.html: [fail, 'assert_idl_attribute: property "setConfiguration" not found in prototype chain']
+RTCDTMFSender-insertDTMF.https.html: [fail, 'pc.addTransceiver is not a function']
+RTCDTMFSender-ontonechange-long.https.html: [fail, "Cannot read property 'getUserMedia' of undefined"]
+RTCDTMFSender-ontonechange.https.html: [fail, "Cannot read property 'getUserMedia' of undefined"]
