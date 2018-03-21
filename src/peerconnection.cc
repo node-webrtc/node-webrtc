@@ -46,6 +46,7 @@ using webrtc::SessionDescriptionInterface;
 
 using IceConnectionState = webrtc::PeerConnectionInterface::IceConnectionState;
 using IceGatheringState = webrtc::PeerConnectionInterface::IceGatheringState;
+using RTCConfiguration = webrtc::PeerConnectionInterface::RTCConfiguration;
 using SignalingState = webrtc::PeerConnectionInterface::SignalingState;
 
 Nan::Persistent<Function> PeerConnection::constructor;
@@ -469,6 +470,42 @@ NAN_METHOD(PeerConnection::GetConfiguration) {
   info.GetReturnValue().Set(maybeConfiguration.UnsafeFromValid());
 }
 
+NAN_METHOD(PeerConnection::SetConfiguration) {
+  TRACE_CALL;
+
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+
+  auto maybeConfiguration = From<RTCConfiguration, Nan::NAN_METHOD_ARGS_TYPE>(info);
+  if (maybeConfiguration.IsInvalid()) {
+    auto error = maybeConfiguration.ToErrors()[0];
+    TRACE_END;
+    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    return;
+  }
+
+  if (!self->_jinglePeerConnection) {
+    TRACE_END;
+    Nan::ThrowError("RTCPeerConnection is closed");
+    return;
+  }
+
+  webrtc::RTCError error;
+  if (!self->_jinglePeerConnection->SetConfiguration(maybeConfiguration.UnsafeFromValid(), &error)) {
+    auto maybeError = From<Local<Value>>(error);
+    if (maybeError.IsInvalid()) {
+      auto error = maybeError.ToErrors()[0];
+      TRACE_END;
+      Nan::ThrowError(Nan::New(error).ToLocalChecked());
+      return;
+    }
+    TRACE_END;
+    Nan::ThrowError(maybeError.UnsafeFromValid());
+    return;
+  }
+
+  TRACE_END;
+}
+
 NAN_METHOD(PeerConnection::GetStats) {
   TRACE_CALL;
 
@@ -650,6 +687,7 @@ void PeerConnection::Init(Handle<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "setLocalDescription", SetLocalDescription);
   Nan::SetPrototypeMethod(tpl, "setRemoteDescription", SetRemoteDescription);
   Nan::SetPrototypeMethod(tpl, "getConfiguration", GetConfiguration);
+  Nan::SetPrototypeMethod(tpl, "setConfiguration", SetConfiguration);
   Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
   Nan::SetPrototypeMethod(tpl, "updateIce", UpdateIce);
   Nan::SetPrototypeMethod(tpl, "addIceCandidate", AddIceCandidate);

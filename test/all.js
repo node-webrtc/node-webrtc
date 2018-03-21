@@ -9,3 +9,4 @@ require('./iceservers');
 require('./custom-settings');
 require('./closing-peer-connection');
 require('./closing-data-channel');
+require('./get-configuration');

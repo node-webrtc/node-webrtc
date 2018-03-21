@@ -438,6 +438,11 @@ struct Converter<v8::Local<v8::Value>, BinaryType> {
   static Validation<BinaryType> Convert(v8::Local<v8::Value> value);
 };
 
+template <>
+struct Converter<webrtc::RTCError, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::RTCError value);
+};
+
 }  // namespace node_webrtc
 
 #endif  // SRC_CONVERTERS_WEBRTC_H_
