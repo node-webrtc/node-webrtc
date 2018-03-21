@@ -568,6 +568,44 @@ NAN_METHOD(PeerConnection::Close) {
   info.GetReturnValue().Set(Nan::Undefined());
 }
 
+NAN_GETTER(PeerConnection::GetCanTrickleIceCandidates) {
+  TRACE_CALL;
+  (void) property;
+
+  TRACE_END;
+  info.GetReturnValue().Set(Nan::Null());
+}
+
+NAN_GETTER(PeerConnection::GetConnectionState) {
+  TRACE_CALL;
+  (void) property;
+
+  TRACE_END;
+  info.GetReturnValue().Set(Nan::New("new").ToLocalChecked());
+}
+
+NAN_GETTER(PeerConnection::GetCurrentLocalDescription) {
+  TRACE_CALL;
+  (void) property;
+
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
+
+  Local<Value> result = Nan::Null();
+  if (self->_jinglePeerConnection && self->_jinglePeerConnection->current_local_description()) {
+    auto maybeDescription = From<Local<Value>>(self->_jinglePeerConnection->current_local_description());
+    if (maybeDescription.IsInvalid()) {
+      auto error = maybeDescription.ToErrors()[0];
+      TRACE_END;
+      Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+      return;
+    }
+    result = maybeDescription.UnsafeFromValid();
+  }
+
+  TRACE_END;
+  info.GetReturnValue().Set(result);
+}
+
 NAN_GETTER(PeerConnection::GetLocalDescription) {
   TRACE_CALL;
   (void) property;
@@ -577,6 +615,50 @@ NAN_GETTER(PeerConnection::GetLocalDescription) {
   Local<Value> result = Nan::Null();
   if (self->_jinglePeerConnection && self->_jinglePeerConnection->local_description()) {
     auto maybeDescription = From<Local<Value>>(self->_jinglePeerConnection->local_description());
+    if (maybeDescription.IsInvalid()) {
+      auto error = maybeDescription.ToErrors()[0];
+      TRACE_END;
+      Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+      return;
+    }
+    result = maybeDescription.UnsafeFromValid();
+  }
+
+  TRACE_END;
+  info.GetReturnValue().Set(result);
+}
+
+NAN_GETTER(PeerConnection::GetPendingLocalDescription) {
+  TRACE_CALL;
+  (void) property;
+
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
+
+  Local<Value> result = Nan::Null();
+  if (self->_jinglePeerConnection && self->_jinglePeerConnection->pending_local_description()) {
+    auto maybeDescription = From<Local<Value>>(self->_jinglePeerConnection->pending_local_description());
+    if (maybeDescription.IsInvalid()) {
+      auto error = maybeDescription.ToErrors()[0];
+      TRACE_END;
+      Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+      return;
+    }
+    result = maybeDescription.UnsafeFromValid();
+  }
+
+  TRACE_END;
+  info.GetReturnValue().Set(result);
+}
+
+NAN_GETTER(PeerConnection::GetCurrentRemoteDescription) {
+  TRACE_CALL;
+  (void) property;
+
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
+
+  Local<Value> result = Nan::Null();
+  if (self->_jinglePeerConnection && self->_jinglePeerConnection->current_remote_description()) {
+    auto maybeDescription = From<Local<Value>>(self->_jinglePeerConnection->current_remote_description());
     if (maybeDescription.IsInvalid()) {
       auto error = maybeDescription.ToErrors()[0];
       TRACE_END;
@@ -600,6 +682,29 @@ NAN_GETTER(PeerConnection::GetRemoteDescription) {
   Local<Value> result = Nan::Null();
   if (self->_jinglePeerConnection && self->_jinglePeerConnection->remote_description()) {
     auto maybeDescription = From<Local<Value>>(self->_jinglePeerConnection->remote_description());
+    if (maybeDescription.IsInvalid()) {
+      auto error = maybeDescription.ToErrors()[0];
+      TRACE_END;
+      Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+      return;
+    }
+    result = maybeDescription.UnsafeFromValid();
+  }
+
+  TRACE_END;
+  info.GetReturnValue().Set(result);
+}
+
+NAN_GETTER(PeerConnection::GetPendingRemoteDescription) {
+  TRACE_CALL;
+
+  (void) property;
+
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
+
+  Local<Value> result = Nan::Null();
+  if (self->_jinglePeerConnection && self->_jinglePeerConnection->pending_remote_description()) {
+    auto maybeDescription = From<Local<Value>>(self->_jinglePeerConnection->pending_remote_description());
     if (maybeDescription.IsInvalid()) {
       auto error = maybeDescription.ToErrors()[0];
       TRACE_END;
@@ -697,8 +802,14 @@ void PeerConnection::Init(Handle<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "createDataChannel", CreateDataChannel);
   Nan::SetPrototypeMethod(tpl, "close", Close);
 
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("canTrickleIceCandidates").ToLocalChecked(), GetCanTrickleIceCandidates, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("connectionState").ToLocalChecked(), GetConnectionState, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("currentLocalDescription").ToLocalChecked(), GetCurrentLocalDescription, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("localDescription").ToLocalChecked(), GetLocalDescription, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("pendingLocalDescription").ToLocalChecked(), GetPendingLocalDescription, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("currentRemoteDescription").ToLocalChecked(), GetCurrentRemoteDescription, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("remoteDescription").ToLocalChecked(), GetRemoteDescription, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("pendingRemoteDescription").ToLocalChecked(), GetPendingRemoteDescription, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("signalingState").ToLocalChecked(), GetSignalingState, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("iceConnectionState").ToLocalChecked(), GetIceConnectionState, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("iceGatheringState").ToLocalChecked(), GetIceGatheringState, ReadOnly);

@@ -178,8 +178,14 @@ class PeerConnection
   static NAN_METHOD(GetStats);
   static NAN_METHOD(Close);
 
+  static NAN_GETTER(GetCanTrickleIceCandidates);
+  static NAN_GETTER(GetConnectionState);
+  static NAN_GETTER(GetCurrentLocalDescription);
   static NAN_GETTER(GetLocalDescription);
+  static NAN_GETTER(GetPendingLocalDescription);
+  static NAN_GETTER(GetCurrentRemoteDescription);
   static NAN_GETTER(GetRemoteDescription);
+  static NAN_GETTER(GetPendingRemoteDescription);
   static NAN_GETTER(GetIceConnectionState);
   static NAN_GETTER(GetSignalingState);
   static NAN_GETTER(GetIceGatheringState);
