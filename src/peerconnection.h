@@ -174,6 +174,7 @@ class PeerConnection
   static NAN_METHOD(RemoveStream);
   */
   static NAN_METHOD(GetConfiguration);
+  static NAN_METHOD(SetConfiguration);
   static NAN_METHOD(GetStats);
   static NAN_METHOD(Close);
 

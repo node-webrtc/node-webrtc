@@ -32,6 +32,8 @@ using v8::Object;
 using v8::Value;
 using webrtc::DataChannelInit;
 using webrtc::IceCandidateInterface;
+using webrtc::RTCError;
+using webrtc::RTCErrorType;
 using webrtc::SessionDescriptionInterface;
 
 using BundlePolicy = webrtc::PeerConnectionInterface::BundlePolicy;
@@ -609,4 +611,29 @@ Validation<BinaryType> Converter<Local<Value>, BinaryType>::Convert(const Local<
             return Validation<BinaryType>::Invalid(R"(Expected "blob" or "arraybuffer")");
           }
       });
+};
+
+Validation<Local<Value>> Converter<RTCError, Local<Value>>::Convert(RTCError error) {
+  EscapableHandleScope scope;
+  switch (error.type()) {
+    case RTCErrorType::NONE:
+      // NOTE: This is odd. This entire RTCError class is odd.
+      return Validation<Local<Value>>::Invalid("No error.");
+    case RTCErrorType::UNSUPPORTED_PARAMETER:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::Error("InvalidAccessError")));
+    case RTCErrorType::INVALID_PARAMETER:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::TypeError("InvalidAccessError")));
+    case RTCErrorType::INVALID_RANGE:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::RangeError("RangeError")));
+    case RTCErrorType::SYNTAX_ERROR:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::SyntaxError("SyntaxError")));
+    case RTCErrorType::INVALID_STATE:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::Error("InvalidStateError")));
+    case RTCErrorType::INVALID_MODIFICATION:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::Error("InvalidModificationError")));
+    case RTCErrorType::NETWORK_ERROR:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::Error("NetworkError")));
+    case RTCErrorType::INTERNAL_ERROR:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::Error("OperationError")));
+  }
 };

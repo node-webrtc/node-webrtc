@@ -60,6 +60,72 @@ test('getConfiguration', function(t) {
   });
 });
 
+test('setConfiguration', function(t) {
+  t.test('after closing', function(t) {
+    var pc = new RTCPeerConnection();
+    pc.close();
+    t.throws(pc.setConfiguration.bind(pc, {}));
+    t.end();
+  });
+
+  t.test('changing iceServers', function(t) {
+    var pc = new RTCPeerConnection();
+    var expectedConfiguration = Object.assign({}, pc.getConfiguration());
+    expectedConfiguration.iceServers = [
+      { urls: 'stun:stun1.example.net' }
+    ];
+    pc.setConfiguration(expectedConfiguration);
+    var actualConfiguration = pc.getConfiguration();
+    testConfiguration(t, actualConfiguration, expectedConfiguration);
+    pc.close();
+    t.end();
+  });
+
+  t.test('changing iceServers', function(t) {
+    var pc = new RTCPeerConnection();
+    var expectedConfiguration = Object.assign({}, pc.getConfiguration());
+    expectedConfiguration.iceTransportPolicy = 'relay';
+    pc.setConfiguration(expectedConfiguration);
+    var actualConfiguration = pc.getConfiguration();
+    testConfiguration(t, actualConfiguration, expectedConfiguration);
+    pc.close();
+    t.end();
+  });
+
+  // If the value of configuration.bundlePolicy differs from the connection's
+  // bundle policy, throw an InvalidModificationError.
+  t.test('changing bundlePolicy throws', function(t) {
+    var pc = new RTCPeerConnection({ bundlePolicy: 'max-bundle' });
+    t.throws(pc.setConfiguration.bind(pc, { bundlePolicy: 'max-compat' }));
+    pc.close();
+    t.end();
+  });
+
+  // If the value of configuration.rtcpMuxPolicy differs from the connection's
+  // rtcpMux policy, throw an InvalidModificationError.
+  t.test('changing rtcpMuxPolicy throws', function(t) {
+    var pc = new RTCPeerConnection({ rtcpMuxPolicy: 'negotiate' });
+    t.throws(pc.setConfiguration.bind(pc, { rtcpMuxPolicy: 'require' }));
+    pc.close();
+    t.end();
+  });
+
+  // If the value of configuration.iceCandidatePoolSize differs from the
+  // connection's previously set iceCandidatePoolSize, and setLocalDescription
+  // has already been called, throw an InvalidModificationError.
+  t.test('changing iceCandidatePoolSize after setLocalDescription throws', function(t) {
+    var pc = new RTCPeerConnection({ iceCandidatePoolSize: 1 });
+    pc.createOffer().then(function(offer) {
+      pc.setConfiguration({ iceCandidatePoolSize: 2 });
+      return pc.setLocalDescription(offer);
+    }).then(function() {
+      t.throws(pc.setConfiguration.bind(pc, { iceCandidatePoolSize: 3 }));
+      pc.close();
+      t.end();
+    });
+  });
+});
+
 function testConfiguration(t, actualConfiguration, expectedConfiguration) {
   t.deepEqual(actualConfiguration, expectedConfiguration);
 }
