@@ -87,6 +87,7 @@ class DataChannel
   static NAN_METHOD(Close);
 
   static NAN_GETTER(GetBufferedAmount);
+  static NAN_GETTER(GetId);
   static NAN_GETTER(GetLabel);
   static NAN_GETTER(GetBinaryType);
   static NAN_GETTER(GetReadyState);
@@ -110,6 +111,7 @@ class DataChannel
   std::queue<AsyncEvent> _events;
 
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
+  int _cached_id;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
   node_webrtc::BinaryType _binaryType;
 

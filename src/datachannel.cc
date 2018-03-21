@@ -237,6 +237,7 @@ void DataChannel::OnStateChange() {
   QueueEvent(DataChannel::STATE, static_cast<void*>(data));
   if (_jingleDataChannel->state() == webrtc::DataChannelInterface::kClosed) {
     _jingleDataChannel->UnregisterObserver();
+    _cached_id = _jingleDataChannel->id();
     _jingleDataChannel = nullptr;
   }
   TRACE_END;
@@ -316,6 +317,19 @@ NAN_GETTER(DataChannel::GetBufferedAmount) {
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New<Number>(buffered_amount));
+}
+
+NAN_GETTER(DataChannel::GetId) {
+  TRACE_CALL;
+
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
+
+  auto id = self->_jingleDataChannel
+    ? self->_jingleDataChannel->id()
+    : self->_cached_id;
+
+  TRACE_END;
+  info.GetReturnValue().Set(Nan::New<Number>(id));
 }
 
 NAN_GETTER(DataChannel::GetLabel) {
@@ -400,6 +414,7 @@ void DataChannel::Init(Handle<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "send", Send);
 
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("bufferedAmount").ToLocalChecked(), GetBufferedAmount, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("id").ToLocalChecked(), GetId, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("label").ToLocalChecked(), GetLabel, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("binaryType").ToLocalChecked(), GetBinaryType, SetBinaryType);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("readyState").ToLocalChecked(), GetReadyState, ReadOnly);
