@@ -1,11 +1,11 @@
-"use strict";
+'use strict';
 /* eslint-disable no-console */
-const fs = require("fs");
-const path = require("path");
-const { specify } = require("mocha-sugar-free");
-const { inBrowserContext, nodeResolverPromise } = require("./util.js");
-const jsdom = require("jsdom/lib/old-api.js");
-const wrtc = require("../..");
+const fs = require('fs');
+const path = require('path');
+const { specify } = require('mocha-sugar-free');
+const { inBrowserContext, nodeResolverPromise } = require('./util.js');
+const jsdom = require('jsdom/lib/old-api.js');
+const wrtc = require('../..');
 
 const globalPool = { maxSockets: 6 };
 
@@ -32,7 +32,7 @@ module.exports = urlPrefixFactory => {
 };
 
 function createJSDOM(urlPrefix, testPath) {
-  const reporterPathname = "/resources/testharnessreport.js";
+  const reporterPathname = '/resources/testharnessreport.js';
   const unhandledExceptions = [];
   const doneErrors = [];
 
@@ -40,8 +40,8 @@ function createJSDOM(urlPrefix, testPath) {
 
   const created = nodeResolverPromise(createdResolver => {
     const virtualConsole = jsdom.createVirtualConsole().sendTo(console, { omitJSDOMErrors: true });
-    virtualConsole.on("jsdomError", e => {
-      if (e.type === "unhandled exception" && !allowUnhandledExceptions) {
+    virtualConsole.on('jsdomError', e => {
+      if (e.type === 'unhandled exception' && !allowUnhandledExceptions) {
         unhandledExceptions.push(e);
         console.error(e.detail.stack);
       }
@@ -52,18 +52,18 @@ function createJSDOM(urlPrefix, testPath) {
       pool: globalPool,
       strictSSL: false,
       features: {
-        FetchExternalResources: ["script", "frame", "iframe", "link", "img"],
-        ProcessExternalResources: ["script"]
+        FetchExternalResources: ['script', 'frame', 'iframe', 'link', 'img'],
+        ProcessExternalResources: ['script']
       },
       virtualConsole,
       resourceLoader(resource, callback) {
         if (resource.url.pathname === reporterPathname) {
-          callback(null, "window.shimTest();");
-        } else if (resource.url.pathname.startsWith("/resources/")) {
+          callback(null, 'window.shimTest();');
+        } else if (resource.url.pathname.startsWith('/resources/')) {
           // When running to-upstream tests, the server doesn't have a /resources/ directory.
           // So, always go to the one in ./tests.
-          const filePath = path.resolve(__dirname, "tests" + resource.url.pathname);
-          fs.readFile(filePath, { encoding: "utf-8" }, callback);
+          const filePath = path.resolve(__dirname, 'tests' + resource.url.pathname);
+          fs.readFile(filePath, { encoding: 'utf-8' }, callback);
         } else {
           resource.defaultFetch(callback);
         }
@@ -124,7 +124,7 @@ function createJSDOM(urlPrefix, testPath) {
           if (errors.length === 1) {
             reject(new Error(errors[0]));
           } else if (errors.length) {
-            reject(new Error(`${errors.length} errors in test:\n\n${errors.join("\n")}`));
+            reject(new Error(`${errors.length} errors in test:\n\n${errors.join('\n')}`));
           } else {
             resolve();
           }
