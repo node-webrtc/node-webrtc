@@ -99,13 +99,11 @@ struct Converter<v8::Local<v8::Value>, double> {
 template <>
 struct Converter<v8::Local<v8::Value>, std::string> {
   static Validation<std::string> Convert(const v8::Local<v8::Value> value) {
-    Nan::TryCatch tc;
     auto maybeString = value->ToString();
-    if (tc.HasCaught()) {
-      auto error = std::string(*v8::String::Utf8Value(tc.Message()->Get()));
-      return Validation<std::string>::Invalid(error);
+    if (maybeString.IsEmpty()) {
+      return Validation<std::string>::Invalid("Expected a string");
     }
-    auto string = std::string(*v8::String::Utf8Value(value->ToString()));
+    auto string = std::string(*v8::String::Utf8Value(maybeString));
     return Validation<std::string>::Valid(string);
   }
 };

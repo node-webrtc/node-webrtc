@@ -285,10 +285,21 @@ NAN_METHOD(PeerConnection::New) {
     return Nan::ThrowTypeError("Use the new operator to construct the PeerConnection.");
   }
 
-  auto maybeConfiguration = From<Maybe<ExtendedRTCConfiguration>, Nan::NAN_METHOD_ARGS_TYPE>(info);
+  auto maybeConfiguration = Validation<Maybe<ExtendedRTCConfiguration>>::Invalid(std::vector<Error>());
+
+  {
+    Nan::TryCatch tc;
+    maybeConfiguration = From<Maybe<ExtendedRTCConfiguration>, Nan::NAN_METHOD_ARGS_TYPE>(info);
+    if (tc.HasCaught()) {
+      tc.ReThrow();
+      return;
+    }
+  }
+
   if (maybeConfiguration.IsInvalid()) {
     auto error = maybeConfiguration.ToErrors()[0];
-    return Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
+    return;
   }
 
   // Tell em whats up
