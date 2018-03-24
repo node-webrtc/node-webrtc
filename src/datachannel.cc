@@ -325,8 +325,8 @@ NAN_GETTER(DataChannel::GetId) {
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
   auto id = self->_jingleDataChannel
-    ? self->_jingleDataChannel->id()
-    : self->_cached_id;
+      ? self->_jingleDataChannel->id()
+      : self->_cached_id;
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New<Number>(id));
