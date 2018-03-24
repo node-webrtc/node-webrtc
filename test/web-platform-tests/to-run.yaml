@@ -1,7 +1,6 @@
 DIR: webrtc
 
 RTCCertificate.html: [fail]
-RTCConfiguration-bundlePolicy.html: [fail]
 RTCConfiguration-iceCandidatePoolSize.html: [fail]
 RTCConfiguration-iceServers.html: [fail]
 RTCConfiguration-iceTransportPolicy.html: [fail]
