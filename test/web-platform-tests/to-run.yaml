@@ -3,7 +3,6 @@ DIR: webrtc
 RTCCertificate.html: [fail]
 RTCConfiguration-iceCandidatePoolSize.html: [fail]
 RTCConfiguration-iceServers.html: [fail]
-RTCConfiguration-rtcpMuxPolicy.html: [fail]
 RTCDTMFSender-insertDTMF.https.html: [fail]
 RTCDTMFSender-ontonechange-long.https.html: [fail]
 RTCDTMFSender-ontonechange.https.html: [fail]
