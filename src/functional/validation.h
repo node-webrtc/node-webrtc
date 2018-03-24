@@ -201,9 +201,9 @@ class Validation {
  private:
   Validation(const bool is_valid, const Errors errors): _errors(errors), _is_valid(is_valid), _value(T()) {}
 
-  const Errors _errors;
-  const bool _is_valid;
-  const T _value;
+  Errors _errors;
+  bool _is_valid;
+  T _value;
 };
 
 }  // namespace node_webrtc
