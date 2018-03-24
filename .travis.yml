@@ -97,7 +97,10 @@ script:
 
     npm test
 
-    npm run wpt:test
+    # Node 4 & 5 are very hard to get working with WPT.
+    if [[ $(node -v) != v4.* && $(node -v) != v5.* ]]; then
+      npm run wpt:test
+    fi
 
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
       npm run test:bridge
