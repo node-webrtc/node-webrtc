@@ -45,6 +45,22 @@ struct Converter<v8::Local<v8::Value>, bool> {
 };
 
 template <>
+struct Converter<v8::Local<v8::Value>, uint8_t> {
+  static Validation<uint8_t> Convert(const v8::Local<v8::Value> value) {
+    auto maybeInt32 = Nan::To<v8::Int32>(value);
+    if (maybeInt32.IsEmpty()) {
+      return Validation<uint8_t>::Invalid("Expected an 8-bit unsigned integer");
+    }
+    auto int32 = (*maybeInt32.ToLocalChecked())->Value();
+    if (int32 < 0 || int32 > 255) {
+      return Validation<uint8_t>::Invalid("Expected an 8-bit unsigned integer");
+    }
+    uint8_t uint8 = static_cast<uint8_t>(int32);
+    return Validation<uint8_t>(uint8);
+  }
+};
+
+template <>
 struct Converter<v8::Local<v8::Value>, uint16_t> {
   static Validation<uint16_t> Convert(const v8::Local<v8::Value> value) {
     auto maybeInt32 = Nan::To<v8::Int32>(value);

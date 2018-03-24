@@ -271,7 +271,7 @@ Validation<RTCConfiguration> Converter<Local<Value>, RTCConfiguration>::Convert(
             * GetOptional<std::string>(object, "peerIdentity")
             * GetOptional<std::vector<Local<Object>>>(object, "certificates")
             // TODO(mroberts): Implement EnforceRange and change to uint8_t.
-            * GetOptional<uint32_t>(object, "iceCandidatePoolSize", 0);
+            * GetOptional<uint8_t>(object, "iceCandidatePoolSize", 0);
       });
 }
 
