@@ -76,7 +76,7 @@ Validation<RTCIceCredentialType> Converter<Local<Value>, RTCIceCredentialType>::
 }
 
 static Validation<IceServer> CreateIceServer(
-    const Either<std::string, std::vector<std::string>>& urlOrUrls,
+    const Either<std::vector<std::string>, std::string>& urlsOrUrl,
     const std::string& username,
     const Either<std::string, RTCOAuthCredential>& credential,
     const RTCIceCredentialType credentialType) {
@@ -84,8 +84,8 @@ static Validation<IceServer> CreateIceServer(
     return Validation<IceServer>::Invalid("OAuth is not currently supported");
   }
   IceServer iceServer;
-  iceServer.uri = urlOrUrls.FromLeft("");
-  iceServer.urls = urlOrUrls.FromRight(std::vector<std::string>());
+  iceServer.urls = urlsOrUrl.FromLeft(std::vector<std::string>());
+  iceServer.uri = urlsOrUrl.FromRight("");
   iceServer.username = username;
   iceServer.password = credential.UnsafeFromLeft();
   return Validation<IceServer>::Valid(iceServer);
@@ -95,7 +95,7 @@ Validation<IceServer> Converter<Local<Value>, IceServer>::Convert(const Local<Va
   return From<Local<Object>>(value).FlatMap<IceServer>(
       [](const Local<Object> object) {
         return Validation<IceServer>::Join(curry(CreateIceServer)
-            % GetRequired<Either<std::string, std::vector<std::string>>>(object, "urls")
+            % GetRequired<Either<std::vector<std::string>, std::string>>(object, "urls")
             * GetOptional<std::string>(object, "username", "")
             * GetOptional<Either<std::string, RTCOAuthCredential>>(object, "credential", Either<std::string, RTCOAuthCredential>::Left(""))
             * GetOptional<RTCIceCredentialType>(object, "credentialType", kPassword));
