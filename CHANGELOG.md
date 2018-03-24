@@ -17,6 +17,14 @@ New Features
   ```
 
   `portRange` cannot be updated by `setConfiguration`.
+- Added support for RTCDataChannel's `id` property.
+- Stubbed out RTCPeerConnection's `canTrickleIceCandidates` property (it always
+  returns `null`).
+- Stubbed out RTCPeerConnection's `connectionState` property (it always returns
+  "new").
+- Added support for RTCPeerConnection's `currentLocalDescription`,
+  `currentRemoteDescription`, `pendingLocalDescription`, and
+  `pendingRemoteDescription` properties.
 
 Bug Fixes
 ---------
