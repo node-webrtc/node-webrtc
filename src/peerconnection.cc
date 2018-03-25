@@ -211,12 +211,15 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
   }
 
   if (do_shutdown) {
-    self->async.data = nullptr;
-    self->Unref();
-    uv_close(reinterpret_cast<uv_handle_t*>(handle), nullptr);
+    uv_close(reinterpret_cast<uv_handle_t*>(handle), reinterpret_cast<uv_close_cb>(&PeerConnection::Shutdown));
   }
 
   TRACE_END;
+}
+
+void PeerConnection::Shutdown(uv_async_t* handle) {
+  auto self = static_cast<PeerConnection*>(handle->data);
+  self->Unref();
 }
 
 void PeerConnection::OnError() {

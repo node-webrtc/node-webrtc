@@ -220,12 +220,15 @@ void DataChannel::Run(uv_async_t* handle, int status) {
   }
 
   if (do_shutdown) {
-    self->async.data = nullptr;
-    self->Unref();
-    uv_close(reinterpret_cast<uv_handle_t*>(&self->async), nullptr);
+    uv_close(reinterpret_cast<uv_handle_t*>(&self->async), reinterpret_cast<uv_close_cb>(DataChannel::Shutdown));
   }
 
   TRACE_END;
+}
+
+void DataChannel::Shutdown(uv_async_t* handle) {
+  auto self = static_cast<DataChannel*>(handle->data);
+  self->Unref();
 }
 
 void DataChannel::OnStateChange() {
