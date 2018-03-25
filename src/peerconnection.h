@@ -189,6 +189,7 @@ class PeerConnection
 
  private:
   static void Run(uv_async_t* handle, int status);
+  static void Shutdown(uv_async_t* handle);
 
   struct AsyncEvent {
     AsyncEventType type;

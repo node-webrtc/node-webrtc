@@ -18,6 +18,12 @@ New Features
 
   `portRange` cannot be updated by `setConfiguration`.
 
+Bug Fixes
+---------
+
+- Fixed a failed assertion when closing RTCPeerConnection's or RTCDataChannel's
+  event loop (#376).
+
 0.0.67
 ======
 
