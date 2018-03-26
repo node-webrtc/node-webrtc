@@ -51,7 +51,7 @@
     "karma-tap": "^3.1.1",
     "karma-tap-pretty-reporter": "^3.0.5",
     "minimist": "0.0.8",
-    "simple-peer": "^5.0.0",
+    "simple-peer": "^9.0.0",
     "tap-spec": "^4.1.1",
     "tape": "^2.4.3",
     "travis-multirunner": "^4.3.0",
