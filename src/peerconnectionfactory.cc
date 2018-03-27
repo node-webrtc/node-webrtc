@@ -25,13 +25,14 @@ using v8::String;
 using v8::Uint32;
 using v8::Value;
 using v8::Array;
+using webrtc::AudioDeviceModule;
 
 Nan::Persistent<Function> PeerConnectionFactory::constructor;
 std::shared_ptr<PeerConnectionFactory> PeerConnectionFactory::_default;
 uv_mutex_t PeerConnectionFactory::_lock;
 int PeerConnectionFactory::_references = 0;
 
-PeerConnectionFactory::PeerConnectionFactory(rtc::scoped_refptr<webrtc::AudioDeviceModule> audioDeviceModule) {
+PeerConnectionFactory::PeerConnectionFactory(AudioDeviceModule::AudioLayer audioLayer) {
   TRACE_CALL;
 
   bool result;
@@ -42,14 +43,22 @@ PeerConnectionFactory::PeerConnectionFactory(rtc::scoped_refptr<webrtc::AudioDev
   result = _workerThread->Start();
   assert(result);
 
+  auto audioDeviceModule = _workerThread->Invoke<rtc::scoped_refptr<AudioDeviceModule>>(RTC_FROM_HERE, [audioLayer]() {
+    return webrtc::AudioDeviceModule::Create(0, audioLayer);
+  });
+
   _signalingThread = std::unique_ptr<rtc::Thread>(new rtc::Thread());
   assert(_signalingThread);
 
   result = _signalingThread->Start();
   assert(result);
 
-  _factory = webrtc::CreatePeerConnectionFactory(_workerThread.get(), _signalingThread.get(), audioDeviceModule,
-          nullptr, nullptr);
+  _factory = webrtc::CreatePeerConnectionFactory(
+          _workerThread.get(),
+          _signalingThread.get(),
+          audioDeviceModule.release(),
+          nullptr,
+          nullptr);
   assert(_factory);
 
   _networkManager = std::unique_ptr<rtc::NetworkManager>(new rtc::BasicNetworkManager());
