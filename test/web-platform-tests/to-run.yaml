@@ -1,6 +1,7 @@
 DIR: webrtc
 
 RTCCertificate.html: [fail]
+# https://bugs.chromium.org/p/webrtc/issues/detail?id=7562
 RTCConfiguration-iceServers.html: [fail]
 RTCDTMFSender-insertDTMF.https.html: [fail]
 RTCDTMFSender-ontonechange-long.https.html: [fail]
