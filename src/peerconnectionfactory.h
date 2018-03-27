@@ -22,20 +22,9 @@ class PeerConnectionFactory
   : public Nan::ObjectWrap {
  public:
   /**
-   * Create a PeerConnectionFactory using a particular webrtc::AudioDeviceModule.
-   */
-  explicit PeerConnectionFactory(rtc::scoped_refptr<webrtc::AudioDeviceModule> audioDeviceModule);
-
-  /**
    * Create a PeerConnectionFactory using a particular webrtc::AudioDeviceModule::AudioLayer.
    */
-  explicit PeerConnectionFactory(webrtc::AudioDeviceModule::AudioLayer audioLayer)
-    : PeerConnectionFactory(webrtc::AudioDeviceModule::Create(0, audioLayer)) {}
-
-  /**
-   * Create a PeerConnectionFactory using webrtc::AudioDeviceModule::AudioLayer::kDummyAudio.
-   */
-  PeerConnectionFactory(): PeerConnectionFactory(webrtc::AudioDeviceModule::kDummyAudio) {}
+  explicit PeerConnectionFactory(webrtc::AudioDeviceModule::AudioLayer audioLayer = webrtc::AudioDeviceModule::kDummyAudio);
 
   ~PeerConnectionFactory() override;
 

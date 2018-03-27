@@ -25,8 +25,8 @@ target_include_directories(${MODULE} SYSTEM PRIVATE
   ${CMAKE_SOURCE_DIR}/third_party/webrtc/include)
 
 if(WIN32)
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /GR-")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd /GR-")
 
   target_link_libraries(${MODULE} PRIVATE
     ${CMAKE_THREAD_LIBS_INIT}
@@ -43,6 +43,8 @@ if(WIN32)
     -DNOGDI
     -DNOMINMAX)
 else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+
   target_link_libraries(${MODULE} PRIVATE
     ${CMAKE_THREAD_LIBS_INIT}
     ${CMAKE_SOURCE_DIR}/third_party/webrtc/lib/libwebrtc.a)
