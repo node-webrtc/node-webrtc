@@ -23,6 +23,7 @@ using node_webrtc::RTCDtlsFingerprint;
 using node_webrtc::RTCIceCredentialType;
 using node_webrtc::RTCOAuthCredential;
 using node_webrtc::RTCOfferOptions;
+using node_webrtc::RTCPeerConnectionState;
 using node_webrtc::RTCPriorityType ;
 using node_webrtc::RTCSdpType;
 using node_webrtc::UnsignedShortRange;
@@ -635,5 +636,45 @@ Validation<Local<Value>> Converter<RTCError, Local<Value>>::Convert(RTCError err
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::Error("NetworkError")));
     case RTCErrorType::INTERNAL_ERROR:
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::Error("OperationError")));
+  }
+};
+
+Validation<RTCPeerConnectionState> Converter<IceConnectionState, RTCPeerConnectionState>::Convert(IceConnectionState state) {
+  switch (state) {
+    case IceConnectionState::kIceConnectionNew:
+      return Validation<RTCPeerConnectionState>::Valid(kNew);
+    case IceConnectionState::kIceConnectionChecking:
+      return Validation<RTCPeerConnectionState>::Valid(kConnecting);
+    case IceConnectionState::kIceConnectionConnected:
+    case IceConnectionState::kIceConnectionCompleted:
+      return Validation<RTCPeerConnectionState>::Valid(kConnected);
+    case IceConnectionState::kIceConnectionDisconnected:
+      return Validation<RTCPeerConnectionState>::Valid(kDisconnected);
+    case IceConnectionState::kIceConnectionFailed:
+      return Validation<RTCPeerConnectionState>::Valid(kFailed);
+    case IceConnectionState::kIceConnectionClosed:
+      return Validation<RTCPeerConnectionState>::Valid(kClosed);
+    case IceConnectionState::kIceConnectionMax:
+      return Validation<RTCPeerConnectionState>::Invalid(
+              "WebRTC\'s RTCPeerConnection has an ICE connection state \"max\", but I have no idea"
+                      "what this means. If you see this error, file a bug on https://github.com/js-platform/node-webrtc");
+  }
+};
+
+Validation<Local<Value>> Converter<RTCPeerConnectionState, Local<Value>>::Convert(RTCPeerConnectionState state) {
+  EscapableHandleScope scope;
+  switch (state) {
+    case RTCPeerConnectionState::kClosed:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("closed").ToLocalChecked()));
+    case RTCPeerConnectionState::kConnected:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("connected").ToLocalChecked()));
+    case RTCPeerConnectionState::kConnecting:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("connecting").ToLocalChecked()));
+    case RTCPeerConnectionState::kDisconnected:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("disconnected").ToLocalChecked()));
+    case RTCPeerConnectionState::kFailed:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("failed").ToLocalChecked()));
+    case RTCPeerConnectionState::kNew:
+      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("new").ToLocalChecked()));
   }
 };
