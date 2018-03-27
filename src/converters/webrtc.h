@@ -443,6 +443,37 @@ struct Converter<webrtc::RTCError, v8::Local<v8::Value>> {
   static Validation<v8::Local<v8::Value>> Convert(webrtc::RTCError value);
 };
 
+/*
+ * enum RTCPeerConnectionState {
+ *  "new",
+ *  "connecting",
+ *  "connected",
+ *  "disconnected",
+ *  "failed",
+ *  "closed"
+ * }
+ */
+
+enum RTCPeerConnectionState {
+  kNew,
+  kConnecting,
+  kConnected,
+  kDisconnected,
+  kFailed,
+  kClosed
+};
+
+// NOTE(mroberts): This is a hack until we update WebRTC.
+template <>
+struct Converter<webrtc::PeerConnectionInterface::IceConnectionState, RTCPeerConnectionState> {
+  static Validation<RTCPeerConnectionState> Convert(webrtc::PeerConnectionInterface::IceConnectionState value);
+};
+
+template <>
+struct Converter<RTCPeerConnectionState, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(RTCPeerConnectionState value);
+};
+
 }  // namespace node_webrtc
 
 #endif  // SRC_CONVERTERS_WEBRTC_H_
