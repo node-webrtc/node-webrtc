@@ -1,6 +1,9 @@
 DIR: webrtc
 
 RTCCertificate.html: [fail]
+# https://bugs.chromium.org/p/chromium/issues/detail?id=826957
+# https://bugs.chromium.org/p/webrtc/issues/detail?id=7585
+RTCConfiguration-iceCandidatePoolSize.html: [fail]
 # https://bugs.chromium.org/p/webrtc/issues/detail?id=7562
 RTCConfiguration-iceServers.html: [fail]
 RTCDTMFSender-insertDTMF.https.html: [fail]
