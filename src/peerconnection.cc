@@ -170,7 +170,6 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
         do_shutdown = true;
       }
     } else if (PeerConnection::ICE_CONNECTION_STATE_CHANGE & evt.type) {
-      PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
       auto callback = Local<Function>::Cast(pc->Get(Nan::New("oniceconnectionstatechange").ToLocalChecked()));
       if (!callback.IsEmpty()) {
         Nan::MakeCallback(pc, callback, 0, nullptr);
@@ -596,8 +595,8 @@ NAN_GETTER(PeerConnection::GetConnectionState) {
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
   auto iceConnectionState = self->_jinglePeerConnection
-    ? self->_jinglePeerConnection->ice_connection_state()
-    : webrtc::PeerConnectionInterface::IceConnectionState::kIceConnectionClosed;
+      ? self->_jinglePeerConnection->ice_connection_state()
+      : webrtc::PeerConnectionInterface::IceConnectionState::kIceConnectionClosed;
 
   auto connectionState = From<RTCPeerConnectionState>(iceConnectionState);
 

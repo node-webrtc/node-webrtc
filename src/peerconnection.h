@@ -93,7 +93,7 @@ class PeerConnection
   };
 
   struct GetStatsEvent {
-    GetStatsEvent(Nan::Callback* callback, double timestamp, std::vector<std::map<std::string, std::string>> reports)
+    GetStatsEvent(Nan::Callback* callback, double timestamp, const std::vector<std::map<std::string, std::string>>& reports)
       : callback(callback), timestamp(timestamp), reports(reports) {}
 
     Nan::Callback* callback;

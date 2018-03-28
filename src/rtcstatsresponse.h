@@ -20,8 +20,8 @@ namespace node_webrtc {
 class RTCStatsResponse
   : public Nan::ObjectWrap {
  public:
-  explicit RTCStatsResponse(double timestamp, std::vector<std::map<std::string, std::string>> reports)
-          : _timestamp(timestamp), _reports(reports) {}
+  explicit RTCStatsResponse(double timestamp, const std::vector<std::map<std::string, std::string>>& reports)
+    : _timestamp(timestamp), _reports(reports) {}
   ~RTCStatsResponse() {}
 
   //
