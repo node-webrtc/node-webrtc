@@ -439,8 +439,8 @@ struct Converter<v8::Local<v8::Value>, BinaryType> {
 };
 
 template <>
-struct Converter<webrtc::RTCError, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(webrtc::RTCError value);
+struct Converter<webrtc::RTCError*, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::RTCError* value);
 };
 
 /*

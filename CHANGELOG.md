@@ -4,6 +4,7 @@
 New Features
 ------------
 
+- Updated to WebRTC M61 (using [mayeut/libwebrtc](https://github.com/mayeut/libwebrtc))
 - Expanded RTCConfiguration support. We now support `iceTransportPolicy`,
   `bundlePolicy`, `rtcpMuxPolicy`, and `iceCandidatePoolSize`.
 - Added support for `getConfiguration` and `setConfiguration`.

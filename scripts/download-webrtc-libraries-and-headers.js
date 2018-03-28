@@ -57,7 +57,7 @@ function computeUrl(options) {
     win32: 'win'
   }[options.platform] || options.platform;
   var extension = platform === 'win' ? 'zip' : 'tar.gz';
-  return 'https://github.com/aisouard/libwebrtc/releases/download/v1.0.0/libwebrtc-1.0.0-'
+  return 'https://github.com/mayeut/libwebrtc/releases/download/v1.1.1/libwebrtc-1.1.1.60-6294a7eb71c891e9ea41273a7a94113f6802d0da-'
     + platform + '-' + options.arch + '.' + extension;
 }
 

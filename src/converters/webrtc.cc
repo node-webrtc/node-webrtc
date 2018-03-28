@@ -614,9 +614,9 @@ Validation<BinaryType> Converter<Local<Value>, BinaryType>::Convert(const Local<
       });
 };
 
-Validation<Local<Value>> Converter<RTCError, Local<Value>>::Convert(RTCError error) {
+Validation<Local<Value>> Converter<RTCError*, Local<Value>>::Convert(RTCError* error) {
   EscapableHandleScope scope;
-  switch (error.type()) {
+  switch (error->type()) {
     case RTCErrorType::NONE:
       // NOTE: This is odd. This entire RTCError class is odd.
       return Validation<Local<Value>>::Invalid("No error.");
@@ -635,6 +635,8 @@ Validation<Local<Value>> Converter<RTCError, Local<Value>>::Convert(RTCError err
     case RTCErrorType::NETWORK_ERROR:
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::Error("NetworkError")));
     case RTCErrorType::INTERNAL_ERROR:
+    case RTCErrorType::UNSUPPORTED_OPERATION:
+    case RTCErrorType::RESOURCE_EXHAUSTED:
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::Error("OperationError")));
   }
 };

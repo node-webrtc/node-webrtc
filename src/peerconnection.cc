@@ -76,7 +76,6 @@ PeerConnection::PeerConnection(ExtendedRTCConfiguration configuration)
 
   _jinglePeerConnection = _factory->factory()->CreatePeerConnection(
           configuration.configuration,
-          nullptr,
           std::move(portAllocator),
           nullptr,
           this);
@@ -149,10 +148,11 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
     } else if (PeerConnection::GET_STATS_SUCCESS & evt.type) {
       PeerConnection::GetStatsEvent* data = static_cast<PeerConnection::GetStatsEvent*>(evt.data);
       Nan::Callback* callback = data->callback;
-      Local<Value> cargv[1];
-      cargv[0] = Nan::New<External>(static_cast<void*>(&data->reports));
+      Local<Value> cargv[2];
+      cargv[0] = Nan::New<External>(static_cast<void*>(&data->timestamp));
+      cargv[1] = Nan::New<External>(static_cast<void*>(&data->reports));
       Local<Value> argv[1];
-      argv[0] = Nan::New(RTCStatsResponse::constructor)->NewInstance(1, cargv);
+      argv[0] = Nan::New(RTCStatsResponse::constructor)->NewInstance(2, cargv);
       callback->Call(1, argv);
     } else if (PeerConnection::VOID_EVENT & evt.type) {
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onsuccess").ToLocalChecked()));
@@ -265,12 +265,12 @@ void PeerConnection::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterfa
   TRACE_END;
 }
 
-void PeerConnection::OnAddStream(webrtc::MediaStreamInterface* stream) {
+void PeerConnection::OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) {
   TRACE_CALL;
   TRACE_END;
 }
 
-void PeerConnection::OnRemoveStream(webrtc::MediaStreamInterface* stream) {
+void PeerConnection::OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) {
   TRACE_CALL;
   TRACE_END;
 }
@@ -507,7 +507,7 @@ NAN_METHOD(PeerConnection::SetConfiguration) {
 
   webrtc::RTCError error;
   if (!self->_jinglePeerConnection->SetConfiguration(maybeConfiguration.UnsafeFromValid(), &error)) {
-    auto maybeError = From<Local<Value>>(error);
+    auto maybeError = From<Local<Value>>(&error);
     if (maybeError.IsInvalid()) {
       auto error = maybeError.ToErrors()[0];
       TRACE_END;
