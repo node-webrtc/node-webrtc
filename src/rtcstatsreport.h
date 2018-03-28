@@ -18,8 +18,9 @@ namespace node_webrtc {
 class RTCStatsReport
   : public Nan::ObjectWrap {
  public:
-  explicit RTCStatsReport(webrtc::StatsReport* report);
-  ~RTCStatsReport();
+  explicit RTCStatsReport(double timestamp, std::map<std::string, std::string> stats)
+          : _timestamp(timestamp), _stats(stats) {}
+  ~RTCStatsReport() {}
 
   //
   // Nodejs wrapping.
@@ -37,7 +38,8 @@ class RTCStatsReport
   static NAN_SETTER(ReadOnly);
 
  private:
-  webrtc::StatsReport* report;
+  double _timestamp;
+  std::map<std::string, std::string> _stats;
 };
 
 }  // namespace node_webrtc

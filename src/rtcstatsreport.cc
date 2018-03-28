@@ -26,24 +26,17 @@ using v8::Value;
 
 Nan::Persistent<Function> RTCStatsReport::constructor;
 
-RTCStatsReport::RTCStatsReport(webrtc::StatsReport* report)
-  : report(report) {}
-
-RTCStatsReport::~RTCStatsReport() {
-  report = nullptr;
-}
-
 NAN_METHOD(RTCStatsReport::New) {
   TRACE_CALL;
 
-  if (!info.IsConstructCall()) {
-    return Nan::ThrowTypeError("Use the new operator to construct the RTCStatsReport");
+  if (info.Length() != 2 || !info[0]->IsExternal() || !info[1]->IsExternal()) {
+    return Nan::ThrowTypeError("You cannot construct an RTCStatsReport");
   }
 
-  Local<External> _report = Local<External>::Cast(info[0]);
-  webrtc::StatsReport* report = static_cast<webrtc::StatsReport*>(_report->Value());
+  auto timestamp = static_cast<double*>(Local<External>::Cast(info[0])->Value());
+  auto stats = static_cast<std::map<std::string, std::string>*>(Local<External>::Cast(info[1])->Value());
 
-  RTCStatsReport* obj = new RTCStatsReport(report);
+  auto obj = new RTCStatsReport(*timestamp, *stats);
   obj->Wrap(info.This());
 
   TRACE_END;
@@ -54,15 +47,13 @@ NAN_METHOD(RTCStatsReport::names) {
   TRACE_CALL;
   Nan::HandleScope scope;
 
-  RTCStatsReport* self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.This());
+  auto self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.This());
+  Local<Array> names = Nan::New<Array>(self->_stats.size());
 
-  webrtc::StatsReport::Values values = self->report->values();
-  Local<Array> names = Nan::New<Array>(values.size());
-  size_t i = 0;
-  for (auto const& pair : values) {
-    const rtc::linked_ptr<webrtc::StatsReport::Value> value = pair.second;
-    std::string display_name = value->display_name();
-    names->Set(i++, Nan::New<String>(display_name).ToLocalChecked());
+  uint32_t i = 0;
+  for (auto pair : self->_stats) {
+    auto name = pair.first;
+    names->Set(i++, Nan::New<String>(name).ToLocalChecked());
   }
 
   TRACE_END;
@@ -73,18 +64,14 @@ NAN_METHOD(RTCStatsReport::stat) {
   TRACE_CALL;
   Nan::HandleScope scope;
 
-  RTCStatsReport* self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.This());
-
-  v8::String::Utf8Value _name(info[0]->ToString());
-  std::string name = std::string(*_name);
+  auto self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.This());
+  auto requested = std::string(*v8::String::Utf8Value(info[0]->ToString()));
 
   Local<Value> found = Nan::Undefined();
-  webrtc::StatsReport::Values values = self->report->values();
-  for (auto const& pair : values) {
-    const rtc::linked_ptr<webrtc::StatsReport::Value> value = pair.second;
-    std::string display_name = std::string(value->display_name());
-    if (display_name.compare(name) == 0) {
-      found = Nan::New<String>(value->ToString()).ToLocalChecked();
+  for (auto pair : self->_stats) {
+    auto name = pair.first;
+    if (requested == name) {
+      found = Nan::New<String>(pair.second).ToLocalChecked();
     }
   }
 
@@ -96,19 +83,18 @@ NAN_GETTER(RTCStatsReport::GetTimestamp) {
   TRACE_CALL;
   Nan::HandleScope scope;
 
-  RTCStatsReport* self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.Holder());
-  double timestamp = self->report->timestamp();
+  auto self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.Holder());
 
   TRACE_END;
-  info.GetReturnValue().Set(Nan::New<Number>(timestamp));
+  info.GetReturnValue().Set(Nan::New<Number>(self->_timestamp));
 }
 
 NAN_GETTER(RTCStatsReport::GetType) {
   TRACE_CALL;
   Nan::HandleScope scope;
 
-  RTCStatsReport* self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.Holder());
-  std::string type = self->report->TypeToString();
+  auto self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.Holder());
+  auto type = self->_stats.find("type")->second;
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New<String>(type).ToLocalChecked());

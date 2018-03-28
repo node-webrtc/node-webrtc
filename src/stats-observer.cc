@@ -13,10 +13,23 @@
 using node_webrtc::PeerConnection;
 using node_webrtc::StatsObserver;
 
-void StatsObserver::OnComplete(const webrtc::StatsReports& reports) {
+void StatsObserver::OnComplete(const webrtc::StatsReports& statsReports) {
   TRACE_CALL;
-  webrtc::StatsReports copy = reports;
-  PeerConnection::GetStatsEvent* data = new PeerConnection::GetStatsEvent(this->callback, copy);
+  double timestamp = 0;
+  auto reports = std::vector<std::map<std::string, std::string>>();
+  for (auto statsReport : statsReports) {
+    auto report = std::map<std::string, std::string>();
+    // NOTE(mroberts): This is a little janky. We should thread each report's timestamp along.
+    timestamp = timestamp > statsReport->timestamp() ? timestamp : statsReport->timestamp();
+    report.emplace("type", statsReport->TypeToString());
+    for (auto const& pair : statsReport->values()) {
+      auto stat = std::string(pair.second->display_name());
+      auto value = std::string(pair.second->ToString());
+      report.emplace(stat, value);
+    }
+    reports.push_back(report);
+  }
+  PeerConnection::GetStatsEvent* data = new PeerConnection::GetStatsEvent(this->callback, timestamp, reports);
   parent->QueueEvent(PeerConnection::GET_STATS_SUCCESS, static_cast<void*>(data));
   TRACE_END;
 }

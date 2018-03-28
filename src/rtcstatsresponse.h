@@ -13,12 +13,15 @@
 
 #include "webrtc/api/statstypes.h"
 
+#include "rtcstatsreport.h"
+
 namespace node_webrtc {
 
 class RTCStatsResponse
   : public Nan::ObjectWrap {
  public:
-  explicit RTCStatsResponse(webrtc::StatsReports reports): reports(reports) {}
+  explicit RTCStatsResponse(double timestamp, std::vector<std::map<std::string, std::string>> reports)
+          : _timestamp(timestamp), _reports(reports) {}
   ~RTCStatsResponse() {}
 
   //
@@ -31,7 +34,8 @@ class RTCStatsResponse
   static NAN_METHOD(result);
 
  private:
-  webrtc::StatsReports reports;
+  double _timestamp;
+  std::vector<std::map<std::string, std::string>> _reports;
 };
 
 }  // namespace node_webrtc

@@ -93,11 +93,12 @@ class PeerConnection
   };
 
   struct GetStatsEvent {
-    GetStatsEvent(Nan::Callback* callback, webrtc::StatsReports reports)
-      : callback(callback), reports(reports) {}
+    GetStatsEvent(Nan::Callback* callback, double timestamp, std::vector<std::map<std::string, std::string>> reports)
+      : callback(callback), timestamp(timestamp), reports(reports) {}
 
     Nan::Callback* callback;
-    webrtc::StatsReports reports;
+    double timestamp;
+    std::vector<std::map<std::string, std::string>> reports;
   };
 
   enum AsyncEventType {
@@ -149,8 +150,8 @@ class PeerConnection
 
   virtual void OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel);
 
-  virtual void OnAddStream(webrtc::MediaStreamInterface* stream);
-  virtual void OnRemoveStream(webrtc::MediaStreamInterface* stream);
+  virtual void OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream);
+  virtual void OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream);
 
   //
   // Nodejs wrapping.
