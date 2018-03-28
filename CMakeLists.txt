@@ -39,6 +39,7 @@ if(WIN32)
     ws2_32.lib)
 
   target_compile_definitions(${MODULE} PRIVATE
+    -DINCL_EXTRA_HTON_FUNCTIONS
     -DWEBRTC_WIN
     -DNOGDI
     -DNOMINMAX)
