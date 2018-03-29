@@ -148,14 +148,19 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
       argv[0] = Nan::New(data->desc.c_str()).ToLocalChecked();
       Nan::MakeCallback(pc, callback, 1, argv);
     } else if (PeerConnection::GET_STATS_SUCCESS & evt.type) {
-      PeerConnection::GetStatsEvent* data = static_cast<PeerConnection::GetStatsEvent*>(evt.data);
-      Nan::Callback* callback = data->callback;
+      PeerConnection::GetStatsEvent *data = static_cast<PeerConnection::GetStatsEvent *>(evt.data);
+      Nan::Callback *callback = data->callback;
       Local<Value> cargv[2];
-      cargv[0] = Nan::New<External>(static_cast<void*>(&data->timestamp));
-      cargv[1] = Nan::New<External>(static_cast<void*>(&data->reports));
+      cargv[0] = Nan::New<External>(static_cast<void *>(&data->timestamp));
+      cargv[1] = Nan::New<External>(static_cast<void *>(&data->reports));
       Local<Value> argv[1];
       argv[0] = Nan::New(RTCStatsResponse::constructor)->NewInstance(2, cargv);
       callback->Call(1, argv);
+    } else if (PeerConnection::NEGOTIATION_NEEDED & evt.type) {
+      Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onnegotiationneeded").ToLocalChecked()));
+      if (!callback.IsEmpty()) {
+        Nan::MakeCallback(pc, callback, 0, nullptr);
+      }
     } else if (PeerConnection::VOID_EVENT & evt.type) {
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onsuccess").ToLocalChecked()));
       Local<Value> argv[1];
@@ -278,6 +283,8 @@ void PeerConnection::OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterf
 
 void PeerConnection::OnRenegotiationNeeded() {
   TRACE_CALL;
+  auto data = new PeerConnection::AsyncEvent();
+  QueueEvent(PeerConnection::NEGOTIATION_NEEDED, static_cast<void*>(data));
   TRACE_END;
 }
 
