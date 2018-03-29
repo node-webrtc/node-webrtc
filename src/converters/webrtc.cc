@@ -26,6 +26,7 @@ using node_webrtc::RTCOfferOptions;
 using node_webrtc::RTCPeerConnectionState;
 using node_webrtc::RTCPriorityType ;
 using node_webrtc::RTCSdpType;
+using node_webrtc::RTCSessionDescriptionInit;
 using node_webrtc::UnsignedShortRange;
 using node_webrtc::Validation;
 using v8::Local;
@@ -377,11 +378,26 @@ Validation<RTCSdpType> Converter<Local<Value>, RTCSdpType>::Convert(const Local<
       });
 }
 
-Validation<SessionDescriptionInterface*> CreateSessionDescriptionInterface(
+RTCSessionDescriptionInit CreateRTCSessionDescriptionInit(
     const RTCSdpType type,
     const std::string sdp) {
+  return RTCSessionDescriptionInit(type, sdp);
+}
+
+Validation<RTCSessionDescriptionInit> Converter<Local<Value>, RTCSessionDescriptionInit>::Convert(
+    const Local<Value> value) {
+  return From<Local<Object>>(value).FlatMap<RTCSessionDescriptionInit>(
+      [](const Local<Object> object) {
+        return curry(CreateRTCSessionDescriptionInit)
+            % GetRequired<RTCSdpType>(object, "type")
+            * GetOptional<std::string>(object, "sdp", "");
+      });
+}
+
+Validation<SessionDescriptionInterface*> Converter<RTCSessionDescriptionInit, SessionDescriptionInterface*>::Convert(
+    const RTCSessionDescriptionInit init) {
   std::string type_;
-  switch (type) {
+  switch (init.type) {
     case RTCSdpType::kOffer:
       type_ = "offer";
       break;
@@ -395,7 +411,7 @@ Validation<SessionDescriptionInterface*> CreateSessionDescriptionInterface(
       return Validation<SessionDescriptionInterface*>::Invalid("Rollback is not currently supported");
   }
   SdpParseError error;
-  auto description = webrtc::CreateSessionDescription(type_, std::string(sdp), &error);
+  auto description = webrtc::CreateSessionDescription(type_, init.sdp, &error);
   if (!description) {
     return Validation<SessionDescriptionInterface*>::Invalid(error.description);
   }
@@ -404,12 +420,8 @@ Validation<SessionDescriptionInterface*> CreateSessionDescriptionInterface(
 
 Validation<SessionDescriptionInterface*> Converter<Local<Value>, SessionDescriptionInterface*>::Convert(
     const Local<Value> value) {
-  return From<Local<Object>>(value).FlatMap<SessionDescriptionInterface*>(
-      [](const Local<Object> object) {
-        return Validation<SessionDescriptionInterface*>::Join(curry(CreateSessionDescriptionInterface)
-            % GetRequired<RTCSdpType>(object, "type")
-            * GetOptional<std::string>(object, "sdp", ""));
-      });
+  return From<RTCSessionDescriptionInit>(value)
+      .FlatMap<SessionDescriptionInterface*>(Converter<RTCSessionDescriptionInit, SessionDescriptionInterface*>::Convert);
 }
 
 Validation<Local<Value>> Converter<const SessionDescriptionInterface*, Local<Value>>::Convert(const SessionDescriptionInterface* value) {

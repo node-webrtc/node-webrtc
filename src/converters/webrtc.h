@@ -288,6 +288,23 @@ struct Converter<v8::Local<v8::Value>, RTCSdpType> {
  * };
  */
 
+struct RTCSessionDescriptionInit {
+  RTCSessionDescriptionInit(): type(kRollback), sdp("") {}
+  RTCSessionDescriptionInit(const RTCSdpType type, const std::string sdp): type(type), sdp(sdp) {}
+  RTCSdpType type;
+  std::string sdp;
+};
+
+template <>
+struct Converter<v8::Local<v8::Value>, RTCSessionDescriptionInit> {
+  static Validation<RTCSessionDescriptionInit> Convert(v8::Local<v8::Value> value);
+};
+
+template <>
+struct Converter<RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*> {
+  static Validation<webrtc::SessionDescriptionInterface*> Convert(RTCSessionDescriptionInit value);
+};
+
 template <>
 struct Converter<v8::Local<v8::Value>, webrtc::SessionDescriptionInterface*> {
   static Validation<webrtc::SessionDescriptionInterface*> Convert(v8::Local<v8::Value> value);
