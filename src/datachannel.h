@@ -89,6 +89,10 @@ class DataChannel
   static NAN_GETTER(GetBufferedAmount);
   static NAN_GETTER(GetId);
   static NAN_GETTER(GetLabel);
+  static NAN_GETTER(GetMaxRetransmits);
+  static NAN_GETTER(GetOrdered);
+  static NAN_GETTER(GetPriority);
+  static NAN_GETTER(GetProtocol);
   static NAN_GETTER(GetBinaryType);
   static NAN_GETTER(GetReadyState);
   static NAN_SETTER(SetBinaryType);
@@ -112,6 +116,10 @@ class DataChannel
 
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   int _cached_id;
+  std::string _cached_label;
+  uint16_t _cached_max_retransmits;
+  bool _cached_ordered;
+  std::string _cached_protocol;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
   node_webrtc::BinaryType _binaryType;
 
