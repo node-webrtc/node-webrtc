@@ -260,6 +260,10 @@ NAN_METHOD(DataChannel::Send) {
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.This());
 
   if (self->_jingleDataChannel != nullptr) {
+    if (self->_jingleDataChannel->state() != webrtc::DataChannelInterface::DataState::kOpen) {
+      TRACE_END;
+      return Nan::ThrowError("InvalidStateError");
+    }
     if (info[0]->IsString()) {
       Local<String> str = Local<String>::Cast(info[0]);
       std::string data = *String::Utf8Value(str);
@@ -280,7 +284,8 @@ NAN_METHOD(DataChannel::Send) {
         arraybuffer = Local<v8::ArrayBuffer>::Cast(info[0]);
         byte_length = arraybuffer->ByteLength();
       } else {
-        // TODO(mroberts): Throw a TypeError.
+        TRACE_END;
+        return Nan::ThrowTypeError("Expected a Blob or ArrayBuffer");
       }
 
       v8::ArrayBuffer::Contents content = arraybuffer->GetContents();
