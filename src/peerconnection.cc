@@ -315,7 +315,6 @@ NAN_METHOD(PeerConnection::New) {
 NAN_METHOD(PeerConnection::CreateOffer) {
   TRACE_CALL;
 
-  // TODO: Actually use the options.
   auto validationOptions = From<Maybe<RTCOfferOptions>, Nan::NAN_METHOD_ARGS_TYPE>(info).Map(
   [](const Maybe<RTCOfferOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCOfferOptions()); });
   if (validationOptions.IsInvalid()) {
@@ -324,10 +323,12 @@ NAN_METHOD(PeerConnection::CreateOffer) {
     return;
   }
 
-  PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto options = validationOptions.UnsafeFromValid();
+
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
   if (self->_jinglePeerConnection != nullptr) {
-    self->_jinglePeerConnection->CreateOffer(self->_createOfferObserver, nullptr);
+    self->_jinglePeerConnection->CreateOffer(self->_createOfferObserver, options.options);
   }
 
   TRACE_END;
@@ -337,7 +338,6 @@ NAN_METHOD(PeerConnection::CreateOffer) {
 NAN_METHOD(PeerConnection::CreateAnswer) {
   TRACE_CALL;
 
-  // TODO: Actually use the options.
   auto validationOptions = From<Maybe<RTCAnswerOptions>, Nan::NAN_METHOD_ARGS_TYPE>(info).Map(
   [](const Maybe<RTCAnswerOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCAnswerOptions()); });
   if (validationOptions.IsInvalid()) {
@@ -346,10 +346,12 @@ NAN_METHOD(PeerConnection::CreateAnswer) {
     return;
   }
 
-  PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto options = validationOptions.UnsafeFromValid();
+
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
   if (self->_jinglePeerConnection != nullptr) {
-    self->_jinglePeerConnection->CreateAnswer(self->_createAnswerObserver, nullptr);
+    self->_jinglePeerConnection->CreateAnswer(self->_createAnswerObserver, options.options);
   }
 
   TRACE_END;
