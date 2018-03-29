@@ -28,6 +28,7 @@ using node_webrtc::From;
 using node_webrtc::Maybe;
 using node_webrtc::PeerConnection;
 using node_webrtc::PeerConnectionFactory;
+using node_webrtc::RTCSessionDescriptionInit;
 using v8::External;
 using v8::Function;
 using v8::FunctionTemplate;
@@ -141,6 +142,7 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
       Nan::MakeCallback(pc, callback, 1, argv);
     } else if (PeerConnection::SDP_EVENT & evt.type) {
       PeerConnection::SdpEvent* data = static_cast<PeerConnection::SdpEvent*>(evt.data);
+      self->_lastSdp = data->desc;
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onsuccess").ToLocalChecked()));
       Local<Value> argv[1];
       argv[0] = Nan::New(data->desc.c_str()).ToLocalChecked();
@@ -361,15 +363,27 @@ NAN_METHOD(PeerConnection::CreateAnswer) {
 NAN_METHOD(PeerConnection::SetLocalDescription) {
   TRACE_CALL;
 
-  auto maybeDescription = From<SessionDescriptionInterface*, Nan::NAN_METHOD_ARGS_TYPE>(info);
+  auto maybeDescriptionInit = From<RTCSessionDescriptionInit, Nan::NAN_METHOD_ARGS_TYPE>(info);
+  if (maybeDescriptionInit.IsInvalid()) {
+    TRACE_END;
+    Nan::ThrowTypeError(Nan::New(maybeDescriptionInit.ToErrors()[0]).ToLocalChecked());
+    return;
+  }
+  auto descriptionInit = maybeDescriptionInit.UnsafeFromValid();
+
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+
+  if (descriptionInit.sdp.empty()) {
+    descriptionInit.sdp = self->_lastSdp;
+  }
+
+  auto maybeDescription = From<SessionDescriptionInterface*>(descriptionInit);
   if (maybeDescription.IsInvalid()) {
     TRACE_END;
     Nan::ThrowTypeError(Nan::New(maybeDescription.ToErrors()[0]).ToLocalChecked());
     return;
   }
   auto description = maybeDescription.UnsafeFromValid();
-
-  PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
   if (self->_jinglePeerConnection != nullptr) {
     self->_jinglePeerConnection->SetLocalDescription(self->_setLocalDescriptionObserver, description);

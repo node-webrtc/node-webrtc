@@ -214,6 +214,8 @@ class PeerConnection
   rtc::scoped_refptr<SetLocalDescriptionObserver> _setLocalDescriptionObserver;
   rtc::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
+  std::string _lastSdp;
+
   webrtc::AudioDeviceModule* _audioDeviceModule;
   UnsignedShortRange _port_range;
   ExtendedRTCConfiguration _cached_configuration;
