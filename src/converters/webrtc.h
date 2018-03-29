@@ -290,7 +290,7 @@ struct Converter<v8::Local<v8::Value>, RTCSdpType> {
 
 struct RTCSessionDescriptionInit {
   RTCSessionDescriptionInit(): type(kRollback), sdp("") {}
-  RTCSessionDescriptionInit(const RTCSdpType type, const std::string sdp): type(type), sdp(sdp) {}
+  RTCSessionDescriptionInit(const RTCSdpType type, const std::string& sdp): type(type), sdp(sdp) {}
   RTCSdpType type;
   std::string sdp;
 };
