@@ -238,6 +238,10 @@ void DataChannel::OnStateChange() {
   if (_jingleDataChannel->state() == webrtc::DataChannelInterface::kClosed) {
     _jingleDataChannel->UnregisterObserver();
     _cached_id = _jingleDataChannel->id();
+    _cached_label = _jingleDataChannel->label();
+    _cached_max_retransmits = _jingleDataChannel->maxRetransmits();
+    _cached_ordered = _jingleDataChannel->ordered();
+    _cached_protocol = _jingleDataChannel->protocol();
     _jingleDataChannel = nullptr;
   }
   TRACE_END;
@@ -339,10 +343,56 @@ NAN_GETTER(DataChannel::GetLabel) {
 
   std::string label = self->_jingleDataChannel != nullptr
       ? self->_jingleDataChannel->label()
-      : "";
+      : self->_cached_label;
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New(label).ToLocalChecked());
+}
+
+NAN_GETTER(DataChannel::GetMaxRetransmits) {
+  TRACE_CALL;
+
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
+
+  auto max_retransmits = self->_jingleDataChannel
+      ? self->_jingleDataChannel->maxRetransmits()
+      : self->_cached_max_retransmits;
+
+  TRACE_END;
+  info.GetReturnValue().Set(Nan::New(max_retransmits));
+}
+
+NAN_GETTER(DataChannel::GetOrdered) {
+  TRACE_CALL;
+
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
+
+  auto ordered = self->_jingleDataChannel
+      ? self->_jingleDataChannel->ordered()
+      : self->_cached_ordered;
+
+  TRACE_END;
+  info.GetReturnValue().Set(Nan::New(ordered));
+}
+
+NAN_GETTER(DataChannel::GetPriority) {
+  TRACE_CALL;
+
+  TRACE_END;
+  info.GetReturnValue().Set(Nan::New("high").ToLocalChecked());
+}
+
+NAN_GETTER(DataChannel::GetProtocol) {
+  TRACE_CALL;
+
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
+
+  auto protocol = self->_jingleDataChannel
+      ? self->_jingleDataChannel->protocol()
+      : self->_cached_protocol;
+
+  TRACE_END;
+  info.GetReturnValue().Set(Nan::New(protocol).ToLocalChecked());
 }
 
 NAN_GETTER(DataChannel::GetReadyState) {
@@ -416,6 +466,10 @@ void DataChannel::Init(Handle<Object> exports) {
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("bufferedAmount").ToLocalChecked(), GetBufferedAmount, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("id").ToLocalChecked(), GetId, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("label").ToLocalChecked(), GetLabel, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("maxRetransmits").ToLocalChecked(), GetMaxRetransmits, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("ordered").ToLocalChecked(), GetOrdered, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("priority").ToLocalChecked(), GetPriority, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("protocol").ToLocalChecked(), GetProtocol, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("binaryType").ToLocalChecked(), GetBinaryType, SetBinaryType);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("readyState").ToLocalChecked(), GetReadyState, ReadOnly);
 
