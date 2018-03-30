@@ -7,7 +7,7 @@ for a 1.0.0 release.
 New Features
 ------------
 
-Besides updating to WebRTC M61 (using
+Besides updating to WebRTC M60 (using
 [mayeut/libwebrtc](https://github.com/mayeut/libwebrtc)), this release adds a
 number of features that bring node-webrtc closer to standards-compliance. We
 still have a ways to go, but we're now testing against
