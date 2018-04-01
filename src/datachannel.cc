@@ -12,6 +12,7 @@
 #include "common.h"
 #include "converters.h"
 #include "converters/webrtc.h"
+#include "error.h"
 
 using node_webrtc::DataChannel;
 using node_webrtc::DataChannelObserver;
@@ -405,20 +406,14 @@ NAN_GETTER(DataChannel::GetReadyState) {
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
-  webrtc::DataChannelInterface::DataState state = self->_jingleDataChannel != nullptr
+  CONVERT_OR_THROW_AND_RETURN(self->_jingleDataChannel
       ? self->_jingleDataChannel->state()
-      : webrtc::DataChannelInterface::kClosed;
-
-  auto maybeStateString = From<Local<Value>>(state);
-  if (maybeStateString.IsInvalid()) {
-    auto error = maybeStateString.ToErrors()[0];
-    TRACE_END;
-    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
-    return;
-  }
+      : webrtc::DataChannelInterface::kClosed,
+      state,
+      Local<Value>);
 
   TRACE_END;
-  info.GetReturnValue().Set(maybeStateString.UnsafeFromValid());
+  info.GetReturnValue().Set(state);
 }
 
 NAN_GETTER(DataChannel::GetBinaryType) {
@@ -426,16 +421,10 @@ NAN_GETTER(DataChannel::GetBinaryType) {
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
-  auto maybeBinaryType = From<Local<Value>>(self->_binaryType);
-  if (maybeBinaryType.IsInvalid()) {
-    auto error = maybeBinaryType.ToErrors()[0];
-    TRACE_END;
-    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
-    return;
-  }
+  CONVERT_OR_THROW_AND_RETURN(self->_binaryType, binaryType, Local<Value>);
 
   TRACE_END;
-  info.GetReturnValue().Set(maybeBinaryType.UnsafeFromValid());
+  info.GetReturnValue().Set(binaryType);
 }
 
 NAN_SETTER(DataChannel::SetBinaryType) {
@@ -443,15 +432,9 @@ NAN_SETTER(DataChannel::SetBinaryType) {
 
   DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
-  auto maybeBinaryType = From<BinaryType>(value);
-  if (maybeBinaryType.IsInvalid()) {
-    auto error = maybeBinaryType.ToErrors()[0];
-    TRACE_END;
-    Nan::ThrowTypeError(Nan::New(error).ToLocalChecked());
-    return;
-  }
+  CONVERT_OR_THROW_AND_RETURN(value, binaryType, BinaryType);
 
-  self->_binaryType = maybeBinaryType.UnsafeFromValid();
+  self->_binaryType = binaryType;
 
   TRACE_END;
 }
