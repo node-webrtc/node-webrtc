@@ -1,3 +1,12 @@
+0.1.1
+=====
+
+Bug Fixes
+---------
+
+- Calling `createDataChannel` on a closed RTCPeerConnection no longer returns
+  `undefined`; instead, it raises an InvalidStateError (#314, #382).
+
 0.1.0
 =====
 
