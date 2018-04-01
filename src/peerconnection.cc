@@ -461,7 +461,8 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
   if (self->_jinglePeerConnection == nullptr) {
-    info.GetReturnValue().Set(Nan::Undefined());
+    TRACE_END;
+    Nan::ThrowError("Failed to execute 'createDataChannel' on 'RTCPeerConnection': The RTCPeerConnection's signalingState is 'closed'.");
     return;
   }
 
