@@ -466,7 +466,7 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
     return;
   }
 
-  auto maybeArgs = From<std::tuple<std::string, DataChannelInit>, Nan::NAN_METHOD_ARGS_TYPE>(info);
+  auto maybeArgs = From<std::tuple<std::string, Maybe<DataChannelInit>>, Nan::NAN_METHOD_ARGS_TYPE>(info);
   if (maybeArgs.IsInvalid()) {
     TRACE_END;
     auto error = maybeArgs.ToErrors()[0];
@@ -475,7 +475,7 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   }
   auto args = maybeArgs.UnsafeFromValid();
   auto label = std::get<0>(args);
-  auto dataChannelInit = std::get<1>(args);
+  auto dataChannelInit = std::get<1>(args).FromMaybe(DataChannelInit());
 
   rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel_interface =
       self->_jinglePeerConnection->CreateDataChannel(label, &dataChannelInit);
