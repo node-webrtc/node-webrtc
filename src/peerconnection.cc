@@ -103,9 +103,7 @@ PeerConnection::~PeerConnection() {
 
 void PeerConnection::QueueEvent(AsyncEventType type, void* data) {
   TRACE_CALL;
-  AsyncEvent evt;
-  evt.type = type;
-  evt.data = data;
+  AsyncEvent evt = { type, data };
   uv_mutex_lock(&lock);
   _events.push(evt);
   uv_mutex_unlock(&lock);
@@ -125,31 +123,30 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
     auto pc = self->handle();
 
     uv_mutex_lock(&self->lock);
-    bool empty = self->_events.empty();
-    if (empty) {
+    if (self->_events.empty()) {
       uv_mutex_unlock(&self->lock);
       break;
     }
-    AsyncEvent evt = self->_events.front();
+    auto evt = self->_events.front();
     self->_events.pop();
     uv_mutex_unlock(&self->lock);
 
     TRACE_U("evt.type", evt.type);
     if (PeerConnection::ERROR_EVENT & evt.type) {
-      PeerConnection::ErrorEvent* data = static_cast<PeerConnection::ErrorEvent*>(evt.data);
+      auto data = static_cast<PeerConnection::ErrorEvent*>(evt.data);
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onerror").ToLocalChecked()));
       Local<Value> argv[1];
       argv[0] = Nan::Error(data->msg.c_str());
       Nan::MakeCallback(pc, callback, 1, argv);
     } else if (PeerConnection::SDP_EVENT & evt.type) {
-      PeerConnection::SdpEvent* data = static_cast<PeerConnection::SdpEvent*>(evt.data);
+      auto data = static_cast<PeerConnection::SdpEvent*>(evt.data);
       self->_lastSdp = data->desc;
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onsuccess").ToLocalChecked()));
       Local<Value> argv[1];
       argv[0] = Nan::New(data->desc.c_str()).ToLocalChecked();
       Nan::MakeCallback(pc, callback, 1, argv);
     } else if (PeerConnection::GET_STATS_SUCCESS & evt.type) {
-      PeerConnection::GetStatsEvent* data = static_cast<PeerConnection::GetStatsEvent*>(evt.data);
+      auto data = static_cast<PeerConnection::GetStatsEvent*>(evt.data);
       Nan::Callback* callback = data->callback;
       Local<Value> cargv[2];
       cargv[0] = Nan::New<External>(static_cast<void*>(&data->timestamp));
@@ -167,7 +164,7 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
       Local<Value> argv[1];
       Nan::MakeCallback(pc, callback, 0, argv);
     } else if (PeerConnection::SIGNALING_STATE_CHANGE & evt.type) {
-      PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
+      auto data = static_cast<PeerConnection::StateEvent*>(evt.data);
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onsignalingstatechange").ToLocalChecked()));
       if (!callback.IsEmpty()) {
         Local<Value> argv[1];
@@ -187,7 +184,7 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
         Nan::MakeCallback(pc, callback, 0, nullptr);
       }
     } else if (PeerConnection::ICE_GATHERING_STATE_CHANGE & evt.type) {
-      PeerConnection::StateEvent* data = static_cast<PeerConnection::StateEvent*>(evt.data);
+      auto data = static_cast<PeerConnection::StateEvent*>(evt.data);
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onicegatheringstatechange").ToLocalChecked()));
       if (!callback.IsEmpty()) {
         Local<Value> argv[1];
@@ -195,7 +192,7 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
         Nan::MakeCallback(pc, callback, 1, argv);
       }
     } else if (PeerConnection::ICE_CANDIDATE & evt.type) {
-      PeerConnection::IceEvent* data = static_cast<PeerConnection::IceEvent*>(evt.data);
+      auto data = static_cast<PeerConnection::IceEvent*>(evt.data);
       Local<Function> callback = Local<Function>::Cast(pc->Get(Nan::New("onicecandidate").ToLocalChecked()));
       if (!callback.IsEmpty() && data->error.empty()) {
         auto maybeCandidate = From<Local<Value>>(data->candidate.get());
@@ -206,7 +203,7 @@ void PeerConnection::Run(uv_async_t* handle, int status) {
         }
       }
     } else if (PeerConnection::NOTIFY_DATA_CHANNEL & evt.type) {
-      PeerConnection::DataChannelEvent* data = static_cast<PeerConnection::DataChannelEvent*>(evt.data);
+      auto data = static_cast<PeerConnection::DataChannelEvent*>(evt.data);
       DataChannelObserver* observer = data->observer;
       Local<Value> cargv[1];
       cargv[0] = Nan::New<External>(static_cast<void*>(observer));
@@ -238,28 +235,28 @@ void PeerConnection::OnError() {
 
 void PeerConnection::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state) {
   TRACE_CALL;
-  StateEvent* data = new StateEvent(static_cast<uint32_t>(new_state));
+  auto data = new StateEvent(static_cast<uint32_t>(new_state));
   QueueEvent(PeerConnection::SIGNALING_STATE_CHANGE, static_cast<void*>(data));
   TRACE_END;
 }
 
 void PeerConnection::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState new_state) {
   TRACE_CALL;
-  StateEvent* data = new StateEvent(static_cast<uint32_t>(new_state));
+  auto data = new StateEvent(static_cast<uint32_t>(new_state));
   QueueEvent(PeerConnection::ICE_CONNECTION_STATE_CHANGE, static_cast<void*>(data));
   TRACE_END;
 }
 
 void PeerConnection::OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState new_state) {
   TRACE_CALL;
-  StateEvent* data = new StateEvent(static_cast<uint32_t>(new_state));
+  auto data = new StateEvent(static_cast<uint32_t>(new_state));
   QueueEvent(PeerConnection::ICE_GATHERING_STATE_CHANGE, static_cast<void*>(data));
   TRACE_END;
 }
 
 void PeerConnection::OnIceCandidate(const webrtc::IceCandidateInterface* candidate) {
   TRACE_CALL;
-  PeerConnection::IceEvent* data = new PeerConnection::IceEvent(candidate);
+  auto data = new PeerConnection::IceEvent(candidate);
   QueueEvent(PeerConnection::ICE_CANDIDATE, static_cast<void*>(data));
   TRACE_END;
 }
@@ -267,7 +264,7 @@ void PeerConnection::OnIceCandidate(const webrtc::IceCandidateInterface* candida
 void PeerConnection::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> jingle_data_channel) {
   TRACE_CALL;
   DataChannelObserver* observer = new DataChannelObserver(_factory, jingle_data_channel);
-  PeerConnection::DataChannelEvent* data = new PeerConnection::DataChannelEvent(observer);
+  auto data = new PeerConnection::DataChannelEvent(observer);
   QueueEvent(PeerConnection::NOTIFY_DATA_CHANNEL, static_cast<void*>(data));
   TRACE_END;
 }
@@ -381,7 +378,7 @@ NAN_METHOD(PeerConnection::SetRemoteDescription) {
 
   CONVERT_ARGS_OR_THROW_AND_RETURN(description, SessionDescriptionInterface*);
 
-  PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
   if (self->_jinglePeerConnection != nullptr) {
     self->_jinglePeerConnection->SetRemoteDescription(self->_setRemoteDescriptionObserver, description);
@@ -398,7 +395,7 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
 
   CONVERT_ARGS_OR_THROW_AND_RETURN(candidate, IceCandidateInterface*);
 
-  PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
   if (self->_jinglePeerConnection != nullptr && self->_jinglePeerConnection->AddIceCandidate(candidate)) {
     self->QueueEvent(PeerConnection::ADD_ICE_CANDIDATE_SUCCESS, static_cast<void*>(nullptr));
@@ -409,7 +406,7 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
       error += ", no jingle peer connection";
     }
     error += ".";
-    PeerConnection::ErrorEvent* data = new PeerConnection::ErrorEvent(error);
+    auto data = new PeerConnection::ErrorEvent(error);
     self->QueueEvent(PeerConnection::ADD_ICE_CANDIDATE_ERROR, static_cast<void*>(data));
   }
 
@@ -420,7 +417,7 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
 NAN_METHOD(PeerConnection::CreateDataChannel) {
   TRACE_CALL;
 
-  PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
   if (self->_jinglePeerConnection == nullptr) {
     TRACE_END;
@@ -436,7 +433,7 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
   rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel_interface =
       self->_jinglePeerConnection->CreateDataChannel(label, &dataChannelInit);
 
-  DataChannelObserver* observer = new DataChannelObserver(self->_factory, data_channel_interface);
+  auto observer = new DataChannelObserver(self->_factory, data_channel_interface);
 
   Local<Value> cargv[1];
   cargv[0] = Nan::New<External>(static_cast<void*>(observer));
@@ -487,7 +484,7 @@ NAN_METHOD(PeerConnection::SetConfiguration) {
 NAN_METHOD(PeerConnection::GetStats) {
   TRACE_CALL;
 
-  PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
   Nan::Callback* onSuccess = new Nan::Callback(info[0].As<Function>());
   Nan::Callback* onFailure = new Nan::Callback(info[1].As<Function>());
@@ -521,7 +518,7 @@ NAN_METHOD(PeerConnection::UpdateIce) {
 NAN_METHOD(PeerConnection::Close) {
   TRACE_CALL;
 
-  PeerConnection* self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
   if (self->_jinglePeerConnection != nullptr) {
     self->_cached_configuration = ExtendedRTCConfiguration(
