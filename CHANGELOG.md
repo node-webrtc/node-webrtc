@@ -6,6 +6,11 @@ Bug Fixes
 
 - Calling `createDataChannel` on a closed RTCPeerConnection no longer returns
   `undefined`; instead, it raises an InvalidStateError (#314, #382).
+- Worked around WebRTC [Issue 7585](https://bugs.chromium.org/p/webrtc/issues/detail?id=7585)
+  on Linux by backporting the `epoll`-based PhysicalSocketServer from WebRTC
+  M61 into node-webrtc. This allows many more concurrent RTCPeerConnections on
+  Linux (for example, up to 3000 in my tests, not exceeding thread limits).
+  (#362)
 
 0.1.0
 =====
