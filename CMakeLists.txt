@@ -1,6 +1,7 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.6)
 
 include(ExternalProject)
+find_package(Git REQUIRED)
 
 if(EXISTS ${CMAKE_SOURCE_DIR}/third_party/webrtc)
 else()
