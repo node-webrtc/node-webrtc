@@ -58,23 +58,23 @@ static RTCOAuthCredential CreateRTCOAuthCredential(
 
 Validation<RTCOAuthCredential> Converter<Local<Value>, RTCOAuthCredential>::Convert(const Local<Value> value) {
   return From<Local<Object>>(value).FlatMap<RTCOAuthCredential>(
-      [](const Local<Object> object) {
-        return curry(CreateRTCOAuthCredential)
-            % GetRequired<std::string>(object, "macKey")
-            * GetRequired<std::string>(object, "accessToken");
-      });
+  [](const Local<Object> object) {
+    return curry(CreateRTCOAuthCredential)
+        % GetRequired<std::string>(object, "macKey")
+        * GetRequired<std::string>(object, "accessToken");
+  });
 }
 
 Validation<RTCIceCredentialType> Converter<Local<Value>, RTCIceCredentialType>::Convert(const Local<Value> value) {
-    return From<std::string>(value).FlatMap<RTCIceCredentialType>(
-        [](const std::string string) {
-          if (string == "password") {
-            return Validation<RTCIceCredentialType>::Valid(kPassword);
-          } else if (string == "oauth") {
-            return Validation<RTCIceCredentialType>::Valid(kOAuth);
-          }
-          return Validation<RTCIceCredentialType>::Invalid(R"(Expected "password" or "oauth")");
-        });
+  return From<std::string>(value).FlatMap<RTCIceCredentialType>(
+  [](const std::string string) {
+    if (string == "password") {
+      return Validation<RTCIceCredentialType>::Valid(kPassword);
+    } else if (string == "oauth") {
+      return Validation<RTCIceCredentialType>::Valid(kOAuth);
+    }
+    return Validation<RTCIceCredentialType>::Invalid(R"(Expected "password" or "oauth")");
+  });
 }
 
 static Validation<IceServer> CreateIceServer(
@@ -95,13 +95,13 @@ static Validation<IceServer> CreateIceServer(
 
 Validation<IceServer> Converter<Local<Value>, IceServer>::Convert(const Local<Value> value) {
   return From<Local<Object>>(value).FlatMap<IceServer>(
-      [](const Local<Object> object) {
-        return Validation<IceServer>::Join(curry(CreateIceServer)
+  [](const Local<Object> object) {
+    return Validation<IceServer>::Join(curry(CreateIceServer)
             % GetRequired<Either<std::vector<std::string>, std::string>>(object, "urls")
             * GetOptional<std::string>(object, "username", "")
             * GetOptional<Either<std::string, RTCOAuthCredential>>(object, "credential", Either<std::string, RTCOAuthCredential>::Left(""))
             * GetOptional<RTCIceCredentialType>(object, "credentialType", kPassword));
-      });
+  });
 }
 
 Validation<Local<Value>> Converter<IceServer, Local<Value>>::Convert(IceServer iceServer) {
@@ -128,14 +128,14 @@ Validation<Local<Value>> Converter<IceServer, Local<Value>>::Convert(IceServer i
 
 Validation<IceTransportsType> Converter<Local<Value>, IceTransportsType>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<IceTransportsType>(
-      [](const std::string string) {
-        if (string == "all") {
-          return Validation<IceTransportsType>::Valid(IceTransportsType::kAll);
-        } else if (string == "relay") {
-          return Validation<IceTransportsType>::Valid(IceTransportsType::kRelay);
-        }
-        return Validation<IceTransportsType>::Invalid(R"(Expected "all" or "relay")");
-      });
+  [](const std::string string) {
+    if (string == "all") {
+      return Validation<IceTransportsType>::Valid(IceTransportsType::kAll);
+    } else if (string == "relay") {
+      return Validation<IceTransportsType>::Valid(IceTransportsType::kRelay);
+    }
+    return Validation<IceTransportsType>::Invalid(R"(Expected "all" or "relay")");
+  });
 }
 
 Validation<Local<Value>> Converter<IceTransportsType, Local<Value>>::Convert(const IceTransportsType type) {
@@ -152,16 +152,16 @@ Validation<Local<Value>> Converter<IceTransportsType, Local<Value>>::Convert(con
 
 Validation<BundlePolicy> Converter<Local<Value>, BundlePolicy>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<BundlePolicy>(
-      [](const std::string string) {
-        if (string == "balanced") {
-          return Validation<BundlePolicy>::Valid(BundlePolicy::kBundlePolicyBalanced);
-        } else if (string == "max-compat") {
-          return Validation<BundlePolicy>::Valid(BundlePolicy::kBundlePolicyMaxCompat);
-        } else if (string == "max-bundle") {
-          return Validation<BundlePolicy>::Valid(BundlePolicy::kBundlePolicyMaxBundle);
-        }
-        return Validation<BundlePolicy>::Invalid(R"(Expected "balanced", "max-compat" or "max-bundle")");
-      });
+  [](const std::string string) {
+    if (string == "balanced") {
+      return Validation<BundlePolicy>::Valid(BundlePolicy::kBundlePolicyBalanced);
+    } else if (string == "max-compat") {
+      return Validation<BundlePolicy>::Valid(BundlePolicy::kBundlePolicyMaxCompat);
+    } else if (string == "max-bundle") {
+      return Validation<BundlePolicy>::Valid(BundlePolicy::kBundlePolicyMaxBundle);
+    }
+    return Validation<BundlePolicy>::Invalid(R"(Expected "balanced", "max-compat" or "max-bundle")");
+  });
 }
 
 Validation<Local<Value>> Converter<BundlePolicy, Local<Value>>::Convert(const BundlePolicy type) {
@@ -178,14 +178,14 @@ Validation<Local<Value>> Converter<BundlePolicy, Local<Value>>::Convert(const Bu
 
 Validation<RtcpMuxPolicy> Converter<Local<Value>, RtcpMuxPolicy>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<RtcpMuxPolicy>(
-      [](const std::string string) {
-        if (string == "negotiate") {
-          return Validation<RtcpMuxPolicy>::Valid(RtcpMuxPolicy::kRtcpMuxPolicyNegotiate);
-        } else if (string == "require") {
-          return Validation<RtcpMuxPolicy>::Valid(RtcpMuxPolicy::kRtcpMuxPolicyRequire);
-        }
-        return Validation<RtcpMuxPolicy>::Invalid(R"(Expected "negotiate" or "require")");
-      });
+  [](const std::string string) {
+    if (string == "negotiate") {
+      return Validation<RtcpMuxPolicy>::Valid(RtcpMuxPolicy::kRtcpMuxPolicyNegotiate);
+    } else if (string == "require") {
+      return Validation<RtcpMuxPolicy>::Valid(RtcpMuxPolicy::kRtcpMuxPolicyRequire);
+    }
+    return Validation<RtcpMuxPolicy>::Invalid(R"(Expected "negotiate" or "require")");
+  });
 }
 
 Validation<Local<Value>> Converter<RtcpMuxPolicy, Local<Value>>::Convert(const RtcpMuxPolicy type) {
@@ -206,11 +206,11 @@ static RTCDtlsFingerprint CreateRTCDtlsFingerprint(
 
 Validation<RTCDtlsFingerprint> Converter<Local<Value>, RTCDtlsFingerprint>::Convert(const Local<Value> value) {
   return From<Local<Object>>(value).FlatMap<RTCDtlsFingerprint>(
-      [](const Local<Object> object) {
-        return curry(CreateRTCDtlsFingerprint)
-            % GetOptional<std::string>(object, "algorithm")
-            * GetOptional<std::string>(object, "value");
-      });
+  [](const Local<Object> object) {
+    return curry(CreateRTCDtlsFingerprint)
+        % GetOptional<std::string>(object, "algorithm")
+        * GetOptional<std::string>(object, "value");
+  });
 }
 
 static Validation<UnsignedShortRange> CreateUnsignedShortRange(
@@ -226,11 +226,11 @@ static Validation<UnsignedShortRange> CreateUnsignedShortRange(
 
 Validation<UnsignedShortRange> Converter<Local<Value>, UnsignedShortRange>::Convert(const Local<Value> value) {
   return From<Local<Object>>(value).FlatMap<UnsignedShortRange>(
-      [](const Local<Object> object) {
-        return Validation<UnsignedShortRange>::Join(curry(CreateUnsignedShortRange)
+  [](const Local<Object> object) {
+    return Validation<UnsignedShortRange>::Join(curry(CreateUnsignedShortRange)
             % GetOptional<uint16_t>(object, "min")
             * GetOptional<uint16_t>(object, "max"));
-      });
+  });
 };
 
 Validation<Local<Value>> Converter<UnsignedShortRange, Local<Value>>::Convert(const UnsignedShortRange value) {
@@ -264,17 +264,17 @@ static RTCConfiguration CreateRTCConfiguration(
 
 Validation<RTCConfiguration> Converter<Local<Value>, RTCConfiguration>::Convert(const Local<Value> value) {
   return From<Local<Object>>(value).FlatMap<RTCConfiguration>(
-      [](const Local<Object> object) {
-        return curry(CreateRTCConfiguration)
-            % GetOptional<std::vector<IceServer>>(object, "iceServers", std::vector<IceServer>())
-            * GetOptional<IceTransportsType>(object, "iceTransportPolicy", IceTransportsType::kAll)
-            * GetOptional<BundlePolicy>(object, "bundlePolicy", BundlePolicy::kBundlePolicyBalanced)
-            * GetOptional<RtcpMuxPolicy>(object, "rtcpMuxPolicy", RtcpMuxPolicy::kRtcpMuxPolicyRequire)
-            * GetOptional<std::string>(object, "peerIdentity")
-            * GetOptional<std::vector<Local<Object>>>(object, "certificates")
-            // TODO(mroberts): Implement EnforceRange and change to uint8_t.
-            * GetOptional<uint8_t>(object, "iceCandidatePoolSize", 0);
-      });
+  [](const Local<Object> object) {
+    return curry(CreateRTCConfiguration)
+        % GetOptional<std::vector<IceServer>>(object, "iceServers", std::vector<IceServer>())
+        * GetOptional<IceTransportsType>(object, "iceTransportPolicy", IceTransportsType::kAll)
+        * GetOptional<BundlePolicy>(object, "bundlePolicy", BundlePolicy::kBundlePolicyBalanced)
+        * GetOptional<RtcpMuxPolicy>(object, "rtcpMuxPolicy", RtcpMuxPolicy::kRtcpMuxPolicyRequire)
+        * GetOptional<std::string>(object, "peerIdentity")
+        * GetOptional<std::vector<Local<Object>>>(object, "certificates")
+        // TODO(mroberts): Implement EnforceRange and change to uint8_t.
+        * GetOptional<uint8_t>(object, "iceCandidatePoolSize", 0);
+  });
 }
 
 static ExtendedRTCConfiguration CreateExtendedRTCConfiguration(
@@ -285,11 +285,11 @@ static ExtendedRTCConfiguration CreateExtendedRTCConfiguration(
 
 Validation<ExtendedRTCConfiguration> Converter<Local<Value>, ExtendedRTCConfiguration>::Convert(const Local<Value> value) {
   return From<Local<Object>>(value).FlatMap<ExtendedRTCConfiguration>(
-      [](const Local<Object> object) {
-        return curry(CreateExtendedRTCConfiguration)
-            % From<RTCConfiguration>(static_cast<Local<Value>>(object))
-            * GetOptional<UnsignedShortRange>(object, "portRange", UnsignedShortRange());
-      });
+  [](const Local<Object> object) {
+    return curry(CreateExtendedRTCConfiguration)
+        % From<RTCConfiguration>(static_cast<Local<Value>>(object))
+        * GetOptional<UnsignedShortRange>(object, "portRange", UnsignedShortRange());
+  });
 }
 
 static Local<Value> ExtendedRTCConfigurationToJavaScript(
@@ -329,23 +329,23 @@ static RTCOfferOptions CreateRTCOfferOptions(
   options.ice_restart = iceRestart;
   options.voice_activity_detection = voiceActivityDetection;
   options.offer_to_receive_audio = offerToReceiveAudio.Map(
-      [](const bool boolean) { return boolean ? RTCOfferAnswerOptions::kOfferToReceiveMediaTrue : 0; }
-  ).FromMaybe(RTCOfferAnswerOptions::kUndefined);
+  [](const bool boolean) { return boolean ? RTCOfferAnswerOptions::kOfferToReceiveMediaTrue : 0; }
+      ).FromMaybe(RTCOfferAnswerOptions::kUndefined);
   options.offer_to_receive_video = offerToReceiveVideo.Map(
-      [](const bool boolean) { return boolean ? RTCOfferAnswerOptions::kOfferToReceiveMediaTrue : 0; }
-  ).FromMaybe(RTCOfferAnswerOptions::kUndefined);
+  [](const bool boolean) { return boolean ? RTCOfferAnswerOptions::kOfferToReceiveMediaTrue : 0; }
+      ).FromMaybe(RTCOfferAnswerOptions::kUndefined);
   return RTCOfferOptions(options);
 }
 
 Validation<RTCOfferOptions> Converter<Local<Value>, RTCOfferOptions>::Convert(const Local<Value> value) {
   return From<Local<Object>>(value).FlatMap<RTCOfferOptions>(
-      [](const Local<Object> object) {
-        return curry(CreateRTCOfferOptions)
-            % GetOptional<bool>(object, "voiceActivityDetection", true)
-            * GetOptional<bool>(object, "iceRestart", false)
-            * GetOptional<bool>(object, "offerToReceiveAudio")
-            * GetOptional<bool>(object, "offerToReceiveVideo");
-      });
+  [](const Local<Object> object) {
+    return curry(CreateRTCOfferOptions)
+        % GetOptional<bool>(object, "voiceActivityDetection", true)
+        * GetOptional<bool>(object, "iceRestart", false)
+        * GetOptional<bool>(object, "offerToReceiveAudio")
+        * GetOptional<bool>(object, "offerToReceiveVideo");
+  });
 }
 
 static RTCAnswerOptions CreateRTCAnswerOptions(const bool voiceActivityDetection) {
@@ -356,26 +356,26 @@ static RTCAnswerOptions CreateRTCAnswerOptions(const bool voiceActivityDetection
 
 Validation<RTCAnswerOptions> Converter<Local<Value>, RTCAnswerOptions>::Convert(const Local<Value> value) {
   return From<Local<Object>>(value).FlatMap<RTCAnswerOptions>(
-      [](const Local<Object> object) {
-        return curry(CreateRTCAnswerOptions)
-            % GetOptional<bool>(object, "voiceActivityDetection", true);
-      });
+  [](const Local<Object> object) {
+    return curry(CreateRTCAnswerOptions)
+        % GetOptional<bool>(object, "voiceActivityDetection", true);
+  });
 }
 
 Validation<RTCSdpType> Converter<Local<Value>, RTCSdpType>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<RTCSdpType>(
-      [](const std::string string) {
-        if (string == "offer") {
-          return Validation<RTCSdpType>::Valid(RTCSdpType::kOffer);
-        } else if (string == "pranswer") {
-          return Validation<RTCSdpType>::Valid(RTCSdpType::kPrAnswer);
-        } else if (string == "answer") {
-          return Validation<RTCSdpType>::Valid(RTCSdpType::kAnswer);
-        } else if (string == "rollback") {
-          return Validation<RTCSdpType>::Valid(RTCSdpType::kRollback);
-        }
-        return Validation<RTCSdpType>::Invalid(R"(Expected "offer", "pranswer", "answer" or "rollback")");
-      });
+  [](const std::string string) {
+    if (string == "offer") {
+      return Validation<RTCSdpType>::Valid(RTCSdpType::kOffer);
+    } else if (string == "pranswer") {
+      return Validation<RTCSdpType>::Valid(RTCSdpType::kPrAnswer);
+    } else if (string == "answer") {
+      return Validation<RTCSdpType>::Valid(RTCSdpType::kAnswer);
+    } else if (string == "rollback") {
+      return Validation<RTCSdpType>::Valid(RTCSdpType::kRollback);
+    }
+    return Validation<RTCSdpType>::Invalid(R"(Expected "offer", "pranswer", "answer" or "rollback")");
+  });
 }
 
 RTCSessionDescriptionInit CreateRTCSessionDescriptionInit(
@@ -387,11 +387,11 @@ RTCSessionDescriptionInit CreateRTCSessionDescriptionInit(
 Validation<RTCSessionDescriptionInit> Converter<Local<Value>, RTCSessionDescriptionInit>::Convert(
     const Local<Value> value) {
   return From<Local<Object>>(value).FlatMap<RTCSessionDescriptionInit>(
-      [](const Local<Object> object) {
-        return curry(CreateRTCSessionDescriptionInit)
-            % GetRequired<RTCSdpType>(object, "type")
-            * GetOptional<std::string>(object, "sdp", "");
-      });
+  [](const Local<Object> object) {
+    return curry(CreateRTCSessionDescriptionInit)
+        % GetRequired<RTCSdpType>(object, "type")
+        * GetOptional<std::string>(object, "sdp", "");
+  });
 }
 
 Validation<SessionDescriptionInterface*> Converter<RTCSessionDescriptionInit, SessionDescriptionInterface*>::Convert(
@@ -458,13 +458,13 @@ static Validation<IceCandidateInterface*> CreateIceCandidateInterface(
 
 Validation<IceCandidateInterface*> Converter<Local<Value>, IceCandidateInterface*>::Convert(const Local<Value> value) {
   return From<Local<Object>>(value).FlatMap<IceCandidateInterface*>(
-      [](const Local<Object> object) {
-        return Validation<IceCandidateInterface*>::Join(curry(CreateIceCandidateInterface)
+  [](const Local<Object> object) {
+    return Validation<IceCandidateInterface*>::Join(curry(CreateIceCandidateInterface)
             % GetOptional<std::string>(object, "candidate", "")
             * GetOptional<std::string>(object, "sdpMid", "")
             * GetOptional<int>(object, "sdpMLineIndex", 0)
             * GetOptional<std::string>(object, "usernameFragment"));
-      });
+  });
 }
 
 Validation<Local<Value>> Converter<const IceCandidateInterface*, Local<Value>>::Convert(const IceCandidateInterface* value) {
@@ -489,18 +489,18 @@ Validation<Local<Value>> Converter<const IceCandidateInterface*, Local<Value>>::
 
 Validation<RTCPriorityType> Converter<Local<Value>, RTCPriorityType>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<RTCPriorityType>(
-      [](const std::string string) {
-        if (string == "very-low") {
-          return Validation<RTCPriorityType>::Valid(RTCPriorityType::kVeryLow);
-        } else if (string == "low") {
-          return Validation<RTCPriorityType>::Valid(RTCPriorityType::kLow);
-        } else if (string == "medium") {
-          return Validation<RTCPriorityType>::Valid(RTCPriorityType::kMedium);
-        } else if (string == "high") {
-          return Validation<RTCPriorityType>::Valid(RTCPriorityType::kHigh);
-        }
-        return Validation<RTCPriorityType>::Invalid(R"(Expected "very-low", "low", "medium" or "high")");
-      });
+  [](const std::string string) {
+    if (string == "very-low") {
+      return Validation<RTCPriorityType>::Valid(RTCPriorityType::kVeryLow);
+    } else if (string == "low") {
+      return Validation<RTCPriorityType>::Valid(RTCPriorityType::kLow);
+    } else if (string == "medium") {
+      return Validation<RTCPriorityType>::Valid(RTCPriorityType::kMedium);
+    } else if (string == "high") {
+      return Validation<RTCPriorityType>::Valid(RTCPriorityType::kHigh);
+    }
+    return Validation<RTCPriorityType>::Invalid(R"(Expected "very-low", "low", "medium" or "high")");
+  });
 }
 
 static DataChannelInit CreateDataChannelInit(
@@ -523,16 +523,16 @@ static DataChannelInit CreateDataChannelInit(
 
 Validation<DataChannelInit> Converter<Local<Value>, DataChannelInit>::Convert(const Local<Value> value) {
   return From<Local<Object>>(value).FlatMap<DataChannelInit>(
-      [](const Local<Object> object) {
-        return curry(CreateDataChannelInit)
-            % GetOptional<bool>(object, "ordered", true)
-            * GetOptional<uint32_t>(object, "maxPacketLifeTime")
-            * GetOptional<uint32_t>(object, "maxRetransmits")
-            * GetOptional<std::string>(object, "protocol", "")
-            * GetOptional<bool>(object, "negotiated", false)
-            * GetOptional<uint32_t>(object, "id")
-            * GetOptional<RTCPriorityType>(object, "priority", kLow);
-      });
+  [](const Local<Object> object) {
+    return curry(CreateDataChannelInit)
+        % GetOptional<bool>(object, "ordered", true)
+        * GetOptional<uint32_t>(object, "maxPacketLifeTime")
+        * GetOptional<uint32_t>(object, "maxRetransmits")
+        * GetOptional<std::string>(object, "protocol", "")
+        * GetOptional<bool>(object, "negotiated", false)
+        * GetOptional<uint32_t>(object, "id")
+        * GetOptional<RTCPriorityType>(object, "priority", kLow);
+  });
 }
 
 Validation<Local<Value>> Converter<SignalingState, Local<Value>>::Convert(const SignalingState state) {
@@ -615,15 +615,15 @@ Validation<Local<Value>> Converter<BinaryType, Local<Value>>::Convert(const Bina
 
 Validation<BinaryType> Converter<Local<Value>, BinaryType>::Convert(const Local<Value> value) {
   return From<std::string>(value).FlatMap<BinaryType>(
-      [](const std::string string) {
-          if (string == "blob") {
-            return Validation<BinaryType>::Invalid(R"("blob" is not supported at this time; file a bug on https://github.com/js-platform/node-webrtc)");
-          } else if (string == "arraybuffer") {
-            return Validation<BinaryType>::Valid(BinaryType::kArrayBuffer);
-          } else {
-            return Validation<BinaryType>::Invalid(R"(Expected "blob" or "arraybuffer")");
-          }
-      });
+  [](const std::string string) {
+    if (string == "blob") {
+      return Validation<BinaryType>::Invalid(R"("blob" is not supported at this time; file a bug on https://github.com/js-platform/node-webrtc)");
+    } else if (string == "arraybuffer") {
+      return Validation<BinaryType>::Valid(BinaryType::kArrayBuffer);
+    } else {
+      return Validation<BinaryType>::Invalid(R"(Expected "blob" or "arraybuffer")");
+    }
+  });
 };
 
 Validation<Local<Value>> Converter<RTCError*, Local<Value>>::Convert(RTCError* error) {
@@ -671,7 +671,7 @@ Validation<RTCPeerConnectionState> Converter<IceConnectionState, RTCPeerConnecti
     case IceConnectionState::kIceConnectionMax:
       return Validation<RTCPeerConnectionState>::Invalid(
               "WebRTC\'s RTCPeerConnection has an ICE connection state \"max\", but I have no idea"
-                      "what this means. If you see this error, file a bug on https://github.com/js-platform/node-webrtc");
+              "what this means. If you see this error, file a bug on https://github.com/js-platform/node-webrtc");
   }
 };
 

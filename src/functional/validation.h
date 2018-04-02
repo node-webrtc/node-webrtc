@@ -112,8 +112,8 @@ class Validation {
   template <typename F>
   Validation<typename std::result_of<F(T)>::type> Map(F f) const {
     return _is_valid
-           ? Validation<typename std::result_of<F(T)>::type>::Valid(f(_value))
-           : Validation<typename std::result_of<F(T)>::type>::Invalid(_errors);
+        ? Validation<typename std::result_of<F(T)>::type>::Valid(f(_value))
+        : Validation<typename std::result_of<F(T)>::type>::Invalid(_errors);
   }
 
   /**

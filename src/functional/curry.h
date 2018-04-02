@@ -34,20 +34,20 @@ struct _curry<std::function<R(T)>> {
 // recursive specialization for functions with more arguments
 template <typename R, typename T, typename...Ts> struct
 _curry<std::function<R(T, Ts...)>> {
-  using remaining_type = typename _curry<std::function<R(Ts...)> >::type;
+  using remaining_type = typename _curry<std::function<R(Ts...)>>::type;
 
   using type = std::function<remaining_type(T)>;
 
   const type result;
 
-  _curry(std::function<R(T, Ts...)> fun): result (
-    [=](const T& t) {
-      return _curry<std::function<R(Ts...)>>(
-        [=](const Ts&...ts) {
-          return fun(t, ts...);
-        }
-      ).result;
+  _curry(std::function<R(T, Ts...)> fun): result(
+        [ = ](const T & t) {
+    return _curry<std::function<R(Ts...)>>(
+    [ = ](const Ts & ...ts) {
+      return fun(t, ts...);
     }
+        ).result;
+  }
   ) {}
 };
 

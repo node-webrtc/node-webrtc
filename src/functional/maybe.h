@@ -83,8 +83,8 @@ class Maybe {
   template <typename F>
   Maybe<typename std::result_of<F(T)>::type> Map(F f) const {
     return _is_just
-           ? Maybe<typename std::result_of<F(T)>::type>::Just(f(_value))
-           : Maybe<typename std::result_of<F(T)>::type>::Nothing();
+        ? Maybe<typename std::result_of<F(T)>::type>::Just(f(_value))
+        : Maybe<typename std::result_of<F(T)>::type>::Nothing();
   }
 
   /**
