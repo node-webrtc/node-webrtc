@@ -425,7 +425,7 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
     return;
   }
 
-  CONVERT_ARGS_OR_THROW_AND_RETURN(args, (std::tuple<std::string, Maybe<DataChannelInit>>));
+  CONVERT_ARGS_OR_THROW_AND_RETURN(args, std::tuple<std::string COMMA Maybe<DataChannelInit>>);
 
   auto label = std::get<0>(args);
   auto dataChannelInit = std::get<1>(args).FromMaybe(DataChannelInit());

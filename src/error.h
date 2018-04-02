@@ -18,6 +18,11 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
 #define NODE_WEBRTC_PP_CAT_II(p, res) res
 #define NODE_WEBRTC_UNIQUE_NAME(base) NODE_WEBRTC_PP_CAT(base, __LINE__)
 
+// https://stackoverflow.com/a/41566342
+#ifndef COMMA
+#define COMMA ,
+#endif  // COMMA
+
 #define CONVERT_ARGS_OR_THROW_AND_RETURN(O, T) \
   auto NODE_WEBRTC_UNIQUE_NAME(validation) = node_webrtc::Validation<argument_type<void(T)>::type>::Invalid(std::vector<node_webrtc::Error>()); \
   { \
