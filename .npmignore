@@ -4,7 +4,6 @@ build
 package-lock.json
 yarn.lock
 third_party
-lib/binding
 build.log
 
 # other stuff
