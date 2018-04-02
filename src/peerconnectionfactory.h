@@ -16,6 +16,8 @@
 #include "webrtc/modules/audio_device/include/audio_device.h"
 #include "webrtc/pc/peerconnectionfactory.h"
 
+#include "src/webrtc/physicalsocketserver.h"
+
 namespace node_webrtc {
 
 class PeerConnectionFactory
@@ -66,6 +68,7 @@ class PeerConnectionFactory
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _factory;
 
   std::unique_ptr<rtc::NetworkManager> _networkManager;
+  std::unique_ptr<node_webrtc::PhysicalSocketServer> _physicalSocketServer;
   std::unique_ptr<rtc::PacketSocketFactory> _socketFactory;
 };
 

@@ -14,6 +14,11 @@ nodejs_init()
 file(GLOB_RECURSE MODULE_SRC src/*.cc src/*.h)
 add_nodejs_module(${MODULE} ${MODULE_SRC})
 
+file(GLOB_RECURSE MODULE_SRC_WITHOUT_WEBRTC src/*.cc src/*.h)
+list(REMOVE_ITEM MODULE_SRC_WITHOUT_WEBRTC
+  ${CMAKE_SOURCE_DIR}/src/webrtc/physicalsocketserver.h
+  ${CMAKE_SOURCE_DIR}/src/webrtc/physicalsocketserver.cc)
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_definitions(${MODULE} PRIVATE -DDEBUG)
 endif()
@@ -72,6 +77,7 @@ if(APPLE)
 elseif(UNIX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
   target_compile_definitions(${MODULE} PRIVATE
+    -DWEBRTC_LINUX
     -DWEBRTC_POSIX=1)
 endif()
 
@@ -114,8 +120,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     --close-templates
     --add-brackets
     --break-after-logical
-    ${CMAKE_SOURCE_DIR}/src/*.cc
-    ${CMAKE_SOURCE_DIR}/src/*.h)
+    ${MODULE_SRC_WITHOUT_WEBRTC})
 
   if(NOT WIN32 STREQUAL "1")
     add_custom_target(
@@ -151,6 +156,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     --verbose
     --error-exitcode=1
     --language=c++
+    -i${CMAKE_SOURCE_DIR}/src/webrtc
     ${CMAKE_SOURCE_DIR}/src/*.cc)
 
   add_custom_target(
