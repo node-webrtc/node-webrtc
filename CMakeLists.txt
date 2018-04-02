@@ -77,6 +77,7 @@ if(APPLE)
 elseif(UNIX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
   target_compile_definitions(${MODULE} PRIVATE
+    -D_GLIBCXX_USE_CXX11_ABI=0
     -DWEBRTC_LINUX
     -DWEBRTC_POSIX=1)
 endif()
