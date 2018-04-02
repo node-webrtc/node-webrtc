@@ -144,7 +144,7 @@ struct Converter<webrtc::PeerConnectionInterface::RtcpMuxPolicy, v8::Local<v8::V
 // WebRTC doesn't currently support this.
 struct RTCDtlsFingerprint {
   RTCDtlsFingerprint(): algorithm(Maybe<std::string>::Nothing()), value(Maybe<std::string>::Nothing()) {}
-  RTCDtlsFingerprint(const Maybe<std::string> algorithm, const Maybe<std::string> value): algorithm(algorithm), value(value) {}
+  RTCDtlsFingerprint(const Maybe<std::string>& algorithm, const Maybe<std::string>& value): algorithm(algorithm), value(value) {}
   const Maybe<std::string> algorithm;
   const Maybe<std::string> value;
 };

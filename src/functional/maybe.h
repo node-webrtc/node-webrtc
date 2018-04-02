@@ -35,7 +35,7 @@ class Maybe {
    * Construct a non-empty Maybe.
    * @param value the value to inject into the Maybe
    */
-  explicit Maybe(const T value): _is_just(true), _value(value) {}
+  explicit Maybe(const T& value): _is_just(true), _value(value) {}
 
   /**
    * Maybe forms an applicative. Apply a Maybe.
@@ -92,7 +92,7 @@ class Maybe {
    * @param that another Maybe
    * @return this or that
    */
-  Maybe<T> Or(const Maybe<T> that) const {
+  Maybe<T> Or(const Maybe<T>& that) const {
     return _is_just ? this : that;
   }
 
@@ -118,7 +118,7 @@ class Maybe {
    * @param value the value present in the Maybe
    * @return a non-empty Maybe
    */
-  static Maybe<T> Just(const T value) {
+  static Maybe<T> Just(const T& value) {
     return Maybe(value);
   }
 
