@@ -37,7 +37,14 @@ PeerConnectionFactory::PeerConnectionFactory(AudioDeviceModule::AudioLayer audio
 
   bool result;
 
+#if defined(WEBRTC_USE_EPOLL)
+  _physicalSocketServer = std::unique_ptr<node_webrtc::PhysicalSocketServer>(new PhysicalSocketServer());
+  assert(_physicalSocketServer);
+
+  _workerThread = std::unique_ptr<rtc::Thread>(new rtc::Thread(_physicalSocketServer.get()));
+#else
   _workerThread = std::unique_ptr<rtc::Thread>(new rtc::Thread());
+#endif
   assert(_workerThread);
 
   result = _workerThread->Start();
@@ -47,7 +54,7 @@ PeerConnectionFactory::PeerConnectionFactory(AudioDeviceModule::AudioLayer audio
     return webrtc::AudioDeviceModule::Create(0, audioLayer);
   });
 
-  _signalingThread = std::unique_ptr<rtc::Thread>(new rtc::Thread());
+  _signalingThread = rtc::Thread::Create();
   assert(_signalingThread);
 
   result = _signalingThread->Start();
