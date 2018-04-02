@@ -40,7 +40,7 @@ static Validation<T> GetOptional(
     const std::string& property,
     T default_value) {
   return GetOptional<T>(object, property).Map(
-      [default_value](const Maybe<T> maybeT) { return maybeT.FromMaybe(default_value); });
+  [default_value](const Maybe<T> maybeT) { return maybeT.FromMaybe(default_value); });
 }
 
 }  // namespace node_webrtc
