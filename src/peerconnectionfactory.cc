@@ -36,6 +36,7 @@ PeerConnectionFactory::PeerConnectionFactory(AudioDeviceModule::AudioLayer audio
   TRACE_CALL;
 
   bool result;
+  (void) result;
 
 #if defined(WEBRTC_USE_EPOLL)
   _physicalSocketServer = std::unique_ptr<node_webrtc::PhysicalSocketServer>(new PhysicalSocketServer());
@@ -134,6 +135,8 @@ void PeerConnectionFactory::Init(Handle<Object> exports) {
   uv_mutex_init(&_lock);
 
   bool result;
+  (void) result;
+
   result = rtc::InitializeSSL();
   assert(result);
 

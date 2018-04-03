@@ -81,7 +81,7 @@ NAN_METHOD(RTCStatsReport::stat) {
 
 NAN_GETTER(RTCStatsReport::GetTimestamp) {
   TRACE_CALL;
-  Nan::HandleScope scope;
+  (void) property;
 
   auto self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.Holder());
 
@@ -91,7 +91,7 @@ NAN_GETTER(RTCStatsReport::GetTimestamp) {
 
 NAN_GETTER(RTCStatsReport::GetType) {
   TRACE_CALL;
-  Nan::HandleScope scope;
+  (void) property;
 
   auto self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.Holder());
   auto type = self->_stats.find("type")->second;
@@ -101,6 +101,9 @@ NAN_GETTER(RTCStatsReport::GetType) {
 }
 
 NAN_SETTER(RTCStatsReport::ReadOnly) {
+  (void) info;
+  (void) property;
+  (void) value;
   INFO("RTCStatsReport::ReadOnly");
 }
 

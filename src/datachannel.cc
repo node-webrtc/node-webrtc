@@ -72,7 +72,8 @@ void DataChannelObserver::QueueEvent(DataChannel::AsyncEventType type, void* dat
 }
 
 DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
-  : loop(uv_default_loop()),
+  : Nan::AsyncResource("RTCDataChannel")
+  , loop(uv_default_loop()),
     _binaryType(BinaryType::kArrayBuffer) {
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, reinterpret_cast<uv_async_cb>(Run));
@@ -145,7 +146,7 @@ void DataChannel::QueueEvent(AsyncEventType type, void* data) {
   //Nan::AdjustExternalMemory(-parameter->size);
 }*/
 
-void DataChannel::Run(uv_async_t* handle, int status) {
+void DataChannel::Run(uv_async_t* handle, int) {
   Nan::HandleScope scope;
 
   auto self = static_cast<DataChannel*>(handle->data);
@@ -167,24 +168,18 @@ void DataChannel::Run(uv_async_t* handle, int status) {
     TRACE_U("evt.type", evt.type);
     if (DataChannel::ERROR & evt.type) {
       auto data = static_cast<DataChannel::ErrorEvent*>(evt.data);
-      Local<Function> callback = Local<Function>::Cast(dc->Get(Nan::New("onerror").ToLocalChecked()));
       Local<Value> argv[1];
       argv[0] = Nan::Error(data->msg.c_str());
-      Nan::MakeCallback(dc, callback, 1, argv);
+      self->runInAsyncScope(dc, "onerror", 1, argv);
     } else if (DataChannel::STATE & evt.type) {
       auto data = static_cast<StateEvent*>(evt.data);
-      Local<Function> callback = Local<Function>::Cast(dc->Get(Nan::New("onstatechange").ToLocalChecked()));
-      Local<Value> argv[1];
-      Local<Integer> state = Nan::New<Integer>((data->state));
-      argv[0] = state;
-      Nan::MakeCallback(dc, callback, 1, argv);
+      self->runInAsyncScope(dc, "onstatechange", 0, nullptr);
 
       if (data->state == webrtc::DataChannelInterface::kClosed) {
         do_shutdown = true;
       }
     } else if (DataChannel::MESSAGE & evt.type) {
       auto data = static_cast<MessageEvent*>(evt.data);
-      Local<Function> callback = Local<Function>::Cast(dc->Get(Nan::New("onmessage").ToLocalChecked()));
 
       Local<Value> argv[1];
 
@@ -198,10 +193,9 @@ void DataChannel::Run(uv_async_t* handle, int status) {
             data->message.get(), v8::kExternalByteArray, data->size);
         array->ForceSet(Nan::New("byteLength").ToLocalChecked(), Nan::New<Integer>(static_cast<uint32_t>(data->size)));
 #endif
-        // NanMakeWeakPersistent(callback, data, &MessageWeakCallback);
 
         argv[0] = array;
-        Nan::MakeCallback(dc, callback, 1, argv);
+        self->runInAsyncScope(dc, "onmessage", 1, argv);
       } else {
         Local<String> str = Nan::New(data->message.get(), data->size).ToLocalChecked();
 
@@ -209,7 +203,7 @@ void DataChannel::Run(uv_async_t* handle, int status) {
         delete data;
 
         argv[0] = str;
-        Nan::MakeCallback(dc, callback, 1, argv);
+        self->runInAsyncScope(dc, "onmessage", 1, argv);
       }
     }
   }
@@ -310,6 +304,7 @@ NAN_METHOD(DataChannel::Close) {
 
 NAN_GETTER(DataChannel::GetBufferedAmount) {
   TRACE_CALL;
+  (void) property;
 
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
@@ -323,6 +318,7 @@ NAN_GETTER(DataChannel::GetBufferedAmount) {
 
 NAN_GETTER(DataChannel::GetId) {
   TRACE_CALL;
+  (void) property;
 
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
@@ -336,6 +332,7 @@ NAN_GETTER(DataChannel::GetId) {
 
 NAN_GETTER(DataChannel::GetLabel) {
   TRACE_CALL;
+  (void) property;
 
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
@@ -349,6 +346,7 @@ NAN_GETTER(DataChannel::GetLabel) {
 
 NAN_GETTER(DataChannel::GetMaxRetransmits) {
   TRACE_CALL;
+  (void) property;
 
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
@@ -362,6 +360,7 @@ NAN_GETTER(DataChannel::GetMaxRetransmits) {
 
 NAN_GETTER(DataChannel::GetOrdered) {
   TRACE_CALL;
+  (void) property;
 
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
@@ -375,6 +374,7 @@ NAN_GETTER(DataChannel::GetOrdered) {
 
 NAN_GETTER(DataChannel::GetPriority) {
   TRACE_CALL;
+  (void) property;
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New("high").ToLocalChecked());
@@ -382,6 +382,7 @@ NAN_GETTER(DataChannel::GetPriority) {
 
 NAN_GETTER(DataChannel::GetProtocol) {
   TRACE_CALL;
+  (void) property;
 
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
@@ -395,6 +396,7 @@ NAN_GETTER(DataChannel::GetProtocol) {
 
 NAN_GETTER(DataChannel::GetReadyState) {
   TRACE_CALL;
+  (void) property;
 
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
@@ -410,6 +412,7 @@ NAN_GETTER(DataChannel::GetReadyState) {
 
 NAN_GETTER(DataChannel::GetBinaryType) {
   TRACE_CALL;
+  (void) property;
 
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
@@ -421,6 +424,7 @@ NAN_GETTER(DataChannel::GetBinaryType) {
 
 NAN_SETTER(DataChannel::SetBinaryType) {
   TRACE_CALL;
+  (void) property;
 
   auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
@@ -432,6 +436,9 @@ NAN_SETTER(DataChannel::SetBinaryType) {
 }
 
 NAN_SETTER(DataChannel::ReadOnly) {
+  (void) info;
+  (void) property;
+  (void) value;
   INFO("PeerConnection::ReadOnly");
 }
 

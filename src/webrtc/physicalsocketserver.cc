@@ -143,7 +143,7 @@ bool PhysicalSocket::Create(int family, int type) {
   return s_ != INVALID_SOCKET;
 }
 SocketAddress PhysicalSocket::GetLocalAddress() const {
-  sockaddr_storage addr_storage = {0};
+  sockaddr_storage addr_storage;
   socklen_t addrlen = sizeof(addr_storage);
   sockaddr* addr = reinterpret_cast<sockaddr*>(&addr_storage);
   int result = ::getsockname(s_, addr, &addrlen);
@@ -157,7 +157,7 @@ SocketAddress PhysicalSocket::GetLocalAddress() const {
   return address;
 }
 SocketAddress PhysicalSocket::GetRemoteAddress() const {
-  sockaddr_storage addr_storage = {0};
+  sockaddr_storage addr_storage;
   socklen_t addrlen = sizeof(addr_storage);
   sockaddr* addr = reinterpret_cast<sockaddr*>(&addr_storage);
   int result = ::getpeername(s_, addr, &addrlen);
@@ -813,7 +813,7 @@ class EventDispatcher : public Dispatcher {
     }
   }
   uint32_t GetRequestedEvents() override { return DE_READ; }
-  void OnPreEvent(uint32_t ff) override {
+  void OnPreEvent(uint32_t) override {
     // It is not possible to perfectly emulate an auto-resetting event with
     // pipes.  This simulates it by resetting before the event is handled.
     CritScope cs(&crit_);
@@ -824,7 +824,7 @@ class EventDispatcher : public Dispatcher {
       fSignaled_ = false;
     }
   }
-  void OnEvent(uint32_t ff, int err) override { RTC_NOTREACHED(); }
+  void OnEvent(uint32_t, int) override { RTC_NOTREACHED(); }
   int GetDescriptor() override { return afd_[0]; }
   bool IsDescriptorClosed() override { return false; }
  private:
@@ -947,7 +947,7 @@ class PosixSignalDispatcher : public Dispatcher {
     owner_->Remove(this);
   }
   uint32_t GetRequestedEvents() override { return DE_READ; }
-  void OnPreEvent(uint32_t ff) override {
+  void OnPreEvent(uint32_t) override {
     // Events might get grouped if signals come very fast, so we read out up to
     // 16 bytes to make sure we keep the pipe empty.
     uint8_t b[16];
@@ -958,7 +958,7 @@ class PosixSignalDispatcher : public Dispatcher {
       LOG(LS_WARNING) << "Should have read at least one byte";
     }
   }
-  void OnEvent(uint32_t ff, int err) override {
+  void OnEvent(uint32_t, int) override {
     for (int signum = 0; signum < PosixSignalHandler::kNumPosixSignals;
          ++signum) {
       if (PosixSignalHandler::Instance()->IsSignalSet(signum)) {
@@ -1050,7 +1050,7 @@ class Signaler : public EventDispatcher {
       : EventDispatcher(ss), pf_(pf) {
   }
   ~Signaler() override { }
-  void OnEvent(uint32_t ff, int err) override {
+  void OnEvent(uint32_t, int) override {
     if (pf_)
       *pf_ = false;
   }
@@ -1170,7 +1170,11 @@ void PhysicalSocketServer::Remove(Dispatcher *pdispatcher) {
   }
 #endif  // WEBRTC_USE_EPOLL
 }
+#if defined(WEBRTC_USE_EPOLL)
 void PhysicalSocketServer::Update(Dispatcher* pdispatcher) {
+#else
+void PhysicalSocketServer::Update(Dispatcher*) {
+#endif  // WEBRTC_USE_EPOLL
 #if defined(WEBRTC_USE_EPOLL)
   if (epoll_fd_ == INVALID_SOCKET) {
     return;

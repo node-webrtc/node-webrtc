@@ -29,7 +29,8 @@ namespace node_webrtc {
 class DataChannelObserver;
 
 class DataChannel
-  : public Nan::ObjectWrap
+  : public Nan::AsyncResource
+  , public Nan::ObjectWrap
   , public webrtc::DataChannelObserver {
   friend class node_webrtc::DataChannelObserver;
  public:
