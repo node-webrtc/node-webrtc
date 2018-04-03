@@ -35,7 +35,8 @@ class SetLocalDescriptionObserver;
 class SetRemoteDescriptionObserver;
 
 class PeerConnection
-  : public Nan::ObjectWrap
+  : public Nan::AsyncResource
+  , public Nan::ObjectWrap
   , public webrtc::PeerConnectionObserver {
  public:
   struct ErrorEvent {
@@ -217,7 +218,6 @@ class PeerConnection
 
   std::string _lastSdp;
 
-  webrtc::AudioDeviceModule* _audioDeviceModule;
   UnsignedShortRange _port_range;
   ExtendedRTCConfiguration _cached_configuration;
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
