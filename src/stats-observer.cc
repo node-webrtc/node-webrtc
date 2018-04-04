@@ -29,7 +29,6 @@ void StatsObserver::OnComplete(const webrtc::StatsReports& statsReports) {
     }
     reports.push_back(report);
   }
-  PeerConnection::GetStatsEvent* data = new PeerConnection::GetStatsEvent(this->callback, timestamp, reports);
-  parent->QueueEvent(PeerConnection::GET_STATS_SUCCESS, static_cast<void*>(data));
+  parent->Dispatch(GetStatsEvent::Create(callback, timestamp, reports));
   TRACE_END;
 }

@@ -7,7 +7,6 @@
  */
 #ifndef SRC_EVENTS_H_
 #define SRC_EVENTS_H_
-
 #include <nan.h>
 
 #include <memory>
@@ -18,6 +17,7 @@ namespace node_webrtc {
 
 class DataChannel;
 class DataChannelObserver;
+class PeerConnection;
 
 /**
  * Event represents an event that can be dispatched to a target.
@@ -37,6 +37,54 @@ class Event {
   virtual ~Event() = default;
 };
 
+class AddIceCandidateSuccessEvent: public Event<PeerConnection> {
+ public:
+  void Dispatch(PeerConnection&) override;
+
+  static std::unique_ptr<AddIceCandidateSuccessEvent> Create() {
+    return std::unique_ptr<AddIceCandidateSuccessEvent>(new AddIceCandidateSuccessEvent());
+  }
+
+ private:
+  AddIceCandidateSuccessEvent() = default;
+};
+
+class SetLocalDescriptionSuccessEvent: public Event<PeerConnection> {
+ public:
+  void Dispatch(PeerConnection&) override;
+
+  static std::unique_ptr<SetLocalDescriptionSuccessEvent> Create() {
+    return std::unique_ptr<SetLocalDescriptionSuccessEvent>(new SetLocalDescriptionSuccessEvent());
+  }
+
+ private:
+  SetLocalDescriptionSuccessEvent() = default;
+};
+
+class SetRemoteDescriptionSuccessEvent: public Event<PeerConnection> {
+ public:
+  void Dispatch(PeerConnection&) override;
+
+  static std::unique_ptr<SetRemoteDescriptionSuccessEvent> Create() {
+    return std::unique_ptr<SetRemoteDescriptionSuccessEvent>(new SetRemoteDescriptionSuccessEvent());
+  }
+
+ private:
+  SetRemoteDescriptionSuccessEvent() = default;
+};
+
+class NegotiationNeededEvent: public Event<PeerConnection> {
+ public:
+  void Dispatch(PeerConnection&) override;
+
+  static std::unique_ptr<NegotiationNeededEvent> Create() {
+    return std::unique_ptr<NegotiationNeededEvent>(new NegotiationNeededEvent());
+  }
+
+ private:
+  NegotiationNeededEvent() = default;
+};
+
 template <typename T>
 class ErrorEvent: public Event<T> {
  public:
@@ -46,6 +94,56 @@ class ErrorEvent: public Event<T> {
 
  protected:
   explicit ErrorEvent(const std::string&& msg): msg(msg) {}
+};
+
+class AddIceCandidateErrorEvent: public ErrorEvent<PeerConnection> {
+ public:
+  static std::unique_ptr<AddIceCandidateErrorEvent> Create(const std::string& msg) {
+    return std::unique_ptr<AddIceCandidateErrorEvent>(new AddIceCandidateErrorEvent(std::string(msg)));
+  }
+
+ private:
+  explicit AddIceCandidateErrorEvent(const std::string&& msg): ErrorEvent(std::string(msg)) {}
+};
+
+class CreateAnswerErrorEvent: public ErrorEvent<PeerConnection> {
+ public:
+  static std::unique_ptr<CreateAnswerErrorEvent> Create(const std::string& msg) {
+    return std::unique_ptr<CreateAnswerErrorEvent>(new CreateAnswerErrorEvent(std::string(msg)));
+  }
+
+ private:
+  explicit CreateAnswerErrorEvent(const std::string&& msg): ErrorEvent(std::string(msg)) {}
+};
+
+class CreateOfferErrorEvent: public ErrorEvent<PeerConnection> {
+ public:
+  static std::unique_ptr<CreateOfferErrorEvent> Create(const std::string& msg) {
+    return std::unique_ptr<CreateOfferErrorEvent>(new CreateOfferErrorEvent(std::string(msg)));
+  }
+
+ private:
+  explicit CreateOfferErrorEvent(const std::string&& msg): ErrorEvent(std::string(msg)) {}
+};
+
+class SetLocalDescriptionErrorEvent: public ErrorEvent<PeerConnection> {
+ public:
+  static std::unique_ptr<SetLocalDescriptionErrorEvent> Create(const std::string& msg) {
+    return std::unique_ptr<SetLocalDescriptionErrorEvent>(new SetLocalDescriptionErrorEvent(std::string(msg)));
+  }
+
+ private:
+  explicit SetLocalDescriptionErrorEvent(const std::string&& msg): ErrorEvent(std::string(msg)) {}
+};
+
+class SetRemoteDescriptionErrorEvent: public ErrorEvent<PeerConnection> {
+ public:
+  static std::unique_ptr<SetRemoteDescriptionErrorEvent> Create(const std::string& msg) {
+    return std::unique_ptr<SetRemoteDescriptionErrorEvent>(new SetRemoteDescriptionErrorEvent(std::string(msg)));
+  }
+
+ private:
+  explicit SetRemoteDescriptionErrorEvent(const std::string&& msg): ErrorEvent(std::string(msg)) {}
 };
 
 class MessageEvent: public Event<DataChannel> {
@@ -69,6 +167,69 @@ class MessageEvent: public Event<DataChannel> {
   }
 };
 
+class SdpEvent: public Event<PeerConnection> {
+ public:
+  const std::string type;
+  std::string desc;
+
+  void Dispatch(PeerConnection& peerConnection) override;
+
+ protected:
+  explicit SdpEvent(webrtc::SessionDescriptionInterface* sdp)
+    : type(sdp->type()) {
+    sdp->ToString(&desc);
+  }
+};
+
+class CreateAnswerSuccessEvent: public SdpEvent {
+ public:
+  static std::unique_ptr<CreateAnswerSuccessEvent> Create(webrtc::SessionDescriptionInterface* sdp) {
+    return std::unique_ptr<CreateAnswerSuccessEvent>(new CreateAnswerSuccessEvent(sdp));
+  }
+
+ private:
+  explicit CreateAnswerSuccessEvent(webrtc::SessionDescriptionInterface* sdp): SdpEvent(sdp) {}
+};
+
+class CreateOfferSuccessEvent: public SdpEvent {
+ public:
+  static std::unique_ptr<CreateOfferSuccessEvent> Create(webrtc::SessionDescriptionInterface* sdp) {
+    return std::unique_ptr<CreateOfferSuccessEvent>(new CreateOfferSuccessEvent(sdp));
+  }
+
+ private:
+  explicit CreateOfferSuccessEvent(webrtc::SessionDescriptionInterface* sdp): SdpEvent(sdp) {}
+};
+
+class IceEvent: public Event<PeerConnection> {
+ public:
+  std::string error;
+  std::unique_ptr<const webrtc::IceCandidateInterface> candidate;
+
+  void Dispatch(PeerConnection& peerConnection) override;
+
+  static std::unique_ptr<IceEvent> Create(const webrtc::IceCandidateInterface* ice_candidate) {
+    return std::unique_ptr<IceEvent>(new IceEvent(ice_candidate));
+  }
+
+ private:
+  explicit IceEvent(const webrtc::IceCandidateInterface* ice_candidate) {
+    std::string sdp;
+    if (!ice_candidate->ToString(&sdp)) {
+      error = "Failed to print the candidate string. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc";
+      return;
+    }
+    webrtc::SdpParseError parseError;
+    candidate = std::unique_ptr<const webrtc::IceCandidateInterface>(
+            webrtc::CreateIceCandidate(ice_candidate->sdp_mid(), ice_candidate->sdp_mline_index(), sdp, &parseError));
+    if (!parseError.description.empty()) {
+      error = parseError.description;
+    } else if (!candidate) {
+      error = "Failed to copy RTCIceCandidate";
+    }
+  }
+};
+
 template <typename T, typename S>
 class StateEvent: public Event<T> {
  public:
@@ -88,6 +249,80 @@ class DataChannelStateChangeEvent: public StateEvent<DataChannel, webrtc::DataCh
 
  protected:
   explicit DataChannelStateChangeEvent(const webrtc::DataChannelInterface::DataState state): StateEvent(state) {}
+};
+
+class IceConnectionStateChangeEvent
+  : public StateEvent<PeerConnection, webrtc::PeerConnectionInterface::IceConnectionState> {
+ public:
+  void Dispatch(PeerConnection& peerConnection) override;
+
+  static std::unique_ptr<IceConnectionStateChangeEvent> Create(
+      const webrtc::PeerConnectionInterface::IceConnectionState state) {
+    return std::unique_ptr<IceConnectionStateChangeEvent>(new IceConnectionStateChangeEvent(state));
+  }
+
+ private:
+  explicit IceConnectionStateChangeEvent(const webrtc::PeerConnectionInterface::IceConnectionState state)
+    : StateEvent(state) {}
+};
+
+class IceGatheringStateChangeEvent
+  : public StateEvent<PeerConnection, webrtc::PeerConnectionInterface::IceGatheringState> {
+ public:
+  void Dispatch(PeerConnection& peerConnection) override;
+
+  static std::unique_ptr<IceGatheringStateChangeEvent> Create(
+      const webrtc::PeerConnectionInterface::IceGatheringState state) {
+    return std::unique_ptr<IceGatheringStateChangeEvent>(new IceGatheringStateChangeEvent(state));
+  }
+
+ private:
+  explicit IceGatheringStateChangeEvent(const webrtc::PeerConnectionInterface::IceGatheringState state)
+    : StateEvent(state) {}
+};
+
+class SignalingStateChangeEvent: public StateEvent<PeerConnection, webrtc::PeerConnectionInterface::SignalingState> {
+ public:
+  void Dispatch(PeerConnection& peerConnection) override;
+
+  static std::unique_ptr<SignalingStateChangeEvent> Create(
+      const webrtc::PeerConnectionInterface::SignalingState state) {
+    return std::unique_ptr<SignalingStateChangeEvent>(new SignalingStateChangeEvent(state));
+  }
+
+ private:
+  explicit SignalingStateChangeEvent(const webrtc::PeerConnectionInterface::SignalingState state): StateEvent(state) {}
+};
+
+class DataChannelEvent: public Event<PeerConnection> {
+ public:
+  DataChannelObserver* observer;
+
+  void Dispatch(PeerConnection& peerConnection) override;
+
+  static std::unique_ptr<DataChannelEvent> Create(DataChannelObserver* observer) {
+    return std::unique_ptr<DataChannelEvent>(new DataChannelEvent(observer));
+  }
+
+ private:
+  explicit DataChannelEvent(DataChannelObserver* observer): observer(observer) {}
+};
+
+class GetStatsEvent: public Event<PeerConnection> {
+ public:
+  Nan::Callback* callback;
+  double timestamp;
+  std::vector<std::map<std::string, std::string>> reports;
+
+  void Dispatch(PeerConnection& peerConnection) override;
+
+  static std::unique_ptr<GetStatsEvent> Create(Nan::Callback* callback, const double timestamp, const std::vector<std::map<std::string, std::string>>& reports) {
+    return std::unique_ptr<GetStatsEvent>(new GetStatsEvent(callback, timestamp, reports));
+  }
+
+ private:
+  GetStatsEvent(Nan::Callback* callback, const double timestamp, const std::vector<std::map<std::string, std::string>>& reports)
+    : callback(callback), timestamp(timestamp), reports(reports) {}
 };
 
 }  // namespace node_webrtc
