@@ -10,10 +10,30 @@
 #include "src/datachannel.h"
 #include "src/peerconnection.h"
 
+using node_webrtc::AddIceCandidateSuccessEvent;
 using node_webrtc::DataChannel;
+using node_webrtc::DataChannelEvent;
 using node_webrtc::DataChannelStateChangeEvent;
 using node_webrtc::ErrorEvent;
+using node_webrtc::GetStatsEvent;
+using node_webrtc::IceConnectionStateChangeEvent;
+using node_webrtc::IceGatheringStateChangeEvent;
+using node_webrtc::IceEvent;
 using node_webrtc::MessageEvent;
+using node_webrtc::NegotiationNeededEvent;
+using node_webrtc::PeerConnection;
+using node_webrtc::SdpEvent;
+using node_webrtc::SetLocalDescriptionSuccessEvent;
+using node_webrtc::SetRemoteDescriptionSuccessEvent;
+using node_webrtc::SignalingStateChangeEvent;
+
+void AddIceCandidateSuccessEvent::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleVoidEvent();
+}
+
+void DataChannelEvent::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleDataChannelEvent(*this);
+}
 
 void DataChannelStateChangeEvent::Dispatch(DataChannel& dataChannel) {
   dataChannel.HandleStateEvent(*this);
@@ -24,6 +44,47 @@ void ErrorEvent<DataChannel>::Dispatch(DataChannel& dataChannel) {
   dataChannel.HandleErrorEvent(*this);
 }
 
+template <>
+void ErrorEvent<PeerConnection>::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleErrorEvent(*this);
+}
+
 void MessageEvent::Dispatch(DataChannel& dataChannel) {
   dataChannel.HandleMessageEvent(*this);
+}
+
+void NegotiationNeededEvent::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleNegotiationNeededEvent(*this);
+}
+
+void GetStatsEvent::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleGetStatsEvent(*this);
+}
+
+void IceEvent::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleIceCandidateEvent(*this);
+}
+
+void IceConnectionStateChangeEvent::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleIceConnectionStateChangeEvent(*this);
+}
+
+void IceGatheringStateChangeEvent::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleIceGatheringStateChangeEvent(*this);
+}
+
+void SdpEvent::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleSdpEvent(*this);
+}
+
+void SetLocalDescriptionSuccessEvent::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleVoidEvent();
+}
+
+void SetRemoteDescriptionSuccessEvent::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleVoidEvent();
+}
+
+void SignalingStateChangeEvent::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleSignalingStateChangeEvent(*this);
 }

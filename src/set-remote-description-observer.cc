@@ -15,13 +15,12 @@ using node_webrtc::SetRemoteDescriptionObserver;
 
 void SetRemoteDescriptionObserver::OnSuccess() {
   TRACE_CALL;
-  parent->QueueEvent(PeerConnection::SET_REMOTE_DESCRIPTION_SUCCESS, static_cast<void*>(nullptr));
+  parent->Dispatch(SetRemoteDescriptionSuccessEvent::Create());
   TRACE_END;
 }
 
 void SetRemoteDescriptionObserver::OnFailure(const std::string& msg) {
   TRACE_CALL;
-  PeerConnection::ErrorEvent* data = new PeerConnection::ErrorEvent(msg);
-  parent->QueueEvent(PeerConnection::SET_REMOTE_DESCRIPTION_ERROR, static_cast<void*>(data));
+  parent->Dispatch(SetRemoteDescriptionErrorEvent::Create(msg));
   TRACE_END;
 }

@@ -24,6 +24,8 @@
 #include "webrtc/base/scoped_ref_ptr.h"
 
 #include "converters/webrtc.h"
+#include "eventloop.h"
+#include "events.h"
 #include "peerconnectionfactory.h"
 
 namespace node_webrtc {
@@ -37,123 +39,26 @@ class SetRemoteDescriptionObserver;
 class PeerConnection
   : public Nan::AsyncResource
   , public Nan::ObjectWrap
+  , public node_webrtc::EventLoop<PeerConnection>
   , public webrtc::PeerConnectionObserver {
  public:
-  struct ErrorEvent {
-    explicit ErrorEvent(const std::string& msg)
-      : msg(msg) {}
-
-    std::string msg;
-  };
-
-  struct SdpEvent {
-    explicit SdpEvent(webrtc::SessionDescriptionInterface* sdp) {
-      if (!sdp->ToString(&desc)) {
-        desc = "";
-      }
-      type = sdp->type();
-    }
-
-    std::string type;
-    std::string desc;
-  };
-
-  struct IceEvent {
-    explicit IceEvent(const webrtc::IceCandidateInterface* ice_candidate) {
-      std::string sdp;
-      if (!ice_candidate->ToString(&sdp)) {
-        error = "Failed to print the candidate string. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc";
-        return;
-      }
-      webrtc::SdpParseError parseError;
-      candidate = std::unique_ptr<const webrtc::IceCandidateInterface>(
-              webrtc::CreateIceCandidate(ice_candidate->sdp_mid(), ice_candidate->sdp_mline_index(), sdp, &parseError));
-      if (!parseError.description.empty()) {
-        error = parseError.description;
-      } else if (!candidate) {
-        error = "Failed to copy RTCIceCandidate";
-      }
-    }
-
-    std::string error;
-    std::unique_ptr<const webrtc::IceCandidateInterface> candidate;
-  };
-
-  struct StateEvent {
-    explicit StateEvent(uint32_t state)
-      : state(state) {}
-
-    uint32_t state;
-  };
-
-  struct DataChannelEvent {
-    explicit DataChannelEvent(DataChannelObserver* observer)
-      : observer(observer) {}
-
-    DataChannelObserver* observer;
-  };
-
-  struct GetStatsEvent {
-    GetStatsEvent(Nan::Callback* callback, double timestamp, const std::vector<std::map<std::string, std::string>>& reports)
-      : callback(callback), timestamp(timestamp), reports(reports) {}
-
-    Nan::Callback* callback;
-    double timestamp;
-    std::vector<std::map<std::string, std::string>> reports;
-  };
-
-  enum AsyncEventType {
-    CREATE_OFFER_SUCCESS = 0x1 << 0,  // 1
-    CREATE_OFFER_ERROR = 0x1 << 1,  // 2
-    CREATE_ANSWER_SUCCESS = 0x1 << 2,  // 4
-    CREATE_ANSWER_ERROR = 0x1 << 3,  // 8
-    SET_LOCAL_DESCRIPTION_SUCCESS = 0x1 << 4,  // 16
-    SET_LOCAL_DESCRIPTION_ERROR = 0x1 << 5,  // 32
-    SET_REMOTE_DESCRIPTION_SUCCESS = 0x1 << 6,  // 64
-    SET_REMOTE_DESCRIPTION_ERROR = 0x1 << 7,  // 128
-    ADD_ICE_CANDIDATE_SUCCESS = 0x1 << 8,  // 256
-    ADD_ICE_CANDIDATE_ERROR = 0x1 << 9,  // 512
-    NOTIFY_DATA_CHANNEL = 0x1 << 10,  // 1024
-    NOTIFY_CONNECTION = 0x1 << 11,  // 2048
-    NOTIFY_CLOSED_CONNECTION = 0x1 << 12,  // 4096
-    ICE_CANDIDATE = 0x1 << 13,  // 8192
-    SIGNALING_STATE_CHANGE = 0x1 << 14,  // 16384
-    ICE_CONNECTION_STATE_CHANGE = 0x1 << 15,  // 32768
-    ICE_GATHERING_STATE_CHANGE = 0x1 << 16,  // 65536
-    NOTIFY_ADD_STREAM = 0x1 << 17,  // 131072
-    NOTIFY_REMOVE_STREAM = 0x1 << 18,  // 262144
-    GET_STATS_SUCCESS = 0x1 << 19,  // 524288
-    NEGOTIATION_NEEDED = 0x1 << 20,
-
-    ERROR_EVENT = CREATE_OFFER_ERROR | CREATE_ANSWER_ERROR |
-        SET_LOCAL_DESCRIPTION_ERROR | SET_REMOTE_DESCRIPTION_ERROR |
-        ADD_ICE_CANDIDATE_ERROR,
-    SDP_EVENT = CREATE_OFFER_SUCCESS | CREATE_ANSWER_SUCCESS,
-    VOID_EVENT = SET_LOCAL_DESCRIPTION_SUCCESS | SET_REMOTE_DESCRIPTION_SUCCESS |
-        ADD_ICE_CANDIDATE_SUCCESS | GET_STATS_SUCCESS,
-    STATE_EVENT = SIGNALING_STATE_CHANGE | ICE_CONNECTION_STATE_CHANGE |
-        ICE_GATHERING_STATE_CHANGE
-  };
-
   explicit PeerConnection(ExtendedRTCConfiguration configuration);
-  ~PeerConnection();
+  ~PeerConnection() override;
 
   //
   // PeerConnectionObserver implementation.
   //
 
-  virtual void OnError();
+  void OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state) override;
+  void OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState new_state) override;
+  void OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState new_state) override;
+  void OnIceCandidate(const webrtc::IceCandidateInterface* candidate) override;
+  void OnRenegotiationNeeded() override;
 
-  virtual void OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state);
-  virtual void OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState new_state);
-  virtual void OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState new_state);
-  virtual void OnIceCandidate(const webrtc::IceCandidateInterface* candidate);
-  virtual void OnRenegotiationNeeded();
+  void OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel) override;
 
-  virtual void OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel);
-
-  virtual void OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream);
-  virtual void OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream);
+  void OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) override;
+  void OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) override;
 
   //
   // Nodejs wrapping.
@@ -194,23 +99,21 @@ class PeerConnection
   static NAN_GETTER(GetIceGatheringState);
   static NAN_SETTER(ReadOnly);
 
-  void QueueEvent(AsyncEventType type, void* data);
+  void HandleErrorEvent(const ErrorEvent<PeerConnection>& event);
+  void HandleGetStatsEvent(const GetStatsEvent& event);
+  void HandleIceConnectionStateChangeEvent(const IceConnectionStateChangeEvent& event);
+  void HandleIceGatheringStateChangeEvent(const IceGatheringStateChangeEvent& event);
+  void HandleIceCandidateEvent(const IceEvent& event);
+  void HandleDataChannelEvent(const DataChannelEvent& event);
+  void HandleNegotiationNeededEvent(const NegotiationNeededEvent& event);
+  void HandleSdpEvent(const SdpEvent& event);
+  void HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event);
+  void HandleVoidEvent();
+
+ protected:
+  void DidStop() override;
 
  private:
-  static void Run(uv_async_t* handle, int status);
-  static void Shutdown(uv_async_t* handle);
-
-  struct AsyncEvent {
-    AsyncEventType type;
-    void* data;
-  };
-
-  uv_mutex_t lock;
-  uv_async_t async;
-  uv_loop_t* loop;
-  std::queue<AsyncEvent> _events;
-  webrtc::PeerConnectionInterface::IceServers _iceServers;
-
   rtc::scoped_refptr<CreateOfferObserver> _createOfferObserver;
   rtc::scoped_refptr<CreateAnswerObserver> _createAnswerObserver;
   rtc::scoped_refptr<SetLocalDescriptionObserver> _setLocalDescriptionObserver;
