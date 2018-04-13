@@ -1,0 +1,19 @@
+# .gitignore
+*\~
+build
+package-lock.json
+yarn.lock
+third_party
+build.log
+
+# other stuff
+.eslintrc
+.gitignore
+.gitmodules
+.travis.yml
+appveyor.yml
+karma.conf.js
+examples
+scripts/build-appveyor.bat
+scripts/karma.js
+test

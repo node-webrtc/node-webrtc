@@ -8,6 +8,7 @@
 #include "peerconnectionfactory.h"
 
 #include "webrtc/base/ssladapter.h"
+#include "webrtc/p2p/base/basicpacketsocketfactory.h"
 
 #include "common.h"
 
@@ -24,32 +25,52 @@ using v8::String;
 using v8::Uint32;
 using v8::Value;
 using v8::Array;
+using webrtc::AudioDeviceModule;
 
 Nan::Persistent<Function> PeerConnectionFactory::constructor;
 std::shared_ptr<PeerConnectionFactory> PeerConnectionFactory::_default;
 uv_mutex_t PeerConnectionFactory::_lock;
 int PeerConnectionFactory::_references = 0;
 
-PeerConnectionFactory::PeerConnectionFactory(rtc::scoped_refptr<webrtc::AudioDeviceModule> audioDeviceModule) {
+PeerConnectionFactory::PeerConnectionFactory(AudioDeviceModule::AudioLayer audioLayer) {
   TRACE_CALL;
 
   bool result;
+  (void) result;
 
+#if defined(WEBRTC_USE_EPOLL)
+  _physicalSocketServer = std::unique_ptr<node_webrtc::PhysicalSocketServer>(new PhysicalSocketServer());
+  assert(_physicalSocketServer);
+
+  _workerThread = std::unique_ptr<rtc::Thread>(new rtc::Thread(_physicalSocketServer.get()));
+#else
   _workerThread = std::unique_ptr<rtc::Thread>(new rtc::Thread());
+#endif
   assert(_workerThread);
 
   result = _workerThread->Start();
   assert(result);
 
-  _signalingThread = std::unique_ptr<rtc::Thread>(new rtc::Thread());
+  auto audioDeviceModule = _workerThread->Invoke<rtc::scoped_refptr<AudioDeviceModule>>(RTC_FROM_HERE, [audioLayer]() {
+    return webrtc::AudioDeviceModule::Create(0, audioLayer);
+  });
+
+  _signalingThread = rtc::Thread::Create();
   assert(_signalingThread);
 
   result = _signalingThread->Start();
   assert(result);
 
-  _factory = webrtc::CreatePeerConnectionFactory(_workerThread.get(), _signalingThread.get(), audioDeviceModule,
-          nullptr, nullptr);
+  _factory = webrtc::CreatePeerConnectionFactory(
+          _workerThread.get(),
+          _signalingThread.get(),
+          audioDeviceModule.release(),
+          nullptr,
+          nullptr);
   assert(_factory);
+
+  _networkManager = std::unique_ptr<rtc::NetworkManager>(new rtc::BasicNetworkManager());
+  _socketFactory = std::unique_ptr<rtc::PacketSocketFactory>(new rtc::BasicPacketSocketFactory(_workerThread.get()));
 
   TRACE_END;
 }
@@ -64,6 +85,9 @@ PeerConnectionFactory::~PeerConnectionFactory() {
 
   _workerThread = nullptr;
   _signalingThread = nullptr;
+
+  _networkManager = nullptr;
+  _socketFactory = nullptr;
 
   TRACE_END;
 }
@@ -111,6 +135,8 @@ void PeerConnectionFactory::Init(Handle<Object> exports) {
   uv_mutex_init(&_lock);
 
   bool result;
+  (void) result;
+
   result = rtc::InitializeSSL();
   assert(result);
 

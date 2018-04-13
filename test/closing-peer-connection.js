@@ -10,6 +10,15 @@ test('make sure channel is available after after connection is closed on the oth
 
   var peer1 = new RTCPeerConnection({ iceServers: [] });
   var peer2 = new RTCPeerConnection({ iceServers: [] });
+
+  [[peer1, peer2], [peer2, peer1]].forEach(function(peers) {
+    peers[0].onicecandidate = function(event) {
+      if (event.candidate) {
+        peers[1].addIceCandidate(event.candidate);
+      }
+    };
+  });
+
   var channel1 = peer1.createDataChannel('data', { negotiated: true, id: 0 });
   var channel2 = peer2.createDataChannel('data2', { negotiated: true, id: 0 });
   var waitingFor = 2;

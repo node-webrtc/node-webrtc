@@ -27,14 +27,14 @@ Nan::Persistent<Function> RTCStatsResponse::constructor;
 NAN_METHOD(RTCStatsResponse::New) {
   TRACE_CALL;
 
-  if (!info.IsConstructCall()) {
-    return Nan::ThrowTypeError("Use the new operator to construct the RTCStatsResponse");
+  if (info.Length() != 2 || !info[0]->IsExternal() || !info[1]->IsExternal()) {
+    return Nan::ThrowTypeError("You cannot construct an RTCStatsResponse");
   }
 
-  Local<External> _reports = Local<External>::Cast(info[0]);
-  webrtc::StatsReports* reports = static_cast<webrtc::StatsReports*>(_reports->Value());
+  auto timestamp = static_cast<double*>(Local<External>::Cast(info[0])->Value());
+  auto reports = static_cast<std::vector<std::map<std::string, std::string>>*>(Local<External>::Cast(info[1])->Value());
 
-  RTCStatsResponse* obj = new RTCStatsResponse(*reports);
+  auto obj = new RTCStatsResponse(*timestamp, *reports);
   obj->Wrap(info.This());
 
   TRACE_END;
@@ -44,14 +44,16 @@ NAN_METHOD(RTCStatsResponse::New) {
 NAN_METHOD(RTCStatsResponse::result) {
   TRACE_CALL;
 
-  RTCStatsResponse* self = Nan::ObjectWrap::Unwrap<RTCStatsResponse>(info.This());
+  auto self = Nan::ObjectWrap::Unwrap<RTCStatsResponse>(info.This());
+  auto timestamp = self->_timestamp;
+  auto reports = Nan::New<Array>(self->_reports.size());
 
-  Local<Array> reports = Nan::New<Array>(self->reports.size());
-  for (std::vector<int>::size_type i = 0; i != self->reports.size(); i++) {
-    const void* copy = static_cast<const void*>(self->reports.at(i));
-    Local<Value> cargv[1];
-    cargv[0] = Nan::New<External>(const_cast<void*>(copy));
-    reports->Set(i, Nan::New(RTCStatsReport::constructor)->NewInstance(1, cargv));
+  uint32_t i = 0;
+  for (auto report : self->_reports) {
+    Local<Value> cargv[2];
+    cargv[0] = Nan::New<External>(static_cast<void*>(&timestamp));
+    cargv[1] = Nan::New<External>(static_cast<void*>(&report));
+    reports->Set(i++, Nan::New(RTCStatsReport::constructor)->NewInstance(2, cargv));
   }
 
   TRACE_END;

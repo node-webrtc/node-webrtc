@@ -1,13 +1,15 @@
-/* eslint no-console:0 */
+/* eslint no-console:0, no-process-env:0 */
 'use strict';
 
 var tape = require('tape');
 var SimplePeer = require('simple-peer');
 var wrtc = require('..');
 
+var log = process.env.LOG ? console.log : function() {};
+
 tape('connect once', function(t) {
   t.plan(1);
-  console.log('###########################\n');
+  log('###########################\n');
   connect(function(err) {
     t.error(err, 'connect callback');
   });
@@ -15,7 +17,7 @@ tape('connect once', function(t) {
 
 tape('connect loop', function(t) {
   t.plan(1);
-  console.log('###########################\n');
+  log('###########################\n');
   connectLoop(10, function(err) {
     t.error(err, 'connect callback');
   });
@@ -24,7 +26,7 @@ tape('connect loop', function(t) {
 tape('connect concurrent', function(t) {
   var n = 10;
   t.plan(n);
-  console.log('###########################\n');
+  log('###########################\n');
   for (var i = 0; i < n; i += 1) {
     connect(callback);
   }
@@ -37,7 +39,7 @@ tape('connect concurrent', function(t) {
 tape('connect loop concurrent', function(t) {
   var n = 10;
   t.plan(n);
-  console.log('###########################\n');
+  log('###########################\n');
   for (var i = 0; i < n; i += 1) {
     connectLoop(10, callback);
   }
@@ -53,7 +55,7 @@ function connect(callback) {
   var connId = connIdGen;
   var connName = 'CONNECTION-' + connId;
   connIdGen += 1;
-  console.log(connName, 'starting');
+  log(connName, 'starting');
 
   // setup two peers with simple-peer
   var peer1 = new SimplePeer({
@@ -64,44 +66,58 @@ function connect(callback) {
     initiator: true
   });
 
+  function cleanup() {
+    if (peer1) {
+      peer1.destroy();
+      peer1 = null;
+    }
+    if (peer2) {
+      peer2.destroy();
+      peer2 = null;
+    }
+  }
+
   // when peer1 has signaling data, give it to peer2, and vice versa
   peer1.on('signal', function(data) {
-    console.log(connName, 'signal peer1 -> peer2:');
-    console.log(' ', data);
+    log(connName, 'signal peer1 -> peer2:');
+    log(' ', data);
     peer2.signal(data);
   });
   peer2.on('signal', function(data) {
-    console.log(connName, 'signal peer2 -> peer1:');
-    console.log(' ', data);
+    log(connName, 'signal peer2 -> peer1:');
+    log(' ', data);
     peer1.signal(data);
   });
 
   peer1.on('error', function(err) {
-    console.log(connName, 'peer1 error', err);
+    log(connName, 'peer1 error', err);
+    cleanup();
     callback(err);
   });
   peer2.on('error', function(err) {
-    console.log(connName, 'peer2 error', err);
+    log(connName, 'peer2 error', err);
+    cleanup();
     callback(err);
   });
 
   // wait for 'connect' event
   peer1.on('connect', function() {
-    console.log(connName, 'sending message');
+    log(connName, 'sending message');
     peer1.send('peers are for kids');
   });
   peer2.on('data', function() {
-    console.log(connName, 'completed');
+    log(connName, 'completed');
+    cleanup();
     callback();
   });
 }
 
 function connectLoop(count, callback) {
   if (count <= 0) {
-    console.log('connect loop completed');
+    log('connect loop completed');
     callback();
   } else {
-    console.log('connect loop remain', count);
+    log('connect loop remain', count);
     connect(function(err) {
       if (err) {
         callback(err);

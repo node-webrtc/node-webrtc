@@ -12,9 +12,11 @@
 #include "uv.h"
 #include "v8.h"  // IWYU pragma: keep
 
-#include "webrtc/api/peerconnectionfactory.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 #include "webrtc/modules/audio_device/include/audio_device.h"
+#include "webrtc/pc/peerconnectionfactory.h"
+
+#include "src/webrtc/physicalsocketserver.h"
 
 namespace node_webrtc {
 
@@ -22,20 +24,9 @@ class PeerConnectionFactory
   : public Nan::ObjectWrap {
  public:
   /**
-   * Create a PeerConnectionFactory using a particular webrtc::AudioDeviceModule.
-   */
-  explicit PeerConnectionFactory(rtc::scoped_refptr<webrtc::AudioDeviceModule> audioDeviceModule);
-
-  /**
    * Create a PeerConnectionFactory using a particular webrtc::AudioDeviceModule::AudioLayer.
    */
-  explicit PeerConnectionFactory(webrtc::AudioDeviceModule::AudioLayer audioLayer)
-    : PeerConnectionFactory(webrtc::AudioDeviceModule::Create(0, audioLayer)) {}
-
-  /**
-   * Create a PeerConnectionFactory using webrtc::AudioDeviceModule::AudioLayer::kDummyAudio.
-   */
-  PeerConnectionFactory(): PeerConnectionFactory(webrtc::AudioDeviceModule::kDummyAudio) {}
+  explicit PeerConnectionFactory(webrtc::AudioDeviceModule::AudioLayer audioLayer = webrtc::AudioDeviceModule::kDummyAudio);
 
   ~PeerConnectionFactory() override;
 
@@ -55,6 +46,10 @@ class PeerConnectionFactory
    */
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> factory() { return _factory; }
 
+  rtc::NetworkManager* getNetworkManager() { return _networkManager.get(); }
+
+  rtc::PacketSocketFactory* getSocketFactory() { return _socketFactory.get(); }
+
   //
   // Nodejs wrapping.
   //
@@ -71,6 +66,10 @@ class PeerConnectionFactory
   std::unique_ptr<rtc::Thread> _signalingThread;
   std::unique_ptr<rtc::Thread> _workerThread;
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _factory;
+
+  std::unique_ptr<rtc::NetworkManager> _networkManager;
+  std::unique_ptr<node_webrtc::PhysicalSocketServer> _physicalSocketServer;
+  std::unique_ptr<rtc::PacketSocketFactory> _socketFactory;
 };
 
 }  // namespace node_webrtc

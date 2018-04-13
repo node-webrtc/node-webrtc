@@ -6,7 +6,7 @@
     "p2p",
     "peer"
   ],
-  "version": "0.0.68-dev",
+  "version": "0.1.2-dev",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "http://js-platform.github.io/node-webrtc/",
   "bugs": "https://github.com/js-platform/node-webrtc/issues",
@@ -44,14 +44,22 @@
     "eslint": "^4.14.0",
     "express": "^4.16.2",
     "express-browserify": "^1.0.2",
+    "js-yaml": "^3.11.0",
+    "jsdom": "^11.6.2",
     "karma": "^2.0.0",
     "karma-browserify": "^5.1.2",
     "karma-chrome-launcher": "^2.2.0",
     "karma-firefox-launcher": "^1.1.0",
     "karma-tap": "^3.1.1",
     "karma-tap-pretty-reporter": "^3.0.5",
+    "minimatch": "^3.0.4",
     "minimist": "0.0.8",
-    "simple-peer": "^5.0.0",
+    "mocha": "^3.5.3",
+    "mocha-sugar-free": "^1.3.1",
+    "q": "^1.5.1",
+    "request-promise-native": "^1.0.5",
+    "rimraf": "^2.6.2",
+    "simple-peer": "^9.0.0",
     "tap-spec": "^4.1.1",
     "tape": "^2.4.3",
     "travis-multirunner": "^4.3.0",
@@ -60,7 +68,12 @@
   "scripts": {
     "install": "node scripts/install.js",
     "lint": "eslint lib/*.js lib/**/*.js test/*.js test/**/*.js examples/*.js examples/**/*.js karma.conf.js scripts/*.js",
+    "pretest": "npm run wpt:init",
     "test": "node test/all.js",
-    "test:bridge": "node scripts/karma.js"
+    "test:bridge": "node scripts/karma.js",
+    "wpt:init": "git submodule update --init --recursive",
+    "wpt:reset": "rimraf ./test/web-platform-tests/tests && yarn wpt:init",
+    "wpt:test": "mocha test/web-platform-tests/run-wpts.js",
+    "wpt:update": "git submodule update --recursive --remote && cd test/web-platform-tests/tests && python wpt.py manifest --path ../wpt-manifest.json"
   }
 }

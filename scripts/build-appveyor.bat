@@ -5,8 +5,7 @@ SET EL=0
 ECHO ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ %~f0 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 SET PATH=%CD%;%PATH%
-SET msvs_version=2013
-IF "%msvs_toolset%"=="14" SET msvs_version=2015
+SET msvs_version=2015
 
 ECHO APPVEYOR^: %APPVEYOR%
 ECHO nodejs_version^: %nodejs_version%
@@ -86,7 +85,6 @@ IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO npm install
 SET SKIP_DOWNLOAD=true
-SET DEBUG=true
 CALL npm install
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 

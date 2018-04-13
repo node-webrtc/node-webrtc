@@ -336,7 +336,7 @@ test('getStats', function(t) {
 });
 
 test('close the connections', function(t) {
-  t.plan(3);
+  t.plan(7);
 
   peers[0].close();
   peers[1].close();
@@ -348,7 +348,13 @@ test('close the connections', function(t) {
     peers[i].setLocalDescription({}, function() {}, function() {});
     peers[i].setRemoteDescription({}, function() {}, function() {});
     peers[i].addIceCandidate({}, function() {}, function() {});
-    peers[i].createDataChannel('test');
+    try {
+      peers[i].createDataChannel('test');
+      t.fail('createDataChannel should throw InvalidStateError');
+    } catch (error) {
+      t.equal(error.code, 11);
+      t.equal(error.name, 'InvalidStateError');
+    }
     peers[i].getStats(function() {}, function(err) {
       t.ok(err);
     });

@@ -10,6 +10,9 @@
 #include <stdint.h>
 
 #include "common.h"
+#include "converters.h"
+#include "converters/webrtc.h"
+#include "error.h"
 
 using node_webrtc::DataChannel;
 using node_webrtc::DataChannelObserver;
@@ -47,23 +50,21 @@ DataChannelObserver::~DataChannelObserver() {
 
 void DataChannelObserver::OnStateChange() {
   TRACE_CALL;
-  DataChannel::StateEvent* data = new DataChannel::StateEvent(_jingleDataChannel->state());
+  auto data = new DataChannel::StateEvent(_jingleDataChannel->state());
   QueueEvent(DataChannel::STATE, static_cast<void*>(data));
   TRACE_END;
 }
 
 void DataChannelObserver::OnMessage(const webrtc::DataBuffer& buffer) {
   TRACE_CALL;
-  DataChannel::MessageEvent* data = new DataChannel::MessageEvent(&buffer);
+  auto data = new DataChannel::MessageEvent(&buffer);
   QueueEvent(DataChannel::MESSAGE, static_cast<void*>(data));
   TRACE_END;
 }
 
 void DataChannelObserver::QueueEvent(DataChannel::AsyncEventType type, void* data) {
   TRACE_CALL;
-  DataChannel::AsyncEvent evt;
-  evt.type = type;
-  evt.data = data;
+  DataChannel::AsyncEvent evt = { type, data };
   uv_mutex_lock(&lock);
   _events.push(evt);
   uv_mutex_unlock(&lock);
@@ -71,8 +72,9 @@ void DataChannelObserver::QueueEvent(DataChannel::AsyncEventType type, void* dat
 }
 
 DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
-  : loop(uv_default_loop()),
-    _binaryType(DataChannel::ARRAY_BUFFER) {
+  : Nan::AsyncResource("RTCDataChannel")
+  , loop(uv_default_loop()),
+    _binaryType(BinaryType::kArrayBuffer) {
   uv_mutex_init(&lock);
   uv_async_init(loop, &async, reinterpret_cast<uv_async_cb>(Run));
 
@@ -85,12 +87,11 @@ DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
   // Re-queue cached observer events
   while (true) {
     uv_mutex_lock(&observer->lock);
-    bool empty = observer->_events.empty();
-    if (empty) {
+    if (observer->_events.empty()) {
       uv_mutex_unlock(&observer->lock);
       break;
     }
-    AsyncEvent evt = observer->_events.front();
+    auto evt = observer->_events.front();
     observer->_events.pop();
     uv_mutex_unlock(&observer->lock);
     QueueEvent(evt.type, evt.data);
@@ -115,9 +116,9 @@ NAN_METHOD(DataChannel::New) {
   }
 
   Local<External> _observer = Local<External>::Cast(info[0]);
-  node_webrtc::DataChannelObserver* observer = static_cast<node_webrtc::DataChannelObserver*>(_observer->Value());
+  auto observer = static_cast<node_webrtc::DataChannelObserver*>(_observer->Value());
 
-  DataChannel* obj = new DataChannel(observer);
+  auto obj = new DataChannel(observer);
   obj->Wrap(info.This());
   obj->Ref();
 
@@ -127,9 +128,7 @@ NAN_METHOD(DataChannel::New) {
 
 void DataChannel::QueueEvent(AsyncEventType type, void* data) {
   TRACE_CALL;
-  AsyncEvent evt;
-  evt.type = type;
-  evt.data = data;
+  AsyncEvent evt = { type, data };
   uv_mutex_lock(&lock);
   _events.push(evt);
   uv_mutex_unlock(&lock);
@@ -147,7 +146,7 @@ void DataChannel::QueueEvent(AsyncEventType type, void* data) {
   //Nan::AdjustExternalMemory(-parameter->size);
 }*/
 
-void DataChannel::Run(uv_async_t* handle, int status) {
+void DataChannel::Run(uv_async_t* handle, int) {
   Nan::HandleScope scope;
 
   auto self = static_cast<DataChannel*>(handle->data);
@@ -158,36 +157,29 @@ void DataChannel::Run(uv_async_t* handle, int status) {
     auto dc = self->handle();
 
     uv_mutex_lock(&self->lock);
-    bool empty = self->_events.empty();
-    if (empty) {
+    if (self->_events.empty()) {
       uv_mutex_unlock(&self->lock);
       break;
     }
-    AsyncEvent evt = self->_events.front();
+    auto evt = self->_events.front();
     self->_events.pop();
     uv_mutex_unlock(&self->lock);
 
     TRACE_U("evt.type", evt.type);
     if (DataChannel::ERROR & evt.type) {
-      DataChannel::ErrorEvent* data = static_cast<DataChannel::ErrorEvent*>(evt.data);
-      Local<Function> callback = Local<Function>::Cast(dc->Get(Nan::New("onerror").ToLocalChecked()));
+      auto data = static_cast<DataChannel::ErrorEvent*>(evt.data);
       Local<Value> argv[1];
       argv[0] = Nan::Error(data->msg.c_str());
-      Nan::MakeCallback(dc, callback, 1, argv);
+      self->runInAsyncScope(dc, "onerror", 1, argv);
     } else if (DataChannel::STATE & evt.type) {
-      StateEvent* data = static_cast<StateEvent*>(evt.data);
-      Local<Function> callback = Local<Function>::Cast(dc->Get(Nan::New("onstatechange").ToLocalChecked()));
-      Local<Value> argv[1];
-      Local<Integer> state = Nan::New<Integer>((data->state));
-      argv[0] = state;
-      Nan::MakeCallback(dc, callback, 1, argv);
+      auto data = static_cast<StateEvent*>(evt.data);
+      self->runInAsyncScope(dc, "onstatechange", 0, nullptr);
 
       if (data->state == webrtc::DataChannelInterface::kClosed) {
         do_shutdown = true;
       }
     } else if (DataChannel::MESSAGE & evt.type) {
-      MessageEvent* data = static_cast<MessageEvent*>(evt.data);
-      Local<Function> callback = Local<Function>::Cast(dc->Get(Nan::New("onmessage").ToLocalChecked()));
+      auto data = static_cast<MessageEvent*>(evt.data);
 
       Local<Value> argv[1];
 
@@ -201,10 +193,9 @@ void DataChannel::Run(uv_async_t* handle, int status) {
             data->message.get(), v8::kExternalByteArray, data->size);
         array->ForceSet(Nan::New("byteLength").ToLocalChecked(), Nan::New<Integer>(static_cast<uint32_t>(data->size)));
 #endif
-        // NanMakeWeakPersistent(callback, data, &MessageWeakCallback);
 
         argv[0] = array;
-        Nan::MakeCallback(dc, callback, 1, argv);
+        self->runInAsyncScope(dc, "onmessage", 1, argv);
       } else {
         Local<String> str = Nan::New(data->message.get(), data->size).ToLocalChecked();
 
@@ -212,26 +203,34 @@ void DataChannel::Run(uv_async_t* handle, int status) {
         delete data;
 
         argv[0] = str;
-        Nan::MakeCallback(dc, callback, 1, argv);
+        self->runInAsyncScope(dc, "onmessage", 1, argv);
       }
     }
   }
 
   if (do_shutdown) {
-    self->async.data = nullptr;
-    self->Unref();
-    uv_close(reinterpret_cast<uv_handle_t*>(&self->async), nullptr);
+    uv_close(reinterpret_cast<uv_handle_t*>(&self->async), reinterpret_cast<uv_close_cb>(DataChannel::Shutdown));
   }
 
   TRACE_END;
 }
 
+void DataChannel::Shutdown(uv_async_t* handle) {
+  auto self = static_cast<DataChannel*>(handle->data);
+  self->Unref();
+}
+
 void DataChannel::OnStateChange() {
   TRACE_CALL;
-  StateEvent* data = new StateEvent(_jingleDataChannel->state());
+  auto data = new StateEvent(_jingleDataChannel->state());
   QueueEvent(DataChannel::STATE, static_cast<void*>(data));
   if (_jingleDataChannel->state() == webrtc::DataChannelInterface::kClosed) {
     _jingleDataChannel->UnregisterObserver();
+    _cached_id = _jingleDataChannel->id();
+    _cached_label = _jingleDataChannel->label();
+    _cached_max_retransmits = _jingleDataChannel->maxRetransmits();
+    _cached_ordered = _jingleDataChannel->ordered();
+    _cached_protocol = _jingleDataChannel->protocol();
     _jingleDataChannel = nullptr;
   }
   TRACE_END;
@@ -239,7 +238,7 @@ void DataChannel::OnStateChange() {
 
 void DataChannel::OnMessage(const webrtc::DataBuffer& buffer) {
   TRACE_CALL;
-  MessageEvent* data = new MessageEvent(&buffer);
+  auto data = new MessageEvent(&buffer);
   QueueEvent(DataChannel::MESSAGE, static_cast<void*>(data));
   TRACE_END;
 }
@@ -247,9 +246,13 @@ void DataChannel::OnMessage(const webrtc::DataBuffer& buffer) {
 NAN_METHOD(DataChannel::Send) {
   TRACE_CALL;
 
-  DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.This());
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.This());
 
   if (self->_jingleDataChannel != nullptr) {
+    if (self->_jingleDataChannel->state() != webrtc::DataChannelInterface::DataState::kOpen) {
+      TRACE_END;
+      return Nan::ThrowError("InvalidStateError");
+    }
     if (info[0]->IsString()) {
       Local<String> str = Local<String>::Cast(info[0]);
       std::string data = *String::Utf8Value(str);
@@ -270,7 +273,8 @@ NAN_METHOD(DataChannel::Send) {
         arraybuffer = Local<v8::ArrayBuffer>::Cast(info[0]);
         byte_length = arraybuffer->ByteLength();
       } else {
-        // TODO(mroberts): Throw a TypeError.
+        TRACE_END;
+        return Nan::ThrowTypeError("Expected a Blob or ArrayBuffer");
       }
 
       v8::ArrayBuffer::Contents content = arraybuffer->GetContents();
@@ -284,26 +288,25 @@ NAN_METHOD(DataChannel::Send) {
   }
 
   TRACE_END;
-  return;
 }
 
 NAN_METHOD(DataChannel::Close) {
   TRACE_CALL;
 
-  DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.This());
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.This());
 
   if (self->_jingleDataChannel != nullptr) {
     self->_jingleDataChannel->Close();
   }
 
   TRACE_END;
-  return;
 }
 
 NAN_GETTER(DataChannel::GetBufferedAmount) {
   TRACE_CALL;
+  (void) property;
 
-  DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
   uint64_t buffered_amount = self->_jingleDataChannel != nullptr
       ? self->_jingleDataChannel->buffered_amount()
@@ -313,51 +316,129 @@ NAN_GETTER(DataChannel::GetBufferedAmount) {
   info.GetReturnValue().Set(Nan::New<Number>(buffered_amount));
 }
 
+NAN_GETTER(DataChannel::GetId) {
+  TRACE_CALL;
+  (void) property;
+
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
+
+  auto id = self->_jingleDataChannel
+      ? self->_jingleDataChannel->id()
+      : self->_cached_id;
+
+  TRACE_END;
+  info.GetReturnValue().Set(Nan::New<Number>(id));
+}
+
 NAN_GETTER(DataChannel::GetLabel) {
   TRACE_CALL;
+  (void) property;
 
-  DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
   std::string label = self->_jingleDataChannel != nullptr
       ? self->_jingleDataChannel->label()
-      : "";
+      : self->_cached_label;
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New(label).ToLocalChecked());
 }
 
-NAN_GETTER(DataChannel::GetReadyState) {
+NAN_GETTER(DataChannel::GetMaxRetransmits) {
   TRACE_CALL;
+  (void) property;
 
-  DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
 
-  webrtc::DataChannelInterface::DataState state = self->_jingleDataChannel != nullptr
-      ? self->_jingleDataChannel->state()
-      : webrtc::DataChannelInterface::kClosed;
+  auto max_retransmits = self->_jingleDataChannel
+      ? self->_jingleDataChannel->maxRetransmits()
+      : self->_cached_max_retransmits;
 
   TRACE_END;
-  info.GetReturnValue().Set(Nan::New<Number>(static_cast<uint32_t>(state)));
+  info.GetReturnValue().Set(Nan::New(max_retransmits));
+}
+
+NAN_GETTER(DataChannel::GetOrdered) {
+  TRACE_CALL;
+  (void) property;
+
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
+
+  auto ordered = self->_jingleDataChannel
+      ? self->_jingleDataChannel->ordered()
+      : self->_cached_ordered;
+
+  TRACE_END;
+  info.GetReturnValue().Set(Nan::New(ordered));
+}
+
+NAN_GETTER(DataChannel::GetPriority) {
+  TRACE_CALL;
+  (void) property;
+
+  TRACE_END;
+  info.GetReturnValue().Set(Nan::New("high").ToLocalChecked());
+}
+
+NAN_GETTER(DataChannel::GetProtocol) {
+  TRACE_CALL;
+  (void) property;
+
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
+
+  auto protocol = self->_jingleDataChannel
+      ? self->_jingleDataChannel->protocol()
+      : self->_cached_protocol;
+
+  TRACE_END;
+  info.GetReturnValue().Set(Nan::New(protocol).ToLocalChecked());
+}
+
+NAN_GETTER(DataChannel::GetReadyState) {
+  TRACE_CALL;
+  (void) property;
+
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
+
+  CONVERT_OR_THROW_AND_RETURN(self->_jingleDataChannel
+      ? self->_jingleDataChannel->state()
+      : webrtc::DataChannelInterface::kClosed,
+      state,
+      Local<Value>);
+
+  TRACE_END;
+  info.GetReturnValue().Set(state);
 }
 
 NAN_GETTER(DataChannel::GetBinaryType) {
   TRACE_CALL;
+  (void) property;
 
-  DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
+
+  CONVERT_OR_THROW_AND_RETURN(self->_binaryType, binaryType, Local<Value>);
 
   TRACE_END;
-  info.GetReturnValue().Set(Nan::New<Number>(static_cast<uint32_t>(self->_binaryType)));
+  info.GetReturnValue().Set(binaryType);
 }
 
 NAN_SETTER(DataChannel::SetBinaryType) {
   TRACE_CALL;
+  (void) property;
 
-  DataChannel* self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
-  self->_binaryType = static_cast<BinaryType>(value->Uint32Value());
+  auto self = Nan::ObjectWrap::Unwrap<DataChannel>(info.Holder());
+
+  CONVERT_OR_THROW_AND_RETURN(value, binaryType, BinaryType);
+
+  self->_binaryType = binaryType;
 
   TRACE_END;
 }
 
 NAN_SETTER(DataChannel::ReadOnly) {
+  (void) info;
+  (void) property;
+  (void) value;
   INFO("PeerConnection::ReadOnly");
 }
 
@@ -370,7 +451,12 @@ void DataChannel::Init(Handle<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "send", Send);
 
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("bufferedAmount").ToLocalChecked(), GetBufferedAmount, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("id").ToLocalChecked(), GetId, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("label").ToLocalChecked(), GetLabel, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("maxRetransmits").ToLocalChecked(), GetMaxRetransmits, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("ordered").ToLocalChecked(), GetOrdered, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("priority").ToLocalChecked(), GetPriority, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("protocol").ToLocalChecked(), GetProtocol, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("binaryType").ToLocalChecked(), GetBinaryType, SetBinaryType);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("readyState").ToLocalChecked(), GetReadyState, ReadOnly);
 

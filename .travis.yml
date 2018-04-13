@@ -13,6 +13,13 @@ node_js:
   - "4"
 
 addons:
+  hosts:
+    - web-platform.test
+    - www.web-platform.test
+    - www1.web-platform.test
+    - www2.web-platform.test
+    - xn--n8j6ds53lwwkrqhv28a.web-platform.test
+    - xn--lve-6lad.web-platform.test
   apt:
     sources:
       - ubuntu-toolchain-r-test
@@ -89,6 +96,11 @@ script:
     fi
 
     npm test
+
+    # Node 4 & 5 are very hard to get working with WPT.
+    if [[ $(node -v) != v4.* && $(node -v) != v5.* ]]; then
+      npm run wpt:test
+    fi
 
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
       npm run test:bridge

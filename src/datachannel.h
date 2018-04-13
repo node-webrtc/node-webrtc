@@ -21,6 +21,7 @@
 #include "webrtc/base/buffer.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 
+#include "converters/webrtc.h"
 #include "peerconnectionfactory.h"
 
 namespace node_webrtc {
@@ -28,7 +29,8 @@ namespace node_webrtc {
 class DataChannelObserver;
 
 class DataChannel
-  : public Nan::ObjectWrap
+  : public Nan::AsyncResource
+  , public Nan::ObjectWrap
   , public webrtc::DataChannelObserver {
   friend class node_webrtc::DataChannelObserver;
  public:
@@ -65,11 +67,6 @@ class DataChannel
     STATE = 0x1 << 2,  // 4
   };
 
-  enum BinaryType {
-    BLOB = 0x0,
-    ARRAY_BUFFER = 0x1
-  };
-
   explicit DataChannel(node_webrtc::DataChannelObserver* observer);
   ~DataChannel();
 
@@ -91,7 +88,12 @@ class DataChannel
   static NAN_METHOD(Close);
 
   static NAN_GETTER(GetBufferedAmount);
+  static NAN_GETTER(GetId);
   static NAN_GETTER(GetLabel);
+  static NAN_GETTER(GetMaxRetransmits);
+  static NAN_GETTER(GetOrdered);
+  static NAN_GETTER(GetPriority);
+  static NAN_GETTER(GetProtocol);
   static NAN_GETTER(GetBinaryType);
   static NAN_GETTER(GetReadyState);
   static NAN_SETTER(SetBinaryType);
@@ -101,6 +103,7 @@ class DataChannel
 
  private:
   static void Run(uv_async_t* handle, int status);
+  static void Shutdown(uv_async_t* handle);
 
   struct AsyncEvent {
     AsyncEventType type;
@@ -113,8 +116,13 @@ class DataChannel
   std::queue<AsyncEvent> _events;
 
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
+  int _cached_id;
+  std::string _cached_label;
+  uint16_t _cached_max_retransmits;
+  bool _cached_ordered;
+  std::string _cached_protocol;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
-  BinaryType _binaryType;
+  node_webrtc::BinaryType _binaryType;
 
 #if NODE_MODULE_VERSION < 0x000C
   static Nan::Persistent<v8::Function> ArrayBufferConstructor;

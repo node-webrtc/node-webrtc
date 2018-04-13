@@ -23,6 +23,7 @@
 #include "webrtc/api/statstypes.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 
+#include "converters/webrtc.h"
 #include "peerconnectionfactory.h"
 
 namespace node_webrtc {
@@ -34,7 +35,8 @@ class SetLocalDescriptionObserver;
 class SetRemoteDescriptionObserver;
 
 class PeerConnection
-  : public Nan::ObjectWrap
+  : public Nan::AsyncResource
+  , public Nan::ObjectWrap
   , public webrtc::PeerConnectionObserver {
  public:
   struct ErrorEvent {
@@ -57,15 +59,24 @@ class PeerConnection
   };
 
   struct IceEvent {
-    explicit IceEvent(const webrtc::IceCandidateInterface* ice_candidate)
-      : sdpMLineIndex(ice_candidate->sdp_mline_index())
-      , sdpMid(ice_candidate->sdp_mid()) {
-      ice_candidate->ToString(&candidate);
+    explicit IceEvent(const webrtc::IceCandidateInterface* ice_candidate) {
+      std::string sdp;
+      if (!ice_candidate->ToString(&sdp)) {
+        error = "Failed to print the candidate string. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc";
+        return;
+      }
+      webrtc::SdpParseError parseError;
+      candidate = std::unique_ptr<const webrtc::IceCandidateInterface>(
+              webrtc::CreateIceCandidate(ice_candidate->sdp_mid(), ice_candidate->sdp_mline_index(), sdp, &parseError));
+      if (!parseError.description.empty()) {
+        error = parseError.description;
+      } else if (!candidate) {
+        error = "Failed to copy RTCIceCandidate";
+      }
     }
 
-    uint32_t sdpMLineIndex;
-    std::string sdpMid;
-    std::string candidate;
+    std::string error;
+    std::unique_ptr<const webrtc::IceCandidateInterface> candidate;
   };
 
   struct StateEvent {
@@ -83,11 +94,12 @@ class PeerConnection
   };
 
   struct GetStatsEvent {
-    GetStatsEvent(Nan::Callback* callback, webrtc::StatsReports reports)
-      : callback(callback), reports(reports) {}
+    GetStatsEvent(Nan::Callback* callback, double timestamp, const std::vector<std::map<std::string, std::string>>& reports)
+      : callback(callback), timestamp(timestamp), reports(reports) {}
 
     Nan::Callback* callback;
-    webrtc::StatsReports reports;
+    double timestamp;
+    std::vector<std::map<std::string, std::string>> reports;
   };
 
   enum AsyncEventType {
@@ -111,6 +123,7 @@ class PeerConnection
     NOTIFY_ADD_STREAM = 0x1 << 17,  // 131072
     NOTIFY_REMOVE_STREAM = 0x1 << 18,  // 262144
     GET_STATS_SUCCESS = 0x1 << 19,  // 524288
+    NEGOTIATION_NEEDED = 0x1 << 20,
 
     ERROR_EVENT = CREATE_OFFER_ERROR | CREATE_ANSWER_ERROR |
         SET_LOCAL_DESCRIPTION_ERROR | SET_REMOTE_DESCRIPTION_ERROR |
@@ -122,7 +135,7 @@ class PeerConnection
         ICE_GATHERING_STATE_CHANGE
   };
 
-  explicit PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList);
+  explicit PeerConnection(ExtendedRTCConfiguration configuration);
   ~PeerConnection();
 
   //
@@ -139,8 +152,8 @@ class PeerConnection
 
   virtual void OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel);
 
-  virtual void OnAddStream(webrtc::MediaStreamInterface* stream);
-  virtual void OnRemoveStream(webrtc::MediaStreamInterface* stream);
+  virtual void OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream);
+  virtual void OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream);
 
   //
   // Nodejs wrapping.
@@ -163,11 +176,19 @@ class PeerConnection
   static NAN_METHOD(AddStream);
   static NAN_METHOD(RemoveStream);
   */
+  static NAN_METHOD(GetConfiguration);
+  static NAN_METHOD(SetConfiguration);
   static NAN_METHOD(GetStats);
   static NAN_METHOD(Close);
 
+  static NAN_GETTER(GetCanTrickleIceCandidates);
+  static NAN_GETTER(GetConnectionState);
+  static NAN_GETTER(GetCurrentLocalDescription);
   static NAN_GETTER(GetLocalDescription);
+  static NAN_GETTER(GetPendingLocalDescription);
+  static NAN_GETTER(GetCurrentRemoteDescription);
   static NAN_GETTER(GetRemoteDescription);
+  static NAN_GETTER(GetPendingRemoteDescription);
   static NAN_GETTER(GetIceConnectionState);
   static NAN_GETTER(GetSignalingState);
   static NAN_GETTER(GetIceGatheringState);
@@ -177,6 +198,7 @@ class PeerConnection
 
  private:
   static void Run(uv_async_t* handle, int status);
+  static void Shutdown(uv_async_t* handle);
 
   struct AsyncEvent {
     AsyncEventType type;
@@ -194,7 +216,10 @@ class PeerConnection
   rtc::scoped_refptr<SetLocalDescriptionObserver> _setLocalDescriptionObserver;
   rtc::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
-  webrtc::AudioDeviceModule* _audioDeviceModule;
+  std::string _lastSdp;
+
+  UnsignedShortRange _port_range;
+  ExtendedRTCConfiguration _cached_configuration;
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
 
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;

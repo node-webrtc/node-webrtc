@@ -136,7 +136,7 @@ wss.on('connection', function(ws) {
       remoteReceived = false;
 
       pc = new webrtc.RTCPeerConnection({
-        iceServers: [{ url: 'stun:stun.l.google.com:19302' }]
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
       }, {
         optional: [{ DtlsSrtpKeyAgreement: false }]
       });

@@ -1,6 +1,7 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.6)
 
 include(ExternalProject)
+find_package(Git REQUIRED)
 
 if(EXISTS ${CMAKE_SOURCE_DIR}/third_party/webrtc)
 else()
@@ -14,6 +15,11 @@ nodejs_init()
 file(GLOB_RECURSE MODULE_SRC src/*.cc src/*.h)
 add_nodejs_module(${MODULE} ${MODULE_SRC})
 
+file(GLOB_RECURSE MODULE_SRC_WITHOUT_WEBRTC src/*.cc src/*.h)
+list(REMOVE_ITEM MODULE_SRC_WITHOUT_WEBRTC
+  ${CMAKE_SOURCE_DIR}/src/webrtc/physicalsocketserver.h
+  ${CMAKE_SOURCE_DIR}/src/webrtc/physicalsocketserver.cc)
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_definitions(${MODULE} PRIVATE -DDEBUG)
 endif()
@@ -25,8 +31,8 @@ target_include_directories(${MODULE} SYSTEM PRIVATE
   ${CMAKE_SOURCE_DIR}/third_party/webrtc/include)
 
 if(WIN32)
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /GR-")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd /GR-")
 
   target_link_libraries(${MODULE} PRIVATE
     ${CMAKE_THREAD_LIBS_INIT}
@@ -39,10 +45,13 @@ if(WIN32)
     ws2_32.lib)
 
   target_compile_definitions(${MODULE} PRIVATE
+    -DINCL_EXTRA_HTON_FUNCTIONS
     -DWEBRTC_WIN
     -DNOGDI
     -DNOMINMAX)
 else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+
   target_link_libraries(${MODULE} PRIVATE
     ${CMAKE_THREAD_LIBS_INIT}
     ${CMAKE_SOURCE_DIR}/third_party/webrtc/lib/libwebrtc.a)
@@ -69,6 +78,8 @@ if(APPLE)
 elseif(UNIX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
   target_compile_definitions(${MODULE} PRIVATE
+    -D_GLIBCXX_USE_CXX11_ABI=0
+    -DWEBRTC_LINUX
     -DWEBRTC_POSIX=1)
 endif()
 
@@ -111,8 +122,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     --close-templates
     --add-brackets
     --break-after-logical
-    ${CMAKE_SOURCE_DIR}/src/*.cc
-    ${CMAKE_SOURCE_DIR}/src/*.h)
+    ${MODULE_SRC_WITHOUT_WEBRTC})
 
   if(NOT WIN32 STREQUAL "1")
     add_custom_target(
@@ -132,7 +142,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   ExternalProject_Add(
     cppcheck
     GIT_REPOSITORY      https://github.com/danmar/cppcheck.git
-    GIT_TAG             1.79
+    GIT_TAG             1.83
     GIT_SHALLOW         1
     CMAKE_ARGS          ${CPPCHECK_CMAKE_ARGS}
     PREFIX              ${CMAKE_BINARY_DIR}/external/cppcheck/prefix
@@ -148,6 +158,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     --verbose
     --error-exitcode=1
     --language=c++
+    -i${CMAKE_SOURCE_DIR}/src/webrtc
     ${CMAKE_SOURCE_DIR}/src/*.cc)
 
   add_custom_target(

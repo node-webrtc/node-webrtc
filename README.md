@@ -1,22 +1,17 @@
-[![NPM](https://nodei.co/npm/wrtc.png?downloads=true&stars=true)](https://nodei.co/npm/wrtc/)
+<p align="center">
+  <img height="120px" src="https://upload.wikimedia.org/wikipedia/commons/d/d9/Node.js_logo.svg" />&nbsp;&nbsp;&nbsp;&nbsp;
+  <img height="120px" src="https://webrtc.org/assets/images/webrtc-logo-vert-retro-dist.svg" />
+</p>
 
-[![OS X/Linus Build Status](https://secure.travis-ci.org/js-platform/node-webrtc.png?branch=develop)](http://travis-ci.org/js-platform/node-webrtc) [![Windows Build status](https://ci.appveyor.com/api/projects/status/iulc84we28o1i7b9?svg=true)](https://ci.appveyor.com/project/markandrus/node-webrtc-7bnua)
+[![NPM](https://img.shields.io/npm/v/wrtc.svg)](https://www.npmjs.com/package/wrtc) [![macOS/Linux Build Status](https://secure.travis-ci.org/js-platform/node-webrtc.svg?branch=develop)](http://travis-ci.org/js-platform/node-webrtc) [![Windows Build status](https://ci.appveyor.com/api/projects/status/iulc84we28o1i7b9?svg=true)](https://ci.appveyor.com/project/markandrus/node-webrtc-7bnua)
 
-# Preamble
+node-webrtc provides Node.js bindings to [WebRTC M60](https://github.com/mayeut/libwebrtc/releases/tag/v1.1.1). You can write Node.js applications that use RTCDataChannels with it. **MediaStream APIs are not supported at this time.**
 
-This open-source project provides a native module for NodeJS that supports a subset of standards-compliant WebRTC features. Specifically, the PeerConnection and DataChannel APIs. 
-
-__MediaStream APIs are not supported__.
-
-This project relies on precompiled WebRTC binaries provided by [libwebrtc](https://github.com/aisouard/libwebrtc).
-
-# Contributing
-
-The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/modeswitch/node-webrtc/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet.
-
-Once you've done some hacking and you'd like to have your work merged, you'll need to make a pull request. If your patch includes code, make sure to check that all the unit tests pass, including any new tests you wrote. Finally, make sure you add yourself to the `AUTHORS` file.
-
-Whenever possible, prefer making pull requests to opening issues.
+|         | x86 | x64 | arm | arm64 |
+|:------- |:--- |:--- |:--- |:----- |
+| Linux   |     | ✔︎   |     |       |
+| macOS   |     | ✔︎   |     |       |
+| Windows |     | ✔︎   |     |       |
 
 # Getting Started
 
@@ -37,7 +32,7 @@ The easiest way to install is via npm:
 npm install wrtc
 ````
 
-If you want to work from source:
+If you want to work from source, run
 
 ````
 git clone https://github.com/js-platform/node-webrtc.git
@@ -47,14 +42,19 @@ npm install
 
 ## Build
 
+<<<<<<< HEAD
 If you would like to build from source (You must if you're using arm)
 
 ````
+=======
+If you would like to build libwebrtc _and_ node-webrtc from source (you must if you're using arm), run
+
+```
 git clone https://github.com/aisouard/libwebrtc
 cd libwebrtc
 mkdir out
 cd out
-cmake -DWEBRTC_BRANCH_HEAD=refs/branch-heads/57 ..
+cmake -DWEBRTC_BRANCH_HEAD=refs/branch-heads/60 ..
 make
 # wait for a while
 cd <path of node-webrtc>
@@ -65,46 +65,29 @@ export SKIP_DOWNLOAD=true
 export CC=gcc-4.8
 export CXX=g++-4.8
 npm run install
-````
-
 
 # Tests
 
-## Unit tests
+## node-webrtc Tests
 
-Once everything is built, try `npm test` as a sanity check.
+Once everything is built, run
 
-## bridge.js
+```
+npm test
+```
 
-You can run the data channel demo by `node examples/bridge.js` and browsing to [localhost:8080/peer.html](http:localhost:8080/peer.html).
+## Web Plattorm Tests
 
-Usage:
+[w3c/web-platform-tests](https://github.com/w3c/web-platform-tests) defines a suite of WebRTC tests. node-webrtc borrows a technique from [jdom/jsdom](https://github.com/jsdom/jsdom) to run these tests in Node.js. Run the tests with
 
-````
-node examples/bridge.js [-h <host>] [-p <port>] [-ws <ws port>]
-````
+```
+npm run wpt:test
+```
 
-Options:
+# Contributing
 
-````
--h  host IP for the webserver that will serve the static files (default 127.0.0.1)
--p  host port for the webserver that will serve the static files (default 8080)
--ws port of the Web Socket server (default 8080)
-````
+The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/modeswitch/node-webrtc/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet.
 
-If the bridge and peer are on different machines, you can pass the bridge address to the peer by:
-````
-http://<webserver>/peer.html?<sockertserver:port>
-````
+Once you've done some hacking and you'd like to have your work merged, you'll need to make a pull request. If your patch includes code, make sure to check that all the unit tests pass, including any new tests you wrote. Finally, make sure you add yourself to the `AUTHORS` file.
 
-By default the bridge will be the same IP as the webserver and will listen on port 8080.
-
-## ping-pong-test.js
-
-The ping-pong example creates two peer connections and sends some data between them.
-
-Usage:
-
-````
-node examples/ping-pong-test.js
-````
+Whenever possible, prefer making pull requests to opening issues.
