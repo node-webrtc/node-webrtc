@@ -1,3 +1,14 @@
+0.1.2
+=====
+
+Bug Fixes
+---------
+
+- Fixed memory leaks related to sending and receiving messages over
+  RTCDataChannels (#205, #304, #319). There are some less severe leaks related
+  to RTCPeerConnection events that remain. These will be addressed in a future
+  release.
+
 0.1.1
 =====
 
