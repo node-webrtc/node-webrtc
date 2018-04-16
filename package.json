@@ -41,6 +41,7 @@
   ],
   "devDependencies": {
     "aws-sdk": "^2.2.10",
+    "cross-env": "^5.1.4",
     "eslint": "^4.14.0",
     "express": "^4.16.2",
     "express-browserify": "^1.0.2",
@@ -70,7 +71,7 @@
     "lint": "eslint lib/*.js lib/**/*.js test/*.js test/**/*.js examples/*.js examples/**/*.js karma.conf.js scripts/*.js",
     "pretest": "npm run wpt:init",
     "test": "node test/all.js",
-    "test:bridge": "node scripts/karma.js",
+    "test:bridge": "cross-env BROWSER=chrome node scripts/karma.js && cross-env BROWSER=firefox node scripts/karma.js",
     "wpt:init": "git submodule update --init --recursive",
     "wpt:reset": "rimraf ./test/web-platform-tests/tests && yarn wpt:init",
     "wpt:test": "mocha test/web-platform-tests/run-wpts.js",
