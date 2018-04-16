@@ -155,9 +155,9 @@ class Either {
  private:
   Either(bool is_right, const L left, const R right): _is_right(is_right), _left(left), _right(right) {}
 
-  const bool _is_right;
-  const L _left;
-  const R _right;
+  bool _is_right;
+  L _left;
+  R _right;
 };
 
 }  // namespace node_webrtc

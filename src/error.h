@@ -55,6 +55,23 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
   } \
   auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
 
+#define CONVERT_ARGS_OR_REJECT_AND_RETURN(R, O, T) \
+  auto NODE_WEBRTC_UNIQUE_NAME(validation) = node_webrtc::Validation<argument_type<void(T)>::type>::Invalid(std::vector<node_webrtc::Error>()); \
+  { \
+    Nan::TryCatch tc; \
+    NODE_WEBRTC_UNIQUE_NAME(validation) = node_webrtc::From<argument_type<void(T)>::type, Nan::NAN_METHOD_ARGS_TYPE>(info); \
+    if (tc.HasCaught()) { \
+      resolver->Resolve(tc.Exception()); \
+      return; \
+    } \
+  } \
+  if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
+    auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
+    resolver->Resolve(Nan::TypeError(Nan::New(error).ToLocalChecked())); \
+    return; \
+  } \
+  auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
+
 #define CONVERT_OR_REJECT_AND_RETURN(R, I, O, T) \
   auto NODE_WEBRTC_UNIQUE_NAME(validation) = node_webrtc::Validation<argument_type<void(T)>::type>::Invalid(std::vector<node_webrtc::Error>()); \
   { \

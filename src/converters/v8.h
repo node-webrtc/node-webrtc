@@ -22,6 +22,20 @@ namespace node_webrtc {
 
 // TODO(mroberts): The following could probably all be moved into a v8.cc file.
 
+class Undefined {
+ public:
+  Undefined() {}
+};
+
+template <>
+struct Converter<Undefined, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const Undefined) {
+    Nan::EscapableHandleScope scope;
+    auto undefined = static_cast<v8::Local<v8::Value>>(Nan::Undefined());
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(undefined));
+  }
+};
+
 template <typename T>
 struct Converter<v8::Local<v8::Value>, Maybe<T>> {
   static Validation<Maybe<T>> Convert(const v8::Local<v8::Value> value) {

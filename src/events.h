@@ -54,7 +54,7 @@ class PromiseEvent: public Event<T> {
   void Dispatch(T&) override {
     Nan::HandleScope scope;
     auto resolver = Nan::New(*_resolver);
-    _result.FromEither([resolver](L error) {
+    _result.template FromEither<void>([resolver](L error) {
       CONVERT_OR_REJECT_AND_RETURN(resolver, error, value, v8::Local<v8::Value>);
       resolver->Reject(value);
     }, [resolver](R result) {
@@ -71,6 +71,17 @@ class PromiseEvent: public Event<T> {
     _result = node_webrtc::Either<L, R>::Right(result);
   }
 
+  static std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<PromiseEvent<T, L, R>>> Create() {
+    Nan::EscapableHandleScope scope;
+    auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()->GetIsolate());
+    auto event = std::unique_ptr<PromiseEvent<T, L, R>>(new PromiseEvent<T, L, R>(
+                std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>>(
+                    new Nan::Persistent<v8::Promise::Resolver>(resolver))));
+    return std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<PromiseEvent<T, L, R>>>(
+            scope.Escape(resolver),
+            std::move(event));
+  }
+
  protected:
   explicit PromiseEvent(std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver)
     : _resolver(std::move(resolver)) {}
@@ -78,18 +89,6 @@ class PromiseEvent: public Event<T> {
  private:
   std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
   node_webrtc::Either<L, R> _result;
-};
-
-class AddIceCandidateSuccessEvent: public Event<PeerConnection> {
- public:
-  void Dispatch(PeerConnection&) override;
-
-  static std::unique_ptr<AddIceCandidateSuccessEvent> Create() {
-    return std::unique_ptr<AddIceCandidateSuccessEvent>(new AddIceCandidateSuccessEvent());
-  }
-
- private:
-  AddIceCandidateSuccessEvent() = default;
 };
 
 class SetLocalDescriptionSuccessEvent: public Event<PeerConnection> {
@@ -137,16 +136,6 @@ class ErrorEvent: public Event<T> {
 
  protected:
   explicit ErrorEvent(const std::string&& msg): msg(msg) {}
-};
-
-class AddIceCandidateErrorEvent: public ErrorEvent<PeerConnection> {
- public:
-  static std::unique_ptr<AddIceCandidateErrorEvent> Create(const std::string& msg) {
-    return std::unique_ptr<AddIceCandidateErrorEvent>(new AddIceCandidateErrorEvent(std::string(msg)));
-  }
-
- private:
-  explicit AddIceCandidateErrorEvent(const std::string&& msg): ErrorEvent(std::string(msg)) {}
 };
 
 class CreateAnswerErrorEvent: public ErrorEvent<PeerConnection> {
