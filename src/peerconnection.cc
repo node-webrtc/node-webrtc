@@ -37,6 +37,7 @@ using node_webrtc::Maybe;
 using node_webrtc::NegotiationNeededEvent;
 using node_webrtc::PeerConnection;
 using node_webrtc::PeerConnectionFactory;
+using node_webrtc::PromiseEvent;
 using node_webrtc::PromiseFulfillingEventLoop;
 using node_webrtc::RTCSessionDescriptionInit;
 using node_webrtc::SdpEvent;
@@ -362,12 +363,18 @@ NAN_METHOD(PeerConnection::SetRemoteDescription) {
 NAN_METHOD(PeerConnection::AddIceCandidate) {
   TRACE_CALL;
 
-  CONVERT_ARGS_OR_THROW_AND_RETURN(candidate, IceCandidateInterface*);
-
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
+  auto pair = PromiseEvent<PeerConnection, std::string, Undefined>::Create();
+  auto resolver = pair.first;
+  auto promise = std::move(pair.second);
+  info.GetReturnValue().Set(resolver->GetPromise());
+
+  CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, candidate, IceCandidateInterface*);
+
   if (self->_jinglePeerConnection != nullptr && self->_jinglePeerConnection->AddIceCandidate(candidate)) {
-    self->Dispatch(AddIceCandidateSuccessEvent::Create());
+    promise->Resolve(Undefined());
+    self->Dispatch(std::move(promise));
   } else {
     delete candidate;
     std::string error = std::string("Failed to set ICE candidate");
@@ -375,11 +382,11 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
       error += ", no jingle peer connection";
     }
     error += ".";
-    self->Dispatch(AddIceCandidateErrorEvent::Create(error));
+    promise->Reject(error);
+    self->Dispatch(std::move(promise));
   }
 
   TRACE_END;
-  info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(PeerConnection::CreateDataChannel) {
