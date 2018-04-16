@@ -53,14 +53,16 @@ class PromiseEvent: public Event<T> {
  public:
   void Dispatch(T&) override {
     Nan::HandleScope scope;
-    auto resolver = Nan::New(*_resolver);
-    _result.template FromEither<void>([resolver](L error) {
-      CONVERT_OR_REJECT_AND_RETURN(resolver, error, value, v8::Local<v8::Value>);
-      resolver->Reject(value);
-    }, [resolver](R result) {
-      CONVERT_OR_REJECT_AND_RETURN(resolver, result, value, v8::Local<v8::Value>);
-      resolver->Resolve(value);
-    });
+    if (_resolver) {
+      auto resolver = Nan::New(*_resolver);
+      _result.template FromEither<void>([resolver](L error) {
+        CONVERT_OR_REJECT_AND_RETURN(resolver, error, value, v8::Local<v8::Value>);
+        resolver->Reject(value);
+      }, [resolver](R result) {
+        CONVERT_OR_REJECT_AND_RETURN(resolver, result, value, v8::Local<v8::Value>);
+        resolver->Resolve(value);
+      });
+    }
   }
 
   void Reject(L error) {
@@ -89,30 +91,6 @@ class PromiseEvent: public Event<T> {
  private:
   std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
   node_webrtc::Either<L, R> _result;
-};
-
-class SetLocalDescriptionSuccessEvent: public Event<PeerConnection> {
- public:
-  void Dispatch(PeerConnection&) override;
-
-  static std::unique_ptr<SetLocalDescriptionSuccessEvent> Create() {
-    return std::unique_ptr<SetLocalDescriptionSuccessEvent>(new SetLocalDescriptionSuccessEvent());
-  }
-
- private:
-  SetLocalDescriptionSuccessEvent() = default;
-};
-
-class SetRemoteDescriptionSuccessEvent: public Event<PeerConnection> {
- public:
-  void Dispatch(PeerConnection&) override;
-
-  static std::unique_ptr<SetRemoteDescriptionSuccessEvent> Create() {
-    return std::unique_ptr<SetRemoteDescriptionSuccessEvent>(new SetRemoteDescriptionSuccessEvent());
-  }
-
- private:
-  SetRemoteDescriptionSuccessEvent() = default;
 };
 
 class NegotiationNeededEvent: public Event<PeerConnection> {
@@ -156,26 +134,6 @@ class CreateOfferErrorEvent: public ErrorEvent<PeerConnection> {
 
  private:
   explicit CreateOfferErrorEvent(const std::string&& msg): ErrorEvent(std::string(msg)) {}
-};
-
-class SetLocalDescriptionErrorEvent: public ErrorEvent<PeerConnection> {
- public:
-  static std::unique_ptr<SetLocalDescriptionErrorEvent> Create(const std::string& msg) {
-    return std::unique_ptr<SetLocalDescriptionErrorEvent>(new SetLocalDescriptionErrorEvent(std::string(msg)));
-  }
-
- private:
-  explicit SetLocalDescriptionErrorEvent(const std::string&& msg): ErrorEvent(std::string(msg)) {}
-};
-
-class SetRemoteDescriptionErrorEvent: public ErrorEvent<PeerConnection> {
- public:
-  static std::unique_ptr<SetRemoteDescriptionErrorEvent> Create(const std::string& msg) {
-    return std::unique_ptr<SetRemoteDescriptionErrorEvent>(new SetRemoteDescriptionErrorEvent(std::string(msg)));
-  }
-
- private:
-  explicit SetRemoteDescriptionErrorEvent(const std::string&& msg): ErrorEvent(std::string(msg)) {}
 };
 
 class MessageEvent: public Event<DataChannel> {

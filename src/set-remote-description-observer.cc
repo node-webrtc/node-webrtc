@@ -15,12 +15,18 @@ using node_webrtc::SetRemoteDescriptionObserver;
 
 void SetRemoteDescriptionObserver::OnSuccess() {
   TRACE_CALL;
-  parent->Dispatch(SetRemoteDescriptionSuccessEvent::Create());
+  if (_promise) {
+    _promise->Resolve(Undefined());
+    parent->Dispatch(std::move(_promise));
+  }
   TRACE_END;
 }
 
-void SetRemoteDescriptionObserver::OnFailure(const std::string& msg) {
+void SetRemoteDescriptionObserver::OnFailure(const std::string& error) {
   TRACE_CALL;
-  parent->Dispatch(SetRemoteDescriptionErrorEvent::Create(msg));
+  if (_promise) {
+    _promise->Reject(error);
+    parent->Dispatch(std::move(_promise));
+  }
   TRACE_END;
 }

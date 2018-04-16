@@ -15,12 +15,18 @@ using node_webrtc::SetLocalDescriptionObserver;
 
 void SetLocalDescriptionObserver::OnSuccess() {
   TRACE_CALL;
-  parent->Dispatch(SetLocalDescriptionSuccessEvent::Create());
+  if (_promise) {
+    _promise->Resolve(Undefined());
+    parent->Dispatch(std::move(_promise));
+  }
   TRACE_END;
 }
 
-void SetLocalDescriptionObserver::OnFailure(const std::string& msg) {
+void SetLocalDescriptionObserver::OnFailure(const std::string& error) {
   TRACE_CALL;
-  parent->Dispatch(SetLocalDescriptionErrorEvent::Create(msg));
+  if (_promise) {
+    _promise->Reject(error);
+    parent->Dispatch(std::move(_promise));
+  }
   TRACE_END;
 }

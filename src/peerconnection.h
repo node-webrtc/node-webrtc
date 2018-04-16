@@ -116,8 +116,6 @@ class PeerConnection
  private:
   rtc::scoped_refptr<CreateOfferObserver> _createOfferObserver;
   rtc::scoped_refptr<CreateAnswerObserver> _createAnswerObserver;
-  rtc::scoped_refptr<SetLocalDescriptionObserver> _setLocalDescriptionObserver;
-  rtc::scoped_refptr<SetRemoteDescriptionObserver> _setRemoteDescriptionObserver;
 
   std::string _lastSdp;
 
