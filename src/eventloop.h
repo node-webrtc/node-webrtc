@@ -38,6 +38,10 @@ class EventLoop: private EventQueue<T> {
 
   virtual ~EventLoop() = default;
 
+  bool should_stop() const {
+    return _should_stop;
+  }
+
  protected:
   explicit EventLoop(T& target): EventQueue<T>(), _loop(uv_default_loop()), _target(target) {
     uv_async_init(_loop, &_async, [](uv_async_t* handle) {
@@ -54,20 +58,7 @@ class EventLoop: private EventQueue<T> {
     // Do nothing.
   }
 
-  /**
-   * Stop the EventLoop.
-   */
-  void Stop() {
-    _should_stop = true;
-  }
-
- private:
-  uv_async_t _async;
-  uv_loop_t* _loop;
-  std::atomic<bool> _should_stop = {false};
-  T& _target;
-
-  void Run() {
+  virtual void Run() {
     while (auto event = this->Dequeue()) {
       event->Dispatch(_target);
       if (_should_stop) {
@@ -81,6 +72,19 @@ class EventLoop: private EventQueue<T> {
       });
     }
   }
+
+  /**
+   * Stop the EventLoop.
+   */
+  void Stop() {
+    _should_stop = true;
+  }
+
+ private:
+  uv_async_t _async;
+  uv_loop_t* _loop;
+  std::atomic<bool> _should_stop = {false};
+  T& _target;
 };
 
 }  // namespace node_webrtc

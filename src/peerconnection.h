@@ -24,9 +24,9 @@
 #include "webrtc/base/scoped_ref_ptr.h"
 
 #include "converters/webrtc.h"
-#include "eventloop.h"
 #include "events.h"
 #include "peerconnectionfactory.h"
+#include "promisefulfillingeventloop.h"
 
 namespace node_webrtc {
 
@@ -39,7 +39,7 @@ class SetRemoteDescriptionObserver;
 class PeerConnection
   : public Nan::AsyncResource
   , public Nan::ObjectWrap
-  , public node_webrtc::EventLoop<PeerConnection>
+  , public node_webrtc::PromiseFulfillingEventLoop<PeerConnection>
   , public webrtc::PeerConnectionObserver {
  public:
   explicit PeerConnection(ExtendedRTCConfiguration configuration);

@@ -11,6 +11,10 @@
 
 #include <memory>
 
+#include "converters.h"
+#include "error.h"
+#include "functional/either.h"
+#include "functional/validation.h"
 #include "webrtc/api/peerconnectioninterface.h"
 
 namespace node_webrtc {
@@ -35,6 +39,45 @@ class Event {
   }
 
   virtual ~Event() = default;
+};
+
+/**
+ * A PromiseEvent can be dispatched to a PromiseFulfillingEventLoop in order to
+ * resolve or reject a Promise.
+ * @tparam T the PromiseFulfillingEventLoop type
+ * @tparam L the type of values representing failure
+ * @tparam R the type of values representing success
+ */
+template <typename T, typename L, typename R>
+class PromiseEvent: public Event<T> {
+ public:
+  void Dispatch(T&) override {
+    Nan::HandleScope scope;
+    auto resolver = Nan::New(*_resolver);
+    _result.FromEither([resolver](L error) {
+      CONVERT_OR_REJECT_AND_RETURN(resolver, error, value, v8::Local<v8::Value>);
+      resolver->Reject(value);
+    }, [resolver](R result) {
+      CONVERT_OR_REJECT_AND_RETURN(resolver, result, value, v8::Local<v8::Value>);
+      resolver->Resolve(value);
+    });
+  }
+
+  void Reject(L error) {
+    _result = node_webrtc::Either<L, R>::Left(error);
+  }
+
+  void Resolve(R result) {
+    _result = node_webrtc::Either<L, R>::Right(result);
+  }
+
+ protected:
+  explicit PromiseEvent(std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver)
+    : _resolver(std::move(resolver)) {}
+
+ private:
+  std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
+  node_webrtc::Either<L, R> _result;
 };
 
 class AddIceCandidateSuccessEvent: public Event<PeerConnection> {
