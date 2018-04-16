@@ -15,12 +15,25 @@ using node_webrtc::PeerConnection;
 
 void CreateAnswerObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp) {
   TRACE_CALL;
-  parent->Dispatch(CreateAnswerSuccessEvent::Create(sdp));
+  if (_promise) {
+    auto validation = From<RTCSessionDescriptionInit>(sdp);
+    if (validation.IsInvalid()) {
+      _promise->Reject(SomeError(validation.ToErrors()[0]));
+    } else {
+      auto description = validation.UnsafeFromValid();
+      parent->SaveLastSdp(description);
+      _promise->Resolve(description);
+    }
+    parent->Dispatch(std::move(_promise));
+  }
   TRACE_END;
 }
 
-void CreateAnswerObserver::OnFailure(const std::string& msg) {
+void CreateAnswerObserver::OnFailure(const std::string& error) {
   TRACE_CALL;
-  parent->Dispatch(CreateAnswerErrorEvent::Create(msg));
+  if (_promise) {
+    _promise->Reject(SomeError(error));
+    parent->Dispatch(std::move(_promise));
+  }
   TRACE_END;
 }

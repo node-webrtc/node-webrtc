@@ -277,8 +277,18 @@ enum RTCSdpType {
 };
 
 template <>
+struct Converter<std::string, RTCSdpType> {
+  static Validation<RTCSdpType> Convert(std::string value);
+};
+
+template <>
 struct Converter<v8::Local<v8::Value>, RTCSdpType> {
   static Validation<RTCSdpType> Convert(v8::Local<v8::Value> value);
+};
+
+template <>
+struct Converter<RTCSdpType, std::string> {
+  static Validation<std::string> Convert(RTCSdpType value);
 };
 
 /*
@@ -303,6 +313,16 @@ struct Converter<v8::Local<v8::Value>, RTCSessionDescriptionInit> {
 template <>
 struct Converter<RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*> {
   static Validation<webrtc::SessionDescriptionInterface*> Convert(RTCSessionDescriptionInit value);
+};
+
+template <>
+struct Converter<RTCSessionDescriptionInit, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(RTCSessionDescriptionInit value);
+};
+
+template <>
+struct Converter<webrtc::SessionDescriptionInterface*, RTCSessionDescriptionInit> {
+  static Validation<RTCSessionDescriptionInit> Convert(webrtc::SessionDescriptionInterface* value);
 };
 
 template <>

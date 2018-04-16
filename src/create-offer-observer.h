@@ -9,8 +9,12 @@
 #define SRC_CREATE_OFFER_OBSERVER_H_
 
 #include <string>
+#include <src/converters/webrtc.h>
 
 #include "webrtc/api/jsep.h"
+
+#include "converters/webrtc.h"
+#include "events.h"
 
 namespace node_webrtc {
 
@@ -20,9 +24,13 @@ class CreateOfferObserver
   : public webrtc::CreateSessionDescriptionObserver {
  private:
   PeerConnection* parent;
+  std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, node_webrtc::RTCSessionDescriptionInit>> _promise;
 
  public:
-  explicit CreateOfferObserver(PeerConnection* connection): parent(connection) {}
+  explicit CreateOfferObserver(
+      PeerConnection* parent,
+      std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, node_webrtc::RTCSessionDescriptionInit>> promise)
+    : parent(parent), _promise(std::move(promise)) {}
 
   virtual void OnSuccess(webrtc::SessionDescriptionInterface* sdp);
   virtual void OnFailure(const std::string& msg);
