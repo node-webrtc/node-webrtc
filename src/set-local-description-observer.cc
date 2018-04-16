@@ -12,6 +12,7 @@
 
 using node_webrtc::PeerConnection;
 using node_webrtc::SetLocalDescriptionObserver;
+using node_webrtc::SomeError;
 
 void SetLocalDescriptionObserver::OnSuccess() {
   TRACE_CALL;
@@ -25,7 +26,7 @@ void SetLocalDescriptionObserver::OnSuccess() {
 void SetLocalDescriptionObserver::OnFailure(const std::string& error) {
   TRACE_CALL;
   if (_promise) {
-    _promise->Reject(error);
+    _promise->Reject(SomeError(error));
     parent->Dispatch(std::move(_promise));
   }
   TRACE_END;

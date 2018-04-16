@@ -23,12 +23,12 @@ class SetRemoteDescriptionObserver
   : public webrtc::SetSessionDescriptionObserver {
  private:
   PeerConnection* parent;
-  std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, std::string, Undefined>> _promise;
+  std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection>> _promise;
 
  public:
   explicit SetRemoteDescriptionObserver(
       PeerConnection* connection,
-      std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, std::string, Undefined>> promise)
+      std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection>> promise)
     : parent(connection), _promise(std::move(promise)) {}
 
   virtual void OnSuccess();

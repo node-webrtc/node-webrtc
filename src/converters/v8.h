@@ -22,6 +22,29 @@ namespace node_webrtc {
 
 // TODO(mroberts): The following could probably all be moved into a v8.cc file.
 
+class SomeError {
+ public:
+  SomeError() {}
+
+  explicit SomeError(const std::string& message): _message(message) {}
+
+  std::string message() const {
+    return _message;
+  }
+
+ private:
+  std::string _message;
+};
+
+template <>
+struct Converter<SomeError, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const SomeError someError) {
+    Nan::EscapableHandleScope scope;
+    auto error = static_cast<v8::Local<v8::Value>>(Nan::Error(Nan::New(someError.message()).ToLocalChecked()));
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(error));
+  }
+};
+
 class Undefined {
  public:
   Undefined() {}
