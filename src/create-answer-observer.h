@@ -12,6 +12,9 @@
 
 #include "webrtc/api/jsep.h"
 
+#include "src/converters/webrtc.h"
+#include "src/events.h"
+
 namespace node_webrtc {
 
 class PeerConnection;
@@ -20,9 +23,13 @@ class CreateAnswerObserver
   : public webrtc::CreateSessionDescriptionObserver {
  private:
   PeerConnection* parent;
+  std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, node_webrtc::RTCSessionDescriptionInit>> _promise;
 
  public:
-  explicit CreateAnswerObserver(PeerConnection* connection): parent(connection) {}
+  explicit CreateAnswerObserver(
+      PeerConnection* parent,
+      std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, node_webrtc::RTCSessionDescriptionInit>> promise)
+    : parent(parent), _promise(std::move(promise)) {}
 
   virtual void OnSuccess(webrtc::SessionDescriptionInterface* sdp);
   virtual void OnFailure(const std::string& msg);

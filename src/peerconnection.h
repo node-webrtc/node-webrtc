@@ -99,25 +99,21 @@ class PeerConnection
   static NAN_GETTER(GetIceGatheringState);
   static NAN_SETTER(ReadOnly);
 
-  void HandleErrorEvent(const ErrorEvent<PeerConnection>& event);
   void HandleGetStatsEvent(const GetStatsEvent& event);
   void HandleIceConnectionStateChangeEvent(const IceConnectionStateChangeEvent& event);
   void HandleIceGatheringStateChangeEvent(const IceGatheringStateChangeEvent& event);
   void HandleIceCandidateEvent(const IceEvent& event);
   void HandleDataChannelEvent(const DataChannelEvent& event);
   void HandleNegotiationNeededEvent(const NegotiationNeededEvent& event);
-  void HandleSdpEvent(const SdpEvent& event);
   void HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event);
-  void HandleVoidEvent();
+
+  void SaveLastSdp(const RTCSessionDescriptionInit lastSdp);
 
  protected:
   void DidStop() override;
 
  private:
-  rtc::scoped_refptr<CreateOfferObserver> _createOfferObserver;
-  rtc::scoped_refptr<CreateAnswerObserver> _createAnswerObserver;
-
-  std::string _lastSdp;
+  RTCSessionDescriptionInit _lastSdp;
 
   UnsignedShortRange _port_range;
   ExtendedRTCConfiguration _cached_configuration;

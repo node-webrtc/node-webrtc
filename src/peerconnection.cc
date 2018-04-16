@@ -25,7 +25,6 @@
 #include "stats-observer.h"
 
 using node_webrtc::DataChannelEvent;
-using node_webrtc::ErrorEvent;
 using node_webrtc::Event;
 using node_webrtc::ExtendedRTCConfiguration;
 using node_webrtc::From;
@@ -40,7 +39,6 @@ using node_webrtc::PeerConnectionFactory;
 using node_webrtc::PromiseEvent;
 using node_webrtc::PromiseFulfillingEventLoop;
 using node_webrtc::RTCSessionDescriptionInit;
-using node_webrtc::SdpEvent;
 using node_webrtc::SignalingStateChangeEvent;
 using v8::External;
 using v8::Function;
@@ -72,8 +70,6 @@ Nan::Persistent<Function> PeerConnection::constructor;
 PeerConnection::PeerConnection(ExtendedRTCConfiguration configuration)
   : Nan::AsyncResource("RTCPeerConnection")
   , PromiseFulfillingEventLoop(*this) {
-  _createOfferObserver = new rtc::RefCountedObject<CreateOfferObserver>(this);
-  _createAnswerObserver = new rtc::RefCountedObject<CreateAnswerObserver>(this);
 
   // TODO(mroberts): Read `factory` (non-standard) from RTCConfiguration?
   _factory = PeerConnectionFactory::GetOrCreateDefault();
@@ -103,15 +99,6 @@ PeerConnection::~PeerConnection() {
     }
     _factory = nullptr;
   }
-  TRACE_END;
-}
-
-void PeerConnection::HandleErrorEvent(const ErrorEvent<PeerConnection>& event) {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-  Local<Value> argv[1];
-  argv[0] = Nan::Error(event.msg.c_str());
-  runInAsyncScope(handle(), "onerror", 1, argv);
   TRACE_END;
 }
 
@@ -177,16 +164,6 @@ void PeerConnection::HandleNegotiationNeededEvent(const NegotiationNeededEvent&)
   TRACE_END;
 }
 
-void PeerConnection::HandleSdpEvent(const SdpEvent& event) {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-  _lastSdp = event.desc;
-  Local<Value> argv[1];
-  argv[0] = Nan::New(event.desc.c_str()).ToLocalChecked();
-  runInAsyncScope(handle(), "onsuccess", 1, argv);
-  TRACE_END;
-}
-
 void PeerConnection::HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event) {
   TRACE_CALL;
   Nan::HandleScope scope;
@@ -194,13 +171,6 @@ void PeerConnection::HandleSignalingStateChangeEvent(const SignalingStateChangeE
   if (event.state == webrtc::PeerConnectionInterface::kClosed) {
     Stop();
   }
-  TRACE_END;
-}
-
-void PeerConnection::HandleVoidEvent() {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-  runInAsyncScope(handle(), "onsuccess", 0, nullptr);
   TRACE_END;
 }
 
@@ -275,47 +245,57 @@ NAN_METHOD(PeerConnection::New) {
 NAN_METHOD(PeerConnection::CreateOffer) {
   TRACE_CALL;
 
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+
+  auto pair = PromiseEvent<PeerConnection, RTCSessionDescriptionInit>::Create();
+  auto resolver = pair.first;
+  auto promise = std::move(pair.second);
+  info.GetReturnValue().Set(resolver->GetPromise());
+
   auto validationOptions = From<Maybe<RTCOfferOptions>, Nan::NAN_METHOD_ARGS_TYPE>(info).Map(
   [](const Maybe<RTCOfferOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCOfferOptions()); });
   if (validationOptions.IsInvalid()) {
     TRACE_END;
-    Nan::ThrowTypeError(Nan::New(validationOptions.ToErrors()[0]).ToLocalChecked());
+    promise->Reject(SomeError(validationOptions.ToErrors()[0]));
     return;
   }
 
   auto options = validationOptions.UnsafeFromValid();
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
-
   if (self->_jinglePeerConnection != nullptr) {
-    self->_jinglePeerConnection->CreateOffer(self->_createOfferObserver, options.options);
+    auto observer = new rtc::RefCountedObject<CreateOfferObserver>(self, std::move(promise));
+    self->_jinglePeerConnection->CreateOffer(observer, options.options);
   }
 
   TRACE_END;
-  info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(PeerConnection::CreateAnswer) {
   TRACE_CALL;
 
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+
+  auto pair = PromiseEvent<PeerConnection, RTCSessionDescriptionInit>::Create();
+  auto resolver = pair.first;
+  auto promise = std::move(pair.second);
+  info.GetReturnValue().Set(resolver->GetPromise());
+
   auto validationOptions = From<Maybe<RTCAnswerOptions>, Nan::NAN_METHOD_ARGS_TYPE>(info).Map(
   [](const Maybe<RTCAnswerOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCAnswerOptions()); });
   if (validationOptions.IsInvalid()) {
     TRACE_END;
-    Nan::ThrowTypeError(Nan::New(validationOptions.ToErrors()[0]).ToLocalChecked());
+    promise->Reject(SomeError(validationOptions.ToErrors()[0]));
     return;
   }
 
   auto options = validationOptions.UnsafeFromValid();
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
-
   if (self->_jinglePeerConnection != nullptr) {
-    self->_jinglePeerConnection->CreateAnswer(self->_createAnswerObserver, options.options);
+    auto observer = new rtc::RefCountedObject<CreateAnswerObserver>(self, std::move(promise));
+    self->_jinglePeerConnection->CreateAnswer(observer, options.options);
   }
 
   TRACE_END;
-  info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(PeerConnection::SetLocalDescription) {
@@ -331,7 +311,7 @@ NAN_METHOD(PeerConnection::SetLocalDescription) {
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, descriptionInit, RTCSessionDescriptionInit);
 
   if (descriptionInit.sdp.empty()) {
-    descriptionInit.sdp = self->_lastSdp;
+    descriptionInit.sdp = self->_lastSdp.sdp;
   }
 
   CONVERT_OR_REJECT_AND_RETURN(resolver, descriptionInit, description, SessionDescriptionInterface*);
@@ -696,6 +676,10 @@ NAN_SETTER(PeerConnection::ReadOnly) {
   (void) property;
   (void) value;
   INFO("PeerConnection::ReadOnly");
+}
+
+void PeerConnection::SaveLastSdp(const RTCSessionDescriptionInit lastSdp) {
+  this->_lastSdp = lastSdp;
 }
 
 void PeerConnection::Init(Handle<Object> exports) {

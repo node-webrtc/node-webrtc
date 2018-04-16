@@ -364,20 +364,34 @@ Validation<RTCAnswerOptions> Converter<Local<Value>, RTCAnswerOptions>::Convert(
   });
 }
 
+Validation<RTCSdpType> Converter<std::string, RTCSdpType>::Convert(const std::string value) {
+  if (value == "offer") {
+    return Validation<RTCSdpType>::Valid(RTCSdpType::kOffer);
+  } else if (value == "pranswer") {
+    return Validation<RTCSdpType>::Valid(RTCSdpType::kPrAnswer);
+  } else if (value == "answer") {
+    return Validation<RTCSdpType>::Valid(RTCSdpType::kAnswer);
+  } else if (value == "rollback") {
+    return Validation<RTCSdpType>::Valid(RTCSdpType::kRollback);
+  }
+  return Validation<RTCSdpType>::Invalid(R"(Expected "offer", "pranswer", "answer" or "rollback")");
+};
+
+Validation<std::string> Converter<RTCSdpType, std::string>::Convert(const RTCSdpType type) {
+  switch (type) {
+    case RTCSdpType::kOffer:
+      return Validation<std::string>::Valid("offer");
+    case RTCSdpType::kAnswer:
+      return Validation<std::string>::Valid("answer");
+    case RTCSdpType::kPrAnswer:
+      return Validation<std::string>::Valid("pranswer");
+    case RTCSdpType::kRollback:
+      return Validation<std::string>::Valid("rollback");
+  }
+}
+
 Validation<RTCSdpType> Converter<Local<Value>, RTCSdpType>::Convert(const Local<Value> value) {
-  return From<std::string>(value).FlatMap<RTCSdpType>(
-  [](const std::string string) {
-    if (string == "offer") {
-      return Validation<RTCSdpType>::Valid(RTCSdpType::kOffer);
-    } else if (string == "pranswer") {
-      return Validation<RTCSdpType>::Valid(RTCSdpType::kPrAnswer);
-    } else if (string == "answer") {
-      return Validation<RTCSdpType>::Valid(RTCSdpType::kAnswer);
-    } else if (string == "rollback") {
-      return Validation<RTCSdpType>::Valid(RTCSdpType::kRollback);
-    }
-    return Validation<RTCSdpType>::Invalid(R"(Expected "offer", "pranswer", "answer" or "rollback")");
-  });
+  return From<std::string>(value).FlatMap<RTCSdpType>(Converter<std::string, RTCSdpType>::Convert);
 }
 
 RTCSessionDescriptionInit CreateRTCSessionDescriptionInit(
@@ -418,6 +432,33 @@ Validation<SessionDescriptionInterface*> Converter<RTCSessionDescriptionInit, Se
     return Validation<SessionDescriptionInterface*>::Invalid(error.description);
   }
   return Validation<SessionDescriptionInterface*>::Valid(description);
+}
+
+Validation<Local<Value>> Converter<RTCSessionDescriptionInit, Local<Value>>::Convert(
+const RTCSessionDescriptionInit init) {
+  EscapableHandleScope scope;
+  auto maybeType = From<std::string>(init.type);
+  if (maybeType.IsInvalid()) {
+    return Validation<Local<Value>>::Invalid(maybeType.ToErrors()[0]);
+  }
+  auto object = Nan::New<Object>();
+  object->Set(Nan::New("sdp").ToLocalChecked(), Nan::New(init.sdp).ToLocalChecked());
+  object->Set(Nan::New("type").ToLocalChecked(), Nan::New(maybeType.UnsafeFromValid()).ToLocalChecked());
+  return Validation<Local<Value>>::Valid(scope.Escape(object));
+};
+
+Validation<RTCSessionDescriptionInit> Converter<SessionDescriptionInterface*, RTCSessionDescriptionInit>::Convert(
+    SessionDescriptionInterface* description) {
+  if (!description) {
+    return Validation<RTCSessionDescriptionInit>::Invalid("RTCSessionDescription is null");
+  }
+  std::string sdp;
+  if (!description->ToString(&sdp)) {
+    return Validation<RTCSessionDescriptionInit>::Invalid("Failed to print the SDP. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc");
+  }
+  return curry(CreateRTCSessionDescriptionInit)
+      % From<RTCSdpType>(description->type())
+      * Validation<std::string>(sdp);
 }
 
 Validation<SessionDescriptionInterface*> Converter<Local<Value>, SessionDescriptionInterface*>::Convert(

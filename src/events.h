@@ -49,7 +49,7 @@ class Event {
  * @tparam L the type of values representing failure
  * @tparam R the type of values representing success
  */
-template <typename T, typename L = node_webrtc::SomeError, typename R = node_webrtc::Undefined>
+template <typename T, typename R = node_webrtc::Undefined, typename L = node_webrtc::SomeError>
 class PromiseEvent: public Event<T> {
  public:
   void Dispatch(T&) override {
@@ -74,13 +74,13 @@ class PromiseEvent: public Event<T> {
     _result = node_webrtc::Either<L, R>::Right(result);
   }
 
-  static std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<PromiseEvent<T, L, R>>> Create() {
+  static std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<PromiseEvent<T, R, L>>> Create() {
     Nan::EscapableHandleScope scope;
     auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()->GetIsolate());
-    auto event = std::unique_ptr<PromiseEvent<T, L, R>>(new PromiseEvent<T, L, R>(
+    auto event = std::unique_ptr<PromiseEvent<T, R, L>>(new PromiseEvent<T, R, L>(
                 std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>>(
                     new Nan::Persistent<v8::Promise::Resolver>(resolver))));
-    return std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<PromiseEvent<T, L, R>>>(
+    return std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<PromiseEvent<T, R, L>>>(
             scope.Escape(resolver),
             std::move(event));
   }
@@ -117,26 +117,6 @@ class ErrorEvent: public Event<T> {
   explicit ErrorEvent(const std::string&& msg): msg(msg) {}
 };
 
-class CreateAnswerErrorEvent: public ErrorEvent<PeerConnection> {
- public:
-  static std::unique_ptr<CreateAnswerErrorEvent> Create(const std::string& msg) {
-    return std::unique_ptr<CreateAnswerErrorEvent>(new CreateAnswerErrorEvent(std::string(msg)));
-  }
-
- private:
-  explicit CreateAnswerErrorEvent(const std::string&& msg): ErrorEvent(std::string(msg)) {}
-};
-
-class CreateOfferErrorEvent: public ErrorEvent<PeerConnection> {
- public:
-  static std::unique_ptr<CreateOfferErrorEvent> Create(const std::string& msg) {
-    return std::unique_ptr<CreateOfferErrorEvent>(new CreateOfferErrorEvent(std::string(msg)));
-  }
-
- private:
-  explicit CreateOfferErrorEvent(const std::string&& msg): ErrorEvent(std::string(msg)) {}
-};
-
 class MessageEvent: public Event<DataChannel> {
  public:
   bool binary;
@@ -156,40 +136,6 @@ class MessageEvent: public Event<DataChannel> {
     message = std::unique_ptr<char[]>(new char[size]);
     memcpy(reinterpret_cast<void*>(message.get()), reinterpret_cast<const void*>(buffer->data.data()), size);
   }
-};
-
-class SdpEvent: public Event<PeerConnection> {
- public:
-  const std::string type;
-  std::string desc;
-
-  void Dispatch(PeerConnection& peerConnection) override;
-
- protected:
-  explicit SdpEvent(webrtc::SessionDescriptionInterface* sdp)
-    : type(sdp->type()) {
-    sdp->ToString(&desc);
-  }
-};
-
-class CreateAnswerSuccessEvent: public SdpEvent {
- public:
-  static std::unique_ptr<CreateAnswerSuccessEvent> Create(webrtc::SessionDescriptionInterface* sdp) {
-    return std::unique_ptr<CreateAnswerSuccessEvent>(new CreateAnswerSuccessEvent(sdp));
-  }
-
- private:
-  explicit CreateAnswerSuccessEvent(webrtc::SessionDescriptionInterface* sdp): SdpEvent(sdp) {}
-};
-
-class CreateOfferSuccessEvent: public SdpEvent {
- public:
-  static std::unique_ptr<CreateOfferSuccessEvent> Create(webrtc::SessionDescriptionInterface* sdp) {
-    return std::unique_ptr<CreateOfferSuccessEvent>(new CreateOfferSuccessEvent(sdp));
-  }
-
- private:
-  explicit CreateOfferSuccessEvent(webrtc::SessionDescriptionInterface* sdp): SdpEvent(sdp) {}
 };
 
 class IceEvent: public Event<PeerConnection> {
