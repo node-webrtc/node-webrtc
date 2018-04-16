@@ -27,7 +27,6 @@
 using node_webrtc::DataChannelEvent;
 using node_webrtc::ErrorEvent;
 using node_webrtc::Event;
-using node_webrtc::EventLoop;
 using node_webrtc::ExtendedRTCConfiguration;
 using node_webrtc::From;
 using node_webrtc::GetStatsEvent;
@@ -38,6 +37,7 @@ using node_webrtc::Maybe;
 using node_webrtc::NegotiationNeededEvent;
 using node_webrtc::PeerConnection;
 using node_webrtc::PeerConnectionFactory;
+using node_webrtc::PromiseFulfillingEventLoop;
 using node_webrtc::RTCSessionDescriptionInit;
 using node_webrtc::SdpEvent;
 using node_webrtc::SignalingStateChangeEvent;
@@ -70,7 +70,7 @@ Nan::Persistent<Function> PeerConnection::constructor;
 
 PeerConnection::PeerConnection(ExtendedRTCConfiguration configuration)
   : Nan::AsyncResource("RTCPeerConnection")
-  , EventLoop(*this) {
+  , PromiseFulfillingEventLoop(*this) {
   _createOfferObserver = new rtc::RefCountedObject<CreateOfferObserver>(this);
   _createAnswerObserver = new rtc::RefCountedObject<CreateAnswerObserver>(this);
   _setLocalDescriptionObserver = new rtc::RefCountedObject<SetLocalDescriptionObserver>(this);
