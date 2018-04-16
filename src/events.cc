@@ -22,8 +22,6 @@ using node_webrtc::MessageEvent;
 using node_webrtc::NegotiationNeededEvent;
 using node_webrtc::PeerConnection;
 using node_webrtc::SdpEvent;
-using node_webrtc::SetLocalDescriptionSuccessEvent;
-using node_webrtc::SetRemoteDescriptionSuccessEvent;
 using node_webrtc::SignalingStateChangeEvent;
 
 void DataChannelEvent::Dispatch(PeerConnection& peerConnection) {
@@ -70,14 +68,6 @@ void IceGatheringStateChangeEvent::Dispatch(PeerConnection& peerConnection) {
 
 void SdpEvent::Dispatch(PeerConnection& peerConnection) {
   peerConnection.HandleSdpEvent(*this);
-}
-
-void SetLocalDescriptionSuccessEvent::Dispatch(PeerConnection& peerConnection) {
-  peerConnection.HandleVoidEvent();
-}
-
-void SetRemoteDescriptionSuccessEvent::Dispatch(PeerConnection& peerConnection) {
-  peerConnection.HandleVoidEvent();
 }
 
 void SignalingStateChangeEvent::Dispatch(PeerConnection& peerConnection) {

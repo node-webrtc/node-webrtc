@@ -74,8 +74,6 @@ PeerConnection::PeerConnection(ExtendedRTCConfiguration configuration)
   , PromiseFulfillingEventLoop(*this) {
   _createOfferObserver = new rtc::RefCountedObject<CreateOfferObserver>(this);
   _createAnswerObserver = new rtc::RefCountedObject<CreateAnswerObserver>(this);
-  _setLocalDescriptionObserver = new rtc::RefCountedObject<SetLocalDescriptionObserver>(this);
-  _setRemoteDescriptionObserver = new rtc::RefCountedObject<SetRemoteDescriptionObserver>(this);
 
   // TODO(mroberts): Read `factory` (non-standard) from RTCConfiguration?
   _factory = PeerConnectionFactory::GetOrCreateDefault();
@@ -323,41 +321,51 @@ NAN_METHOD(PeerConnection::CreateAnswer) {
 NAN_METHOD(PeerConnection::SetLocalDescription) {
   TRACE_CALL;
 
-  CONVERT_ARGS_OR_THROW_AND_RETURN(descriptionInit, RTCSessionDescriptionInit);
-
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+
+  auto pair = PromiseEvent<PeerConnection, std::string, Undefined>::Create();
+  auto resolver = pair.first;
+  auto promise = std::move(pair.second);
+  info.GetReturnValue().Set(resolver->GetPromise());
+
+  CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, descriptionInit, RTCSessionDescriptionInit);
 
   if (descriptionInit.sdp.empty()) {
     descriptionInit.sdp = self->_lastSdp;
   }
 
-  CONVERT_OR_THROW_AND_RETURN(descriptionInit, description, SessionDescriptionInterface*);
+  CONVERT_OR_REJECT_AND_RETURN(resolver, descriptionInit, description, SessionDescriptionInterface*);
 
   if (self->_jinglePeerConnection != nullptr) {
-    self->_jinglePeerConnection->SetLocalDescription(self->_setLocalDescriptionObserver, description);
+    auto observer = new rtc::RefCountedObject<SetLocalDescriptionObserver>(self, std::move(promise));
+    self->_jinglePeerConnection->SetLocalDescription(observer, description);
   } else {
     delete description;
   }
 
   TRACE_END;
-  info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(PeerConnection::SetRemoteDescription) {
   TRACE_CALL;
 
-  CONVERT_ARGS_OR_THROW_AND_RETURN(description, SessionDescriptionInterface*);
-
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
+  auto pair = PromiseEvent<PeerConnection, std::string, Undefined>::Create();
+  auto resolver = pair.first;
+  auto promise = std::move(pair.second);
+  info.GetReturnValue().Set(resolver->GetPromise());
+
+  CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, description, SessionDescriptionInterface*);
+
   if (self->_jinglePeerConnection != nullptr) {
-    self->_jinglePeerConnection->SetRemoteDescription(self->_setRemoteDescriptionObserver, description);
+    auto observer = new rtc::RefCountedObject<SetRemoteDescriptionObserver>(self, std::move(promise));
+    self->_jinglePeerConnection->SetRemoteDescription(observer, description);
   } else {
     delete description;
   }
 
   TRACE_END;
-  info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(PeerConnection::AddIceCandidate) {
