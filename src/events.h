@@ -12,6 +12,7 @@
 #include <memory>
 
 #include "converters.h"
+#include "converters/v8.h"
 #include "error.h"
 #include "functional/either.h"
 #include "functional/validation.h"
@@ -48,7 +49,7 @@ class Event {
  * @tparam L the type of values representing failure
  * @tparam R the type of values representing success
  */
-template <typename T, typename L, typename R>
+template <typename T, typename L = node_webrtc::SomeError, typename R = node_webrtc::Undefined>
 class PromiseEvent: public Event<T> {
  public:
   void Dispatch(T&) override {

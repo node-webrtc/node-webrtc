@@ -323,7 +323,7 @@ NAN_METHOD(PeerConnection::SetLocalDescription) {
 
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
-  auto pair = PromiseEvent<PeerConnection, std::string, Undefined>::Create();
+  auto pair = PromiseEvent<PeerConnection>::Create();
   auto resolver = pair.first;
   auto promise = std::move(pair.second);
   info.GetReturnValue().Set(resolver->GetPromise());
@@ -351,7 +351,7 @@ NAN_METHOD(PeerConnection::SetRemoteDescription) {
 
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
-  auto pair = PromiseEvent<PeerConnection, std::string, Undefined>::Create();
+  auto pair = PromiseEvent<PeerConnection>::Create();
   auto resolver = pair.first;
   auto promise = std::move(pair.second);
   info.GetReturnValue().Set(resolver->GetPromise());
@@ -373,7 +373,7 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
 
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
-  auto pair = PromiseEvent<PeerConnection, std::string, Undefined>::Create();
+  auto pair = PromiseEvent<PeerConnection>::Create();
   auto resolver = pair.first;
   auto promise = std::move(pair.second);
   info.GetReturnValue().Set(resolver->GetPromise());
@@ -390,7 +390,7 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
       error += ", no jingle peer connection";
     }
     error += ".";
-    promise->Reject(error);
+    promise->Reject(SomeError(error));
     self->Dispatch(std::move(promise));
   }
 
