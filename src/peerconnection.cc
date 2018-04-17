@@ -19,8 +19,7 @@
 #include "functional/maybe.h"
 #include "peerconnectionfactory.h"
 #include "rtcstatsresponse.h"
-#include "set-local-description-observer.h"
-#include "set-remote-description-observer.h"
+#include "setsessiondescriptionobserver.h"
 #include "stats-observer.h"
 
 using node_webrtc::DataChannelEvent;
@@ -316,7 +315,7 @@ NAN_METHOD(PeerConnection::SetLocalDescription) {
   CONVERT_OR_REJECT_AND_RETURN(resolver, descriptionInit, description, SessionDescriptionInterface*);
 
   if (self->_jinglePeerConnection != nullptr) {
-    auto observer = new rtc::RefCountedObject<SetLocalDescriptionObserver>(self, std::move(promise));
+    auto observer = new rtc::RefCountedObject<SetSessionDescriptionObserver>(self, std::move(promise));
     self->_jinglePeerConnection->SetLocalDescription(observer, description);
   } else {
     delete description;
@@ -338,7 +337,7 @@ NAN_METHOD(PeerConnection::SetRemoteDescription) {
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, description, SessionDescriptionInterface*);
 
   if (self->_jinglePeerConnection != nullptr) {
-    auto observer = new rtc::RefCountedObject<SetRemoteDescriptionObserver>(self, std::move(promise));
+    auto observer = new rtc::RefCountedObject<SetSessionDescriptionObserver>(self, std::move(promise));
     self->_jinglePeerConnection->SetRemoteDescription(observer, description);
   } else {
     delete description;

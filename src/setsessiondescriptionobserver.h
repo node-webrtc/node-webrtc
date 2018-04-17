@@ -5,8 +5,8 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_SET_LOCAL_DESCRIPTION_OBSERVER_H_
-#define SRC_SET_LOCAL_DESCRIPTION_OBSERVER_H_
+#ifndef SRC_SET_DESCRIPTION_DESCRIPTION_OBSERVER_H_
+#define SRC_SET_DESCRIPTION_DESCRIPTION_OBSERVER_H_
 
 #include <string>
 
@@ -19,14 +19,14 @@ namespace node_webrtc {
 
 class PeerConnection;
 
-class SetLocalDescriptionObserver
+class SetSessionDescriptionObserver
   : public webrtc::SetSessionDescriptionObserver {
  private:
   PeerConnection* parent;
   std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection>> _promise;
 
  public:
-  explicit SetLocalDescriptionObserver(
+  explicit SetSessionDescriptionObserver(
       PeerConnection* connection,
       std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection>> promise)
     : parent(connection), _promise(std::move(promise)) {}
@@ -37,4 +37,4 @@ class SetLocalDescriptionObserver
 
 }  // namespace node_webrtc
 
-#endif  // SRC_SET_LOCAL_DESCRIPTION_OBSERVER_H_
+#endif  // SRC_SET_DESCRIPTION_DESCRIPTION_OBSERVER_H_
