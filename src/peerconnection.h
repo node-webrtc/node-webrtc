@@ -106,7 +106,7 @@ class PeerConnection
   void HandleNegotiationNeededEvent(const NegotiationNeededEvent& event);
   void HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event);
 
-  void SaveLastSdp(const RTCSessionDescriptionInit lastSdp);
+  void SaveLastSdp(const RTCSessionDescriptionInit& lastSdp);
 
  protected:
   void DidStop() override;
