@@ -5,15 +5,15 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "create-answer-observer.h"
+#include "createsessiondescriptionobserver.h"
 
 #include "common.h"
 #include "peerconnection.h"
 
-using node_webrtc::CreateAnswerObserver;
+using node_webrtc::CreateSessionDescriptionObserver;
 using node_webrtc::PeerConnection;
 
-void CreateAnswerObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp) {
+void CreateSessionDescriptionObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp) {
   TRACE_CALL;
   if (_promise) {
     auto validation = From<RTCSessionDescriptionInit>(sdp);
@@ -29,7 +29,7 @@ void CreateAnswerObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp) {
   TRACE_END;
 }
 
-void CreateAnswerObserver::OnFailure(const std::string& error) {
+void CreateSessionDescriptionObserver::OnFailure(const std::string& error) {
   TRACE_CALL;
   if (_promise) {
     _promise->Reject(SomeError(error));

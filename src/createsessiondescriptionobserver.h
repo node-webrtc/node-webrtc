@@ -5,8 +5,8 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_CREATE_ANSWER_OBSERVER_H_
-#define SRC_CREATE_ANSWER_OBSERVER_H_
+#ifndef SRC_CREATE_SESSION_DESCRIPTION_OBSERVER_H_
+#define SRC_CREATE_SESSION_DESCRIPTION_OBSERVER_H_
 
 #include <string>
 
@@ -19,14 +19,14 @@ namespace node_webrtc {
 
 class PeerConnection;
 
-class CreateAnswerObserver
+class CreateSessionDescriptionObserver
   : public webrtc::CreateSessionDescriptionObserver {
  private:
   PeerConnection* parent;
   std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, node_webrtc::RTCSessionDescriptionInit>> _promise;
 
  public:
-  explicit CreateAnswerObserver(
+  explicit CreateSessionDescriptionObserver(
       PeerConnection* parent,
       std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, node_webrtc::RTCSessionDescriptionInit>> promise)
     : parent(parent), _promise(std::move(promise)) {}
@@ -37,4 +37,4 @@ class CreateAnswerObserver
 
 }  // namespace node_webrtc
 
-#endif  // SRC_CREATE_ANSWER_OBSERVER_H_
+#endif  // SRC_CREATE_SESSION_DESCRIPTION_OBSERVER_H_
