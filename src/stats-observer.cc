@@ -15,20 +15,23 @@ using node_webrtc::StatsObserver;
 
 void StatsObserver::OnComplete(const webrtc::StatsReports& statsReports) {
   TRACE_CALL;
-  double timestamp = 0;
-  auto reports = std::vector<std::map<std::string, std::string>>();
-  for (auto statsReport : statsReports) {
-    auto report = std::map<std::string, std::string>();
-    // NOTE(mroberts): This is a little janky. We should thread each report's timestamp along.
-    timestamp = timestamp > statsReport->timestamp() ? timestamp : statsReport->timestamp();
-    report.emplace("type", statsReport->TypeToString());
-    for (auto const& pair : statsReport->values()) {
-      auto stat = std::string(pair.second->display_name());
-      auto value = std::string(pair.second->ToString());
-      report.emplace(stat, value);
+  if (_promise) {
+    double timestamp = 0;
+    auto reports = std::vector<std::map<std::string, std::string>>();
+    for (auto statsReport : statsReports) {
+      auto report = std::map<std::string, std::string>();
+      // NOTE(mroberts): This is a little janky. We should thread each report's timestamp along.
+      timestamp = timestamp > statsReport->timestamp() ? timestamp : statsReport->timestamp();
+      report.emplace("type", statsReport->TypeToString());
+      for (auto const& pair : statsReport->values()) {
+        auto stat = std::string(pair.second->display_name());
+        auto value = std::string(pair.second->ToString());
+        report.emplace(stat, value);
+      }
+      reports.push_back(report);
     }
-    reports.push_back(report);
+    _promise->Resolve(std::pair<double, std::vector<std::map<std::string, std::string>>>(timestamp, reports));
+    parent->Dispatch(std::move(_promise));
   }
-  parent->Dispatch(GetStatsEvent::Create(callback, timestamp, reports));
   TRACE_END;
 }

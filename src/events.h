@@ -245,23 +245,6 @@ class DataChannelEvent: public Event<PeerConnection> {
   explicit DataChannelEvent(DataChannelObserver* observer): observer(observer) {}
 };
 
-class GetStatsEvent: public Event<PeerConnection> {
- public:
-  Nan::Callback* callback;
-  double timestamp;
-  std::vector<std::map<std::string, std::string>> reports;
-
-  void Dispatch(PeerConnection& peerConnection) override;
-
-  static std::unique_ptr<GetStatsEvent> Create(Nan::Callback* callback, const double timestamp, const std::vector<std::map<std::string, std::string>>& reports) {
-    return std::unique_ptr<GetStatsEvent>(new GetStatsEvent(callback, timestamp, reports));
-  }
-
- private:
-  GetStatsEvent(Nan::Callback* callback, const double timestamp, const std::vector<std::map<std::string, std::string>>& reports)
-    : callback(callback), timestamp(timestamp), reports(reports) {}
-};
-
 }  // namespace node_webrtc
 
 #endif  // SRC_EVENTS_H_

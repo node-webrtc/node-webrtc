@@ -14,7 +14,6 @@ using node_webrtc::DataChannel;
 using node_webrtc::DataChannelEvent;
 using node_webrtc::DataChannelStateChangeEvent;
 using node_webrtc::ErrorEvent;
-using node_webrtc::GetStatsEvent;
 using node_webrtc::IceConnectionStateChangeEvent;
 using node_webrtc::IceGatheringStateChangeEvent;
 using node_webrtc::IceEvent;
@@ -42,10 +41,6 @@ void MessageEvent::Dispatch(DataChannel& dataChannel) {
 
 void NegotiationNeededEvent::Dispatch(PeerConnection& peerConnection) {
   peerConnection.HandleNegotiationNeededEvent(*this);
-}
-
-void GetStatsEvent::Dispatch(PeerConnection& peerConnection) {
-  peerConnection.HandleGetStatsEvent(*this);
 }
 
 void IceEvent::Dispatch(PeerConnection& peerConnection) {
