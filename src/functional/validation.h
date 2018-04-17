@@ -42,7 +42,7 @@ class Validation {
    * Construct a valid Validation. The value passed is assumed to be valid.
    * @param value the value to inject into the Validation
    */
-  explicit Validation(const T value): _is_valid(true), _value(value) {}
+  explicit Validation(const T& value): _is_valid(true), _value(value) {}
 
   /**
    * Validation forms an applicative. Apply a validation.
@@ -51,7 +51,7 @@ class Validation {
    * @return the result of applying the Validation
    */
   template <typename F>
-  Validation<typename std::result_of<F(T)>::type> Apply(const Validation<F> f) const {
+  Validation<typename std::result_of<F(T)>::type> Apply(const Validation<F>& f) const {
     if (f.IsInvalid()) {
       auto errors = f.ToErrors();
       errors.insert(errors.end(), _errors.begin(), _errors.end());
@@ -83,7 +83,7 @@ class Validation {
    * @param default_value the default value to use in the invalid case
    * @return the value in the Validation, if valid; otherwise, the default value
    */
-  T FromValidation(const T default_value) const {
+  T FromValidation(const T& default_value) const {
     return _is_valid ? _value : default_value;
   }
 
@@ -121,7 +121,7 @@ class Validation {
    * @param that another Validation
    * @return this or that
    */
-  Validation<T> Or(const Validation<T> that) const {
+  Validation<T> Or(const Validation<T>& that) const {
     return _is_valid ? Validation<T>::Valid(_value) : that;
   }
 
@@ -148,7 +148,7 @@ class Validation {
    * @param error error specifying why the Validation is invalid
    * @return an invalid Validation
    */
-  static Validation<T> Invalid(Error error) {
+  static Validation<T> Invalid(const Error& error) {
     return Validation(false, std::vector<Error>({ error }));
   }
 
@@ -157,7 +157,7 @@ class Validation {
    * @param errors errors specifying why the Validation is invalid
    * @return an invalid Validation
    */
-  static Validation<T> Invalid(Errors errors) {
+  static Validation<T> Invalid(const Errors& errors) {
     return Validation(false, errors);
   }
 
@@ -166,7 +166,7 @@ class Validation {
    * function to have.
    * @param tt a Validation for a Validation of T
    */
-  static Validation<T> Join(const Validation<Validation<T>> tt) {
+  static Validation<T> Join(const Validation<Validation<T>>& tt) {
     return tt.template FlatMap<T>([](const Validation<T> t) { return t; });
   }
 
@@ -175,7 +175,7 @@ class Validation {
    * @param values a vector of Validations
    * @return a Validation of a vector
    */
-  static Validation<std::vector<T>> Sequence(const std::vector<Validation<T>> values) {
+  static Validation<std::vector<T>> Sequence(const std::vector<Validation<T>>& values) {
     auto errors = std::vector<Error>();
     auto valids = std::vector<T>();
     for (auto value : values) {
@@ -194,12 +194,12 @@ class Validation {
    * @param value the value to inject into the Validation
    * @return a valid Validation
    */
-  static Validation<T> Valid(const T value) {
+  static Validation<T> Valid(const T& value) {
     return Validation(value);
   }
 
  private:
-  Validation(const bool is_valid, const Errors errors): _errors(errors), _is_valid(is_valid), _value(T()) {}
+  Validation(const bool is_valid, const Errors& errors): _errors(errors), _is_valid(is_valid), _value(T()) {}
 
   Errors _errors;
   bool _is_valid;

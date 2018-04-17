@@ -186,7 +186,7 @@ struct Converter<v8::Local<v8::Value>, std::vector<T>> {
 
 template <typename T>
 struct Converter<std::vector<T>, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(const std::vector<T> values) {
+  static Validation<v8::Local<v8::Value>> Convert(const std::vector<T>& values) {
     Nan::EscapableHandleScope scope;
     auto array = Nan::New<v8::Array>();
     uint32_t i = 0;

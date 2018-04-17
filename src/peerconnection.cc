@@ -641,7 +641,7 @@ NAN_SETTER(PeerConnection::ReadOnly) {
   INFO("PeerConnection::ReadOnly");
 }
 
-void PeerConnection::SaveLastSdp(const RTCSessionDescriptionInit lastSdp) {
+void PeerConnection::SaveLastSdp(const RTCSessionDescriptionInit& lastSdp) {
   this->_lastSdp = lastSdp;
 }
 
