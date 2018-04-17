@@ -13,8 +13,7 @@
 #include "common.h"
 #include "converters/arguments.h"
 #include "converters/webrtc.h"
-#include "create-answer-observer.h"
-#include "create-offer-observer.h"
+#include "createsessiondescriptionobserver.h"
 #include "datachannel.h"
 #include "error.h"
 #include "functional/maybe.h"
@@ -263,7 +262,7 @@ NAN_METHOD(PeerConnection::CreateOffer) {
   auto options = validationOptions.UnsafeFromValid();
 
   if (self->_jinglePeerConnection != nullptr) {
-    auto observer = new rtc::RefCountedObject<CreateOfferObserver>(self, std::move(promise));
+    auto observer = new rtc::RefCountedObject<CreateSessionDescriptionObserver>(self, std::move(promise));
     self->_jinglePeerConnection->CreateOffer(observer, options.options);
   }
 
@@ -291,7 +290,7 @@ NAN_METHOD(PeerConnection::CreateAnswer) {
   auto options = validationOptions.UnsafeFromValid();
 
   if (self->_jinglePeerConnection != nullptr) {
-    auto observer = new rtc::RefCountedObject<CreateAnswerObserver>(self, std::move(promise));
+    auto observer = new rtc::RefCountedObject<CreateSessionDescriptionObserver>(self, std::move(promise));
     self->_jinglePeerConnection->CreateAnswer(observer, options.options);
   }
 
