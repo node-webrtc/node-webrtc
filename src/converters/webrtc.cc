@@ -8,6 +8,7 @@
 #include "src/converters/webrtc.h"
 
 #include "src/converters/object.h"
+#include "src/rtcstatsresponse.h"
 
 using Nan::EscapableHandleScope;
 using node_webrtc::BinaryType;
@@ -27,8 +28,11 @@ using node_webrtc::RTCPeerConnectionState;
 using node_webrtc::RTCPriorityType ;
 using node_webrtc::RTCSdpType;
 using node_webrtc::RTCSessionDescriptionInit;
+using node_webrtc::RTCStatsResponse;
+using node_webrtc::RTCStatsResponseInit;
 using node_webrtc::UnsignedShortRange;
 using node_webrtc::Validation;
+using v8::External;
 using v8::Local;
 using v8::Object;
 using v8::Value;
@@ -743,3 +747,12 @@ Validation<Local<Value>> Converter<RTCPeerConnectionState, Local<Value>>::Conver
   }
   return Validation<Local<Value>>::Invalid("Impossible");
 }
+
+Validation<Local<Value>> Converter<RTCStatsResponseInit, Local<Value>>::Convert(RTCStatsResponseInit init) {
+  EscapableHandleScope scope;
+  Local<Value> cargv[2];
+  cargv[0] = Nan::New<External>(const_cast<void*>(static_cast<const void*>(&init.first)));
+  cargv[1] = Nan::New<External>(const_cast<void*>(static_cast<const void*>(&init.second)));
+  auto response = static_cast<Local<Value>>(Nan::New(RTCStatsResponse::constructor)->NewInstance(2, cargv));
+  return Validation<Local<Value>>::Valid(scope.Escape(response));
+};

@@ -13,6 +13,9 @@
 #include "webrtc/api/peerconnectioninterface.h"
 #include "webrtc/api/statstypes.h"
 
+#include "src/converters/webrtc.h"
+#include "src/events.h"
+
 namespace node_webrtc {
 
 class PeerConnection;
@@ -21,11 +24,13 @@ class StatsObserver
   : public webrtc::StatsObserver {
  private:
   PeerConnection* parent;
-  Nan::Callback* callback;
+  std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, node_webrtc::RTCStatsResponseInit>> _promise;
 
  public:
-  explicit StatsObserver(PeerConnection* parent, Nan::Callback* callback)
-    : parent(parent), callback(callback) {}
+  explicit StatsObserver(
+      PeerConnection* parent,
+      std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, node_webrtc::RTCStatsResponseInit>> promise)
+    : parent(parent), _promise(std::move(promise)) {}
 
   virtual void OnComplete(const webrtc::StatsReports& reports);
 };

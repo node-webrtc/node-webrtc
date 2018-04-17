@@ -26,7 +26,6 @@ using node_webrtc::DataChannelEvent;
 using node_webrtc::Event;
 using node_webrtc::ExtendedRTCConfiguration;
 using node_webrtc::From;
-using node_webrtc::GetStatsEvent;
 using node_webrtc::IceConnectionStateChangeEvent;
 using node_webrtc::IceEvent;
 using node_webrtc::IceGatheringStateChangeEvent;
@@ -97,18 +96,6 @@ PeerConnection::~PeerConnection() {
     }
     _factory = nullptr;
   }
-  TRACE_END;
-}
-
-void PeerConnection::HandleGetStatsEvent(const GetStatsEvent& event) {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-  Local<Value> cargv[2];
-  cargv[0] = Nan::New<External>(const_cast<void*>(static_cast<const void*>(&event.timestamp)));
-  cargv[1] = Nan::New<External>(const_cast<void*>(static_cast<const void*>(&event.reports)));
-  Local<Value> argv[1];
-  argv[0] = Nan::New(RTCStatsResponse::constructor)->NewInstance(2, cargv);
-  runInAsyncScope(handle(), **event.callback, 1, argv);
   TRACE_END;
 }
 
@@ -432,27 +419,20 @@ NAN_METHOD(PeerConnection::GetStats) {
 
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
-  auto onSuccess = new Nan::Callback(info[0].As<Function>());
-  auto onFailure = info[1].As<Function>();
-  rtc::scoped_refptr<StatsObserver> statsObserver =
-      new rtc::RefCountedObject<StatsObserver>(self, onSuccess);
+  SETUP_PROMISE(PeerConnection, RTCStatsResponseInit);
+
+  auto statsObserver = new rtc::RefCountedObject<StatsObserver>(self, std::move(promise));
 
   if (self->_jinglePeerConnection == nullptr) {
-    Local<Value> argv[] = {
-      Nan::New("data channel is closed").ToLocalChecked()
-    };
-    self->runInAsyncScope(self->handle(), onFailure, 1, argv);
+    auto error = Nan::Error("RTCPeerConnection is closed");
+    resolver->Reject(error);
   } else if (!self->_jinglePeerConnection->GetStats(statsObserver, nullptr,
           webrtc::PeerConnectionInterface::kStatsOutputLevelStandard)) {
-    // TODO: Include error?
-    Local<Value> argv[] = {
-      Nan::Null()
-    };
-    self->runInAsyncScope(self->handle(), onFailure, 1, argv);
+    auto error = Nan::Error("Failed to execute getStats");
+    resolver->Reject(error);
   }
 
   TRACE_END;
-  info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(PeerConnection::UpdateIce) {

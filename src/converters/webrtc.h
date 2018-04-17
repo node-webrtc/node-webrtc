@@ -511,6 +511,13 @@ struct Converter<RTCPeerConnectionState, v8::Local<v8::Value>> {
   static Validation<v8::Local<v8::Value>> Convert(RTCPeerConnectionState value);
 };
 
+typedef std::pair<double, std::vector<std::map<std::string, std::string>>> RTCStatsResponseInit;
+
+template <>
+struct Converter<RTCStatsResponseInit, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(RTCStatsResponseInit value);
+};
+
 }  // namespace node_webrtc
 
 #endif  // SRC_CONVERTERS_WEBRTC_H_

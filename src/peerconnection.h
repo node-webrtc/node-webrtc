@@ -99,7 +99,6 @@ class PeerConnection
   static NAN_GETTER(GetIceGatheringState);
   static NAN_SETTER(ReadOnly);
 
-  void HandleGetStatsEvent(const GetStatsEvent& event);
   void HandleIceConnectionStateChangeEvent(const IceConnectionStateChangeEvent& event);
   void HandleIceGatheringStateChangeEvent(const IceGatheringStateChangeEvent& event);
   void HandleIceCandidateEvent(const IceEvent& event);
