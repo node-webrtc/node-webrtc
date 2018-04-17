@@ -1,3 +1,11 @@
+0.1.3
+=====
+
+Bug Fixes
+---------
+
+- Fixed memory leaks related to RTCPeerConnection events.
+
 0.1.2
 =====
 
