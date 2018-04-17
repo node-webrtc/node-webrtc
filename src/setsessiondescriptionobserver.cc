@@ -5,16 +5,16 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "set-remote-description-observer.h"
+#include "setsessiondescriptionobserver.h"
 
 #include "common.h"
 #include "peerconnection.h"
 
 using node_webrtc::PeerConnection;
-using node_webrtc::SetRemoteDescriptionObserver;
+using node_webrtc::SetSessionDescriptionObserver;
 using node_webrtc::SomeError;
 
-void SetRemoteDescriptionObserver::OnSuccess() {
+void SetSessionDescriptionObserver::OnSuccess() {
   TRACE_CALL;
   if (_promise) {
     _promise->Resolve(Undefined());
@@ -23,7 +23,7 @@ void SetRemoteDescriptionObserver::OnSuccess() {
   TRACE_END;
 }
 
-void SetRemoteDescriptionObserver::OnFailure(const std::string& error) {
+void SetSessionDescriptionObserver::OnFailure(const std::string& error) {
   TRACE_CALL;
   if (_promise) {
     _promise->Reject(SomeError(error));
