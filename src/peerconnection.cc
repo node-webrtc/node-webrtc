@@ -245,10 +245,7 @@ NAN_METHOD(PeerConnection::CreateOffer) {
 
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
-  auto pair = PromiseEvent<PeerConnection, RTCSessionDescriptionInit>::Create();
-  auto resolver = pair.first;
-  auto promise = std::move(pair.second);
-  info.GetReturnValue().Set(resolver->GetPromise());
+  SETUP_PROMISE(PeerConnection, RTCSessionDescriptionInit);
 
   auto validationOptions = From<Maybe<RTCOfferOptions>, Nan::NAN_METHOD_ARGS_TYPE>(info).Map(
   [](const Maybe<RTCOfferOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCOfferOptions()); });
@@ -273,10 +270,7 @@ NAN_METHOD(PeerConnection::CreateAnswer) {
 
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
-  auto pair = PromiseEvent<PeerConnection, RTCSessionDescriptionInit>::Create();
-  auto resolver = pair.first;
-  auto promise = std::move(pair.second);
-  info.GetReturnValue().Set(resolver->GetPromise());
+  SETUP_PROMISE(PeerConnection, RTCSessionDescriptionInit);
 
   auto validationOptions = From<Maybe<RTCAnswerOptions>, Nan::NAN_METHOD_ARGS_TYPE>(info).Map(
   [](const Maybe<RTCAnswerOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCAnswerOptions()); });
@@ -301,10 +295,7 @@ NAN_METHOD(PeerConnection::SetLocalDescription) {
 
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
-  auto pair = PromiseEvent<PeerConnection>::Create();
-  auto resolver = pair.first;
-  auto promise = std::move(pair.second);
-  info.GetReturnValue().Set(resolver->GetPromise());
+  SETUP_PROMISE(PeerConnection);
 
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, descriptionInit, RTCSessionDescriptionInit);
 
@@ -329,10 +320,7 @@ NAN_METHOD(PeerConnection::SetRemoteDescription) {
 
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
-  auto pair = PromiseEvent<PeerConnection>::Create();
-  auto resolver = pair.first;
-  auto promise = std::move(pair.second);
-  info.GetReturnValue().Set(resolver->GetPromise());
+  SETUP_PROMISE(PeerConnection);
 
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, description, SessionDescriptionInterface*);
 
@@ -351,10 +339,7 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
 
   auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
 
-  auto pair = PromiseEvent<PeerConnection>::Create();
-  auto resolver = pair.first;
-  auto promise = std::move(pair.second);
-  info.GetReturnValue().Set(resolver->GetPromise());
+  SETUP_PROMISE(PeerConnection);
 
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, candidate, IceCandidateInterface*);
 
