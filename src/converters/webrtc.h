@@ -20,6 +20,7 @@
 #include "src/converters.h"
 #include "src/converters/v8.h"
 #include "src/functional/validation.h"
+#include "src/rtcrtpreceiver.h"
 
 namespace node_webrtc {
 
@@ -516,6 +517,107 @@ typedef std::pair<double, std::vector<std::map<std::string, std::string>>> RTCSt
 template <>
 struct Converter<RTCStatsResponseInit, v8::Local<v8::Value>> {
   static Validation<v8::Local<v8::Value>> Convert(RTCStatsResponseInit value);
+};
+
+/*
+ * dictionary RTCRtpContributingSource {
+ *   required DOMHighResTimeStamp timestamp;
+ *   required unsigned long       source;
+ *            double              audioLevel;
+ * };
+ */
+
+template <>
+struct Converter<webrtc::RtpSource, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::RtpSource value);
+};
+
+/*
+ * dictionary RTCRtpHeaderExtensionParameters {
+ *     required DOMString      uri;
+ *     required unsigned short id;
+ *              boolean        encrypted = false;
+ * };
+ */
+
+template <>
+struct Converter<webrtc::RtpHeaderExtensionParameters, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::RtpHeaderExtensionParameters value);
+};
+
+/*
+ * dictionary RTCRtcpParameters {
+ *     DOMString cname;
+ *     boolean   reducedSize;
+ * };
+ */
+
+/*
+ * dictionary RTCRtpCodecParameters {
+ *     octet          payloadType;
+ *     DOMString      mimeType;
+ *     unsigned long  clockRate;
+ *     unsigned short channels;
+ *     DOMString      sdpFmtpLine;
+ * };
+ */
+
+template <>
+struct Converter<webrtc::RtpCodecParameters, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::RtpCodecParameters value);
+};
+
+/*
+ * dictionary RTCRtpParameters {
+ *   required sequence<RTCRtpHeaderExtensionParameters> headerExtensions;
+ *   required RTCRtcpParameters                         rtcp;
+ *   required sequence<RTCRtpCodecParameters>           codecs;
+ * };
+ */
+
+template <>
+struct Converter<webrtc::RtpParameters, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(webrtc::RtpParameters value);
+};
+
+/*
+ * dictionary RTCRtpCodingParameters {
+ *   DOMString rid;
+ * };
+ */
+
+/*
+ * dictionary RTCRtpDecodingParameters: RTCRtpCodingParameters {
+ * };
+ */
+
+/*
+ * dictionary RTCRtpReceiveParameters: RTCRtpParameters {
+ *   required sequence<RTCRtpDecodingParameters> encodings;
+ * };
+ */
+
+template <>
+struct Converter<node_webrtc::RTCRtpReceiver*, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::RTCRtpReceiver* receiver) {
+    Nan::EscapableHandleScope scope;
+    if (!receiver) {
+      return Validation<v8::Local<v8::Value>>::Invalid("RTCRtpReceiver is null");
+    }
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(receiver->handle()));
+  }
+};
+
+/*
+ * enum MediaStreamTrackState {
+ *   "live",
+ *   "ended"
+ * };
+ */
+
+template <>
+struct Converter<webrtc::MediaStreamTrackInterface::TrackState, std::string> {
+  static Validation<std::string> Convert(webrtc::MediaStreamTrackInterface::TrackState value);
 };
 
 }  // namespace node_webrtc

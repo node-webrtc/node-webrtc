@@ -19,6 +19,7 @@ using node_webrtc::IceGatheringStateChangeEvent;
 using node_webrtc::IceEvent;
 using node_webrtc::MessageEvent;
 using node_webrtc::NegotiationNeededEvent;
+using node_webrtc::OnAddTrackEvent;
 using node_webrtc::PeerConnection;
 using node_webrtc::SignalingStateChangeEvent;
 
@@ -30,10 +31,15 @@ void DataChannelStateChangeEvent::Dispatch(DataChannel& dataChannel) {
   dataChannel.HandleStateEvent(*this);
 }
 
+// NOTE(mroberts): https://stackoverflow.com/a/25594741
+namespace node_webrtc {
+
 template <>
 void ErrorEvent<DataChannel>::Dispatch(DataChannel& dataChannel) {
   dataChannel.HandleErrorEvent(*this);
 }
+
+}  // namespace node_webrtc
 
 void MessageEvent::Dispatch(DataChannel& dataChannel) {
   dataChannel.HandleMessageEvent(*this);
@@ -41,6 +47,10 @@ void MessageEvent::Dispatch(DataChannel& dataChannel) {
 
 void NegotiationNeededEvent::Dispatch(PeerConnection& peerConnection) {
   peerConnection.HandleNegotiationNeededEvent(*this);
+}
+
+void OnAddTrackEvent::Dispatch(PeerConnection& peerConnection) {
+  peerConnection.HandleOnAddTrackEvent(*this);
 }
 
 void IceEvent::Dispatch(PeerConnection& peerConnection) {

@@ -27,6 +27,7 @@
 #include "events.h"
 #include "peerconnectionfactory.h"
 #include "promisefulfillingeventloop.h"
+#include "rtcrtpreceiver.h"
 
 namespace node_webrtc {
 
@@ -60,6 +61,9 @@ class PeerConnection
   void OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) override;
   void OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) override;
 
+  void OnAddTrack(rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
+      const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>& streams) override;
+
   //
   // Nodejs wrapping.
   //
@@ -83,6 +87,7 @@ class PeerConnection
   */
   static NAN_METHOD(GetConfiguration);
   static NAN_METHOD(SetConfiguration);
+  static NAN_METHOD(GetReceivers);
   static NAN_METHOD(GetStats);
   static NAN_METHOD(Close);
 
@@ -104,6 +109,7 @@ class PeerConnection
   void HandleIceCandidateEvent(const IceEvent& event);
   void HandleDataChannelEvent(const DataChannelEvent& event);
   void HandleNegotiationNeededEvent(const NegotiationNeededEvent& event);
+  void HandleOnAddTrackEvent(const OnAddTrackEvent& event);
   void HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event);
 
   void SaveLastSdp(const RTCSessionDescriptionInit& lastSdp);
@@ -120,6 +126,8 @@ class PeerConnection
 
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   bool _shouldReleaseFactory;
+
+  std::vector<node_webrtc::RTCRtpReceiver*> _receivers;
 };
 
 }  // namespace node_webrtc

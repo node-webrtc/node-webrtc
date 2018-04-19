@@ -18,6 +18,7 @@
 #include "error.h"
 #include "functional/maybe.h"
 #include "peerconnectionfactory.h"
+#include "rtcrtpreceiver.h"
 #include "rtcstatsresponse.h"
 #include "setsessiondescriptionobserver.h"
 #include "stats-observer.h"
@@ -31,10 +32,12 @@ using node_webrtc::IceEvent;
 using node_webrtc::IceGatheringStateChangeEvent;
 using node_webrtc::Maybe;
 using node_webrtc::NegotiationNeededEvent;
+using node_webrtc::OnAddTrackEvent;
 using node_webrtc::PeerConnection;
 using node_webrtc::PeerConnectionFactory;
 using node_webrtc::PromiseEvent;
 using node_webrtc::PromiseFulfillingEventLoop;
+using node_webrtc::RTCRtpReceiver;
 using node_webrtc::RTCSessionDescriptionInit;
 using node_webrtc::SignalingStateChangeEvent;
 using v8::External;
@@ -90,6 +93,7 @@ PeerConnection::PeerConnection(ExtendedRTCConfiguration configuration)
 PeerConnection::~PeerConnection() {
   TRACE_CALL;
   _jinglePeerConnection = nullptr;
+  _receivers.clear();
   if (_factory) {
     if (_shouldReleaseFactory) {
       PeerConnectionFactory::Release();
@@ -149,6 +153,26 @@ void PeerConnection::HandleNegotiationNeededEvent(const NegotiationNeededEvent&)
   TRACE_END;
 }
 
+void PeerConnection::HandleOnAddTrackEvent(const OnAddTrackEvent& event) {
+  TRACE_CALL;
+  Nan::HandleScope scope;
+
+  auto rtpReceiver = event.receiver;
+
+  Local<Value> cargv[2];
+  cargv[0] = Nan::New<External>(static_cast<void*>(&_factory));
+  cargv[1] = Nan::New<External>(static_cast<void*>(&rtpReceiver));
+  auto receiver = Nan::ObjectWrap::Unwrap<RTCRtpReceiver>(
+          Nan::New(RTCRtpReceiver::constructor)->NewInstance(2, cargv));
+
+  _receivers.push_back(receiver);
+
+  Local<Value> argv[1];
+  argv[0] = receiver->handle();
+  runInAsyncScope(handle(), "ontrack", 1, argv);
+  TRACE_END;
+}
+
 void PeerConnection::HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event) {
   TRACE_CALL;
   Nan::HandleScope scope;
@@ -195,6 +219,13 @@ void PeerConnection::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterfa
 
 void PeerConnection::OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface>) {
   TRACE_CALL;
+  TRACE_END;
+}
+
+void PeerConnection::OnAddTrack(rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
+    const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>&) {
+  TRACE_CALL;
+  Dispatch(OnAddTrackEvent::Create(receiver));
   TRACE_END;
 }
 
@@ -414,6 +445,14 @@ NAN_METHOD(PeerConnection::SetConfiguration) {
   TRACE_END;
 }
 
+NAN_METHOD(PeerConnection::GetReceivers) {
+  TRACE_CALL;
+  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  CONVERT_OR_THROW_AND_RETURN(self->_receivers, result, Local<Value>);
+  info.GetReturnValue().Set(result);
+  TRACE_END;
+}
+
 NAN_METHOD(PeerConnection::GetStats) {
   TRACE_CALL;
 
@@ -451,6 +490,9 @@ NAN_METHOD(PeerConnection::Close) {
             self->_jinglePeerConnection->GetConfiguration(),
             self->_port_range);
     self->_jinglePeerConnection->Close();
+    for (auto receiver : self->_receivers) {
+      receiver->OnPeerConnectionClosed();
+    }
   }
 
   self->_jinglePeerConnection = nullptr;
@@ -656,6 +698,7 @@ void PeerConnection::Init(Handle<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "setRemoteDescription", SetRemoteDescription);
   Nan::SetPrototypeMethod(tpl, "getConfiguration", GetConfiguration);
   Nan::SetPrototypeMethod(tpl, "setConfiguration", SetConfiguration);
+  Nan::SetPrototypeMethod(tpl, "getReceivers", GetReceivers);
   Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
   Nan::SetPrototypeMethod(tpl, "updateIce", UpdateIce);
   Nan::SetPrototypeMethod(tpl, "addIceCandidate", AddIceCandidate);
