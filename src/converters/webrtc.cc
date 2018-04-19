@@ -32,8 +32,10 @@ using node_webrtc::RTCStatsResponse;
 using node_webrtc::RTCStatsResponseInit;
 using node_webrtc::UnsignedShortRange;
 using node_webrtc::Validation;
+using v8::Array;
 using v8::External;
 using v8::Local;
+using v8::Number;
 using v8::Object;
 using v8::Value;
 using webrtc::DataChannelInit;
@@ -379,7 +381,7 @@ Validation<RTCSdpType> Converter<std::string, RTCSdpType>::Convert(const std::st
     return Validation<RTCSdpType>::Valid(RTCSdpType::kRollback);
   }
   return Validation<RTCSdpType>::Invalid(R"(Expected "offer", "pranswer", "answer" or "rollback")");
-};
+}
 
 Validation<std::string> Converter<RTCSdpType, std::string>::Convert(const RTCSdpType type) {
   switch (type) {
@@ -392,6 +394,7 @@ Validation<std::string> Converter<RTCSdpType, std::string>::Convert(const RTCSdp
     case RTCSdpType::kRollback:
       return Validation<std::string>::Valid("rollback");
   }
+  return Validation<std::string>::Invalid("Impossible");
 }
 
 Validation<RTCSdpType> Converter<Local<Value>, RTCSdpType>::Convert(const Local<Value> value) {
@@ -449,7 +452,7 @@ const RTCSessionDescriptionInit init) {
   object->Set(Nan::New("sdp").ToLocalChecked(), Nan::New(init.sdp).ToLocalChecked());
   object->Set(Nan::New("type").ToLocalChecked(), Nan::New(maybeType.UnsafeFromValid()).ToLocalChecked());
   return Validation<Local<Value>>::Valid(scope.Escape(object));
-};
+}
 
 Validation<RTCSessionDescriptionInit> Converter<SessionDescriptionInterface*, RTCSessionDescriptionInit>::Convert(
     SessionDescriptionInterface* description) {
@@ -755,4 +758,72 @@ Validation<Local<Value>> Converter<RTCStatsResponseInit, Local<Value>>::Convert(
   cargv[1] = Nan::New<External>(const_cast<void*>(static_cast<const void*>(&init.second)));
   auto response = static_cast<Local<Value>>(Nan::New(RTCStatsResponse::constructor)->NewInstance(2, cargv));
   return Validation<Local<Value>>::Valid(scope.Escape(response));
-};
+}
+
+Validation<Local<Value>> Converter<webrtc::RtpSource, Local<Value>>::Convert(webrtc::RtpSource source) {
+  EscapableHandleScope scope;
+  auto object = Nan::New<Object>();
+  object->Set(Nan::New("timestamp").ToLocalChecked(), Nan::New<Number>(source.timestamp_ms()));
+  object->Set(Nan::New("source").ToLocalChecked(), Nan::New(source.source_id()));
+  return Validation<Local<Value>>::Valid(scope.Escape(object));
+}
+
+Validation<Local<Value>> Converter<webrtc::RtpHeaderExtensionParameters, Local<Value>>::Convert(webrtc::RtpHeaderExtensionParameters params) {
+  EscapableHandleScope scope;
+  auto object = Nan::New<Object>();
+  object->Set(Nan::New("uri").ToLocalChecked(), Nan::New(params.uri).ToLocalChecked());
+  object->Set(Nan::New("id").ToLocalChecked(), Nan::New(params.id));
+  return Validation<Local<Value>>::Valid(scope.Escape(object));
+}
+
+Validation<Local<Value>> Converter<webrtc::RtpCodecParameters, Local<Value>>::Convert(webrtc::RtpCodecParameters params) {
+  EscapableHandleScope scope;
+  auto object = Nan::New<Object>();
+  object->Set(Nan::New("payloadType").ToLocalChecked(), Nan::New(params.payload_type));
+  object->Set(Nan::New("mimeType").ToLocalChecked(), Nan::New(params.mime_type()).ToLocalChecked());
+  if (params.clock_rate) {
+    object->Set(Nan::New("clockRate").ToLocalChecked(), Nan::New(*params.clock_rate));
+  }
+  if (params.num_channels) {
+    object->Set(Nan::New("channels").ToLocalChecked(), Nan::New(*params.num_channels));
+  }
+  if (!params.parameters.empty()) {
+    std::string fmtp("a=fmtp:" + std::to_string(params.payload_type));
+    unsigned long i = 0;
+    for (auto param : params.parameters) {
+      fmtp += " " + param.first + "=" + param.second;
+      if (i < params.parameters.size() - 1) {
+        fmtp += ";";
+      }
+      i++;
+    }
+    object->Set(Nan::New("sdpFmtpLine").ToLocalChecked(), Nan::New(fmtp).ToLocalChecked());
+  }
+  return Validation<Local<Value>>::Valid(scope.Escape(object));
+}
+
+static Local<Value> CreateRtpParameters(Local<Value> headerExtensions, Local<Value> codecs) {
+  EscapableHandleScope scope;
+  auto object = Nan::New<Object>();
+  object->Set(Nan::New("headerExtensions").ToLocalChecked(), headerExtensions);
+  object->Set(Nan::New("codecs").ToLocalChecked(), codecs);
+  object->Set(Nan::New("encodings").ToLocalChecked(), Nan::New<Array>());
+  return scope.Escape(object);
+}
+
+Validation<Local<Value>> Converter<webrtc::RtpParameters, v8::Local<v8::Value>>::Convert(webrtc::RtpParameters params) {
+  EscapableHandleScope scope;
+  return curry(CreateRtpParameters)
+      % From<Local<Value>>(params.header_extensions)
+      * From<Local<Value>>(params.codecs);
+}
+
+Validation<std::string> Converter<webrtc::MediaStreamTrackInterface::TrackState, std::string>::Convert(webrtc::MediaStreamTrackInterface::TrackState state) {
+  switch (state) {
+    case webrtc::MediaStreamTrackInterface::TrackState::kEnded:
+      return Validation<std::string>::Valid("ended");
+    case webrtc::MediaStreamTrackInterface::TrackState::kLive:
+      return Validation<std::string>::Valid("live");
+  }
+  return Validation<std::string>::Invalid("Impossible");
+}

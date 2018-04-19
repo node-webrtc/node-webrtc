@@ -8,7 +8,6 @@
 #ifndef SRC_PROMISEFULFILLINGEVENTLOOP_H_
 #define SRC_PROMISEFULFILLINGEVENTLOOP_H_
 
-#include <iostream>
 #include <memory>
 #include <queue>
 

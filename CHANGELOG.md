@@ -1,3 +1,44 @@
+0.1.4
+=====
+
+New Features
+------------
+
+### RTCPeerConnection
+
+- Added support for `getReceivers`.
+- Added partial support for the RTCTrackEvent. RTCPeerConnection will emit the
+  RTCTrackEvent with two attributes: `track` and `receiver`. In the future, we
+  will add support for the `streams` and `transceiver` attributes.
+
+### RTCRtpReceiver
+
+This release adds partial support for RTCRtpReceiver, including methods
+
+- `getParameters`
+- `getContributingSources` (always returns an empty array for now)
+- `getSynchronizationSources` (always returns an empty array for now)
+- `getStats` (always returns a rejected Promise for now)
+
+and attributes
+
+- `track`
+- `transport` (always returns `null` for now)
+- `rtcpTransport` (always returns `null` for now)
+
+RTCRtpReceiver also includes partial support for the static method
+`getCapabilities`; however, it always returns a rejected Promise.
+
+### MediaStreamTrack
+
+This release adds partial support for remote MediaStreamTracks, including
+attributes
+
+- `enabled` (read-only for now)
+- `id`
+- `kind`
+- `readyState`
+
 0.1.3
 =====
 

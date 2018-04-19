@@ -8,6 +8,8 @@
 #include "node.h"
 
 #include "datachannel.h"
+#include "mediastreamtrack.h"
+#include "rtcrtpreceiver.h"
 #include "rtcstatsreport.h"
 #include "rtcstatsresponse.h"
 #include "peerconnection.h"
@@ -24,6 +26,8 @@ void init(Handle<Object> exports) {
   node_webrtc::PeerConnectionFactory::Init(exports);
   node_webrtc::PeerConnection::Init(exports);
   node_webrtc::DataChannel::Init(exports);
+  node_webrtc::MediaStreamTrack::Init(exports);
+  node_webrtc::RTCRtpReceiver::Init(exports);
   node_webrtc::RTCStatsReport::Init(exports);
   node_webrtc::RTCStatsResponse::Init(exports);
   node::AtExit(dispose);

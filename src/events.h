@@ -40,6 +40,10 @@ class Event {
   }
 
   virtual ~Event() = default;
+
+  static std::unique_ptr<Event<T>> Create() {
+    return std::unique_ptr<Event<T>>(new Event<T>());
+  }
 };
 
 /**
@@ -243,6 +247,20 @@ class DataChannelEvent: public Event<PeerConnection> {
 
  private:
   explicit DataChannelEvent(DataChannelObserver* observer): observer(observer) {}
+};
+
+class OnAddTrackEvent: public Event<PeerConnection> {
+ public:
+  rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver;
+
+  void Dispatch(PeerConnection& peerConnection) override;
+
+  static std::unique_ptr<OnAddTrackEvent> Create(rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver) {
+    return std::unique_ptr<OnAddTrackEvent>(new OnAddTrackEvent(receiver));
+  }
+
+ private:
+  explicit OnAddTrackEvent(rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver): receiver(receiver) {}
 };
 
 }  // namespace node_webrtc
