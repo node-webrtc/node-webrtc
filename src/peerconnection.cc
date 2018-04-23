@@ -23,6 +23,7 @@
 #include "setsessiondescriptionobserver.h"
 #include "stats-observer.h"
 
+using node_webrtc::Arguments;
 using node_webrtc::AsyncObjectWrap;
 using node_webrtc::AsyncObjectWrapWithLoop;
 using node_webrtc::DataChannelEvent;
@@ -38,7 +39,6 @@ using node_webrtc::OnAddTrackEvent;
 using node_webrtc::PeerConnection;
 using node_webrtc::PeerConnectionFactory;
 using node_webrtc::PromiseEvent;
-using node_webrtc::PromiseFulfillingEventLoop;
 using node_webrtc::RTCRtpReceiver;
 using node_webrtc::RTCSessionDescriptionInit;
 using node_webrtc::SignalingStateChangeEvent;
@@ -172,9 +172,18 @@ void PeerConnection::HandleOnAddTrackEvent(const OnAddTrackEvent& event) {
   receiver->AddRef();
   _receivers.push_back(receiver);
 
-  Local<Value> argv[1];
+  auto mediaStreams = std::vector<MediaStream*>();
+  for (auto const& stream : event.streams) {
+    auto mediaStream = MediaStream::GetOrCreate(_factory, stream);
+    mediaStreams.push_back(mediaStream);
+  }
+  CONVERT_OR_THROW_AND_RETURN(mediaStreams, streams, Local<Value>);
+
+  Local<Value> argv[2];
   argv[0] = receiver->ToObject();
-  MakeCallback("ontrack", 1, argv);
+  argv[1] = streams;
+  MakeCallback("ontrack", 2, argv);
+
   TRACE_END;
 }
 
@@ -224,9 +233,9 @@ void PeerConnection::OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface
 }
 
 void PeerConnection::OnAddTrack(rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
-    const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>&) {
+    const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>& streams) {
   TRACE_CALL;
-  Dispatch(OnAddTrackEvent::Create(receiver));
+  Dispatch(OnAddTrackEvent::Create(receiver, streams));
   TRACE_END;
 }
 
@@ -265,7 +274,7 @@ NAN_METHOD(PeerConnection::CreateOffer) {
 
   SETUP_PROMISE(PeerConnection, RTCSessionDescriptionInit);
 
-  auto validationOptions = From<Maybe<RTCOfferOptions>, Nan::NAN_METHOD_ARGS_TYPE>(info).Map(
+  auto validationOptions = From<Maybe<RTCOfferOptions>>(Arguments(info)).Map(
   [](const Maybe<RTCOfferOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCOfferOptions()); });
   if (validationOptions.IsInvalid()) {
     TRACE_END;
@@ -290,7 +299,7 @@ NAN_METHOD(PeerConnection::CreateAnswer) {
 
   SETUP_PROMISE(PeerConnection, RTCSessionDescriptionInit);
 
-  auto validationOptions = From<Maybe<RTCAnswerOptions>, Nan::NAN_METHOD_ARGS_TYPE>(info).Map(
+  auto validationOptions = From<Maybe<RTCAnswerOptions>>(Arguments(info)).Map(
   [](const Maybe<RTCAnswerOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCAnswerOptions()); });
   if (validationOptions.IsInvalid()) {
     TRACE_END;

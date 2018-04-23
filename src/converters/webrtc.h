@@ -17,9 +17,13 @@
 #include "nan.h"
 #include "webrtc/api/peerconnectioninterface.h"
 
+#include "src/asyncobjectwrapwithloop.h"
 #include "src/converters.h"
+#include "src/converters/arguments.h"
 #include "src/converters/v8.h"
 #include "src/functional/validation.h"
+#include "src/mediastream.h"
+#include "src/mediastreamtrack.h"
 #include "src/rtcrtpreceiver.h"
 
 namespace node_webrtc {
@@ -618,6 +622,48 @@ struct Converter<node_webrtc::RTCRtpReceiver*, v8::Local<v8::Value>> {
 template <>
 struct Converter<webrtc::MediaStreamTrackInterface::TrackState, std::string> {
   static Validation<std::string> Convert(webrtc::MediaStreamTrackInterface::TrackState value);
+};
+
+template <>
+struct Converter<node_webrtc::MediaStream*, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::MediaStream* track) {
+    Nan::EscapableHandleScope scope;
+    if (!track) {
+      return Validation<v8::Local<v8::Value>>::Invalid("MediaStream is null");
+    }
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(track->handle()));
+  }
+};
+
+template <>
+struct Converter<v8::Local<v8::Value>, node_webrtc::MediaStream*> {
+  static Validation<node_webrtc::MediaStream*> Convert(v8::Local<v8::Value> value) {
+    // TODO(mroberts): This is not safe.
+    return value->IsObject() && !value->IsArray()
+        ? Validation<node_webrtc::MediaStream*>::Valid(Nan::ObjectWrap::Unwrap<node_webrtc::MediaStream>(value->ToObject()))
+        : Validation<node_webrtc::MediaStream*>::Invalid("IDK");
+  }
+};
+
+template <>
+struct Converter<node_webrtc::MediaStreamTrack*, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::MediaStreamTrack* track) {
+    Nan::EscapableHandleScope scope;
+    if (!track) {
+      return Validation<v8::Local<v8::Value>>::Invalid("MediaStreamTrack is null");
+    }
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(track->ToObject()));
+  }
+};
+
+template <>
+struct Converter<v8::Local<v8::Value>, node_webrtc::MediaStreamTrack*> {
+  static Validation<node_webrtc::MediaStreamTrack*> Convert(v8::Local<v8::Value> value) {
+    // TODO(mroberts): This is not safe.
+    return value->IsObject() && !value->IsArray()
+        ? Validation<node_webrtc::MediaStreamTrack*>::Valid(node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::MediaStreamTrack>::Unwrap(value->ToObject()))
+        : Validation<node_webrtc::MediaStreamTrack*>::Invalid("IDK");
+  }
 };
 
 }  // namespace node_webrtc

@@ -3,6 +3,7 @@
 var tape = require('tape');
 var wrtc = require('..');
 
+var MediaStream = wrtc.MediaStream;
 var MediaStreamTrack = wrtc.MediaStreamTrack;
 var RTCPeerConnection = wrtc.RTCPeerConnection;
 var RTCRtpReceiver = wrtc.RTCRtpReceiver;
@@ -74,7 +75,7 @@ var sdp2 = [
   'a=rtcp-mux',
 ].join('\r\n') + '\r\n';
 
-tape('applying a remote offer creates receivers', function(t) {
+tape('applying a remote offer creates receivers (checked via .getReceivers)', function(t) {
   // NOTE(mroberts): Create and close the RTCPeerConnection inside a Promise,
   // then delay with setTimeout so that we can test accessing getReceivers after
   // the RTCPeerConnection's internals have been destroyed.
@@ -102,6 +103,63 @@ tape('applying a remote offer creates receivers', function(t) {
     t.equal(receivers[1].track.id, '456', 'the second RTCRtpReceiver\'s .track has .id "456"');
     t.equal(receivers[1].track.enabled, true, 'the second RTCRtpReceiver\'s .track has .enabled true');
     t.equal(receivers[1].track.readyState, 'ended', 'the second RTCRtpReceiver\'s .track has .readyState "ended"');
+    t.end();
+  });
+});
+
+tape('applying a remote offer creates receivers (checked via .ontrack)', function(t) {
+  // NOTE(mroberts): Create and close the RTCPeerConnection inside a Promise,
+  // then delay with setTimeout so that we can test accessing getReceivers after
+  // the RTCPeerConnection's internals have been destroyed.
+  return Promise.resolve().then(function() {
+    var pc = new RTCPeerConnection();
+    var offer = new RTCSessionDescription({ type: 'offer', sdp: sdp1 });
+    var trackEventPromise1 = new Promise(function(resolve) {
+      pc.ontrack = resolve;
+    });
+    var trackEventPromise2 = trackEventPromise1.then(function() {
+      return new Promise(function(resolve) {
+        pc.ontrack = resolve;
+      });
+    });
+    return pc.setRemoteDescription(offer).then(function() {
+      pc.close();
+      return Promise.all([trackEventPromise1, trackEventPromise2]);
+    });
+  }).then(function(trackEvents) {
+    return new Promise(function(resolve) { setTimeout(resolve.bind(null, trackEvents)); });
+  }).then(function(trackEvents) {
+    t.ok(trackEvents.every(function(trackEvent) {
+      return trackEvent.receiver instanceof RTCRtpReceiver;
+    }), 'each RTCTrackEvent\'s .receiver is an RTCRtpReceiver');
+    t.ok(trackEvents.every(function(trackEvent) {
+      return trackEvent.track instanceof MediaStreamTrack;
+    }), 'each RTCTrackEvent\'s .track is a MediaStreamTrack');
+    t.ok(trackEvents.every(function(trackEvent) {
+      return trackEvent.track === trackEvent.receiver.track;
+    }), 'each RTCTrackEvent\'s .track equals its .receiver.track');
+    t.ok(trackEvents.every(function(trackEvent) {
+      return Array.isArray(trackEvent.streams)
+        && trackEvent.streams.length === 1
+        && trackEvent.streams[0] instanceof MediaStream;
+    }), 'each RTCTrackEvent\'s .streams is an Array containing a single MediaStreamTrack');
+    t.ok(trackEvents.every(function(trackEvent) {
+      return trackEvent.streams[0].id === 'stream';
+    }), 'each RTCTrackEvent\'s MediaStream has .id "stream"');
+    t.ok(trackEvents.every(function(trackEvent) {
+      return trackEvent.streams[0].getTracks().indexOf(trackEvent.track) > -1;
+    }), 'each RTCTrackEvent\'s MediaStream contains its MediaStreamTrack (checked via kind-generic method)');
+    t.ok(trackEvents.every(function(trackEvent) {
+      return trackEvent.streams[0][trackEvent.track.kind === 'audio'
+        ? 'getAudioTracks' : 'getVideoTracks'
+      ]().indexOf(trackEvent.track) > -1;
+    }), 'each RTCTrackEvent\'s MediaStream contains its MediaStreamTrack (checked via kind-specific method)');
+    t.ok(trackEvents.every(function(trackEvent) {
+      return trackEvent.streams[0].active === false;
+    }), 'each RTCTrackEvent\'s MediaStream\'s .active is false');
+    t.ok(trackEvents.reduce(function(trackEvent1, trackEvent2) {
+      return trackEvent1.streams[0] === trackEvent2.streams[0];
+    }), 'the RTCTrackEvent\'s MediaStreams are the same');
     t.end();
   });
 });

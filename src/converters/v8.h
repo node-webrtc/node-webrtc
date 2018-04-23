@@ -226,6 +226,16 @@ struct Converter<v8::Local<v8::Value>, v8::Local<v8::Object>> {
   }
 };
 
+template <>
+struct Converter<v8::Local<v8::Value>, v8::Local<v8::External>> {
+  static Validation<v8::Local<v8::External>> Convert(const v8::Local<v8::Value> value) {
+    Nan::EscapableHandleScope scope;
+    return !value.IsEmpty() && value->IsExternal()
+        ? Validation<v8::Local<v8::External>>::Valid(scope.Escape(v8::Local<v8::External>::Cast(value)))
+        : Validation<v8::Local<v8::External>>::Invalid("Expected an external");
+  }
+};
+
 }  // namespace node_webrtc
 
 #endif  // SRC_CONVERTERS_V8_H_
