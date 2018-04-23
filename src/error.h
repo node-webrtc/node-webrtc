@@ -27,7 +27,7 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
   auto NODE_WEBRTC_UNIQUE_NAME(validation) = node_webrtc::Validation<argument_type<void(T)>::type>::Invalid(std::vector<node_webrtc::Error>()); \
   { \
     Nan::TryCatch tc; \
-    NODE_WEBRTC_UNIQUE_NAME(validation) = node_webrtc::From<argument_type<void(T)>::type, Nan::NAN_METHOD_ARGS_TYPE>(info); \
+    NODE_WEBRTC_UNIQUE_NAME(validation) = node_webrtc::From<argument_type<void(T)>::type>(node_webrtc::Arguments(info)); \
     if (tc.HasCaught()) { \
       tc.ReThrow(); \
       return; \
@@ -59,7 +59,7 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
   auto NODE_WEBRTC_UNIQUE_NAME(validation) = node_webrtc::Validation<argument_type<void(T)>::type>::Invalid(std::vector<node_webrtc::Error>()); \
   { \
     Nan::TryCatch tc; \
-    NODE_WEBRTC_UNIQUE_NAME(validation) = node_webrtc::From<argument_type<void(T)>::type, Nan::NAN_METHOD_ARGS_TYPE>(info); \
+    NODE_WEBRTC_UNIQUE_NAME(validation) = node_webrtc::From<argument_type<void(T)>::type>(node_webrtc::Arguments(info)); \
     if (tc.HasCaught()) { \
       resolver->Resolve(tc.Exception()); \
       return; \

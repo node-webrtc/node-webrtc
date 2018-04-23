@@ -15,6 +15,7 @@
 #define SRC_FUNCTIONAL_MAYBE_H_
 
 #include <cassert>
+#include <functional>
 #include <type_traits>
 
 namespace node_webrtc {
@@ -94,6 +95,16 @@ class Maybe {
    */
   Maybe<T> Or(const Maybe<T>& that) const {
     return _is_just ? this : that;
+  }
+
+  /**
+   * If "this" contains a value, return it; otherwise, compute a value and
+   * return it
+   * @param compute
+   * @return
+   */
+  T Or(std::function<T()> compute) const {
+    return _is_just ? _value : compute();
   }
 
   /**
