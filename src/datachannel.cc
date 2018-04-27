@@ -129,7 +129,7 @@ void DataChannel::HandleMessageEvent(const MessageEvent& event) {
     Local<v8::ArrayBuffer> array = v8::ArrayBuffer::New(
             v8::Isolate::GetCurrent(), event.message.get(), event.size);
 #else
-    Local<Object> array = Nan::New(ArrayBufferConstructor)->NewInstance();
+    Local<Object> array = Nan::NewInstance(Nan::New(ArrayBufferConstructor)).ToLocalChecked();
     array->SetIndexedPropertiesToExternalArrayData(
         event.message.get(), v8::kExternalByteArray, event.size);
     array->ForceSet(Nan::New("byteLength").ToLocalChecked(), Nan::New<Integer>(static_cast<uint32_t>(event.size)));

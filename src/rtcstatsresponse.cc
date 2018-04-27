@@ -53,7 +53,7 @@ NAN_METHOD(RTCStatsResponse::result) {
     Local<Value> cargv[2];
     cargv[0] = Nan::New<External>(static_cast<void*>(&timestamp));
     cargv[1] = Nan::New<External>(static_cast<void*>(&report));
-    reports->Set(i++, Nan::New(RTCStatsReport::constructor)->NewInstance(2, cargv));
+    reports->Set(i++, Nan::NewInstance(Nan::New(RTCStatsReport::constructor), 2, cargv).ToLocalChecked());
   }
 
   TRACE_END;

@@ -756,7 +756,7 @@ Validation<Local<Value>> Converter<RTCStatsResponseInit, Local<Value>>::Convert(
   Local<Value> cargv[2];
   cargv[0] = Nan::New<External>(const_cast<void*>(static_cast<const void*>(&init.first)));
   cargv[1] = Nan::New<External>(const_cast<void*>(static_cast<const void*>(&init.second)));
-  auto response = static_cast<Local<Value>>(Nan::New(RTCStatsResponse::constructor)->NewInstance(2, cargv));
+  auto response = static_cast<Local<Value>>(Nan::NewInstance(Nan::New(RTCStatsResponse::constructor), 2, cargv).ToLocalChecked());
   return Validation<Local<Value>>::Valid(scope.Escape(response));
 }
 
