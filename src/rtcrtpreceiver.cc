@@ -42,7 +42,7 @@ NAN_METHOD(RTCRtpReceiver::New) {
   Local<Value> cargv[2];
   cargv[0] = info[0];
   cargv[1] = Nan::New<External>(static_cast<void*>(&track));
-  auto mediaStreamTrack = Nan::ObjectWrap::Unwrap<MediaStreamTrack>(Nan::New(MediaStreamTrack::constructor)->NewInstance(2, cargv));
+  auto mediaStreamTrack = Nan::ObjectWrap::Unwrap<MediaStreamTrack>(Nan::NewInstance(Nan::New(MediaStreamTrack::constructor), 2, cargv).ToLocalChecked());
 
   auto obj = new RTCRtpReceiver(std::move(factory), std::move(receiver), mediaStreamTrack);
   obj->Wrap(info.This());

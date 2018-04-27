@@ -138,7 +138,7 @@ void PeerConnection::HandleDataChannelEvent(const DataChannelEvent& event) {
   DataChannelObserver* observer = event.observer;
   Local<Value> cargv[1];
   cargv[0] = Nan::New<External>(static_cast<void*>(observer));
-  Local<Value> dc = Nan::New(DataChannel::constructor)->NewInstance(1, cargv);
+  Local<Value> dc = Nan::NewInstance(Nan::New(DataChannel::constructor), 1, cargv).ToLocalChecked();
 
   Local<Value> argv[1];
   argv[0] = dc;
@@ -163,7 +163,8 @@ void PeerConnection::HandleOnAddTrackEvent(const OnAddTrackEvent& event) {
   cargv[0] = Nan::New<External>(static_cast<void*>(&_factory));
   cargv[1] = Nan::New<External>(static_cast<void*>(&rtpReceiver));
   auto receiver = Nan::ObjectWrap::Unwrap<RTCRtpReceiver>(
-          Nan::New(RTCRtpReceiver::constructor)->NewInstance(2, cargv));
+          Nan::NewInstance(Nan::New(RTCRtpReceiver::constructor), 2, cargv).ToLocalChecked()
+      );
 
   _receivers.push_back(receiver);
 
@@ -401,7 +402,7 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
 
   Local<Value> cargv[1];
   cargv[0] = Nan::New<External>(static_cast<void*>(observer));
-  Local<Value> dc = Nan::New(DataChannel::constructor)->NewInstance(1, cargv);
+  Local<Value> dc = Nan::NewInstance(Nan::New(DataChannel::constructor), 1, cargv).ToLocalChecked();
 
   TRACE_END;
   info.GetReturnValue().Set(dc);
