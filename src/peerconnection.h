@@ -28,6 +28,7 @@
 #include "events.h"
 #include "peerconnectionfactory.h"
 #include "rtcrtpreceiver.h"
+#include "rtcrtpsender.h"
 
 namespace node_webrtc {
 
@@ -69,6 +70,8 @@ class PeerConnection
   static Nan::Persistent<v8::Function> constructor;
   static NAN_METHOD(New);
 
+  static NAN_METHOD(AddTrack);
+  static NAN_METHOD(RemoveTrack);
   static NAN_METHOD(CreateOffer);
   static NAN_METHOD(CreateAnswer);
   static NAN_METHOD(SetLocalDescription);
@@ -86,6 +89,7 @@ class PeerConnection
   static NAN_METHOD(GetConfiguration);
   static NAN_METHOD(SetConfiguration);
   static NAN_METHOD(GetReceivers);
+  static NAN_METHOD(GetSenders);
   static NAN_METHOD(GetStats);
   static NAN_METHOD(Close);
 
@@ -123,6 +127,7 @@ class PeerConnection
   bool _shouldReleaseFactory;
 
   std::vector<node_webrtc::RTCRtpReceiver*> _receivers;
+  std::vector<node_webrtc::RTCRtpSender*> _senders;
 };
 
 }  // namespace node_webrtc

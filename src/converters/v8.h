@@ -45,6 +45,20 @@ struct Converter<SomeError, v8::Local<v8::Value>> {
   }
 };
 
+class Null {
+ public:
+  Null() {}
+};
+
+template <>
+struct Converter<v8::Local<v8::Value>, Null> {
+  static Validation<Null> Convert(const v8::Local<v8::Value> value) {
+    return value->IsNull()
+        ? Validation<Null>::Valid(Null())
+        : Validation<Null>::Invalid("Expected null");
+  }
+};
+
 class Undefined {
  public:
   Undefined() {}

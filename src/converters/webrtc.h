@@ -25,6 +25,7 @@
 #include "src/mediastream.h"
 #include "src/mediastreamtrack.h"
 #include "src/rtcrtpreceiver.h"
+#include "src/rtcrtpsender.h"
 
 namespace node_webrtc {
 
@@ -639,7 +640,7 @@ template <>
 struct Converter<v8::Local<v8::Value>, node_webrtc::MediaStream*> {
   static Validation<node_webrtc::MediaStream*> Convert(v8::Local<v8::Value> value) {
     // TODO(mroberts): This is not safe.
-    return value->IsObject() && !value->IsArray()
+    return value->IsObject() && !value->IsNull() && !value->IsArray()
         ? Validation<node_webrtc::MediaStream*>::Valid(Nan::ObjectWrap::Unwrap<node_webrtc::MediaStream>(value->ToObject()))
         : Validation<node_webrtc::MediaStream*>::Invalid("IDK");
   }
@@ -660,9 +661,30 @@ template <>
 struct Converter<v8::Local<v8::Value>, node_webrtc::MediaStreamTrack*> {
   static Validation<node_webrtc::MediaStreamTrack*> Convert(v8::Local<v8::Value> value) {
     // TODO(mroberts): This is not safe.
-    return value->IsObject() && !value->IsArray()
+    return value->IsObject() && !value->IsNull() && !value->IsArray()
         ? Validation<node_webrtc::MediaStreamTrack*>::Valid(node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::MediaStreamTrack>::Unwrap(value->ToObject()))
         : Validation<node_webrtc::MediaStreamTrack*>::Invalid("IDK");
+  }
+};
+
+template <>
+struct Converter<node_webrtc::RTCRtpSender*, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::RTCRtpSender* track) {
+    Nan::EscapableHandleScope scope;
+    if (!track) {
+      return Validation<v8::Local<v8::Value>>::Invalid("RTCRtpSender is null");
+    }
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(track->ToObject()));
+  }
+};
+
+template <>
+struct Converter<v8::Local<v8::Value>, node_webrtc::RTCRtpSender*> {
+  static Validation<node_webrtc::RTCRtpSender*> Convert(v8::Local<v8::Value> value) {
+    // TODO(mroberts): This is not safe.
+    return value->IsObject() && !value->IsNull() && !value->IsArray()
+        ? Validation<node_webrtc::RTCRtpSender*>::Valid(node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCRtpSender>::Unwrap(value->ToObject()))
+        : Validation<node_webrtc::RTCRtpSender*>::Invalid("IDK");
   }
 };
 

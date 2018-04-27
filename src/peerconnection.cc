@@ -34,12 +34,14 @@ using node_webrtc::IceConnectionStateChangeEvent;
 using node_webrtc::IceEvent;
 using node_webrtc::IceGatheringStateChangeEvent;
 using node_webrtc::Maybe;
+using node_webrtc::MediaStreamTrack;
 using node_webrtc::NegotiationNeededEvent;
 using node_webrtc::OnAddTrackEvent;
 using node_webrtc::PeerConnection;
 using node_webrtc::PeerConnectionFactory;
 using node_webrtc::PromiseEvent;
 using node_webrtc::RTCRtpReceiver;
+using node_webrtc::RTCRtpSender;
 using node_webrtc::RTCSessionDescriptionInit;
 using node_webrtc::SignalingStateChangeEvent;
 using v8::External;
@@ -98,6 +100,10 @@ PeerConnection::~PeerConnection() {
     receiver->RemoveRef();
   }
   _receivers.clear();
+  for (auto sender : _senders) {
+    sender->RemoveRef();
+  }
+  _senders.clear();
   if (_factory) {
     if (_shouldReleaseFactory) {
       PeerConnectionFactory::Release();
@@ -265,6 +271,42 @@ NAN_METHOD(PeerConnection::New) {
 
   TRACE_END;
   info.GetReturnValue().Set(info.This());
+}
+
+NAN_METHOD(PeerConnection::AddTrack) {
+  TRACE_CALL;
+  auto self = AsyncObjectWrapWithLoop<PeerConnection>::Unwrap(info.This());
+  if (!self->_jinglePeerConnection) {
+    Nan::ThrowError("Cannot addTrack; RTCPeerConnection is closed");
+  }
+  CONVERT_ARGS_OR_THROW_AND_RETURN(pair, std::tuple<MediaStreamTrack* COMMA MediaStream*>);
+  auto mediaStreamTrack = std::get<0>(pair);
+  auto mediaStream = std::get<1>(pair);
+  auto streams = std::vector<webrtc::MediaStreamInterface*>();
+  streams.push_back(mediaStream->stream());
+  auto rtpSender = self->_jinglePeerConnection->AddTrack(mediaStreamTrack->track(), streams);
+  Local<Value> cargv[2];
+  cargv[0] = Nan::New<External>(static_cast<void*>(&self->_factory));
+  cargv[1] = Nan::New<External>(static_cast<void*>(&rtpSender));
+  auto sender = AsyncObjectWrapWithLoop<RTCRtpSender>::Unwrap(
+          Nan::New(RTCRtpSender::constructor)->NewInstance(2, cargv));
+  sender->AddRef();
+  self->_senders.push_back(sender);
+  TRACE_END;
+  info.GetReturnValue().Set(sender->ToObject());
+}
+
+NAN_METHOD(PeerConnection::RemoveTrack) {
+  TRACE_CALL;
+  auto self = AsyncObjectWrapWithLoop<PeerConnection>::Unwrap(info.This());
+  if (!self->_jinglePeerConnection) {
+    Nan::ThrowError("Cannot removeTrack; RTCPeerConnection is closed");
+  }
+  CONVERT_ARGS_OR_THROW_AND_RETURN(sender, RTCRtpSender*);
+  sender->RemoveRef();
+  self->_senders.erase(std::find(self->_senders.begin(), self->_senders.end(), sender));
+  self->_jinglePeerConnection->RemoveTrack(sender->sender());
+  TRACE_END;
 }
 
 NAN_METHOD(PeerConnection::CreateOffer) {
@@ -458,6 +500,14 @@ NAN_METHOD(PeerConnection::GetReceivers) {
   TRACE_CALL;
   auto self = AsyncObjectWrapWithLoop<PeerConnection>::Unwrap(info.This());
   CONVERT_OR_THROW_AND_RETURN(self->_receivers, result, Local<Value>);
+  info.GetReturnValue().Set(result);
+  TRACE_END;
+}
+
+NAN_METHOD(PeerConnection::GetSenders) {
+  TRACE_CALL;
+  auto self = AsyncObjectWrapWithLoop<PeerConnection>::Unwrap(info.This());
+  CONVERT_OR_THROW_AND_RETURN(self->_senders, result, Local<Value>);
   info.GetReturnValue().Set(result);
   TRACE_END;
 }
@@ -701,6 +751,8 @@ void PeerConnection::Init(Handle<Object> exports) {
   tpl->SetClassName(Nan::New("PeerConnection").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
+  Nan::SetPrototypeMethod(tpl, "addTrack", AddTrack);
+  Nan::SetPrototypeMethod(tpl, "removeTrack", RemoveTrack);
   Nan::SetPrototypeMethod(tpl, "createOffer", CreateOffer);
   Nan::SetPrototypeMethod(tpl, "createAnswer", CreateAnswer);
   Nan::SetPrototypeMethod(tpl, "setLocalDescription", SetLocalDescription);
@@ -708,6 +760,7 @@ void PeerConnection::Init(Handle<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "getConfiguration", GetConfiguration);
   Nan::SetPrototypeMethod(tpl, "setConfiguration", SetConfiguration);
   Nan::SetPrototypeMethod(tpl, "getReceivers", GetReceivers);
+  Nan::SetPrototypeMethod(tpl, "getSenders", GetSenders);
   Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
   Nan::SetPrototypeMethod(tpl, "updateIce", UpdateIce);
   Nan::SetPrototypeMethod(tpl, "addIceCandidate", AddIceCandidate);
