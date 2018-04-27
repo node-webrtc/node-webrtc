@@ -30,6 +30,10 @@ MediaStreamTrack::MediaStreamTrack(
   _track->RegisterObserver(this);
 }
 
+MediaStreamTrack::~MediaStreamTrack() {
+  _track->UnregisterObserver(this);
+}
+
 NAN_METHOD(MediaStreamTrack::New) {
   if (info.Length() != 2 || !info[0]->IsExternal() || !info[1]->IsExternal()) {
     return Nan::ThrowTypeError("You cannot construct a MediaStreamTrack");

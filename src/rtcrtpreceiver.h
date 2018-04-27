@@ -10,18 +10,22 @@
 
 #include "nan.h"
 #include "v8.h"
-#include "peerconnectionfactory.h"
-#include "promisefulfillingeventloop.h"
-#include "mediastreamtrack.h"
+
+#include "src/mediastreamtrack.h"
+#include "src/objectwrap.h"
+#include "src/peerconnectionfactory.h"
+#include "src/promisefulfillingeventloop.h"
 
 namespace node_webrtc {
 
-class RTCRtpReceiver: public Nan::ObjectWrap {
+class RTCRtpReceiver: public node_webrtc::ObjectWrap {
  public:
   RTCRtpReceiver(
       std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
       rtc::scoped_refptr<webrtc::RtpReceiverInterface>&& receiver,
       node_webrtc::MediaStreamTrack* track);
+
+  ~RTCRtpReceiver() override;
 
   static void Init(v8::Handle<v8::Object> exports);
   static Nan::Persistent<v8::Function> constructor;
@@ -49,7 +53,7 @@ class RTCRtpReceiver: public Nan::ObjectWrap {
   bool _closed;
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::RtpReceiverInterface> _receiver;
-  const std::shared_ptr<node_webrtc::MediaStreamTrack> _track;
+  node_webrtc::MediaStreamTrack* _track;
 };
 
 }  // namespace node_webrtc
