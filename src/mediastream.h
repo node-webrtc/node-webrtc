@@ -54,6 +54,8 @@ class MediaStream
       rtc::scoped_refptr<webrtc::MediaStreamInterface>);
   static void Release(MediaStream*);
 
+  rtc::scoped_refptr<webrtc::MediaStreamInterface> stream() { return _stream; }
+
  private:
   std::vector<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> tracks() {
     auto tracks = std::vector<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>>();
