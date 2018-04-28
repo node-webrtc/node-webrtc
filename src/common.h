@@ -45,41 +45,4 @@
 
 #endif
 
-#define THROW_TYPE_ERROR(MSG) \
-  return Nan::ThrowTypeError(MSG);
-
-#define CHECK_ARG(I, CHECK, DO_TRUE, DO_FALSE) \
-  if (info.Length() <= (I) || !info[I]->CHECK) { DO_FALSE; } else { DO_TRUE; }
-
-#define REQUIRE_ARG(I, CHECK) \
-  CHECK_ARG(I, CHECK, , THROW_TYPE_ERROR("Argument " #I " must be an object"))
-
-#define REQ_OBJ_ARG(I, VAR) \
-  REQUIRE_ARG(I, IsObject()) \
-  Local<Object> VAR = Local<Object>::Cast(info[I])
-
-#define OPT_INT_ARG(I, VAR, DEFAULT) \
-  int VAR; \
-  CHECK_ARG(I, IsNumber(), VAR = info[I]->Int32Value(), VAR = DEFAULT)
-
-#define REQ_INT_ARG(I, VAR) \
-  REQUIRE_ARG(I, IsNumber()) \
-  int VAR = info[I]->Int32Value();
-
-#define REQ_FUN_ARG(I, VAR)                                         \
-  if (info.Length() <= (I) || !info[I]->IsFunction())               \
-    return Nan::ThrowTypeError("Argument " #I " must be a function"); \
-  Local<Function> VAR = Local<Function>::Cast(info[I]);
-
-#define CREATE_BUFFER(name, data, length) \
-  Local<Object> name ## _buf = Nan::NewBuffer(length).ToLocalChecked(); \
-  memcpy(Buffer::Data(name ## _buf), data, length); \
-  Local<Object> name; \
-  Handle<Value> ctorArgs[3] = { name ## _buf, Nan::New<Integer>(length), Nan::New<Integer>(0) }; \
-  name = Local<Function>::Cast(\
-          Nan::GetCurrentContext() \
-          ->Global() \
-          ->Get(Nan::New("Buffer").ToLocalChecked()) \
-      )->NewInstance(3, ctorArgs);
-
 #endif  // SRC_COMMON_H_
