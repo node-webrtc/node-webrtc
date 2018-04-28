@@ -93,6 +93,9 @@ PeerConnection::PeerConnection(ExtendedRTCConfiguration configuration)
 PeerConnection::~PeerConnection() {
   TRACE_CALL;
   _jinglePeerConnection = nullptr;
+  for (auto receiver : _receivers) {
+    receiver->RemoveRef();
+  }
   _receivers.clear();
   if (_factory) {
     if (_shouldReleaseFactory) {
@@ -165,7 +168,7 @@ void PeerConnection::HandleOnAddTrackEvent(const OnAddTrackEvent& event) {
   auto receiver = Nan::ObjectWrap::Unwrap<RTCRtpReceiver>(
           Nan::NewInstance(Nan::New(RTCRtpReceiver::constructor), 2, cargv).ToLocalChecked()
       );
-
+  receiver->AddRef();
   _receivers.push_back(receiver);
 
   Local<Value> argv[1];

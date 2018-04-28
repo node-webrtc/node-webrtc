@@ -4,6 +4,8 @@
 New Features
 ------------
 
+- Added support for Node 10 (#402)
+
 ### RTCPeerConnection
 
 - Added support for `getReceivers`.
