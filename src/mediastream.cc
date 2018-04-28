@@ -221,7 +221,7 @@ NAN_METHOD(MediaStream::Clone) {
   CONVERT_OR_THROW_AND_RETURN(clonedMediaStreamTracks, tracks, Local<Value>);
   Local<Value> cargv[1];
   cargv[0] = tracks;
-  auto mediaStream = Nan::New(MediaStream::constructor)->NewInstance(1, cargv);
+  auto mediaStream = Nan::NewInstance(Nan::New(MediaStream::constructor), 1, cargv).ToLocalChecked();
   info.GetReturnValue().Set(mediaStream);
 }
 
@@ -233,8 +233,8 @@ MediaStream* MediaStream::GetOrCreate(
     Local<Value> cargv[2];
     cargv[0] = Nan::New<External>(static_cast<void*>(&factory));
     cargv[1] = Nan::New<External>(static_cast<void*>(&stream));
-    return Nan::ObjectWrap::Unwrap<MediaStream>(
-            Nan::New(MediaStream::constructor)->NewInstance(2, cargv));
+    auto mediaStream = Nan::NewInstance(Nan::New(MediaStream::constructor), 2, cargv).ToLocalChecked();
+    return Nan::ObjectWrap::Unwrap<MediaStream>(mediaStream);
   });
 }
 

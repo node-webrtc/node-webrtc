@@ -117,8 +117,8 @@ MediaStreamTrack* MediaStreamTrack::GetOrCreate(
     Local<Value> cargv[2];
     cargv[0] = Nan::New<External>(static_cast<void*>(&factory));
     cargv[1] = Nan::New<External>(static_cast<void*>(&track));
-    return AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(
-            Nan::New(MediaStreamTrack::constructor)->NewInstance(2, cargv));
+    auto mediaStreamTrack = Nan::NewInstance(Nan::New(MediaStreamTrack::constructor), 2, cargv).ToLocalChecked();
+    return AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(mediaStreamTrack);
   });
 }
 
