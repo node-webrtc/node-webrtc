@@ -59,12 +59,10 @@ class EventLoop: private EventQueue<T> {
   }
 
   virtual void Run() {
-    if (!_should_stop) {
-      while (auto event = this->Dequeue()) {
-        event->Dispatch(_target);
-        if (_should_stop) {
-          break;
-        }
+    while (auto event = this->Dequeue()) {
+      event->Dispatch(_target);
+      if (_should_stop) {
+        break;
       }
     }
     if (_should_stop) {
