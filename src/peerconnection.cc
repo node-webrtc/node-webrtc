@@ -69,7 +69,7 @@ Nan::Persistent<Function> PeerConnection::constructor;
 //
 
 PeerConnection::PeerConnection(ExtendedRTCConfiguration configuration)
-  : Nan::AsyncResource("RTCPeerConnection")
+  : AsyncObjectWrap("RTCPeerConnection")
   , PromiseFulfillingEventLoop(*this) {
 
   // TODO(mroberts): Read `factory` (non-standard) from RTCConfiguration?
@@ -110,15 +110,15 @@ PeerConnection::~PeerConnection() {
 void PeerConnection::HandleIceConnectionStateChangeEvent(const IceConnectionStateChangeEvent&) {
   TRACE_CALL;
   Nan::HandleScope scope;
-  runInAsyncScope(handle(), "oniceconnectionstatechange", 0, nullptr);
-  runInAsyncScope(handle(), "onconnectionstatechange", 0, nullptr);
+  MakeCallback("oniceconnectionstatechange", 0, nullptr);
+  MakeCallback("onconnectionstatechange", 0, nullptr);
   TRACE_END;
 }
 
 void PeerConnection::HandleIceGatheringStateChangeEvent(const IceGatheringStateChangeEvent&) {
   TRACE_CALL;
   Nan::HandleScope scope;
-  runInAsyncScope(handle(), "onicegatheringstatechange", 0, nullptr);
+  MakeCallback("onicegatheringstatechange", 0, nullptr);
   TRACE_END;
 }
 
@@ -130,7 +130,7 @@ void PeerConnection::HandleIceCandidateEvent(const IceEvent& event) {
     if (maybeCandidate.IsValid()) {
       Local<Value> argv[1];
       argv[0] = maybeCandidate.UnsafeFromValid();
-      runInAsyncScope(handle(), "onicecandidate", 1, argv);
+      MakeCallback("onicecandidate", 1, argv);
     }
   }
   TRACE_END;
@@ -146,14 +146,14 @@ void PeerConnection::HandleDataChannelEvent(const DataChannelEvent& event) {
 
   Local<Value> argv[1];
   argv[0] = dc;
-  runInAsyncScope(handle(), "ondatachannel", 1, argv);
+  MakeCallback("ondatachannel", 1, argv);
   TRACE_END;
 }
 
 void PeerConnection::HandleNegotiationNeededEvent(const NegotiationNeededEvent&) {
   TRACE_CALL;
   Nan::HandleScope scope;
-  runInAsyncScope(handle(), "onnegotiationneeded", 0, nullptr);
+  MakeCallback("onnegotiationneeded", 0, nullptr);
   TRACE_END;
 }
 
@@ -174,14 +174,14 @@ void PeerConnection::HandleOnAddTrackEvent(const OnAddTrackEvent& event) {
 
   Local<Value> argv[1];
   argv[0] = receiver->ToObject();
-  runInAsyncScope(handle(), "ontrack", 1, argv);
+  MakeCallback("ontrack", 1, argv);
   TRACE_END;
 }
 
 void PeerConnection::HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event) {
   TRACE_CALL;
   Nan::HandleScope scope;
-  runInAsyncScope(handle(), "onsignalingstatechange", 0, nullptr);
+  MakeCallback("onsignalingstatechange", 0, nullptr);
   if (event.state == webrtc::PeerConnectionInterface::kClosed) {
     Stop();
   }
@@ -189,7 +189,7 @@ void PeerConnection::HandleSignalingStateChangeEvent(const SignalingStateChangeE
 }
 
 void PeerConnection::DidStop() {
-  Unref();
+  RemoveRef();
 }
 
 void PeerConnection::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state) {
@@ -257,7 +257,7 @@ NAN_METHOD(PeerConnection::New) {
   // Tell em whats up
   auto obj = new PeerConnection(configuration.FromMaybe(ExtendedRTCConfiguration()));
   obj->Wrap(info.This());
-  obj->Ref();
+  obj->AddRef();
 
   TRACE_END;
   info.GetReturnValue().Set(info.This());
@@ -266,7 +266,7 @@ NAN_METHOD(PeerConnection::New) {
 NAN_METHOD(PeerConnection::CreateOffer) {
   TRACE_CALL;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.This());
 
   SETUP_PROMISE(PeerConnection, RTCSessionDescriptionInit);
 
@@ -291,7 +291,7 @@ NAN_METHOD(PeerConnection::CreateOffer) {
 NAN_METHOD(PeerConnection::CreateAnswer) {
   TRACE_CALL;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.This());
 
   SETUP_PROMISE(PeerConnection, RTCSessionDescriptionInit);
 
@@ -316,7 +316,7 @@ NAN_METHOD(PeerConnection::CreateAnswer) {
 NAN_METHOD(PeerConnection::SetLocalDescription) {
   TRACE_CALL;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.This());
 
   SETUP_PROMISE(PeerConnection);
 
@@ -341,7 +341,7 @@ NAN_METHOD(PeerConnection::SetLocalDescription) {
 NAN_METHOD(PeerConnection::SetRemoteDescription) {
   TRACE_CALL;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.This());
 
   SETUP_PROMISE(PeerConnection);
 
@@ -360,7 +360,7 @@ NAN_METHOD(PeerConnection::SetRemoteDescription) {
 NAN_METHOD(PeerConnection::AddIceCandidate) {
   TRACE_CALL;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.This());
 
   SETUP_PROMISE(PeerConnection);
 
@@ -386,7 +386,7 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
 NAN_METHOD(PeerConnection::CreateDataChannel) {
   TRACE_CALL;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.This());
 
   if (self->_jinglePeerConnection == nullptr) {
     TRACE_END;
@@ -415,7 +415,7 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
 NAN_METHOD(PeerConnection::GetConfiguration) {
   TRACE_CALL;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.This());
 
   CONVERT_OR_THROW_AND_RETURN(self->_jinglePeerConnection
       ? ExtendedRTCConfiguration(self->_jinglePeerConnection->GetConfiguration(), self->_port_range)
@@ -430,7 +430,7 @@ NAN_METHOD(PeerConnection::GetConfiguration) {
 NAN_METHOD(PeerConnection::SetConfiguration) {
   TRACE_CALL;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.This());
 
   CONVERT_ARGS_OR_THROW_AND_RETURN(configuration, RTCConfiguration);
 
@@ -452,7 +452,7 @@ NAN_METHOD(PeerConnection::SetConfiguration) {
 
 NAN_METHOD(PeerConnection::GetReceivers) {
   TRACE_CALL;
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.This());
   CONVERT_OR_THROW_AND_RETURN(self->_receivers, result, Local<Value>);
   info.GetReturnValue().Set(result);
   TRACE_END;
@@ -461,7 +461,7 @@ NAN_METHOD(PeerConnection::GetReceivers) {
 NAN_METHOD(PeerConnection::GetStats) {
   TRACE_CALL;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.This());
 
   SETUP_PROMISE(PeerConnection, RTCStatsResponseInit);
 
@@ -488,7 +488,7 @@ NAN_METHOD(PeerConnection::UpdateIce) {
 NAN_METHOD(PeerConnection::Close) {
   TRACE_CALL;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.This());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.This());
 
   if (self->_jinglePeerConnection != nullptr) {
     self->_cached_configuration = ExtendedRTCConfiguration(
@@ -525,7 +525,7 @@ NAN_GETTER(PeerConnection::GetConnectionState) {
   TRACE_CALL;
   (void) property;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
   auto iceConnectionState = self->_jinglePeerConnection
       ? self->_jinglePeerConnection->ice_connection_state()
@@ -542,7 +542,7 @@ NAN_GETTER(PeerConnection::GetCurrentLocalDescription) {
   TRACE_CALL;
   (void) property;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
   Local<Value> result = Nan::Null();
   if (self->_jinglePeerConnection && self->_jinglePeerConnection->current_local_description()) {
@@ -558,7 +558,7 @@ NAN_GETTER(PeerConnection::GetLocalDescription) {
   TRACE_CALL;
   (void) property;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
   Local<Value> result = Nan::Null();
   if (self->_jinglePeerConnection && self->_jinglePeerConnection->local_description()) {
@@ -574,7 +574,7 @@ NAN_GETTER(PeerConnection::GetPendingLocalDescription) {
   TRACE_CALL;
   (void) property;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
   Local<Value> result = Nan::Null();
   if (self->_jinglePeerConnection && self->_jinglePeerConnection->pending_local_description()) {
@@ -590,7 +590,7 @@ NAN_GETTER(PeerConnection::GetCurrentRemoteDescription) {
   TRACE_CALL;
   (void) property;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
   Local<Value> result = Nan::Null();
   if (self->_jinglePeerConnection && self->_jinglePeerConnection->current_remote_description()) {
@@ -607,7 +607,7 @@ NAN_GETTER(PeerConnection::GetRemoteDescription) {
 
   (void) property;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
   Local<Value> result = Nan::Null();
   if (self->_jinglePeerConnection && self->_jinglePeerConnection->remote_description()) {
@@ -624,7 +624,7 @@ NAN_GETTER(PeerConnection::GetPendingRemoteDescription) {
 
   (void) property;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.Holder());
 
   Local<Value> result = Nan::Null();
   if (self->_jinglePeerConnection && self->_jinglePeerConnection->pending_remote_description()) {
@@ -640,7 +640,7 @@ NAN_GETTER(PeerConnection::GetSignalingState) {
   TRACE_CALL;
   (void) property;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.Holder());
   CONVERT_OR_THROW_AND_RETURN(self->_jinglePeerConnection
       ? self->_jinglePeerConnection->signaling_state()
       : SignalingState::kClosed,
@@ -655,7 +655,7 @@ NAN_GETTER(PeerConnection::GetIceConnectionState) {
   TRACE_CALL;
   (void) property;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.Holder());
   CONVERT_OR_THROW_AND_RETURN(self->_jinglePeerConnection
       ? self->_jinglePeerConnection->ice_connection_state()
       : IceConnectionState::kIceConnectionClosed,
@@ -670,7 +670,7 @@ NAN_GETTER(PeerConnection::GetIceGatheringState) {
   TRACE_CALL;
   (void) property;
 
-  auto self = Nan::ObjectWrap::Unwrap<PeerConnection>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<PeerConnection>(info.Holder());
   CONVERT_OR_THROW_AND_RETURN(self->_jinglePeerConnection
       ? self->_jinglePeerConnection->ice_gathering_state()
       : IceGatheringState::kIceGatheringComplete,

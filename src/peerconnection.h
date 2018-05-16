@@ -23,6 +23,7 @@
 #include "webrtc/api/statstypes.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 
+#include "asyncobjectwrap.h"
 #include "converters/webrtc.h"
 #include "events.h"
 #include "peerconnectionfactory.h"
@@ -38,8 +39,7 @@ class SetLocalDescriptionObserver;
 class SetRemoteDescriptionObserver;
 
 class PeerConnection
-  : public Nan::AsyncResource
-  , public Nan::ObjectWrap
+  : public node_webrtc::AsyncObjectWrap
   , public node_webrtc::PromiseFulfillingEventLoop<PeerConnection>
   , public webrtc::PeerConnectionObserver {
  public:
