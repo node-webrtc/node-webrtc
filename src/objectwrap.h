@@ -12,14 +12,29 @@
 
 namespace node_webrtc {
 
-class ObjectWrap: public Nan::ObjectWrap {
+class ObjectWrap: private Nan::ObjectWrap {
  public:
-  void AddRef() {
+  inline void AddRef() {
     Ref();
   }
 
-  void RemoveRef() {
+  inline void RemoveRef() {
     Unref();
+  }
+
+  inline v8::Local<v8::Object> ToObject() {
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(handle());
+  }
+
+  template <typename T>
+  inline static T* Unwrap(v8::Local<v8::Object> object) {
+    auto unwrapped = Nan::ObjectWrap::Unwrap<Nan::ObjectWrap>(object);
+    return reinterpret_cast<T*>(unwrapped);
+  }
+
+  inline void Wrap(v8::Local<v8::Object> object) {
+    Nan::ObjectWrap::Wrap(object);
   }
 };
 
