@@ -189,9 +189,13 @@ NAN_METHOD(MediaStream::AddTrack) {
   auto stream = self->_stream;
   auto track = mediaStreamTrack->track();
   if (track->kind() == track->kAudioKind) {
-    stream->AddTrack(static_cast<webrtc::AudioTrackInterface*>(track.get()));
+    if (stream->AddTrack(static_cast<webrtc::AudioTrackInterface*>(track.get()))) {
+      mediaStreamTrack->AddRef();
+    }
   } else {
-    stream->AddTrack(static_cast<webrtc::VideoTrackInterface*>(track.get()));
+    if (stream->AddTrack(static_cast<webrtc::VideoTrackInterface*>(track.get()))) {
+      mediaStreamTrack->AddRef();
+    }
   }
 }
 
@@ -201,9 +205,13 @@ NAN_METHOD(MediaStream::RemoveTrack) {
   auto stream = self->_stream;
   auto track = mediaStreamTrack->track();
   if (track->kind() == track->kAudioKind) {
-    stream->RemoveTrack(static_cast<webrtc::AudioTrackInterface*>(track.get()));
+    if (stream->RemoveTrack(static_cast<webrtc::AudioTrackInterface*>(track.get()))) {
+      mediaStreamTrack->RemoveRef();
+    }
   } else {
-    stream->RemoveTrack(static_cast<webrtc::VideoTrackInterface*>(track.get()));
+    if (stream->RemoveTrack(static_cast<webrtc::VideoTrackInterface*>(track.get()))) {
+      mediaStreamTrack->RemoveRef();
+    }
   }
 }
 
