@@ -165,14 +165,14 @@ void PeerConnection::HandleOnAddTrackEvent(const OnAddTrackEvent& event) {
   Local<Value> cargv[2];
   cargv[0] = Nan::New<External>(static_cast<void*>(&_factory));
   cargv[1] = Nan::New<External>(static_cast<void*>(&rtpReceiver));
-  auto receiver = Nan::ObjectWrap::Unwrap<RTCRtpReceiver>(
+  auto receiver = node_webrtc::ObjectWrap::Unwrap<RTCRtpReceiver>(
           Nan::NewInstance(Nan::New(RTCRtpReceiver::constructor), 2, cargv).ToLocalChecked()
       );
   receiver->AddRef();
   _receivers.push_back(receiver);
 
   Local<Value> argv[1];
-  argv[0] = receiver->handle();
+  argv[0] = receiver->ToObject();
   runInAsyncScope(handle(), "ontrack", 1, argv);
   TRACE_END;
 }

@@ -604,7 +604,7 @@ struct Converter<node_webrtc::RTCRtpReceiver*, v8::Local<v8::Value>> {
     if (!receiver) {
       return Validation<v8::Local<v8::Value>>::Invalid("RTCRtpReceiver is null");
     }
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(receiver->handle()));
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(receiver->ToObject()));
   }
 };
 
