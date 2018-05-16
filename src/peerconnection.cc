@@ -23,6 +23,7 @@
 #include "setsessiondescriptionobserver.h"
 #include "stats-observer.h"
 
+using node_webrtc::AsyncObjectWrap;
 using node_webrtc::DataChannelEvent;
 using node_webrtc::Event;
 using node_webrtc::ExtendedRTCConfiguration;
@@ -165,7 +166,7 @@ void PeerConnection::HandleOnAddTrackEvent(const OnAddTrackEvent& event) {
   Local<Value> cargv[2];
   cargv[0] = Nan::New<External>(static_cast<void*>(&_factory));
   cargv[1] = Nan::New<External>(static_cast<void*>(&rtpReceiver));
-  auto receiver = node_webrtc::ObjectWrap::Unwrap<RTCRtpReceiver>(
+  auto receiver = AsyncObjectWrap::Unwrap<RTCRtpReceiver>(
           Nan::NewInstance(Nan::New(RTCRtpReceiver::constructor), 2, cargv).ToLocalChecked()
       );
   receiver->AddRef();

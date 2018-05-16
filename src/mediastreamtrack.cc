@@ -9,8 +9,8 @@
 
 #include "converters/webrtc.h"
 
+using node_webrtc::AsyncObjectWrap;
 using node_webrtc::MediaStreamTrack;
-using node_webrtc::ObjectWrap;
 using v8::External;
 using v8::Function;
 using v8::FunctionTemplate;
@@ -24,7 +24,7 @@ Nan::Persistent<Function> MediaStreamTrack::constructor;
 MediaStreamTrack::MediaStreamTrack(
     std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
     rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>&& track)
-  : Nan::AsyncResource("MediaStreamTrack")
+  : node_webrtc::AsyncObjectWrap("MediaStreamTrack")
   , PromiseFulfillingEventLoop(*this)
   , _factory(std::move(factory))
   , _track(std::move(track)) {
@@ -62,25 +62,25 @@ void MediaStreamTrack::DidStop() {
 
 NAN_GETTER(MediaStreamTrack::GetEnabled) {
   (void) property;
-  auto self = ObjectWrap::Unwrap<MediaStreamTrack>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<MediaStreamTrack>(info.Holder());
   info.GetReturnValue().Set(Nan::New(self->_track->enabled()));
 }
 
 NAN_GETTER(MediaStreamTrack::GetId) {
   (void) property;
-  auto self = ObjectWrap::Unwrap<MediaStreamTrack>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<MediaStreamTrack>(info.Holder());
   info.GetReturnValue().Set(Nan::New(self->_track->id()).ToLocalChecked());
 }
 
 NAN_GETTER(MediaStreamTrack::GetKind) {
   (void) property;
-  auto self = ObjectWrap::Unwrap<MediaStreamTrack>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<MediaStreamTrack>(info.Holder());
   info.GetReturnValue().Set(Nan::New(self->_track->kind()).ToLocalChecked());
 }
 
 NAN_GETTER(MediaStreamTrack::GetReadyState) {
   (void) property;
-  auto self = ObjectWrap::Unwrap<MediaStreamTrack>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<MediaStreamTrack>(info.Holder());
   CONVERT_OR_THROW_AND_RETURN(self->_track->state(), result, std::string);
   info.GetReturnValue().Set(Nan::New(result).ToLocalChecked());
 }
