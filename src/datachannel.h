@@ -21,6 +21,7 @@
 #include "webrtc/base/buffer.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 
+#include "asyncobjectwrap.h"
 #include "converters/webrtc.h"
 #include "eventloop.h"
 #include "eventqueue.h"
@@ -32,8 +33,7 @@ namespace node_webrtc {
 class DataChannelObserver;
 
 class DataChannel
-  : public Nan::AsyncResource
-  , public Nan::ObjectWrap
+  : public node_webrtc::AsyncObjectWrap
   , public node_webrtc::EventLoop<DataChannel>
   , public webrtc::DataChannelObserver {
   friend class node_webrtc::DataChannelObserver;
