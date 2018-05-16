@@ -11,15 +11,14 @@
 #include "nan.h"
 #include "v8.h"
 
-#include "src/objectwrap.h"
+#include "src/asyncobjectwrap.h"
 #include "src/peerconnectionfactory.h"
 #include "src/promisefulfillingeventloop.h"
 
 namespace node_webrtc {
 
 class MediaStreamTrack
-  : public Nan::AsyncResource
-  , public node_webrtc::ObjectWrap
+  : public node_webrtc::AsyncObjectWrap
   , public node_webrtc::PromiseFulfillingEventLoop<MediaStreamTrack>
   , public webrtc::ObserverInterface {
  public:

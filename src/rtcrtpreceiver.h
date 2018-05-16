@@ -11,14 +11,14 @@
 #include "nan.h"
 #include "v8.h"
 
+#include "src/asyncobjectwrap.h"
 #include "src/mediastreamtrack.h"
-#include "src/objectwrap.h"
 #include "src/peerconnectionfactory.h"
 #include "src/promisefulfillingeventloop.h"
 
 namespace node_webrtc {
 
-class RTCRtpReceiver: public node_webrtc::ObjectWrap {
+class RTCRtpReceiver: public node_webrtc::AsyncObjectWrap {
  public:
   RTCRtpReceiver(
       std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
