@@ -21,9 +21,8 @@
 #include "webrtc/base/buffer.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 
-#include "asyncobjectwrap.h"
+#include "asyncobjectwrapwithloop.h"
 #include "converters/webrtc.h"
-#include "eventloop.h"
 #include "eventqueue.h"
 #include "events.h"
 #include "peerconnectionfactory.h"
@@ -33,8 +32,7 @@ namespace node_webrtc {
 class DataChannelObserver;
 
 class DataChannel
-  : public node_webrtc::AsyncObjectWrap
-  , public node_webrtc::EventLoop<DataChannel>
+  : public node_webrtc::AsyncObjectWrapWithLoop<DataChannel>
   , public webrtc::DataChannelObserver {
   friend class node_webrtc::DataChannelObserver;
  public:
@@ -72,9 +70,6 @@ class DataChannel
   void HandleErrorEvent(const ErrorEvent<DataChannel>& event);
   void HandleStateEvent(const DataChannelStateChangeEvent& event);
   void HandleMessageEvent(const MessageEvent& event);
-
- protected:
-  void DidStop() override;
 
  private:
   node_webrtc::BinaryType _binaryType;

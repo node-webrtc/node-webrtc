@@ -14,7 +14,7 @@
 #include "converters/webrtc.h"
 #include "error.h"
 
-using node_webrtc::AsyncObjectWrap;
+using node_webrtc::AsyncObjectWrapWithLoop;
 using node_webrtc::DataChannel;
 using node_webrtc::DataChannelObserver;
 using node_webrtc::DataChannelStateChangeEvent;
@@ -67,8 +67,7 @@ void requeue(DataChannelObserver& observer, DataChannel& channel) {
 }
 
 DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
-  : AsyncObjectWrap("RTCDataChannel")
-  , EventLoop(*this)
+  : AsyncObjectWrapWithLoop("RTCDataChannel", *this)
   , _binaryType(BinaryType::kArrayBuffer)
   , _factory(observer->_factory)
   , _jingleDataChannel(observer->_jingleDataChannel) {
@@ -78,10 +77,6 @@ DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
   requeue(*observer, *this);
 
   delete observer;
-}
-
-void DataChannel::DidStop() {
-  RemoveRef();
 }
 
 NAN_METHOD(DataChannel::New) {
@@ -96,7 +91,6 @@ NAN_METHOD(DataChannel::New) {
 
   auto obj = new DataChannel(observer);
   obj->Wrap(info.This());
-  obj->AddRef();
 
   TRACE_END;
   info.GetReturnValue().Set(info.This());
@@ -169,7 +163,7 @@ void DataChannel::OnMessage(const webrtc::DataBuffer& buffer) {
 NAN_METHOD(DataChannel::Send) {
   TRACE_CALL;
 
-  auto self = AsyncObjectWrap::Unwrap<DataChannel>(info.This());
+  auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.This());
 
   if (self->_jingleDataChannel != nullptr) {
     if (self->_jingleDataChannel->state() != webrtc::DataChannelInterface::DataState::kOpen) {
@@ -216,7 +210,7 @@ NAN_METHOD(DataChannel::Send) {
 NAN_METHOD(DataChannel::Close) {
   TRACE_CALL;
 
-  auto self = AsyncObjectWrap::Unwrap<DataChannel>(info.This());
+  auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.This());
 
   if (self->_jingleDataChannel != nullptr) {
     self->_jingleDataChannel->Close();
@@ -229,7 +223,7 @@ NAN_GETTER(DataChannel::GetBufferedAmount) {
   TRACE_CALL;
   (void) property;
 
-  auto self = AsyncObjectWrap::Unwrap<DataChannel>(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.Holder());
 
   uint64_t buffered_amount = self->_jingleDataChannel != nullptr
       ? self->_jingleDataChannel->buffered_amount()
@@ -243,7 +237,7 @@ NAN_GETTER(DataChannel::GetId) {
   TRACE_CALL;
   (void) property;
 
-  auto self = AsyncObjectWrap::Unwrap<DataChannel>(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.Holder());
 
   auto id = self->_jingleDataChannel
       ? self->_jingleDataChannel->id()
@@ -257,7 +251,7 @@ NAN_GETTER(DataChannel::GetLabel) {
   TRACE_CALL;
   (void) property;
 
-  auto self = AsyncObjectWrap::Unwrap<DataChannel>(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.Holder());
 
   std::string label = self->_jingleDataChannel != nullptr
       ? self->_jingleDataChannel->label()
@@ -271,7 +265,7 @@ NAN_GETTER(DataChannel::GetMaxRetransmits) {
   TRACE_CALL;
   (void) property;
 
-  auto self = AsyncObjectWrap::Unwrap<DataChannel>(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.Holder());
 
   auto max_retransmits = self->_jingleDataChannel
       ? self->_jingleDataChannel->maxRetransmits()
@@ -285,7 +279,7 @@ NAN_GETTER(DataChannel::GetOrdered) {
   TRACE_CALL;
   (void) property;
 
-  auto self = AsyncObjectWrap::Unwrap<DataChannel>(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.Holder());
 
   auto ordered = self->_jingleDataChannel
       ? self->_jingleDataChannel->ordered()
@@ -307,7 +301,7 @@ NAN_GETTER(DataChannel::GetProtocol) {
   TRACE_CALL;
   (void) property;
 
-  auto self = AsyncObjectWrap::Unwrap<DataChannel>(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.Holder());
 
   auto protocol = self->_jingleDataChannel
       ? self->_jingleDataChannel->protocol()
@@ -321,7 +315,7 @@ NAN_GETTER(DataChannel::GetReadyState) {
   TRACE_CALL;
   (void) property;
 
-  auto self = AsyncObjectWrap::Unwrap<DataChannel>(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.Holder());
 
   CONVERT_OR_THROW_AND_RETURN(self->_jingleDataChannel
       ? self->_jingleDataChannel->state()
@@ -337,7 +331,7 @@ NAN_GETTER(DataChannel::GetBinaryType) {
   TRACE_CALL;
   (void) property;
 
-  auto self = AsyncObjectWrap::Unwrap<DataChannel>(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.Holder());
 
   CONVERT_OR_THROW_AND_RETURN(self->_binaryType, binaryType, Local<Value>);
 
@@ -349,7 +343,7 @@ NAN_SETTER(DataChannel::SetBinaryType) {
   TRACE_CALL;
   (void) property;
 
-  auto self = AsyncObjectWrap::Unwrap<DataChannel>(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.Holder());
 
   CONVERT_OR_THROW_AND_RETURN(value, binaryType, BinaryType);
 
