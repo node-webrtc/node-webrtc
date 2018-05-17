@@ -13,8 +13,6 @@
 #include "nan.h"
 #include "uv.h"
 
-#include "src/objectwrap.h"
-
 namespace node_webrtc {
 
 /**
@@ -22,7 +20,7 @@ namespace node_webrtc {
  * will cause issues when the AsyncResource emits its "destroy" event. So, instead, AsyncObjectWrap subclasses
  * ObjectWrap and contains an AsyncResource member. AsyncObjectWraps support reference counting.
  */
-class AsyncObjectWrap: private ObjectWrap {
+class AsyncObjectWrap: private Nan::ObjectWrap {
  public:
   /**
    * Construct an AsyncObjectWrap. The name you provide is the name of the AsyncResource.
@@ -64,7 +62,7 @@ class AsyncObjectWrap: private ObjectWrap {
    */
   inline v8::Local<v8::Object> ToObject() {
     Nan::EscapableHandleScope scope;
-    return scope.Escape(ObjectWrap::ToObject());
+    return scope.Escape(handle());
   }
 
   /**
@@ -75,7 +73,8 @@ class AsyncObjectWrap: private ObjectWrap {
    */
   template <typename T>
   inline static T* Unwrap(v8::Local<v8::Object> object) {
-    return ObjectWrap::Unwrap<T>(object);
+    auto unwrapped = Nan::ObjectWrap::Unwrap<Nan::ObjectWrap>(object);
+    return reinterpret_cast<T*>(unwrapped);
   }
 
   /**
@@ -83,7 +82,7 @@ class AsyncObjectWrap: private ObjectWrap {
    * @param object the Object to wrap
    */
   inline void Wrap(v8::Local<v8::Object> object) {
-    ObjectWrap::Wrap(object);
+    Nan::ObjectWrap::Wrap(object);
   }
 
  protected:
