@@ -23,11 +23,10 @@
 #include "webrtc/api/statstypes.h"
 #include "webrtc/base/scoped_ref_ptr.h"
 
-#include "asyncobjectwrap.h"
+#include "asyncobjectwrapwithloop.h"
 #include "converters/webrtc.h"
 #include "events.h"
 #include "peerconnectionfactory.h"
-#include "promisefulfillingeventloop.h"
 #include "rtcrtpreceiver.h"
 
 namespace node_webrtc {
@@ -39,8 +38,7 @@ class SetLocalDescriptionObserver;
 class SetRemoteDescriptionObserver;
 
 class PeerConnection
-  : public node_webrtc::AsyncObjectWrap
-  , public node_webrtc::PromiseFulfillingEventLoop<PeerConnection>
+  : public node_webrtc::AsyncObjectWrapWithLoop<PeerConnection>
   , public webrtc::PeerConnectionObserver {
  public:
   explicit PeerConnection(ExtendedRTCConfiguration configuration);
@@ -113,9 +111,6 @@ class PeerConnection
   void HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event);
 
   void SaveLastSdp(const RTCSessionDescriptionInit& lastSdp);
-
- protected:
-  void DidStop() override;
 
  private:
   RTCSessionDescriptionInit _lastSdp;
