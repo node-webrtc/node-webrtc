@@ -9,6 +9,7 @@
 
 #include "converters/webrtc.h"
 
+using node_webrtc::AsyncObjectWrap;
 using node_webrtc::RTCRtpReceiver;
 using v8::External;
 using v8::Function;
@@ -24,7 +25,7 @@ RTCRtpReceiver::RTCRtpReceiver(
     std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
     rtc::scoped_refptr<webrtc::RtpReceiverInterface>&& receiver,
     node_webrtc::MediaStreamTrack* track)
-  : node_webrtc::AsyncObjectWrap("RTCRtpReceiver")
+  : AsyncObjectWrap("RTCRtpReceiver")
   , _factory(std::move(factory))
   , _receiver(std::move(receiver))
   , _track(track) {
@@ -48,7 +49,7 @@ NAN_METHOD(RTCRtpReceiver::New) {
   Local<Value> cargv[2];
   cargv[0] = info[0];
   cargv[1] = Nan::New<External>(static_cast<void*>(&track));
-  auto mediaStreamTrack = node_webrtc::AsyncObjectWrap::Unwrap<MediaStreamTrack>(Nan::NewInstance(Nan::New(MediaStreamTrack::constructor), 2, cargv).ToLocalChecked());
+  auto mediaStreamTrack = ::AsyncObjectWrap::Unwrap<MediaStreamTrack>(Nan::NewInstance(Nan::New(MediaStreamTrack::constructor), 2, cargv).ToLocalChecked());
 
   auto obj = new RTCRtpReceiver(std::move(factory), std::move(receiver), mediaStreamTrack);
   obj->Wrap(info.This());
@@ -58,7 +59,7 @@ NAN_METHOD(RTCRtpReceiver::New) {
 
 NAN_GETTER(RTCRtpReceiver::GetTrack) {
   (void) property;
-  auto self = node_webrtc::AsyncObjectWrap::Unwrap<RTCRtpReceiver>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<RTCRtpReceiver>(info.Holder());
   info.GetReturnValue().Set(self->_track->ToObject());
 }
 
@@ -78,14 +79,14 @@ NAN_METHOD(RTCRtpReceiver::GetCapabilities) {
 }
 
 NAN_METHOD(RTCRtpReceiver::GetParameters) {
-  auto self = node_webrtc::AsyncObjectWrap::Unwrap<RTCRtpReceiver>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<RTCRtpReceiver>(info.Holder());
   auto parameters = self->_receiver->GetParameters();
   CONVERT_OR_THROW_AND_RETURN(parameters, result, Local<Value>);
   info.GetReturnValue().Set(result);
 }
 
 NAN_METHOD(RTCRtpReceiver::GetContributingSources) {
-  auto self = node_webrtc::AsyncObjectWrap::Unwrap<RTCRtpReceiver>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<RTCRtpReceiver>(info.Holder());
   auto contributingSources = std::vector<webrtc::RtpSource>();
   if (!self->_closed) {
     auto sources = self->_receiver->GetSources();
@@ -100,7 +101,7 @@ NAN_METHOD(RTCRtpReceiver::GetContributingSources) {
 }
 
 NAN_METHOD(RTCRtpReceiver::GetSynchronizationSources) {
-  auto self = node_webrtc::AsyncObjectWrap::Unwrap<RTCRtpReceiver>(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<RTCRtpReceiver>(info.Holder());
   auto synchronizationSources = std::vector<webrtc::RtpSource>();
   if (!self->_closed) {
     auto sources = self->_receiver->GetSources();

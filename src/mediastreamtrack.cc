@@ -24,7 +24,7 @@ Nan::Persistent<Function> MediaStreamTrack::constructor;
 MediaStreamTrack::MediaStreamTrack(
     std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
     rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>&& track)
-  : node_webrtc::AsyncObjectWrap("MediaStreamTrack")
+  : AsyncObjectWrap("MediaStreamTrack")
   , PromiseFulfillingEventLoop(*this)
   , _factory(std::move(factory))
   , _track(std::move(track)) {
