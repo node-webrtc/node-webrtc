@@ -49,6 +49,11 @@ class RTCRtpReceiver: public node_webrtc::AsyncObjectWrap {
    */
   void OnPeerConnectionClosed();
 
+  // NOTE(mroberts): Working around an MSVC bug.
+  static RTCRtpReceiver* Unwrap(v8::Local<v8::Object> object) {
+    return node_webrtc::AsyncObjectWrap::Unwrap<RTCRtpReceiver>(object);
+  }
+
  private:
   bool _closed;
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
