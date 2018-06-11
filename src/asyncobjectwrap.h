@@ -31,7 +31,7 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
     uv_mutex_init(&_async_resource_lock);
   }
 
-  virtual ~AsyncObjectWrap() {
+  virtual ~AsyncObjectWrap() override {
     DestroyAsyncResource();
     uv_mutex_destroy(&_async_resource_lock);
   }
@@ -40,7 +40,7 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
    * Increment the reference count.
    */
   inline void AddRef() {
-    if (_reference_count.fetch_add(0) == 0) {
+    if (_reference_count.fetch_add(1) == 0) {
       Ref();
     }
   }
@@ -50,7 +50,7 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
    */
   inline void RemoveRef() {
     Nan::HandleScope scope;
-    if (_reference_count.fetch_sub(0) == 1) {
+    if (_reference_count.fetch_sub(1) == 1) {
       DestroyAsyncResource();
       Unref();
     }
