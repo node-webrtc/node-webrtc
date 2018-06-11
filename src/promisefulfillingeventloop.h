@@ -27,6 +27,8 @@ class PromiseFulfillingEventLoop: public EventLoop<T> {
  protected:
   explicit PromiseFulfillingEventLoop(T& target): EventLoop<T>(target) {}
 
+  virtual ~PromiseFulfillingEventLoop() override = default;
+
   void Run() override {
     Nan::HandleScope scope;
     EventLoop<T>::Run();

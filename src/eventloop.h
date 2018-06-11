@@ -36,7 +36,7 @@ class EventLoop: private EventQueue<T> {
     uv_async_send(&_async);
   }
 
-  virtual ~EventLoop() = default;
+  virtual ~EventLoop() override = default;
 
   bool should_stop() const {
     return _should_stop;

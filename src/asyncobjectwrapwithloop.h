@@ -36,7 +36,7 @@ class AsyncObjectWrapWithLoop
    */
   AsyncObjectWrapWithLoop(const char* name, T& target): AsyncObjectWrap(name), PromiseFulfillingEventLoop<T>(target) {}
 
-  virtual ~AsyncObjectWrapWithLoop() = default;
+  virtual ~AsyncObjectWrapWithLoop() override = default;
 
   /**
    * Increment the reference count.
