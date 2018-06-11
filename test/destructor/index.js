@@ -2,7 +2,7 @@
 
 const test = require('tape');
 
-const { RTCPeerConnection, RTCSessionDescription } = require('../..');
+const { MediaStream, RTCPeerConnection, RTCSessionDescription } = require('../..');
 
 const checkDestructor = require('./util');
 
@@ -60,6 +60,22 @@ test('RTCPeerConnection\'s destructor fires', async t => {
       pc => pc.close());
     t.pass();
   });
+});
+
+test('RTCRtpSender\'s destructor fires', async t => {
+  t.plan(2);
+  await checkDestructor(
+    'RTCRtpSender',
+    async () => {
+      const pc = new RTCPeerConnection();
+      const offer = new RTCSessionDescription({ type: 'offer', sdp });
+      await pc.setRemoteDescription(offer);
+      pc.getReceivers().forEach(receiver => pc.addTrack(receiver.track, new MediaStream()));
+      t.equal(pc.getSenders().length, pc.getReceivers().length);
+      return pc;
+    },
+    pc => pc.close());
+  t.pass();
 });
 
 test('RTCDataChannel\'s destructor fires', async t => {
