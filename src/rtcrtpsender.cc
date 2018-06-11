@@ -12,7 +12,7 @@
 #include "functional/maybe.h"
 #include "functional/operators.h"
 
-using node_webrtc::AsyncObjectWrapWithLoop;
+using node_webrtc::AsyncObjectWrap;
 using node_webrtc::Maybe;
 using node_webrtc::MediaStreamTrack;
 using node_webrtc::RTCRtpSender;
@@ -30,7 +30,7 @@ RTCRtpSender::RTCRtpSender(
     std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
     rtc::scoped_refptr<webrtc::RtpSenderInterface>&& sender,
     node_webrtc::MediaStreamTrack* track)
-  : AsyncObjectWrapWithLoop("RTCRtpSender", *this)
+  : AsyncObjectWrap("RTCRtpSender")
   , _factory(std::move(factory))
   , _sender(std::move(sender))
   , _track(track) {
@@ -62,7 +62,7 @@ NAN_METHOD(RTCRtpSender::New) {
 
 NAN_GETTER(RTCRtpSender::GetTrack) {
   (void) property;
-  auto self = AsyncObjectWrapWithLoop<RTCRtpSender>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
   Local<Value> result = Nan::Null();
   if (self->_track) {
     result = self->_track->ToObject();
@@ -86,7 +86,7 @@ NAN_METHOD(RTCRtpSender::GetCapabilities) {
 }
 
 NAN_METHOD(RTCRtpSender::GetParameters) {
-  auto self = AsyncObjectWrapWithLoop<RTCRtpSender>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
   auto parameters = self->_sender->GetParameters();
   CONVERT_OR_THROW_AND_RETURN(parameters, result, Local<Value>);
   info.GetReturnValue().Set(result);
@@ -105,7 +105,7 @@ NAN_METHOD(RTCRtpSender::GetStats) {
 }
 
 NAN_METHOD(RTCRtpSender::ReplaceTrack) {
-  auto self = AsyncObjectWrapWithLoop<RTCRtpSender>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
   auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()->GetIsolate());
   info.GetReturnValue().Set(resolver->GetPromise());
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, maybeTrack, node_webrtc::Either<node_webrtc::Null COMMA MediaStreamTrack*>);
