@@ -65,7 +65,7 @@
     "tap-spec": "^4.1.1",
     "tape": "^2.4.3",
     "travis-multirunner": "^4.3.0",
-    "ws": "^1.1.0"
+    "ws": "^5.2.0"
   },
   "scripts": {
     "install": "node scripts/install.js",

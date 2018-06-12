@@ -82,6 +82,21 @@ npm test
 npm run wpt:test
 ```
 
+## MediaStream Loopback Example
+
+This example demonstrates relaying MediaStreamTracks through node-webrtc. Run
+the example with
+
+```
+node examples/loopback.server.js
+```
+
+Then navigate to [http://localhost:8080/loopback.client.html](http://localhost:8080/loopback.client.html).
+You should be prompted for your microphone and webcam. Once granted, the browser
+negotiates an RTCPeerConnection with the server, and the server relays the
+browser's MediaStreamTracks. Finally, these are displayed in a &lt;video&gt;
+element in the browser.
+
 # Contributing
 
 The best way to get started is to read through the `Getting Started` and `Example` sections before having a look through the open [issues](https://github.com/modeswitch/node-webrtc/issues). Some of the issues are marked as `good first bug`, but feel free to contribute to any of the issues there, or open a new one if the thing you want to work on isn't there yet.
