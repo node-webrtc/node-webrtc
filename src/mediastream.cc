@@ -43,9 +43,6 @@ MediaStream::MediaStream(std::vector<MediaStreamTrack*>&& tracks, std::shared_pt
   , _stream(_factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid()))
   , _shouldReleaseFactory(!factory && tracks.empty()) {
   for (auto const& track : tracks) {
-    track->AddRef();
-  }
-  for (auto const& track : tracks) {
     if (track->track()->kind() == track->track()->kAudioKind) {
       auto audioTrack = static_cast<webrtc::AudioTrackInterface*>(track->track().get());
       _stream->AddTrack(audioTrack);
@@ -62,17 +59,9 @@ MediaStream::MediaStream(
   : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault())
   , _stream(stream)
   , _shouldReleaseFactory(!factory) {
-  for (auto const& track : tracks()) {
-    auto mediaStreamTrack = MediaStreamTrack::GetOrCreate(_factory, track);
-    mediaStreamTrack->AddRef();
-  }
 }
 
 MediaStream::~MediaStream() {
-  for (auto const& track : tracks()) {
-    auto mediaStreamTrack = MediaStreamTrack::GetOrCreate(_factory, track);
-    mediaStreamTrack->RemoveRef();
-  }
   MediaStream::Release(this);
   if (_shouldReleaseFactory) {
     PeerConnectionFactory::Release();
@@ -189,13 +178,9 @@ NAN_METHOD(MediaStream::AddTrack) {
   auto stream = self->_stream;
   auto track = mediaStreamTrack->track();
   if (track->kind() == track->kAudioKind) {
-    if (stream->AddTrack(static_cast<webrtc::AudioTrackInterface*>(track.get()))) {
-      mediaStreamTrack->AddRef();
-    }
+    stream->AddTrack(static_cast<webrtc::AudioTrackInterface*>(track.get()));
   } else {
-    if (stream->AddTrack(static_cast<webrtc::VideoTrackInterface*>(track.get()))) {
-      mediaStreamTrack->AddRef();
-    }
+    stream->AddTrack(static_cast<webrtc::VideoTrackInterface*>(track.get()));
   }
 }
 
@@ -205,13 +190,9 @@ NAN_METHOD(MediaStream::RemoveTrack) {
   auto stream = self->_stream;
   auto track = mediaStreamTrack->track();
   if (track->kind() == track->kAudioKind) {
-    if (stream->RemoveTrack(static_cast<webrtc::AudioTrackInterface*>(track.get()))) {
-      mediaStreamTrack->RemoveRef();
-    }
+    stream->RemoveTrack(static_cast<webrtc::AudioTrackInterface*>(track.get()));
   } else {
-    if (stream->RemoveTrack(static_cast<webrtc::VideoTrackInterface*>(track.get()))) {
-      mediaStreamTrack->RemoveRef();
-    }
+    stream->RemoveTrack(static_cast<webrtc::VideoTrackInterface*>(track.get()));
   }
 }
 
