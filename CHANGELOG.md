@@ -1,3 +1,81 @@
+0.1.5
+=====
+
+New Features
+------------
+
+### MediaStream
+
+This release adds support for MediaStream. Most MediaStream APIs are supported,
+excluding the "addtrack" and "removetrack" events. You can construct
+MediaStreams as follows:
+
+```js
+const { MediaStream } = require('wrtc');
+
+const stream1 = new MediaStream();
+const stream2 = new MediaStream(stream1);
+```
+
+Assuming you already have some Array of MediaStreamTracks, `tracks`, you can
+also construct a MediaStream with
+
+```js
+const stream3 = new MediaStream(tracks);
+```
+
+Or, if you have an existing MediaStream, you can `clone` it.
+
+```js
+const stream4 = stream3.clone();
+```
+
+This release also adds support for the following methods
+
+- `getTracks`
+- `getAudioTracks`
+- `getVideoTracks`
+- `getTrackById`
+- `addTrack`
+- `removeTrack`
+
+and the following attributes
+
+- `id`
+- `active`
+
+### RTCTrackEvent
+
+This release adds support for the `streams` property.
+
+### RTCPeerConnection
+
+This release adds support for `addTrack`, `removeTrack`, and `getSenders`.
+Although we don't yet provide a way to construct local MediaStreamTracks, you
+can relay remote MediaStreamTracks as follows:
+
+```js
+pc.ontrack = ({ track, streams }) => {
+  pc.addTrack(track, ...streams);
+};
+```
+
+### RTCRtpSender
+
+This release adds support for the following methods
+
+- `getCapabilities` (always throws for now)
+- `getParameters`
+- `setParameters` (always returns a rejected Promise for now)
+- `getStats` (always returns a rejected Promise for now)
+- `replaceTrack`
+
+and the following attributes
+
+- `track`
+- `transport` (always returns `null` for now)
+- `rtcpTransport` (always returns `null` for now)
+
 0.1.4
 =====
 
