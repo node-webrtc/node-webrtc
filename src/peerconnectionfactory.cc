@@ -8,9 +8,12 @@
 #include "peerconnectionfactory.h"
 
 #include "webrtc/base/ssladapter.h"
+#include "webrtc/modules/audio_device/include/fake_audio_device.h"
 #include "webrtc/p2p/base/basicpacketsocketfactory.h"
 
-#include "common.h"
+#include "src/common.h"
+#include "src/zerocapturer.h"
+#include "src/webrtc/fake_audio_device.h"
 
 using node_webrtc::PeerConnectionFactory;
 using v8::External;
@@ -51,8 +54,10 @@ PeerConnectionFactory::PeerConnectionFactory(AudioDeviceModule::AudioLayer audio
   result = _workerThread->Start();
   assert(result);
 
-  auto audioDeviceModule = _workerThread->Invoke<rtc::scoped_refptr<AudioDeviceModule>>(RTC_FROM_HERE, [audioLayer]() {
-    return webrtc::AudioDeviceModule::Create(0, audioLayer);
+  auto audioDeviceModule = _workerThread->Invoke<AudioDeviceModule*>(RTC_FROM_HERE, [audioLayer]() {
+    return new node_webrtc::FakeAudioDevice(
+            node_webrtc::ZeroCapturer::Create(48000),
+            node_webrtc::FakeAudioDevice::CreateDiscardRenderer(48000));
   });
 
   _signalingThread = rtc::Thread::Create();
@@ -64,7 +69,7 @@ PeerConnectionFactory::PeerConnectionFactory(AudioDeviceModule::AudioLayer audio
   _factory = webrtc::CreatePeerConnectionFactory(
           _workerThread.get(),
           _signalingThread.get(),
-          audioDeviceModule.release(),
+          audioDeviceModule,
           nullptr,
           nullptr);
   assert(_factory);
