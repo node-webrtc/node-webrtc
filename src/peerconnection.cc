@@ -53,6 +53,7 @@ PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceSe
 
   webrtc::PeerConnectionInterface::RTCConfiguration configuration;
   configuration.servers = iceServerList;
+  configuration.enable_dtls_srtp = rtc::Optional<bool>(false);
 
   // TODO(mroberts): Read `factory` (non-standard) from RTCConfiguration?
   _factory = PeerConnectionFactory::GetOrCreateDefault();
