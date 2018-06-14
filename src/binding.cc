@@ -12,6 +12,7 @@
 #include "rtcstatsresponse.h"
 #include "peerconnection.h"
 #include "peerconnectionfactory.h"
+#include "fileaudiodevicefactory.h"
 #include "mediadevices.h"
 #include "mediastreamtrack.h"
 #include "mediastream.h"
@@ -24,6 +25,7 @@ void dispose(void*) {
 }
 
 void init(Handle<Object> exports) {
+  node_webrtc::FileAudioDeviceFactory::Init(exports);
   node_webrtc::PeerConnectionFactory::Init(exports);
   node_webrtc::PeerConnection::Init(exports);
   node_webrtc::DataChannel::Init(exports);

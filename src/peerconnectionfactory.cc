@@ -13,7 +13,6 @@
 
 #include "webrtc/api/audio/audio_mixer.h"
 #include "webrtc/api/test/fakeaudiocapturemodule.h"
-#include "webrtc/modules/audio_device/dummy/file_audio_device_factory.h"
 
 using node_webrtc::PeerConnectionFactory;
 using v8::External;
@@ -123,7 +122,6 @@ void PeerConnectionFactory::Dispose() {
 
 void PeerConnectionFactory::Init(Handle<Object> exports) {
   uv_mutex_init(&_lock);
-  webrtc::FileAudioDeviceFactory::SetFilenamesToUse("/Users/mcp-pro/Downloads/input.raw", "/Users/mcp-pro/Downloads/output.raw");
 
   bool result;
   result = rtc::InitializeSSL();
