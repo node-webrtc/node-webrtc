@@ -172,7 +172,7 @@ class PeerConnection
         ICE_GATHERING_STATE_CHANGE
   };
 
-  explicit PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList, bool enableDtlSrtp);
+  explicit PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList, rtc::Optional<bool> enableDtlsSrtp);
   ~PeerConnection();
 
   //
