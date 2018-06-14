@@ -51,14 +51,13 @@ NAN_METHOD(FileAudioDeviceFactory::New) {
 
 NAN_METHOD(FileAudioDeviceFactory::SetFilenamesToUse) {
   TRACE_CALL;
-  /*
-  v8::String::Utf8Value inputArg(args[0]->ToString());
+  v8::String::Utf8Value inputArg(info[0]->ToString());
   std::string input = std::string(*inputArg);
 
-  v8::String::Utf8Value outputArg(args[1]->ToString());
+  v8::String::Utf8Value outputArg(info[1]->ToString());
   std::string output = std::string(*outputArg);
-  */
-  webrtc::FileAudioDeviceFactory::SetFilenamesToUse("/Users/mcp-pro/Downloads/input.raw", "/Users/mcp-pro/Downloads/output.raw");
+
+  webrtc::FileAudioDeviceFactory::SetFilenamesToUse(input.c_str(), output.c_str());
   TRACE_END;
 }
 
