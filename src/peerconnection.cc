@@ -44,7 +44,7 @@ Nan::Persistent<Function> PeerConnection::constructor;
 // PeerConnection
 //
 
-PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList, bool enableDtlsSrtp)
+PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList, rtc::Optional<bool> enableDtlsSrtp)
   : loop(uv_default_loop()) {
   _createOfferObserver = new rtc::RefCountedObject<CreateOfferObserver>(this);
   _createAnswerObserver = new rtc::RefCountedObject<CreateAnswerObserver>(this);
@@ -53,7 +53,7 @@ PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceSe
 
   webrtc::PeerConnectionInterface::RTCConfiguration configuration;
   configuration.servers = iceServerList;
-  configuration.enable_dtls_srtp = rtc::Optional<bool>(enableDtlsSrtp);
+  configuration.enable_dtls_srtp = enableDtlsSrtp;
 
   // TODO(mroberts): Read `factory` (non-standard) from RTCConfiguration?
   _factory = PeerConnectionFactory::GetOrCreateDefault();
@@ -590,7 +590,7 @@ NAN_METHOD(PeerConnection::New) {
     }
   }
 
-  bool enableDtlsSrtp = true;
+  rtc::Optional<bool> enableDtlsSrtp = rtc::Optional<bool>();
 
   // Check if we have a constraints object
   if (info[1]->IsObject()) {
@@ -628,7 +628,7 @@ NAN_METHOD(PeerConnection::New) {
               String::Utf8Value _manKey(manKey);
               std::string manStrKey = std::string(*_manKey);
 
-              if (manStrKey == "DtlsSrtpKeyAgreement") enableDtlsSrtp = manValue->BooleanValue();
+              if (manStrKey == "DtlsSrtpKeyAgreement") enableDtlsSrtp = rtc::Optional<bool>(manValue->BooleanValue());
             }
           }
         }
