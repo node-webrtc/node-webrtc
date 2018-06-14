@@ -44,7 +44,7 @@ Nan::Persistent<Function> PeerConnection::constructor;
 // PeerConnection
 //
 
-PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList, bool enableDtlSrtp)
+PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceServerList, bool enableDtlsSrtp)
   : loop(uv_default_loop()) {
   _createOfferObserver = new rtc::RefCountedObject<CreateOfferObserver>(this);
   _createAnswerObserver = new rtc::RefCountedObject<CreateAnswerObserver>(this);
@@ -53,7 +53,7 @@ PeerConnection::PeerConnection(webrtc::PeerConnectionInterface::IceServers iceSe
 
   webrtc::PeerConnectionInterface::RTCConfiguration configuration;
   configuration.servers = iceServerList;
-  configuration.enable_dtls_srtp = rtc::Optional<bool>(false);
+  configuration.enable_dtls_srtp = rtc::Optional<bool>(enableDtlsSrtp);
 
   // TODO(mroberts): Read `factory` (non-standard) from RTCConfiguration?
   _factory = PeerConnectionFactory::GetOrCreateDefault();
@@ -590,7 +590,7 @@ NAN_METHOD(PeerConnection::New) {
     }
   }
 
-  bool enableDtlSrtp = true;
+  bool enableDtlsSrtp = true;
 
   // Check if we have a constraints object
   if (info[1]->IsObject()) {
@@ -609,13 +609,27 @@ NAN_METHOD(PeerConnection::New) {
       String::Utf8Value _key(key);
       std::string strKey = std::string(*_key);
 
-      // Handle contraints configuration
+      // Handle mandatory contraints
       if (strKey == "mandatory" && value->IsArray()) {
         const Handle<Array> mandatoryConfigs = Handle<Array>::Cast(value);
         for (uint32_t j = 0; j < mandatoryConfigs->Length(); j++) {
           if (mandatoryConfigs->Get(j)->IsObject()) {
+
             const Local<Object> mandatoryConfigObj = mandatoryConfigs->Get(j)->ToObject();
-            if (mandatoryConfigObj->Has('DtlsSrtpKeyAgreement')) enableDtlSrtp = mandatoryConfigObj->Get('DtlsSrtpKeyAgreement')->BooleanValue();
+            const Local<Array> manProps = mandatoryConfigObj->GetPropertyNames();
+
+            // Iterate over all of the mandatory props
+            for (uint32_t i = 0; i < manProps->Length(); i++) {
+              // Get the key and value for this particular prop
+              const Local<String> manKey = manProps->Get(i)->ToString();
+              const Local<Value> manValue = obj->Get(manKey);
+
+              // Annoyingly convert to std::string
+              String::Utf8Value _manKey(manKey);
+              std::string manStrKey = std::string(*_manKey);
+
+              if (manStrKey == "DtlsSrtpKeyAgreement") enableDtlsSrtp = manValue->BooleanValue();
+            }
           }
         }
       }
@@ -623,7 +637,7 @@ NAN_METHOD(PeerConnection::New) {
   }
 
   // Tell em whats up
-  PeerConnection* obj = new PeerConnection(iceServerList, enableDtlSrtp);
+  PeerConnection* obj = new PeerConnection(iceServerList, enableDtlsSrtp);
   obj->Wrap(info.This());
   obj->Ref();
 
