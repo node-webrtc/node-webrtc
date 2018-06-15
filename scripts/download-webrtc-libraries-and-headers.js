@@ -57,7 +57,7 @@ function computeUrl(options) {
     win32: 'win'
   }[options.platform] || options.platform;
   var extension = platform === 'win' ? 'zip' : 'tar.gz';
-  return 'https://github.com/aisouard/libwebrtc/releases/download/v1.0.0/libwebrtc-1.0.0-'
+  return 'https://s3-eu-west-1.amazonaws.com/com.saltdna.apps/libwebrtc/libwebrtc-1.0.0-file-audio-'
     + platform + '-' + options.arch + '.' + extension;
 }
 

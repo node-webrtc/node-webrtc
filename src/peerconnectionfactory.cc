@@ -55,10 +55,10 @@ PeerConnectionFactory::PeerConnectionFactory(rtc::scoped_refptr<webrtc::AudioDev
   assert(result);
 
 
-  adm = FakeAudioCaptureModule::Create();
+  // adm = FakeAudioCaptureModule::Create();
 
   _decoderFactory = new NodeDecoderFactory();
-  _factory = webrtc::CreatePeerConnectionFactory(_workerThread.get(), _signalingThread.get(), adm,
+  _factory = webrtc::CreatePeerConnectionFactory(_workerThread.get(), _signalingThread.get(), nullptr,
           nullptr, _decoderFactory);
 
   assert(_factory);
