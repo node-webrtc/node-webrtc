@@ -7,6 +7,7 @@
 
 using node_webrtc::FileAudioDeviceFactory;
 using v8::FunctionTemplate;
+using v8::Function;
 using v8::Handle;
 using v8::Local;
 using v8::Object;
