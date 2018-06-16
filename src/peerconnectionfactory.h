@@ -16,6 +16,7 @@
 #include "webrtc/modules/audio_device/include/audio_device.h"
 #include "webrtc/pc/peerconnectionfactory.h"
 
+#include "src/functional/maybe.h"
 #include "src/webrtc/physicalsocketserver.h"
 
 namespace node_webrtc {
@@ -26,7 +27,8 @@ class PeerConnectionFactory
   /**
    * Create a PeerConnectionFactory using a particular webrtc::AudioDeviceModule::AudioLayer.
    */
-  explicit PeerConnectionFactory(webrtc::AudioDeviceModule::AudioLayer audioLayer = webrtc::AudioDeviceModule::kDummyAudio);
+  explicit PeerConnectionFactory(
+      Maybe<webrtc::AudioDeviceModule::AudioLayer> audioLayer = Maybe<webrtc::AudioDeviceModule::AudioLayer>::Nothing());
 
   ~PeerConnectionFactory() override;
 

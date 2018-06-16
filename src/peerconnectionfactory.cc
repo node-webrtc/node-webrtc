@@ -15,6 +15,7 @@
 #include "src/zerocapturer.h"
 #include "src/webrtc/fake_audio_device.h"
 
+using node_webrtc::Maybe;
 using node_webrtc::PeerConnectionFactory;
 using v8::External;
 using v8::Function;
@@ -35,7 +36,7 @@ std::shared_ptr<PeerConnectionFactory> PeerConnectionFactory::_default;
 uv_mutex_t PeerConnectionFactory::_lock;
 int PeerConnectionFactory::_references = 0;
 
-PeerConnectionFactory::PeerConnectionFactory(AudioDeviceModule::AudioLayer audioLayer) {
+PeerConnectionFactory::PeerConnectionFactory(Maybe<AudioDeviceModule::AudioLayer> audioLayer) {
   TRACE_CALL;
 
   bool result;
@@ -55,9 +56,18 @@ PeerConnectionFactory::PeerConnectionFactory(AudioDeviceModule::AudioLayer audio
   assert(result);
 
   auto audioDeviceModule = _workerThread->Invoke<AudioDeviceModule*>(RTC_FROM_HERE, [audioLayer]() {
-    return new node_webrtc::FakeAudioDevice(
-            node_webrtc::ZeroCapturer::Create(48000),
-            node_webrtc::FakeAudioDevice::CreateDiscardRenderer(48000));
+#if defined(WEBRTC_WIN)
+    return webrtc::AudioDeviceModule::Create(0,
+            audioLayer.FromMaybe(webrtc::AudioDeviceModule::AudioLayer::kDummyAudio)).release();
+#else
+    return audioLayer.Map([](const webrtc::AudioDeviceModule::AudioLayer audioLayer) {
+      return webrtc::AudioDeviceModule::Create(0, audioLayer).release();
+    }).Or([]() {
+      return new node_webrtc::FakeAudioDevice(
+              node_webrtc::ZeroCapturer::Create(48000),
+              node_webrtc::FakeAudioDevice::CreateDiscardRenderer(48000));
+    });
+#endif
   });
 
   _signalingThread = rtc::Thread::Create();
