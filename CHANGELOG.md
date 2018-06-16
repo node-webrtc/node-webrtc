@@ -4,6 +4,10 @@
 New Features
 ------------
 
+- This release allows relaying remote MediaStreamTracks. This can be useful for
+  test applications. **Note:** currently, Windows cannot relay audio
+  MediaStreamTracks, only video.
+
 ### MediaStream
 
 This release adds support for MediaStream. Most MediaStream APIs are supported,
