@@ -69,7 +69,7 @@ class DataChannel
 
   void HandleErrorEvent(const ErrorEvent<DataChannel>& event);
   void HandleStateEvent(const DataChannelStateChangeEvent& event);
-  void HandleMessageEvent(const MessageEvent& event);
+  void HandleMessageEvent(MessageEvent& event);
 
  private:
   node_webrtc::BinaryType _binaryType;

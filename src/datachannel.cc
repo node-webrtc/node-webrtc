@@ -112,13 +112,16 @@ void DataChannel::HandleStateEvent(const DataChannelStateChangeEvent& event) {
   TRACE_END;
 }
 
-void DataChannel::HandleMessageEvent(const MessageEvent& event) {
+void DataChannel::HandleMessageEvent(MessageEvent& event) {
   TRACE_CALL;
   Nan::HandleScope scope;
   Local<Value> argv[1];
   if (event.binary) {
     Local<v8::ArrayBuffer> array = v8::ArrayBuffer::New(
-            v8::Isolate::GetCurrent(), event.message.get(), event.size);
+            v8::Isolate::GetCurrent(),
+            event.message.release(),
+            event.size,
+            v8::ArrayBufferCreationMode::kInternalized);
     argv[0] = array;
   } else {
     Local<String> str = Nan::New(event.message.get(), event.size).ToLocalChecked();
