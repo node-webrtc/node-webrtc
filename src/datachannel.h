@@ -80,11 +80,6 @@ class DataChannel
   std::string _cached_protocol;
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
-
-#if NODE_MODULE_VERSION < 0x000C
-  static Nan::Persistent<v8::Function> ArrayBufferConstructor;
-
-#endif
 };
 
 class DataChannelObserver

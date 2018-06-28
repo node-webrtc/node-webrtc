@@ -34,9 +34,6 @@ using v8::String;
 using v8::Value;
 
 Nan::Persistent<Function> DataChannel::constructor;
-#if NODE_MODULE_VERSION < 0x000C
-Nan::Persistent<Function> DataChannel::ArrayBufferConstructor;
-#endif
 
 DataChannelObserver::DataChannelObserver(std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel)
@@ -120,15 +117,8 @@ void DataChannel::HandleMessageEvent(const MessageEvent& event) {
   Nan::HandleScope scope;
   Local<Value> argv[1];
   if (event.binary) {
-#if NODE_MODULE_VERSION > 0x000B
     Local<v8::ArrayBuffer> array = v8::ArrayBuffer::New(
             v8::Isolate::GetCurrent(), event.message.get(), event.size);
-#else
-    Local<Object> array = Nan::NewInstance(Nan::New(ArrayBufferConstructor)).ToLocalChecked();
-    array->SetIndexedPropertiesToExternalArrayData(
-        event.message.get(), v8::kExternalByteArray, event.size);
-    array->ForceSet(Nan::New("byteLength").ToLocalChecked(), Nan::New<Integer>(static_cast<uint32_t>(event.size)));
-#endif
     argv[0] = array;
   } else {
     Local<String> str = Nan::New(event.message.get(), event.size).ToLocalChecked();
@@ -379,10 +369,4 @@ void DataChannel::Init(Handle<Object> exports) {
 
   constructor.Reset(tpl->GetFunction());
   exports->Set(Nan::New("DataChannel").ToLocalChecked(), tpl->GetFunction());
-
-#if NODE_MODULE_VERSION < 0x000C
-  Local<Object> global = Nan::GetCurrentContext()->Global();
-  Local<Value> obj = global->Get(Nan::New("ArrayBuffer").ToLocalChecked());
-  ArrayBufferConstructor.Reset(obj.As<Function>());
-#endif
 }
