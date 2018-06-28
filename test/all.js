@@ -14,6 +14,7 @@ require('./closing-peer-connection');
 require('./closing-data-channel');
 require('./get-configuration');
 require('./rtcrtpreceiver');
+require('./send-arraybuffer');
 
 if (semver(process.version).major >= 9) {
   require('./destructor');
