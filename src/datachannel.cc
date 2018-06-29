@@ -111,7 +111,7 @@ void DataChannel::HandleStateEvent(const DataChannelStateChangeEvent& event) {
   } else {
     argv[0] = Nan::New("open").ToLocalChecked();
   }
-  
+
   MakeCallback("onstatechange", 1, argv);
   if (event.state == webrtc::DataChannelInterface::kClosed) {
     Stop();
