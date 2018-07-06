@@ -7,7 +7,7 @@
  */
 #include "mediastreamtrack.h"
 
-#include "webrtc/base/helpers.h"
+#include "webrtc/rtc_base/helpers.h"
 
 #include "converters/webrtc.h"
 

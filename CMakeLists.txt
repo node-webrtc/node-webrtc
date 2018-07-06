@@ -29,7 +29,8 @@ target_include_directories(${MODULE} PRIVATE ${CMAKE_SOURCE_DIR})
 
 find_package(Threads)
 target_include_directories(${MODULE} SYSTEM PRIVATE
-  ${CMAKE_SOURCE_DIR}/third_party/webrtc/include)
+  ${CMAKE_SOURCE_DIR}/third_party/webrtc/include
+  ${CMAKE_SOURCE_DIR}/third_party/webrtc/include/webrtc)
 
 if(WIN32)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /GR-")

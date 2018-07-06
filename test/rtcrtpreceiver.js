@@ -183,7 +183,8 @@ tape('applying a remote offer and then applying a local answer causes .getParame
           payloadType: 109,
           mimeType: 'audio/opus',
           clockRate: 48000,
-          channels: 2
+          channels: 2,
+          sdpFmtpLine: 'a=fmtp:109 useinbandfec=1; minptime=10'
         },
         {
           payloadType: 9,

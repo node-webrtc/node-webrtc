@@ -12,12 +12,11 @@
 #include "uv.h"
 #include "v8.h"  // IWYU pragma: keep
 
-#include "webrtc/base/scoped_ref_ptr.h"
 #include "webrtc/modules/audio_device/include/audio_device.h"
 #include "webrtc/pc/peerconnectionfactory.h"
+#include "webrtc/rtc_base/scoped_ref_ptr.h"
 
 #include "src/functional/maybe.h"
-#include "src/webrtc/physicalsocketserver.h"
 
 namespace node_webrtc {
 
@@ -71,7 +70,6 @@ class PeerConnectionFactory
   rtc::scoped_refptr<webrtc::AudioDeviceModule> _audioDeviceModule;
 
   std::unique_ptr<rtc::NetworkManager> _networkManager;
-  std::unique_ptr<node_webrtc::PhysicalSocketServer> _physicalSocketServer;
   std::unique_ptr<rtc::PacketSocketFactory> _socketFactory;
 };
 

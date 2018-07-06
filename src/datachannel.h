@@ -18,8 +18,8 @@
 #include "v8.h"  // IWYU pragma: keep
 
 #include "webrtc/api/datachannelinterface.h"
-#include "webrtc/base/buffer.h"
-#include "webrtc/base/scoped_ref_ptr.h"
+#include "webrtc/rtc_base/buffer.h"
+#include "webrtc/rtc_base/scoped_ref_ptr.h"
 
 #include "asyncobjectwrapwithloop.h"
 #include "converters/webrtc.h"

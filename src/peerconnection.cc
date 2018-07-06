@@ -7,8 +7,8 @@
  */
 #include "peerconnection.h"
 
-#include "webrtc/base/refcountedobject.h"
 #include "webrtc/p2p/client/basicportallocator.h"
+#include "webrtc/rtc_base/refcountedobject.h"
 
 #include "common.h"
 #include "converters/arguments.h"

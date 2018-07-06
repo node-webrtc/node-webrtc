@@ -11,7 +11,7 @@
 #include "nan.h"
 #include "v8.h"
 
-#include "webrtc/api/mediastream.h"
+#include "webrtc/api/mediastreaminterface.h"
 
 #include "src/bidimap.h"
 #include "src/mediastreamtrack.h"
