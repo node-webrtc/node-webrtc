@@ -5,7 +5,7 @@ SET EL=0
 ECHO ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ %~f0 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 SET PATH=%CD%;%PATH%
-SET msvs_version=2015
+SET msvs_version=2017
 
 ECHO APPVEYOR^: %APPVEYOR%
 ECHO nodejs_version^: %nodejs_version%

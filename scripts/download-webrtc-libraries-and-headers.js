@@ -57,7 +57,7 @@ function computeUrl(options) {
     win32: 'win'
   }[options.platform] || options.platform;
   var extension = platform === 'win' ? 'zip' : 'tar.gz';
-  return 'https://github.com/mayeut/libwebrtc/releases/download/v1.1.1/libwebrtc-1.1.1.60-6294a7eb71c891e9ea41273a7a94113f6802d0da-'
+  return 'https://github.com/markandrus/libwebrtc/releases/download/68.0.0-rc1/libwebrtc-68.0.0-rc1-'
     + platform + '-' + options.arch + '.' + extension;
 }
 
@@ -103,6 +103,10 @@ function main(options) {
       .once('error', reject)
       .once('finish', resolve);
   }).then(function() {
+    // NOTE(mroberts): Ideally the libwebrtc build doesn't require this.
+    fs.renameSync(
+      path.join(modulePath, 'include', 'src'),
+      path.join(modulePath, 'include', 'webrtc'));
     console.log('Complete!');
   }, function(error) {
     if (error.statusCode === 404) {

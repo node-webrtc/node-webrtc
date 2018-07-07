@@ -6,7 +6,6 @@ os:
 
 node_js:
   - "10"
-  - "9"
   - "8"
   - "6"
 
@@ -22,7 +21,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - g++-4.8
+      - g++-5
       - pulseaudio
 
 notifications:
@@ -44,7 +43,7 @@ install:
     unset -f popd
 
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      export CXX=g++-4.8;
+      export CXX=g++-5;
     fi
 
     # karma-tap has an annoying peer dependency that fails
