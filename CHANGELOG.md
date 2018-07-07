@@ -1,3 +1,19 @@
+0.3.0
+=====
+
+New Features
+------------
+
+- Updated to WebRTC M68 (using [libwebrtc](https://github.com/markandrus/libwebrtc))
+
+Breaking Changes
+----------------
+
+- Dropped support for Node 9
+- Minimum g++ version bumped to 5
+- Minimum macOS version bumped to 10.12
+- Minimum Microsoft Visual Studio version bumped to 2017
+
 0.2.1
 =====
 
