@@ -22,7 +22,7 @@ list(REMOVE_ITEM MODULE_SRC_WITHOUT_WEBRTC
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_definitions(${MODULE} PRIVATE -DDEBUG)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -D_GLIBCXX_DEBUG=1")
 endif()
 
 target_include_directories(${MODULE} PRIVATE ${CMAKE_SOURCE_DIR})
@@ -79,7 +79,7 @@ if(APPLE)
     "-framework AppKit"
     "-framework AVFoundation")
 elseif(UNIX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -std=gnu++11")
   target_compile_definitions(${MODULE} PRIVATE
     -D_GLIBCXX_USE_CXX11_ABI=0
     -DWEBRTC_LINUX
