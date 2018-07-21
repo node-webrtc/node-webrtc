@@ -57,7 +57,7 @@ function computeUrl(options) {
     win32: 'win'
   }[options.platform] || options.platform;
   var extension = platform === 'win' ? 'zip' : 'tar.gz';
-  return 'https://github.com/markandrus/libwebrtc/releases/download/68.0.0-rc1/libwebrtc-68.0.0-rc1-'
+  return 'https://github.com/markandrus/libwebrtc/releases/download/68.0.0-rc4/libwebrtc-68.0.0-rc4-'
     + platform + '-' + options.arch + '.' + extension;
 }
 
