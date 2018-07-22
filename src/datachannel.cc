@@ -34,9 +34,6 @@ using v8::String;
 using v8::Value;
 
 Nan::Persistent<Function> DataChannel::constructor;
-#if NODE_MODULE_VERSION < 0x000C
-Nan::Persistent<Function> DataChannel::ArrayBufferConstructor;
-#endif
 
 DataChannelObserver::DataChannelObserver(std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel)
@@ -108,27 +105,30 @@ void DataChannel::HandleErrorEvent(const ErrorEvent<DataChannel>& event) {
 void DataChannel::HandleStateEvent(const DataChannelStateChangeEvent& event) {
   TRACE_CALL;
   Nan::HandleScope scope;
-  MakeCallback("onstatechange", 0, nullptr);
+  Local<Value> argv[1];
+  if (event.state == webrtc::DataChannelInterface::kClosed) {
+    argv[0] = Nan::New("closed").ToLocalChecked();
+  } else {
+    argv[0] = Nan::New("open").ToLocalChecked();
+  }
+
+  MakeCallback("onstatechange", 1, argv);
   if (event.state == webrtc::DataChannelInterface::kClosed) {
     Stop();
   }
   TRACE_END;
 }
 
-void DataChannel::HandleMessageEvent(const MessageEvent& event) {
+void DataChannel::HandleMessageEvent(MessageEvent& event) {
   TRACE_CALL;
   Nan::HandleScope scope;
   Local<Value> argv[1];
   if (event.binary) {
-#if NODE_MODULE_VERSION > 0x000B
     Local<v8::ArrayBuffer> array = v8::ArrayBuffer::New(
-            v8::Isolate::GetCurrent(), event.message.get(), event.size);
-#else
-    Local<Object> array = Nan::NewInstance(Nan::New(ArrayBufferConstructor)).ToLocalChecked();
-    array->SetIndexedPropertiesToExternalArrayData(
-        event.message.get(), v8::kExternalByteArray, event.size);
-    array->ForceSet(Nan::New("byteLength").ToLocalChecked(), Nan::New<Integer>(static_cast<uint32_t>(event.size)));
-#endif
+            v8::Isolate::GetCurrent(),
+            event.message.release(),
+            event.size,
+            v8::ArrayBufferCreationMode::kInternalized);
     argv[0] = array;
   } else {
     Local<String> str = Nan::New(event.message.get(), event.size).ToLocalChecked();
@@ -379,10 +379,4 @@ void DataChannel::Init(Handle<Object> exports) {
 
   constructor.Reset(tpl->GetFunction());
   exports->Set(Nan::New("DataChannel").ToLocalChecked(), tpl->GetFunction());
-
-#if NODE_MODULE_VERSION < 0x000C
-  Local<Object> global = Nan::GetCurrentContext()->Global();
-  Local<Value> obj = global->Get(Nan::New("ArrayBuffer").ToLocalChecked());
-  ArrayBufferConstructor.Reset(obj.As<Function>());
-#endif
 }

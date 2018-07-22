@@ -6,6 +6,15 @@ Breaking Changes
 
 - Dropped support for Node 4, 5 and 7 (#408).
 
+0.1.6
+=====
+
+Bug Fixes
+---------
+
+- Fixed an issue with receiving multiple ArrayBuffers over an RTCDataChannel
+  that could cause invalid memory accesses (#406).
+
 0.1.5
 =====
 

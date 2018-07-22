@@ -69,7 +69,7 @@ class DataChannel
 
   void HandleErrorEvent(const ErrorEvent<DataChannel>& event);
   void HandleStateEvent(const DataChannelStateChangeEvent& event);
-  void HandleMessageEvent(const MessageEvent& event);
+  void HandleMessageEvent(MessageEvent& event);
 
  private:
   node_webrtc::BinaryType _binaryType;
@@ -80,11 +80,6 @@ class DataChannel
   std::string _cached_protocol;
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
-
-#if NODE_MODULE_VERSION < 0x000C
-  static Nan::Persistent<v8::Function> ArrayBufferConstructor;
-
-#endif
 };
 
 class DataChannelObserver

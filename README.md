@@ -74,7 +74,7 @@ Once everything is built, run
 npm test
 ```
 
-## Web Plattorm Tests
+## Web Platform Tests
 
 [w3c/web-platform-tests](https://github.com/w3c/web-platform-tests) defines a suite of WebRTC tests. node-webrtc borrows a technique from [jdom/jsdom](https://github.com/jsdom/jsdom) to run these tests in Node.js. Run the tests with
 
