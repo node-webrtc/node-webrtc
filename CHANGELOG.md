@@ -1,3 +1,11 @@
+0.2.0
+=====
+
+Breaking Changes
+----------------
+
+- Dropped support for Node 4, 5 and 7 (#408).
+
 0.1.6
 =====
 
