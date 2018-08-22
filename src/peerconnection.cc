@@ -416,7 +416,6 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
     promise->Resolve(Undefined());
     self->Dispatch(std::move(promise));
   } else {
-    delete candidate;
     std::string error = std::string("Failed to set ICE candidate");
     if (self->_jinglePeerConnection == nullptr) {
       error += ", no jingle peer connection";
@@ -426,6 +425,7 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
     self->Dispatch(std::move(promise));
   }
 
+  delete candidate;
   TRACE_END;
 }
 
@@ -519,14 +519,15 @@ NAN_METHOD(PeerConnection::GetStats) {
 
   SETUP_PROMISE(PeerConnection, RTCStatsResponseInit);
 
-  auto statsObserver = new rtc::RefCountedObject<StatsObserver>(self, std::move(promise));
-
-  if (self->_jinglePeerConnection == nullptr) {
+  if (self->_jinglePeerConnection != nullptr) {
+    auto statsObserver = new rtc::RefCountedObject<StatsObserver>(self, std::move(promise));
+    if (!self->_jinglePeerConnection->GetStats(statsObserver, nullptr,
+            webrtc::PeerConnectionInterface::kStatsOutputLevelStandard)) {
+      auto error = Nan::Error("Failed to execute getStats");
+      resolver->Reject(error);
+    }
+  } else {
     auto error = Nan::Error("RTCPeerConnection is closed");
-    resolver->Reject(error);
-  } else if (!self->_jinglePeerConnection->GetStats(statsObserver, nullptr,
-          webrtc::PeerConnectionInterface::kStatsOutputLevelStandard)) {
-    auto error = Nan::Error("Failed to execute getStats");
     resolver->Reject(error);
   }
 

@@ -26,6 +26,7 @@ void CreateSessionDescriptionObserver::OnSuccess(webrtc::SessionDescriptionInter
     }
     parent->Dispatch(std::move(_promise));
   }
+  delete sdp;
   TRACE_END;
 }
 
