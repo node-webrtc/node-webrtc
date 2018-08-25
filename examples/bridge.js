@@ -2,7 +2,7 @@
 'use strict';
 
 var express = require('express');
-var expressBrowserify = require('express-browserify');
+var browserify = require('browserify-middleware');
 var http = require('http');
 var join = require('path').join;
 var ws = require('ws');
@@ -32,7 +32,7 @@ var app = express();
 
 var server = http.createServer(app);
 
-app.get('/peer.js', expressBrowserify(join(__dirname, 'peer.js')));
+app.get('/peer.js', browserify(join(__dirname, 'peer.js')));
 
 app.use(express.static(__dirname));
 

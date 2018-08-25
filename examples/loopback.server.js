@@ -2,7 +2,7 @@
 'use strict';
 
 const express = require('express');
-const expressBrowserify = require('express-browserify');
+const browserify = require('browserify-middleware');
 const { createServer } = require('http');
 const { join } = require('path');
 const { Server } = require('ws');
@@ -12,7 +12,7 @@ const { getOffer, onCandidate } = require('./loopback.common');
 
 const app = express();
 
-app.get('/loopback.client.js', expressBrowserify(join(__dirname, 'loopback.client.js')));
+app.get('/loopback.client.js', browserify(join(__dirname, 'loopback.client.js')));
 
 app.use(express.static(__dirname));
 
