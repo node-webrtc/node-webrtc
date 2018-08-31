@@ -6,6 +6,13 @@ Breaking Changes
 
 - Dropped support for Node 4, 5 and 7 (#408).
 
+Bug Fixes
+---------
+
+- Fixed a race when closing an RTCDataChannel (#358).
+- Fixed memory leaks in `createOffer`, `createAnswer`, `addIceCandidate`, and
+  `getStats` (#425).
+
 0.1.6
 =====
 
