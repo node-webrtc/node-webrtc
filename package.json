@@ -58,6 +58,7 @@
     "mocha": "^5.2.0",
     "mocha-sugar-free": "^1.4.0",
     "q": "^1.5.1",
+    "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
     "rimraf": "^2.6.2",
     "semver": "^5.5.0",
@@ -75,7 +76,7 @@
     "test:bridge": "cross-env BROWSER=chrome node scripts/karma.js && cross-env BROWSER=firefox node scripts/karma.js",
     "wpt:init": "git submodule update --init --recursive",
     "wpt:reset": "rimraf ./test/web-platform-tests/tests && yarn wpt:init",
-    "wpt:test": "mocha test/web-platform-tests/run-wpts.js",
+    "wpt:test": "mocha test/web-platform-tests/run-wpts.js --exit",
     "wpt:update": "git submodule update --recursive --remote && cd test/web-platform-tests/tests && python wpt.py manifest --path ../wpt-manifest.json"
   }
 }
