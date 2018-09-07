@@ -19,6 +19,7 @@
 #include "webrtc/base/criticalsection.h"
 #include "webrtc/base/event.h"
 #include "webrtc/base/platform_thread.h"
+#include "webrtc/base/scoped_ref_ptr.h"
 #include "webrtc/modules/audio_device/include/fake_audio_device.h"
 #include "webrtc/typedefs.h"
 
@@ -68,10 +69,10 @@ class FakeAudioDevice : public webrtc::FakeAudioDeviceModule {
   // |renderer| is an object that receives audio data that would have been
   // played out. Can be nullptr if this device is never used for playing.
   // Use one of the Create... functions to get these instances.
-  FakeAudioDevice(std::unique_ptr<Capturer> capturer,
+
+  static rtc::scoped_refptr<FakeAudioDevice> Create(std::unique_ptr<Capturer> capturer,
       std::unique_ptr<Renderer> renderer,
       float speed = 1);
-  ~FakeAudioDevice() override;
 
   // Returns a Capturer instance that generates a signal where every second
   // frame is zero and every second frame is evenly distributed random noise
@@ -102,6 +103,7 @@ class FakeAudioDevice : public webrtc::FakeAudioDeviceModule {
       int sampling_frequency_in_hz);
 
   int32_t Init() override;
+  int32_t Terminate() override;
   int32_t RegisterAudioCallback(webrtc::AudioTransport* callback) override;
 
   int32_t StartPlayout() override;
@@ -118,6 +120,12 @@ class FakeAudioDevice : public webrtc::FakeAudioDeviceModule {
   // Blocks until the Recorder stops producing data.
   // Returns false if |timeout_ms| passes before that happens.
   bool WaitForRecordingEnd(int timeout_ms = rtc::Event::kForever);
+
+ protected:
+  FakeAudioDevice(std::unique_ptr<Capturer> capturer,
+      std::unique_ptr<Renderer> renderer,
+      float speed);
+  ~FakeAudioDevice() override;
 
  private:
   static bool Run(void* obj);

@@ -68,6 +68,7 @@ class PeerConnectionFactory
   std::unique_ptr<rtc::Thread> _signalingThread;
   std::unique_ptr<rtc::Thread> _workerThread;
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _factory;
+  rtc::scoped_refptr<webrtc::AudioDeviceModule> _audioDeviceModule;
 
   std::unique_ptr<rtc::NetworkManager> _networkManager;
   std::unique_ptr<node_webrtc::PhysicalSocketServer> _physicalSocketServer;
