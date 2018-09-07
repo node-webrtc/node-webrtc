@@ -15,8 +15,11 @@
 
 #include "webrtc/base/checks.h"
 #include "webrtc/base/random.h"
+#include "webrtc/base/refcount.h"
 #include "webrtc/common_audio/wav_file.h"
 #include "webrtc/system_wrappers/include/event_wrapper.h"
+
+#include "src/common.h"
 
 namespace node_webrtc {
 
@@ -236,6 +239,16 @@ FakeAudioDevice::CreateDiscardRenderer(int sampling_frequency_in_hz) {
           new DiscardRenderer(sampling_frequency_in_hz));
 }
 
+rtc::scoped_refptr<FakeAudioDevice> FakeAudioDevice::Create(std::unique_ptr<Capturer> capturer,
+    std::unique_ptr<Renderer> renderer,
+    float speed) {
+
+  rtc::scoped_refptr<FakeAudioDevice> audioDevice(
+      new rtc::RefCountedObject<FakeAudioDevice>(std::move(capturer), std::move(renderer), speed));
+
+  return audioDevice;
+}
+
 
 FakeAudioDevice::FakeAudioDevice(std::unique_ptr<Capturer> capturer,
     std::unique_ptr<Renderer> renderer,
@@ -266,9 +279,8 @@ FakeAudioDevice::FakeAudioDevice(std::unique_ptr<Capturer> capturer,
 }
 
 FakeAudioDevice::~FakeAudioDevice() {
-  StopPlayout();
-  StopRecording();
-  thread_.Stop();
+  TRACE_CALL;
+  TRACE_END;
 }
 
 int32_t FakeAudioDevice::StartPlayout() {
@@ -302,9 +314,21 @@ int32_t FakeAudioDevice::StopRecording() {
 }
 
 int32_t FakeAudioDevice::Init() {
+  TRACE_CALL;
   RTC_CHECK(tick_->StartTimer(true, kFrameLengthMs / speed_));
   thread_.Start();
   thread_.SetPriority(rtc::kHighPriority);
+  TRACE_END;
+  return 0;
+}
+
+int32_t FakeAudioDevice::Terminate() {
+  TRACE_CALL;
+  StopPlayout();
+  StopRecording();
+  thread_.Stop();
+  tick_->StopTimer();
+  TRACE_END;
   return 0;
 }
 

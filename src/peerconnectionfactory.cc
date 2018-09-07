@@ -55,15 +55,15 @@ PeerConnectionFactory::PeerConnectionFactory(Maybe<AudioDeviceModule::AudioLayer
   result = _workerThread->Start();
   assert(result);
 
-  auto audioDeviceModule = _workerThread->Invoke<AudioDeviceModule*>(RTC_FROM_HERE, [audioLayer]() {
+  _audioDeviceModule = _workerThread->Invoke<rtc::scoped_refptr<AudioDeviceModule>>(RTC_FROM_HERE, [audioLayer]() {
 #if defined(WEBRTC_WIN)
     return webrtc::AudioDeviceModule::Create(0,
-            audioLayer.FromMaybe(webrtc::AudioDeviceModule::AudioLayer::kDummyAudio)).release();
+            audioLayer.FromMaybe(webrtc::AudioDeviceModule::AudioLayer::kDummyAudio));
 #else
     return audioLayer.Map([](const webrtc::AudioDeviceModule::AudioLayer audioLayer) {
-      return webrtc::AudioDeviceModule::Create(0, audioLayer).release();
+      return webrtc::AudioDeviceModule::Create(0, audioLayer);
     }).Or([]() {
-      return new node_webrtc::FakeAudioDevice(
+      return node_webrtc::FakeAudioDevice::Create(
               node_webrtc::ZeroCapturer::Create(48000),
               node_webrtc::FakeAudioDevice::CreateDiscardRenderer(48000));
     });
@@ -79,7 +79,7 @@ PeerConnectionFactory::PeerConnectionFactory(Maybe<AudioDeviceModule::AudioLayer
   _factory = webrtc::CreatePeerConnectionFactory(
           _workerThread.get(),
           _signalingThread.get(),
-          audioDeviceModule,
+          _audioDeviceModule.get(),
           nullptr,
           nullptr);
   assert(_factory);
@@ -100,6 +100,7 @@ PeerConnectionFactory::~PeerConnectionFactory() {
 
   _workerThread = nullptr;
   _signalingThread = nullptr;
+  _audioDeviceModule = nullptr;
 
   _networkManager = nullptr;
   _socketFactory = nullptr;
