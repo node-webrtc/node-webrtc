@@ -22,6 +22,7 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - g++-5
+      - gdb
       - pulseaudio
 
 notifications:
@@ -91,6 +92,8 @@ script:
       git diff
       exit -1
     fi
+
+    gdb -batch -ex "run test/all.js" -ex "bt" node 2>&1 | grep -v ^"No stack."$
 
     npm test
 
