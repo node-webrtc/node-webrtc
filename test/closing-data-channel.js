@@ -16,7 +16,7 @@ test('make sure closing an RTCDataChannel after an RTCPeerConnection has been ga
 });
 
 test('ensure that RTCDataChannel open is not called during closing state', function(t) {
-  t.plan(3);
+  t.plan(5);
 
   var peer1 = new RTCPeerConnection({ iceServers: [] });
   var peer2 = new RTCPeerConnection({ iceServers: [] });
@@ -30,10 +30,13 @@ test('ensure that RTCDataChannel open is not called during closing state', funct
   });
 
   var channel1 = peer1.createDataChannel('data', { negotiated: true, id: 0 });
+  t.equal(channel1.readyState, 'connecting', 'Expected initial readyState to be "connecting"');
+
   var closeCount = 0;
   var waitingFor = 1;
 
   function ready() {
+    t.equal(channel1.readyState, 'open', 'Expected readyState to be "open" in open');
     --waitingFor;
     if (!waitingFor) {
       peer1.close();
