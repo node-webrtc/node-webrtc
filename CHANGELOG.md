@@ -1,3 +1,13 @@
+0.2.1
+=====
+
+Bug Fixes
+---------
+
+- Fixed an AudioDeviceModule memory and thread leak (#429).
+- Fixed an issue where closing an RTCPeerConnection would raise "open" events on
+  any RTCDataChannels whose `readyState` was "connecting" (#436).
+
 0.2.0
 =====
 
