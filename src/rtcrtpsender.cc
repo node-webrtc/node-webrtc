@@ -93,20 +93,20 @@ NAN_METHOD(RTCRtpSender::GetParameters) {
 }
 
 NAN_METHOD(RTCRtpSender::SetParameters) {
-  auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()->GetIsolate());
-  resolver->Reject(Nan::Error("Not yet implemented; file a feature request against node-webrtc"));
+  auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
+  resolver->Reject(Nan::GetCurrentContext(), Nan::Error("Not yet implemented; file a feature request against node-webrtc")).IsNothing();
   info.GetReturnValue().Set(resolver->GetPromise());
 }
 
 NAN_METHOD(RTCRtpSender::GetStats) {
-  auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()->GetIsolate());
-  resolver->Reject(Nan::Error("Not yet implemented; file a feature request against node-webrtc"));
+  auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
+  resolver->Reject(Nan::GetCurrentContext(), Nan::Error("Not yet implemented; file a feature request against node-webrtc")).IsNothing();
   info.GetReturnValue().Set(resolver->GetPromise());
 }
 
 NAN_METHOD(RTCRtpSender::ReplaceTrack) {
   auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
-  auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()->GetIsolate());
+  auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
   info.GetReturnValue().Set(resolver->GetPromise());
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, maybeTrack, node_webrtc::Either<node_webrtc::Null COMMA MediaStreamTrack*>);
   auto mediaStreamTrack = maybeTrack.FromEither<MediaStreamTrack*>([](Null) {
@@ -123,9 +123,9 @@ NAN_METHOD(RTCRtpSender::ReplaceTrack) {
     if (mediaStreamTrack) {
       mediaStreamTrack->AddRef();
     }
-    resolver->Resolve(Nan::Undefined());
+    resolver->Resolve(Nan::GetCurrentContext(), Nan::Undefined()).IsNothing();
   } else {
-    resolver->Reject(Nan::Error("Failed to replaceTrack"));
+    resolver->Reject(Nan::GetCurrentContext(), Nan::Error("Failed to replaceTrack")).IsNothing();
   }
 }
 

@@ -176,14 +176,15 @@ tape('applying a remote offer and then applying a local answer causes .getParame
   }).then(function(receivers) {
     t.equal(receivers[0].track.readyState, 'live', 'the audio RTCRtpReceiver\'s .track has .readyState "live"');
     t.equal(receivers[1].track.readyState, 'live', 'the video RTCRtpReceiver\'s .track has .readyState "live"');
-    t.deepEqual(receivers[0].getParameters(), {
+    compareParameters(t, receivers[0].getParameters(), {
       headerExtensions: [],
       codecs: [
         {
           payloadType: 109,
           mimeType: 'audio/opus',
           clockRate: 48000,
-          channels: 2
+          channels: 2,
+          sdpFmtpLine: 'a=fmtp:109 useinbandfec=1; minptime=10'
         },
         {
           payloadType: 9,
@@ -206,7 +207,7 @@ tape('applying a remote offer and then applying a local answer causes .getParame
       ],
       encodings: []
     }, 'the audio RTCRtpReceiver\'s .getParameters() returns the expected RTCRtpParameters');
-    t.deepEqual(receivers[1].getParameters(), {
+    compareParameters(t, receivers[1].getParameters(), {
       headerExtensions: [],
       codecs: [
         {
@@ -217,7 +218,8 @@ tape('applying a remote offer and then applying a local answer causes .getParame
         {
           payloadType: 121,
           mimeType: 'video/VP9',
-          clockRate: 90000
+          clockRate: 90000,
+          sdpFmtpLine: 'a=fmtp:121 x-google-profile-id=0'
         }
       ],
       encodings: []
@@ -273,3 +275,28 @@ tape('accessing remote MediaStreamTrack after RTCPeerConnection is destroyed', f
     t.end();
   });
 });
+
+function compareParameters(t, actual, expected, message) {
+  t.deepEqual(actual.headerExtensions, expected.headerExtensions, message);
+  t.deepEqual(actual.codecs.length, expected.codecs.length, message);
+  actual.codecs.forEach((actualCodec, i) => {
+    const expectedCodec = expected.codecs[i];
+    Object.keys(expectedCodec).forEach(key => {
+      if (key === 'sdpFmtpLine') {
+        compareSdpFmtpLine(t, actualCodec[key], expectedCodec[key], message);
+        return;
+      }
+      t.deepEqual(actualCodec[key], expectedCodec[key], message);
+    });
+  });
+  t.deepEqual(actual.encodings, expected.encodings, message);
+}
+
+function compareSdpFmtpLine(t, actual, expected, message) {
+  const [actualHead, ...actualTail] = actual.split(' ');
+  const [expectedHead, ...expectedTail] = expected.split(' ');
+  t.deepEqual(actualHead, expectedHead, message);
+  const actualParameters = actualTail.join(' ').split('; ').sort();
+  const expectedParameters = expectedTail.join(' ').split('; ').sort();
+  t.deepEqual(actualParameters, expectedParameters, message);
+}

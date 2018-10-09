@@ -76,6 +76,19 @@ DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
   delete observer;
 }
 
+void DataChannel::OnPeerConnectionClosed() {
+  if (_jingleDataChannel != nullptr) {
+    _jingleDataChannel->UnregisterObserver();
+    _cached_id = _jingleDataChannel->id();
+    _cached_label = _jingleDataChannel->label();
+    _cached_max_retransmits = _jingleDataChannel->maxRetransmits();
+    _cached_ordered = _jingleDataChannel->ordered();
+    _cached_protocol = _jingleDataChannel->protocol();
+    _jingleDataChannel = nullptr;
+    Stop();
+  }
+}
+
 NAN_METHOD(DataChannel::New) {
   TRACE_CALL;
 

@@ -21,7 +21,7 @@
 #include "webrtc/api/jsep.h"
 #include "webrtc/api/peerconnectioninterface.h"
 #include "webrtc/api/statstypes.h"
-#include "webrtc/base/scoped_ref_ptr.h"
+#include "webrtc/rtc_base/scoped_ref_ptr.h"
 
 #include "asyncobjectwrapwithloop.h"
 #include "converters/webrtc.h"
@@ -128,6 +128,7 @@ class PeerConnection
 
   std::vector<node_webrtc::RTCRtpReceiver*> _receivers;
   std::vector<node_webrtc::RTCRtpSender*> _senders;
+  std::vector<node_webrtc::DataChannel*> _channels;
 };
 
 }  // namespace node_webrtc

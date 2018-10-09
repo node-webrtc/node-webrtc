@@ -5,8 +5,8 @@ os:
   - osx
 
 node_js:
+  - "11"
   - "10"
-  - "9"
   - "8"
   - "6"
 
@@ -22,7 +22,7 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - g++-4.8
+      - g++-5
       - pulseaudio
 
 notifications:
@@ -44,12 +44,16 @@ install:
     unset -f popd
 
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      export CXX=g++-4.8;
-    fi
+      export CXX=g++-5
 
-    # karma-tap has an annoying peer dependency that fails
-    if [[ $(npm -v) == 2.* ]]; then
-      npm install -g npm@3
+      wget https://cmake.org/files/v3.12/cmake-3.12.3-Linux-x86_64.sh
+      chmod +x cmake-3.12.3-Linux-x86_64.sh
+      sudo ./cmake-3.12.3-Linux-x86_64.sh --skip-license
+      sudo ln -s $(pwd)/bin/* /usr/local/bin
+      rm cmake-3.12.3-Linux-x86_64.sh
+      export PATH=/usr/local/bin:$PATH
+    else
+      brew upgrade cmake
     fi
 
     SKIP_DOWNLOAD=true DEBUG=true npm install
@@ -93,15 +97,29 @@ script:
       exit -1
     fi
 
-    npm test
+    STDERR=$(mktemp)
+    npm test 2>$STDERR
+    if [ $? -ne 0 ]; then
+      tail $STDERR
+      exit 1
+    fi
 
-    # Node 4 & 5 are very hard to get working with WPT.
-    if [[ $(node -v) != v4.* && $(node -v) != v5.* ]]; then
-      npm run wpt:test
+    npm run wpt:init
+
+    STDERR=$(mktemp)
+    npm run wpt:test 2>$STDERR
+    if [ $? -ne 0 ]; then
+      tail $STDERR
+      exit 1
     fi
 
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      npm run test:bridge
+      STDERR=$(mktemp)
+      npm run test:bridge 2>$STDERR
+      if [ $? -ne 0 ]; then
+        tail $STDERR
+        exit 1
+      fi
     fi
 
     if [[ $TRAVIS_TAG ]] ||

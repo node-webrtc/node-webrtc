@@ -1,19 +1,27 @@
 # .gitignore
 *\~
+*.swp
+.idea
+.DS_Store
 build
+node_modules
+npm-debug.log*
 package-lock.json
 yarn.lock
 third_party
-build.log
 
 # other stuff
 .eslintrc
+.circleci
 .gitignore
 .gitmodules
 .travis.yml
+AUTHORS
 appveyor.yml
+CHANGELOG.md
 karma.conf.js
 examples
+README.md
 scripts/build-appveyor.bat
 scripts/karma.js
 test

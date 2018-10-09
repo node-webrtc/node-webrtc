@@ -6,7 +6,7 @@
     "p2p",
     "peer"
   ],
-  "version": "0.2.2-dev",
+  "version": "0.3.0-dev",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "http://js-platform.github.io/node-webrtc/",
   "bugs": "https://github.com/js-platform/node-webrtc/issues",
@@ -28,13 +28,9 @@
     "node": "6.x || 8.x - 10.x"
   },
   "dependencies": {
-    "download": "^5.0.0",
-    "gunzip-maybe": "^1.3.1",
     "nan": "^2.3.2",
     "node-cmake": "2.3.2",
-    "node-pre-gyp": "0.11.x",
-    "tar-fs": "^1.13.0",
-    "unzip-stream": "0.2.1"
+    "node-pre-gyp": "0.11.x"
   },
   "bundledDependencies": [
     "node-pre-gyp"
@@ -71,7 +67,6 @@
   "scripts": {
     "install": "node scripts/install.js",
     "lint": "eslint lib/*.js lib/**/*.js test/*.js test/**/*.js examples/*.js examples/**/*.js karma.conf.js scripts/*.js",
-    "pretest": "npm run wpt:init",
     "test": "node --expose-gc test/all.js",
     "test:bridge": "cross-env BROWSER=chrome node scripts/karma.js && cross-env BROWSER=firefox node scripts/karma.js",
     "wpt:init": "git submodule update --init --recursive",

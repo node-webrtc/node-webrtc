@@ -812,7 +812,6 @@ static Local<Value> CreateRtpParameters(Local<Value> headerExtensions, Local<Val
 }
 
 Validation<Local<Value>> Converter<webrtc::RtpParameters, v8::Local<v8::Value>>::Convert(webrtc::RtpParameters params) {
-  EscapableHandleScope scope;
   return curry(CreateRtpParameters)
       % From<Local<Value>>(params.header_extensions)
       * From<Local<Value>>(params.codecs);

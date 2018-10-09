@@ -1,0 +1,20 @@
+*** sdk/objc/Framework/Classes/Metal/RTCMTLRenderer.mm	2018-10-16 18:53:34.000000000 -0700
+--- sdk/objc/Framework/Classes/Metal/RTCMTLRenderer.mm	2018-10-16 19:25:11.000000000 -0700
+***************
+*** 176,182 ****
+    RTCVideoRotation rotation;
+    NSValue *rotationOverride = self.rotationOverride;
+    if (rotationOverride) {
+! #if defined(__IPHONE_11_0) && (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_11_0)
+      if (@available(iOS 11, *)) {
+        [rotationOverride getValue:&rotation size:sizeof(rotation)];
+      } else
+--- 176,183 ----
+    RTCVideoRotation rotation;
+    NSValue *rotationOverride = self.rotationOverride;
+    if (rotationOverride) {
+! #if defined(__IPHONE_11_0) && defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && \
+!     (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_11_0)
+      if (@available(iOS 11, *)) {
+        [rotationOverride getValue:&rotation size:sizeof(rotation)];
+      } else

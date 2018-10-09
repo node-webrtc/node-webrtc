@@ -1,3 +1,30 @@
+0.3.0
+=====
+
+New Features
+------------
+
+- Support for Node 11. Binaries are available for Linux and macOS. Windows
+  binaries will become available in a subsequent release once AppVeyor gains
+  support for Node 11.
+- Updated to WebRTC M70. This release no longer uses
+  [mayeut/libwebrtc](https://github.com/mayeut/libwebrtc); instead, WebRTC is
+  built from source.
+
+Breaking Changes
+----------------
+
+- Dropped support for Node 9
+- Minimum CMake version bumped to 3.12
+- Minimum GCC version bumped to 5.4
+- Minimum Microsoft Visual Studio version bumped to 2017
+
+Bug Fixes
+---------
+
+- Updating to WebRTC M70 fixes an RTCDataChannel-related interop bug with recent
+  Firefox releases (#444).
+
 0.2.2
 =====
 

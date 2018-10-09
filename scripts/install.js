@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* eslint no-console:0 no-process-env:0 */
+/* eslint no-console:0, no-process-env:0, no-process-exit:0 */
 'use strict';
 
 var spawnSync = require('child_process').spawnSync;
@@ -13,8 +13,8 @@ if (process.env.DEBUG) {
 if (process.platform === 'win32') {
   args.push('-g');
   args.push(process.arch === 'x64'
-    ? '"Visual Studio 14 2015 Win64"'
-    : '"Visual Studio 14 2015"');
+    ? '"Visual Studio 15 2017 Win64"'
+    : '"Visual Studio 15 2017"');
 }
 
 function download() {
@@ -36,15 +36,21 @@ function download() {
 
 function build() {
   console.log('Running ncmake ' + args.join(' '));
-  spawnSync('ncmake', args, {
+  var result1 = spawnSync('ncmake', args, {
     shell: true,
     stdio: 'inherit'
   });
+  if (result1.status) {
+    throw new Error('ncmake configure failed for wrtc');
+  }
   console.log('Running ncmake build');
-  spawnSync('ncmake', ['build'], {
+  var result2 = spawnSync('ncmake', ['build'], {
     shell: true,
     stdio: 'inherit'
   });
+  if (result2.status) {
+    throw new Error('ncmake build failed for wrtc');
+  }
   console.log('Built wrtc');
 }
 

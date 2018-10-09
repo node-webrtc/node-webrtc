@@ -13,10 +13,10 @@
 #include <algorithm>
 #include <utility>
 
-#include "webrtc/base/checks.h"
-#include "webrtc/base/random.h"
-#include "webrtc/base/refcount.h"
 #include "webrtc/common_audio/wav_file.h"
+#include "webrtc/rtc_base/checks.h"
+#include "webrtc/rtc_base/random.h"
+#include "webrtc/rtc_base/refcountedobject.h"
 #include "webrtc/system_wrappers/include/event_wrapper.h"
 
 #include "src/common.h"
