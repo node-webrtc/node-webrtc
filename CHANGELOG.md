@@ -1,3 +1,11 @@
+0.2.2
+=====
+
+Bug Fixes
+---------
+
+- Destroy AudioDeviceModule on the worker thread.
+
 0.2.1
 =====
 
