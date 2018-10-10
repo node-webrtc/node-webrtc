@@ -95,12 +95,15 @@ PeerConnectionFactory::~PeerConnectionFactory() {
 
   _factory = nullptr;
 
+  _workerThread->Invoke<void>(RTC_FROM_HERE, [this]() {
+    this->_audioDeviceModule = nullptr;
+  });
+
   _workerThread->Stop();
   _signalingThread->Stop();
 
   _workerThread = nullptr;
   _signalingThread = nullptr;
-  _audioDeviceModule = nullptr;
 
   _networkManager = nullptr;
   _socketFactory = nullptr;
