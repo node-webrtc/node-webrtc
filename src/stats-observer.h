@@ -8,17 +8,16 @@
 #ifndef SRC_STATS_OBSERVER_H_
 #define SRC_STATS_OBSERVER_H_
 
-#include "nan.h"  // IWYU pragma: keep
+#include <webrtc/api/peerconnectioninterface.h>
+#include <webrtc/api/statstypes.h>
 
-#include "webrtc/api/peerconnectioninterface.h"
-#include "webrtc/api/statstypes.h"
-
-#include "src/converters/webrtc.h"
-#include "src/events.h"
+#include "src/events.h"  // IWYU pragma: keep
 
 namespace node_webrtc {
 
 class PeerConnection;
+
+typedef std::pair<double, std::vector<std::map<std::string, std::string>>> RTCStatsResponseInit;
 
 class StatsObserver
   : public webrtc::StatsObserver {

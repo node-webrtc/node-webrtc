@@ -7,16 +7,24 @@
  */
 #ifndef SRC_EVENTS_H_
 #define SRC_EVENTS_H_
+
+#include <iosfwd>
+
 #include <nan.h>
+#include <webrtc/api/datachannelinterface.h>
+#include <webrtc/api/jsep.h>
+#include <webrtc/api/peerconnectioninterface.h>
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
 
-#include <memory>
+#include "src/converters/v8.h"
+#include "src/error.h"
+#include "src/functional/either.h"
 
-#include "converters.h"
-#include "converters/v8.h"
-#include "error.h"
-#include "functional/either.h"
-#include "functional/validation.h"
-#include "webrtc/api/peerconnectioninterface.h"
+namespace webrtc {
+
+class RtpReceiverInterface;
+
+}  // namespace webrtc
 
 namespace node_webrtc {
 

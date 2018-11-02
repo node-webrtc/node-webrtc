@@ -10,21 +10,23 @@
 #ifndef WEBRTC_TEST_FAKE_AUDIO_DEVICE_H_
 #define WEBRTC_TEST_FAKE_AUDIO_DEVICE_H_
 
-#include <memory>
-#include <string>
-#include <vector>
+// #include <memory>
+// #include <string>
+#include <vector>  // IWYU pragma: keep
 
-#include "webrtc/api/array_view.h"
-#include "webrtc/modules/audio_device/include/fake_audio_device.h"
-#include "webrtc/rtc_base/buffer.h"
-#include "webrtc/rtc_base/criticalsection.h"
-#include "webrtc/rtc_base/event.h"
-#include "webrtc/rtc_base/platform_thread.h"
-#include "webrtc/rtc_base/scoped_ref_ptr.h"
+// #include <webrtc/api/array_view.h>
+#include <webrtc/modules/audio_device/include/fake_audio_device.h>
+#include <webrtc/rtc_base/buffer.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/criticalsection.h>
+#include <webrtc/rtc_base/event.h>
+#include <webrtc/rtc_base/platform_thread.h>
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <webrtc/rtc_base/thread_annotations.h>
 
 namespace webrtc {
 
-class EventTimerWrapper;
+class AudioTransport;
+class EventTimerWrapper;  // IWYU pragma: keep
 
 }  // namespace webrtc
 

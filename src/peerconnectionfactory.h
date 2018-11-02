@@ -8,15 +8,31 @@
 #ifndef SRC_PEERCONNECTIONFACTORY_H_
 #define SRC_PEERCONNECTIONFACTORY_H_
 
-#include "nan.h"
-#include "uv.h"
-#include "v8.h"  // IWYU pragma: keep
+#include <memory>
 
-#include "webrtc/modules/audio_device/include/audio_device.h"
-#include "webrtc/pc/peerconnectionfactory.h"
-#include "webrtc/rtc_base/scoped_ref_ptr.h"
+#include <nan.h>
+#include <uv.h>  // IWYU pragma: keep
+#include <webrtc/modules/audio_device/include/audio_device.h>
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <v8.h>  // IWYU pragma: keep
 
-#include "src/functional/maybe.h"
+#include "src/functional/maybe.h"  // IWYU pragma: keep
+
+// IWYU pragma: no_include <uv/unix.h>
+
+namespace rtc {
+
+class NetworkManager;
+class PacketSocketFactory;
+class Thread;  // IWYU pragma: keep
+
+}  // namespace rtc
+
+namespace webrtc {
+
+class PeerConnectionFactoryInterface;
+
+}  // namespace webrtc
 
 namespace node_webrtc {
 

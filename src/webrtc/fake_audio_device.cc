@@ -7,17 +7,17 @@
  *  in the file PATENTS.  All contributing project authors may
  *  be found in the AUTHORS file in the root of the source tree.
  */
-
 #include "src/webrtc/fake_audio_device.h"
 
-#include <algorithm>
-#include <utility>
+#include <iosfwd>
 
-#include "webrtc/common_audio/wav_file.h"
-#include "webrtc/rtc_base/checks.h"
-#include "webrtc/rtc_base/random.h"
-#include "webrtc/rtc_base/refcountedobject.h"
-#include "webrtc/system_wrappers/include/event_wrapper.h"
+#include <webrtc/common_audio/wav_file.h>
+#include <webrtc/rtc_base/checks.h>
+#include <webrtc/rtc_base/criticalsection.h>
+#include <webrtc/rtc_base/random.h>
+#include <webrtc/rtc_base/refcountedobject.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <webrtc/system_wrappers/include/event_wrapper.h>
 
 #include "src/common.h"
 

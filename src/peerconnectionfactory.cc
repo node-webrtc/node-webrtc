@@ -5,17 +5,22 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "peerconnectionfactory.h"
+#include "src/peerconnectionfactory.h"
 
-#include "webrtc/api/audio_codecs/builtin_audio_decoder_factory.h"
-#include "webrtc/api/audio_codecs/builtin_audio_encoder_factory.h"
-#include "webrtc/modules/audio_device/include/fake_audio_device.h"
-#include "webrtc/p2p/base/basicpacketsocketfactory.h"
-#include "webrtc/rtc_base/ssladapter.h"
+#include <uv.h>
+#include <webrtc/api/peerconnectioninterface.h>  // IWYU pragma: keep
+#include <webrtc/api/audio_codecs/builtin_audio_decoder_factory.h>  // IWYU pragma: keep
+#include <webrtc/api/audio_codecs/builtin_audio_encoder_factory.h>  // IWYU pragma: keep
+#include <webrtc/modules/audio_device/include/audio_device.h>
+#include <webrtc/modules/audio_device/include/fake_audio_device.h>  // IWYU pragma: keep
+#include <webrtc/p2p/base/basicpacketsocketfactory.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/location.h>
+#include <webrtc/rtc_base/ssladapter.h>
+#include <webrtc/rtc_base/thread.h>  // IWYU pragma: keep
 
 #include "src/common.h"
-#include "src/zerocapturer.h"
-#include "src/webrtc/fake_audio_device.h"
+#include "src/zerocapturer.h"  // IWYU pragma: keep
+#include "src/webrtc/fake_audio_device.h"  // IWYU pragma: keep
 
 using node_webrtc::Maybe;
 using node_webrtc::PeerConnectionFactory;

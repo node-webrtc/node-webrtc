@@ -8,15 +8,19 @@
 #ifndef SRC_CREATE_SESSION_DESCRIPTION_OBSERVER_H_
 #define SRC_CREATE_SESSION_DESCRIPTION_OBSERVER_H_
 
-#include <string>
+#include <webrtc/api/jsep.h>
 
-#include "webrtc/api/jsep.h"
+#include "src/events.h"  // IWYU pragma: keep
 
-#include "src/converters/webrtc.h"
-#include "src/events.h"
+namespace webrtc {
+
+class RTCError;
+
+}  // namespace webrtc
 
 namespace node_webrtc {
 
+struct RTCSessionDescriptionInit;  // IWYU pragma: keep
 class PeerConnection;
 
 class CreateSessionDescriptionObserver

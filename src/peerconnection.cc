@@ -5,24 +5,47 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "peerconnection.h"
+#include "src/peerconnection.h"
 
-#include "webrtc/p2p/client/basicportallocator.h"
-#include "webrtc/rtc_base/refcountedobject.h"
+#include <iosfwd>
 
+#include <webrtc/api/peerconnectioninterface.h>
+#include <webrtc/api/rtcerror.h>
+#include <webrtc/p2p/client/basicportallocator.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+
+#include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
 #include "src/common.h"
-#include "src/converters/arguments.h"
+#include "src/converters.h"
+#include "src/converters/arguments.h"  // IWYU pragma: keep
 #include "src/converters/webrtc.h"
-#include "src/createsessiondescriptionobserver.h"
-#include "src/datachannel.h"
+#include "src/createsessiondescriptionobserver.h"  // IWYU pragma: keep
+#include "src/datachannel.h"  // IWYU pragma: keep
 #include "src/error.h"
-#include "src/errorfactory.h"
-#include "src/functional/maybe.h"
+#include "src/events.h"
+#include "src/errorfactory.h"  // IWYU pragma: keep
+#include "src/mediastream.h"  // IWYU pragma: keep
+#include "src/mediastreamtrack.h"  // IWYU pragma: keep
 #include "src/peerconnectionfactory.h"
-#include "src/rtcrtpreceiver.h"
-#include "src/rtcstatsresponse.h"
-#include "src/setsessiondescriptionobserver.h"
-#include "src/stats-observer.h"
+#include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
+#include "src/rtcrtpsender.h"  // IWYU pragma: keep
+#include "src/setsessiondescriptionobserver.h"  // IWYU pragma: keep
+#include "src/stats-observer.h"  // IWYU pragma: keep
+
+namespace webrtc {
+
+class SessionDescriptionInterface;
+struct DataChannelInit;
+
+}  // namespace webrtc
+
+namespace node_webrtc {
+
+class AsyncObjectWrap;
+
+template <typename T> class Maybe;
+
+}  // namesapce node_webrtc
 
 using node_webrtc::Arguments;
 using node_webrtc::AsyncObjectWrap;

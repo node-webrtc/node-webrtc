@@ -7,11 +7,29 @@
  */
 #include "src/converters/webrtc.h"
 
+#include <nan.h>
+#include <webrtc/api/datachannelinterface.h>
+#include <webrtc/api/jsep.h>
+#include <webrtc/api/mediastreaminterface.h>
+#include <webrtc/api/peerconnectioninterface.h>
+#include <webrtc/api/rtcerror.h>
+#include <webrtc/api/rtpparameters.h>
+#include <webrtc/api/rtpreceiverinterface.h>
+#include <v8.h>
+
+#include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
+#include "src/converters.h"
 #include "src/converters/object.h"
-#include "src/errorfactory.h"
-#include "src/rtcstatsresponse.h"
+#include "src/functional/either.h"  // IWYU pragma: keep
+#include "src/errorfactory.h"  // IWYU pragma: keep
+#include "src/mediastream.h"  // IWYU pragma: keep
+#include "src/mediastreamtrack.h"  // IWYU pragma: keep
+#include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
+#include "src/rtcrtpsender.h"  // IWYU pragma: keep
+#include "src/rtcstatsresponse.h"  // IWYU pragma: keep
 
 using Nan::EscapableHandleScope;
+using node_webrtc::AsyncObjectWrapWithLoop;
 using node_webrtc::BinaryType;
 using node_webrtc::Converter;
 using node_webrtc::Either;
@@ -21,6 +39,8 @@ using node_webrtc::From;
 using node_webrtc::GetOptional;
 using node_webrtc::GetRequired;
 using node_webrtc::Maybe;
+using node_webrtc::MediaStream;
+using node_webrtc::MediaStreamTrack;
 using node_webrtc::RTCAnswerOptions;
 using node_webrtc::RTCDtlsFingerprint;
 using node_webrtc::RTCIceCredentialType;
@@ -28,6 +48,8 @@ using node_webrtc::RTCOAuthCredential;
 using node_webrtc::RTCOfferOptions;
 using node_webrtc::RTCPeerConnectionState;
 using node_webrtc::RTCPriorityType ;
+using node_webrtc::RTCRtpReceiver;
+using node_webrtc::RTCRtpSender;
 using node_webrtc::RTCSdpType;
 using node_webrtc::RTCSessionDescriptionInit;
 using node_webrtc::RTCStatsResponse;
@@ -870,6 +892,52 @@ Validation<Local<Value>> Converter<webrtc::RtpParameters, v8::Local<v8::Value>>:
       * From<Local<Value>>(params.codecs);
 }
 
+Validation<Local<Value>> Converter<RTCRtpSender*, Local<Value>>::Convert(RTCRtpSender* sender) {
+  Nan::EscapableHandleScope scope;
+  if (!sender) {
+    return Validation<v8::Local<v8::Value>>::Invalid("RTCRtpSender is null");
+  }
+  return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(sender->ToObject()));
+}
+
+Validation<RTCRtpSender*> Converter<Local<Value>, RTCRtpSender*>::Convert(Local<Value> value) {
+  // TODO(mroberts): This is not safe.
+  return value->IsObject() && !value->IsNull() && !value->IsArray()
+      ? Validation<RTCRtpSender*>::Valid(AsyncObjectWrapWithLoop<RTCRtpSender>::Unwrap(value->ToObject()))
+      : Validation<RTCRtpSender*>::Invalid("IDK");
+}
+
+Validation<Local<Value>> Converter<RTCRtpReceiver*, Local<Value>>::Convert(RTCRtpReceiver* receiver) {
+  Nan::EscapableHandleScope scope;
+  if (!receiver) {
+    return Validation<Local<Value>>::Invalid("RTCRtpReceiver is null");
+  }
+  return Validation<Local<Value>>::Valid(scope.Escape(receiver->ToObject()));
+}
+
+Validation<Local<Value>> Converter<MediaStream*, Local<Value>>::Convert(MediaStream* stream) {
+  Nan::EscapableHandleScope scope;
+  if (!stream) {
+    return Validation<v8::Local<v8::Value>>::Invalid("MediaStream is null");
+  }
+  return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(stream->handle()));
+}
+
+Validation<MediaStream*> Converter<Local<Value>, MediaStream*>::Convert(Local<Value> value) {
+  // TODO(mroberts): This is not safe.
+  return value->IsObject() && !value->IsNull() && !value->IsArray()
+      ? Validation<MediaStream*>::Valid(Nan::ObjectWrap::Unwrap<MediaStream>(value->ToObject()))
+      : Validation<MediaStream*>::Invalid("IDK");
+}
+
+Validation<Local<Value>> Converter<MediaStreamTrack*, Local<Value>>::Convert(MediaStreamTrack* track) {
+  Nan::EscapableHandleScope scope;
+  if (!track) {
+    return Validation<v8::Local<v8::Value>>::Invalid("MediaStreamTrack is null");
+  }
+  return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(track->ToObject()));
+}
+
 Validation<std::string> Converter<webrtc::MediaStreamTrackInterface::TrackState, std::string>::Convert(webrtc::MediaStreamTrackInterface::TrackState state) {
   switch (state) {
     case webrtc::MediaStreamTrackInterface::TrackState::kEnded:
@@ -878,4 +946,11 @@ Validation<std::string> Converter<webrtc::MediaStreamTrackInterface::TrackState,
       return Validation<std::string>::Valid("live");
   }
   return Validation<std::string>::Invalid("Impossible");
+}
+
+Validation<MediaStreamTrack*> Converter<Local<Value>, MediaStreamTrack*>::Convert(Local<Value> value) {
+  // TODO(mroberts): This is not safe.
+  return value->IsObject() && !value->IsNull() && !value->IsArray()
+      ? Validation<MediaStreamTrack*>::Valid(AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(value->ToObject()))
+      : Validation<MediaStreamTrack*>::Invalid("IDK");
 }

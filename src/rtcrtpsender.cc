@@ -5,12 +5,20 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "rtcrtpsender.h"
+#include "src/rtcrtpsender.h"
 
-#include "converters/v8.h"
-#include "converters/webrtc.h"
-#include "functional/maybe.h"
-#include "functional/operators.h"
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+
+#include "src/converters/arguments.h"  // IWYU pragma: keep
+#include "src/converters/webrtc.h"  // IWYU pragma: keep
+#include "src/error.h"
+#include "src/mediastreamtrack.h"  // IWYU pragma: keep
+
+namespace node_webrtc {
+
+template <typename T> class Maybe;
+
+}  // namespace node_webrtc;
 
 using node_webrtc::AsyncObjectWrap;
 using node_webrtc::Maybe;

@@ -8,15 +8,24 @@
 #ifndef SRC_RTCRTPRECEIVER_H_
 #define SRC_RTCRTPRECEIVER_H_
 
-#include "nan.h"
-#include "v8.h"
+#include <memory>
 
-#include "src/asyncobjectwrap.h"
-#include "src/mediastreamtrack.h"
-#include "src/peerconnectionfactory.h"
-#include "src/promisefulfillingeventloop.h"
+#include <nan.h>
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <v8.h>
+
+#include "src/asyncobjectwrap.h"  // IWYU pragma: keep
+
+namespace webrtc {
+
+class RtpReceiverInterface;
+
+}  // namespace webrtc
 
 namespace node_webrtc {
+
+class MediaStreamTrack;
+class PeerConnectionFactory;
 
 class RTCRtpReceiver: public node_webrtc::AsyncObjectWrap {
  public:

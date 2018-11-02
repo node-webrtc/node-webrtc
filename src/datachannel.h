@@ -8,28 +8,25 @@
 #ifndef SRC_DATACHANNEL_H_
 #define SRC_DATACHANNEL_H_
 
-#include <string.h>
+#include <iosfwd>
+#include <memory>
 
-#include <string>
-#include <queue>
+#include <nan.h>
+#include <webrtc/api/datachannelinterface.h>
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
 
-#include "nan.h"
-#include "uv.h"
-#include "v8.h"  // IWYU pragma: keep
-
-#include "webrtc/api/datachannelinterface.h"
-#include "webrtc/rtc_base/buffer.h"
-#include "webrtc/rtc_base/scoped_ref_ptr.h"
-
-#include "src/asyncobjectwrapwithloop.h"
+#include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
 #include "src/converters/webrtc.h"
-#include "src/eventqueue.h"
-#include "src/events.h"
-#include "src/peerconnectionfactory.h"
+#include "src/eventqueue.h"  // IWYU pragma: keep
 
 namespace node_webrtc {
 
 class DataChannelObserver;
+class DataChannelStateChangeEvent;
+class MessageEvent;
+class PeerConnectionFactory;
+
+template <typename T> class ErrorEvent;
 
 class DataChannel
   : public node_webrtc::AsyncObjectWrapWithLoop<DataChannel>

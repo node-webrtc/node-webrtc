@@ -8,14 +8,24 @@
 #ifndef SRC_RTCRTPSENDER_H_
 #define SRC_RTCRTPSENDER_H_
 
-#include "nan.h"
-#include "v8.h"
+#include <memory>
+
+#include <nan.h>
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <v8.h>  // IWYU pragma: keep
 
 #include "src/asyncobjectwrap.h"
-#include "src/peerconnectionfactory.h"
-#include "src/mediastreamtrack.h"
+
+namespace webrtc {
+
+class RtpSenderInterface;
+
+}  // namespace webrtc
 
 namespace node_webrtc {
+
+class MediaStreamTrack;
+class PeerConnectionFactory;
 
 class RTCRtpSender: public node_webrtc::AsyncObjectWrap {
  public:

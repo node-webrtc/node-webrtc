@@ -5,12 +5,12 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "rtcstatsreport.h"
+#include "src/rtcstatsreport.h"
 
-#include <string>
-#include <vector>
+#include <nan.h>
+#include <v8.h>
 
-#include "common.h"
+#include "src/common.h"
 
 using node_webrtc::RTCStatsReport;
 using v8::Array;
