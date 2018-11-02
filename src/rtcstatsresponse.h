@@ -8,12 +8,10 @@
 #ifndef SRC_RTCSTATSRESPONSE_H_
 #define SRC_RTCSTATSRESPONSE_H_
 
-#include "nan.h"
-#include "v8.h"  // IWYU pragma: keep
+#include <map>  // IWYU pragma: keep
 
-#include "webrtc/api/statstypes.h"
-
-#include "rtcstatsreport.h"
+#include <nan.h>
+#include <v8.h>  // IWYU pragma: keep
 
 namespace node_webrtc {
 

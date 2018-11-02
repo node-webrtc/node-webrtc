@@ -8,10 +8,10 @@
 #ifndef SRC_ERRORFACTORY_H_
 #define SRC_ERRORFACTORY_H_
 
-#include "nan.h"
-#include "v8.h"
+#include <iosfwd>
 
-#include "src/functional/maybe.h"
+#include <nan.h>  // IWYU pragma: keep
+#include <v8.h>
 
 namespace node_webrtc {
 

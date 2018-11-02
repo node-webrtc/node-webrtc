@@ -8,12 +8,15 @@
 #ifndef SRC_SET_DESCRIPTION_DESCRIPTION_OBSERVER_H_
 #define SRC_SET_DESCRIPTION_DESCRIPTION_OBSERVER_H_
 
-#include <string>
+#include <webrtc/api/jsep.h>
 
-#include "webrtc/api/jsep.h"
+#include "src/events.h"  // IWYU pragma: keep
 
-#include "src/converters/v8.h"
-#include "src/events.h"
+namespace webrtc {
+
+class RTCError;
+
+}  // namespace webrtc
 
 namespace node_webrtc {
 

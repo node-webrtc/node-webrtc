@@ -14,20 +14,35 @@
 #ifndef SRC_CONVERTERS_WEBRTC_H_
 #define SRC_CONVERTERS_WEBRTC_H_
 
-#include "nan.h"
-#include "webrtc/api/peerconnectioninterface.h"
+#include <iosfwd>
 
-#include "src/asyncobjectwrapwithloop.h"
-#include "src/converters.h"
-#include "src/converters/arguments.h"
-#include "src/converters/v8.h"
+#include <webrtc/api/datachannelinterface.h>
+#include <webrtc/api/mediastreaminterface.h>
+#include <webrtc/api/peerconnectioninterface.h>
+#include <webrtc/api/rtpparameters.h>
+#include <v8.h>  // IWYU pragma: keep
+
+#include "src/functional/maybe.h"
 #include "src/functional/validation.h"
-#include "src/mediastream.h"
-#include "src/mediastreamtrack.h"
-#include "src/rtcrtpreceiver.h"
-#include "src/rtcrtpsender.h"
+
+namespace webrtc {
+
+class IceCandidateInterface;
+class RTCError;
+class RtpSource;
+class SessionDescriptionInterface;
+
+}  // namespace webrtc;
 
 namespace node_webrtc {
+
+class MediaStream;
+class MediaStreamTrack;
+class RTCRtpReceiver;
+class RTCRtpSender;
+class SomeError;
+
+template <typename S, typename T> struct Converter;
 
 /*
  * dictionary RTCOAuthCredential {
@@ -619,13 +634,7 @@ struct Converter<webrtc::RtpParameters, v8::Local<v8::Value>> {
 
 template <>
 struct Converter<node_webrtc::RTCRtpReceiver*, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::RTCRtpReceiver* receiver) {
-    Nan::EscapableHandleScope scope;
-    if (!receiver) {
-      return Validation<v8::Local<v8::Value>>::Invalid("RTCRtpReceiver is null");
-    }
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(receiver->ToObject()));
-  }
+  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::RTCRtpReceiver* receiver);
 };
 
 /*
@@ -642,65 +651,32 @@ struct Converter<webrtc::MediaStreamTrackInterface::TrackState, std::string> {
 
 template <>
 struct Converter<node_webrtc::MediaStream*, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::MediaStream* track) {
-    Nan::EscapableHandleScope scope;
-    if (!track) {
-      return Validation<v8::Local<v8::Value>>::Invalid("MediaStream is null");
-    }
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(track->handle()));
-  }
+  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::MediaStream* track);
 };
 
 template <>
 struct Converter<v8::Local<v8::Value>, node_webrtc::MediaStream*> {
-  static Validation<node_webrtc::MediaStream*> Convert(v8::Local<v8::Value> value) {
-    // TODO(mroberts): This is not safe.
-    return value->IsObject() && !value->IsNull() && !value->IsArray()
-        ? Validation<node_webrtc::MediaStream*>::Valid(Nan::ObjectWrap::Unwrap<node_webrtc::MediaStream>(value->ToObject()))
-        : Validation<node_webrtc::MediaStream*>::Invalid("IDK");
-  }
+  static Validation<node_webrtc::MediaStream*> Convert(v8::Local<v8::Value> value);
 };
 
 template <>
 struct Converter<node_webrtc::MediaStreamTrack*, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::MediaStreamTrack* track) {
-    Nan::EscapableHandleScope scope;
-    if (!track) {
-      return Validation<v8::Local<v8::Value>>::Invalid("MediaStreamTrack is null");
-    }
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(track->ToObject()));
-  }
+  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::MediaStreamTrack* track);
 };
 
 template <>
 struct Converter<v8::Local<v8::Value>, node_webrtc::MediaStreamTrack*> {
-  static Validation<node_webrtc::MediaStreamTrack*> Convert(v8::Local<v8::Value> value) {
-    // TODO(mroberts): This is not safe.
-    return value->IsObject() && !value->IsNull() && !value->IsArray()
-        ? Validation<node_webrtc::MediaStreamTrack*>::Valid(node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::MediaStreamTrack>::Unwrap(value->ToObject()))
-        : Validation<node_webrtc::MediaStreamTrack*>::Invalid("IDK");
-  }
+  static Validation<node_webrtc::MediaStreamTrack*> Convert(v8::Local<v8::Value> value);
 };
 
 template <>
 struct Converter<node_webrtc::RTCRtpSender*, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::RTCRtpSender* track) {
-    Nan::EscapableHandleScope scope;
-    if (!track) {
-      return Validation<v8::Local<v8::Value>>::Invalid("RTCRtpSender is null");
-    }
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(track->ToObject()));
-  }
+  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::RTCRtpSender* track);
 };
 
 template <>
 struct Converter<v8::Local<v8::Value>, node_webrtc::RTCRtpSender*> {
-  static Validation<node_webrtc::RTCRtpSender*> Convert(v8::Local<v8::Value> value) {
-    // TODO(mroberts): This is not safe.
-    return value->IsObject() && !value->IsNull() && !value->IsArray()
-        ? Validation<node_webrtc::RTCRtpSender*>::Valid(node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCRtpSender>::Unwrap(value->ToObject()))
-        : Validation<node_webrtc::RTCRtpSender*>::Invalid("IDK");
-  }
+  static Validation<node_webrtc::RTCRtpSender*> Convert(v8::Local<v8::Value> value);
 };
 
 }  // namespace node_webrtc

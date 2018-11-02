@@ -8,16 +8,25 @@
 #ifndef SRC_MEDIASTREAM_H_
 #define SRC_MEDIASTREAM_H_
 
-#include "nan.h"
-#include "v8.h"
+#include <memory>
 
-#include "webrtc/api/mediastreaminterface.h"
+#include <nan.h>
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <v8.h>  // IWYU pragma: keep
 
-#include "src/bidimap.h"
-#include "src/mediastreamtrack.h"
-#include "src/peerconnectionfactory.h"
+namespace webrtc {
+
+class MediaStreamInterface;
+class MediaStreamTrackInterface;  // IWYU pragma: keep
+
+}  // namespace webrc
 
 namespace node_webrtc {
+
+class MediaStreamTrack;  // IWYU pragma: keep
+class PeerConnectionFactory;
+
+template <typename K, typename V> class BidiMap;
 
 class MediaStream
   : public Nan::ObjectWrap {
@@ -57,16 +66,7 @@ class MediaStream
   rtc::scoped_refptr<webrtc::MediaStreamInterface> stream() { return _stream; }
 
  private:
-  std::vector<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> tracks() {
-    auto tracks = std::vector<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>>();
-    for (auto const& track : _stream->GetAudioTracks()) {
-      tracks.emplace_back(track);
-    }
-    for (auto const& track : _stream->GetVideoTracks()) {
-      tracks.emplace_back(track);
-    }
-    return tracks;
-  }
+  std::vector<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> tracks();
 
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::MediaStreamInterface> _stream;

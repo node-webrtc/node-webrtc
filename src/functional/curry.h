@@ -51,7 +51,7 @@ _curry<std::function<R(T, Ts...)>> {
   ) {}
 };
 
-}
+}  // namespace _dtl
 
 template <typename R, typename...Ts>
 auto curry(const std::function<R(Ts...)> fun) -> typename _dtl::_curry<std::function<R(Ts...)>>::type {

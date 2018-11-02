@@ -5,10 +5,12 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "stats-observer.h"
+#include "src/stats-observer.h"
 
-#include "common.h"
-#include "peerconnection.h"
+#include <webrtc/api/statstypes.h>
+
+#include "src/common.h"
+#include "src/peerconnection.h"  // IWYU pragma: keep
 
 using node_webrtc::PeerConnection;
 using node_webrtc::StatsObserver;

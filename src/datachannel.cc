@@ -5,15 +5,18 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "datachannel.h"
+#include "src/datachannel.h"
 
-#include <stdint.h>
+#include <webrtc/api/datachannelinterface.h>
+#include <webrtc/rtc_base/copyonwritebuffer.h>
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <v8.h>
 
 #include "src/common.h"
-#include "src/converters.h"
 #include "src/converters/webrtc.h"
 #include "src/error.h"
-#include "src/errorfactory.h"
+#include "src/errorfactory.h"  // IWYU pragma: keep
+#include "src/events.h"
 
 using node_webrtc::AsyncObjectWrapWithLoop;
 using node_webrtc::DataChannel;

@@ -7,8 +7,18 @@
  */
 #include "src/errorfactory.h"
 
+#include <string>
+
+#include "src/converters.h"
 #include "src/converters/object.h"
-#include "src/converters/v8.h"
+#include "src/converters/v8.h"  // IWYU pragma: keep
+
+namespace node_webrtc {
+
+template <typename T> class Maybe;
+template <typename T> class Validation;
+
+}  // namespace node_webrtc
 
 using node_webrtc::ErrorFactory;
 using node_webrtc::From;

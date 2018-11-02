@@ -5,17 +5,18 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "node.h"
+#include <node.h>
+#include <v8.h>
 
-#include "src/datachannel.h"
-#include "src/errorfactory.h"
-#include "src/mediastream.h"
-#include "src/mediastreamtrack.h"
-#include "src/rtcrtpreceiver.h"
-#include "src/rtcrtpsender.h"
-#include "src/rtcstatsreport.h"
-#include "src/rtcstatsresponse.h"
-#include "src/peerconnection.h"
+#include "src/datachannel.h"  // IWYU pragma: keep
+#include "src/errorfactory.h"  // IWYU pragma: keep
+#include "src/mediastream.h"  // IWYU pragma: keep
+#include "src/mediastreamtrack.h"  // IWYU pragma: keep
+#include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
+#include "src/rtcrtpsender.h"  // IWYU pragma: keep
+#include "src/rtcstatsreport.h"  // IWYU pragma: keep
+#include "src/rtcstatsresponse.h"  // IWYU pragma: keep
+#include "src/peerconnection.h"  // IWYU pragma: keep
 #include "src/peerconnectionfactory.h"
 
 using v8::Handle;

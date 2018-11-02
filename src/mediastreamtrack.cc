@@ -5,11 +5,20 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "mediastreamtrack.h"
+#include "src/mediastreamtrack.h"
 
-#include "webrtc/rtc_base/helpers.h"
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
 
-#include "converters/webrtc.h"
+#include "src/bidimap.h"
+#include "src/error.h"
+#include "src/converters/webrtc.h"  // IWYU pragma: keep
+#include "src/peerconnectionfactory.h"  // IWYU pragma: keep
+
+namespace webrtc {
+
+class MediaStreamTrackInterface;
+
+}  // namespace webrtc
 
 using node_webrtc::AsyncObjectWrapWithLoop;
 using node_webrtc::BidiMap;

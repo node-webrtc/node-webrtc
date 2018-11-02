@@ -8,35 +8,35 @@
 #ifndef SRC_PEERCONNECTION_H_
 #define SRC_PEERCONNECTION_H_
 
-#include <stdint.h>
+#include <memory>
 
-#include <string>
-#include <queue>
+#include <nan.h>
+#include <webrtc/api/peerconnectioninterface.h>
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <v8.h>  // IWYU pragma: keep
 
-#include "nan.h"
-#include "uv.h"
-#include "v8.h"  // IWYU pragma: keep
-
-#include "webrtc/api/datachannelinterface.h"  // IWYU pragma: keep
-#include "webrtc/api/jsep.h"
-#include "webrtc/api/peerconnectioninterface.h"
-#include "webrtc/api/statstypes.h"
-#include "webrtc/rtc_base/scoped_ref_ptr.h"
-
-#include "src/asyncobjectwrapwithloop.h"
+#include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
 #include "src/converters/webrtc.h"
-#include "src/events.h"
-#include "src/peerconnectionfactory.h"
-#include "src/rtcrtpreceiver.h"
-#include "src/rtcrtpsender.h"
+
+namespace webrtc {
+
+class DataChannelInterface;
+class IceCandidateInterface;
+class MediaStreamInterface;
+class RtpReceiverInterface;
+
+}  // namespace webrtc
 
 namespace node_webrtc {
 
-class CreateOfferObserver;
-class CreateAnswerObserver;
-class DataChannelObserver;
-class SetLocalDescriptionObserver;
-class SetRemoteDescriptionObserver;
+class IceConnectionStateChangeEvent;
+class IceEvent;
+class IceGatheringStateChangeEvent;
+class DataChannelEvent;
+class NegotiationNeededEvent;
+class OnAddTrackEvent;
+class PeerConnectionFactory;
+class SignalingStateChangeEvent;
 
 class PeerConnection
   : public node_webrtc::AsyncObjectWrapWithLoop<PeerConnection>

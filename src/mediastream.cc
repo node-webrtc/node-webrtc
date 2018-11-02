@@ -7,12 +7,23 @@
  */
 #include "src/mediastream.h"
 
-#include "webrtc/rtc_base/helpers.h"
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <v8.h>
 
-#include "src/converters/arguments.h"
-#include "src/converters.h"
-#include "src/converters/v8.h"
-#include "src/converters/webrtc.h"
+#include "src/converters.h"  // IWYU pragma: keep
+#include "src/converters/arguments.h"  // IWYU pragma: keep
+#include "src/converters/webrtc.h"  // IWYU pragma: keep
+#include "src/bidimap.h"
+#include "src/error.h"
+#include "src/functional/either.h"  // IWYU pragma: keep
+#include "src/mediastreamtrack.h"  // IWYU pragma: keep
+#include "src/peerconnectionfactory.h"
+
+namespace node_webrtc {
+
+template <typename T> class Maybe;
+
+}  // namespace node_webrtc
 
 using node_webrtc::BidiMap;
 using node_webrtc::Either;
@@ -66,6 +77,17 @@ MediaStream::~MediaStream() {
   if (_shouldReleaseFactory) {
     PeerConnectionFactory::Release();
   }
+}
+
+std::vector<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> MediaStream::tracks() {
+  auto tracks = std::vector<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>>();
+  for (auto const& track : _stream->GetAudioTracks()) {
+    tracks.emplace_back(track);
+  }
+  for (auto const& track : _stream->GetVideoTracks()) {
+    tracks.emplace_back(track);
+  }
+  return tracks;
 }
 
 NAN_METHOD(MediaStream::New) {

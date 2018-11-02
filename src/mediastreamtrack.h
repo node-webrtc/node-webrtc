@@ -8,15 +8,20 @@
 #ifndef SRC_MEDIASTREAMTRACK_H_
 #define SRC_MEDIASTREAMTRACK_H_
 
-#include "nan.h"
-#include "v8.h"
+#include <memory>
 
-#include "src/asyncobjectwrapwithloop.h"
-#include "src/bidimap.h"
-#include "src/peerconnectionfactory.h"
-#include "src/promisefulfillingeventloop.h"
+#include <nan.h>
+#include <webrtc/api/mediastreaminterface.h>
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <v8.h>  // IWYU pragma: keep
+
+#include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
 
 namespace node_webrtc {
+
+class PeerConnectionFactory;
+
+template <typename K, typename V> class BidiMap;
 
 class MediaStreamTrack
   : public node_webrtc::AsyncObjectWrapWithLoop<MediaStreamTrack>

@@ -5,11 +5,19 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "createsessiondescriptionobserver.h"
+#include "src/createsessiondescriptionobserver.h"
+
+#include <webrtc/api/jsep.h>
+#include <webrtc/api/rtcerror.h>
 
 #include "src/common.h"
-#include "src/converters/v8.h"
-#include "src/peerconnection.h"
+#include "src/converters.h"
+#include "src/converters/webrtc.h"
+#include "src/error.h"  // IWYU pragma: keep
+#include "src/functional/validation.h"
+#include "src/peerconnection.h"  // IWYU pragma: keep
+
+// IWYU pragma: no_forward_declare node_webrtc::SomeError
 
 using node_webrtc::CreateSessionDescriptionObserver;
 using node_webrtc::Errors;

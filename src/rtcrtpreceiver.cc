@@ -5,9 +5,14 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "rtcrtpreceiver.h"
+#include "src/rtcrtpreceiver.h"
 
-#include "converters/webrtc.h"
+#include <webrtc/api/rtpreceiverinterface.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+
+#include "src/error.h"
+#include "src/converters/webrtc.h"  // IWYU pragma: keep
+#include "src/mediastreamtrack.h"
 
 using node_webrtc::AsyncObjectWrap;
 using node_webrtc::RTCRtpReceiver;
