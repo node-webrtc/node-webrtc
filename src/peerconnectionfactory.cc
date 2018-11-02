@@ -7,9 +7,11 @@
  */
 #include "peerconnectionfactory.h"
 
-#include "webrtc/base/ssladapter.h"
+#include "webrtc/api/audio_codecs/builtin_audio_decoder_factory.h"
+#include "webrtc/api/audio_codecs/builtin_audio_encoder_factory.h"
 #include "webrtc/modules/audio_device/include/fake_audio_device.h"
 #include "webrtc/p2p/base/basicpacketsocketfactory.h"
+#include "webrtc/rtc_base/ssladapter.h"
 
 #include "src/common.h"
 #include "src/zerocapturer.h"
@@ -42,14 +44,7 @@ PeerConnectionFactory::PeerConnectionFactory(Maybe<AudioDeviceModule::AudioLayer
   bool result;
   (void) result;
 
-#if defined(WEBRTC_USE_EPOLL)
-  _physicalSocketServer = std::unique_ptr<node_webrtc::PhysicalSocketServer>(new PhysicalSocketServer());
-  assert(_physicalSocketServer);
-
-  _workerThread = std::unique_ptr<rtc::Thread>(new rtc::Thread(_physicalSocketServer.get()));
-#else
   _workerThread = std::unique_ptr<rtc::Thread>(new rtc::Thread());
-#endif
   assert(_workerThread);
 
   result = _workerThread->Start();
@@ -80,6 +75,8 @@ PeerConnectionFactory::PeerConnectionFactory(Maybe<AudioDeviceModule::AudioLayer
           _workerThread.get(),
           _signalingThread.get(),
           _audioDeviceModule.get(),
+          webrtc::CreateBuiltinAudioEncoderFactory(),
+          webrtc::CreateBuiltinAudioDecoderFactory(),
           nullptr,
           nullptr);
   assert(_factory);

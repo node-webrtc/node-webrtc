@@ -14,14 +14,13 @@
 #include <string>
 #include <vector>
 
-#include "webrtc/base/array_view.h"
-#include "webrtc/base/buffer.h"
-#include "webrtc/base/criticalsection.h"
-#include "webrtc/base/event.h"
-#include "webrtc/base/platform_thread.h"
-#include "webrtc/base/scoped_ref_ptr.h"
+#include "webrtc/api/array_view.h"
 #include "webrtc/modules/audio_device/include/fake_audio_device.h"
-#include "webrtc/typedefs.h"
+#include "webrtc/rtc_base/buffer.h"
+#include "webrtc/rtc_base/criticalsection.h"
+#include "webrtc/rtc_base/event.h"
+#include "webrtc/rtc_base/platform_thread.h"
+#include "webrtc/rtc_base/scoped_ref_ptr.h"
 
 namespace webrtc {
 
@@ -131,19 +130,19 @@ class FakeAudioDevice : public webrtc::FakeAudioDeviceModule {
   static bool Run(void* obj);
   void ProcessAudio();
 
-  const std::unique_ptr<Capturer> capturer_ GUARDED_BY(lock_);
-  const std::unique_ptr<Renderer> renderer_ GUARDED_BY(lock_);
+  const std::unique_ptr<Capturer> capturer_ RTC_GUARDED_BY(lock_);
+  const std::unique_ptr<Renderer> renderer_ RTC_GUARDED_BY(lock_);
   const float speed_;
 
   rtc::CriticalSection lock_;
-  webrtc::AudioTransport* audio_callback_ GUARDED_BY(lock_);
-  bool rendering_ GUARDED_BY(lock_);
-  bool capturing_ GUARDED_BY(lock_);
+  webrtc::AudioTransport* audio_callback_ RTC_GUARDED_BY(lock_);
+  bool rendering_ RTC_GUARDED_BY(lock_);
+  bool capturing_ RTC_GUARDED_BY(lock_);
   rtc::Event done_rendering_;
   rtc::Event done_capturing_;
 
-  std::vector<int16_t> playout_buffer_ GUARDED_BY(lock_);
-  rtc::BufferT<int16_t> recording_buffer_ GUARDED_BY(lock_);
+  std::vector<int16_t> playout_buffer_ RTC_GUARDED_BY(lock_);
+  rtc::BufferT<int16_t> recording_buffer_ RTC_GUARDED_BY(lock_);
 
   std::unique_ptr<webrtc::EventTimerWrapper> tick_;
   rtc::PlatformThread thread_;

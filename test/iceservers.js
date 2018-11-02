@@ -23,20 +23,27 @@ test('assign ICE server and get reflective candidates', function(t) {
 
   var gotReflective = false;
 
+  function finish() {
+    if (pc.signalingState === 'closed') {
+      return;
+    }
+    pc.close();
+    t.equal(gotReflective, true, 'gotReflective === true');
+  }
+
   pc.onicecandidate = function(candidate) {
     if (candidate.candidate) {
       console.log(candidate.candidate.candidate);
       if (candidate.candidate.candidate.indexOf('typ srflx') > -1) {
         gotReflective = true;
+        finish();
       }
     }
   };
 
   pc.onicegatheringstatechange = function() {
     if (pc.iceGatheringState === 'complete') {
-      pc.close();
-
-      t.equal(gotReflective, true, 'gotReflective === true');
+      finish();
     }
   };
 

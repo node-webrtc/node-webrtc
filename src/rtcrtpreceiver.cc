@@ -111,8 +111,8 @@ NAN_METHOD(RTCRtpReceiver::GetSynchronizationSources) {
 }
 
 NAN_METHOD(RTCRtpReceiver::GetStats) {
-  auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()->GetIsolate());
-  resolver->Reject(Nan::Error("Not yet implemented; file a feature request against node-webrtc"));
+  auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
+  resolver->Reject(Nan::GetCurrentContext(), Nan::Error("Not yet implemented; file a feature request against node-webrtc")).IsNothing();
   info.GetReturnValue().Set(resolver->GetPromise());
 }
 

@@ -32,14 +32,18 @@ function makeConf(config) {
     concurrency: 1,
     customLaunchers: {
       ChromeWebRTC: {
-        base: 'Chrome',
+        base: 'ChromeHeadless',
         flags: [
+          '--no-sandbox',
           '--use-fake-device-for-media-stream',
           '--use-fake-ui-for-media-stream'
         ]
       },
       FirefoxWebRTC: {
         base: 'Firefox',
+        flags: [
+          '-headless'
+        ],
         prefs: {
           'media.gstreamer.enabled': false,
           'media.navigator.permission.disabled': true,

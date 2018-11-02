@@ -7,7 +7,7 @@
  */
 #include "src/mediastream.h"
 
-#include "webrtc/base/helpers.h"
+#include "webrtc/rtc_base/helpers.h"
 
 #include "src/converters/arguments.h"
 #include "src/converters.h"
@@ -111,7 +111,7 @@ NAN_METHOD(MediaStream::New) {
 NAN_GETTER(MediaStream::GetId) {
   (void) property;
   auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
-  info.GetReturnValue().Set(Nan::New(self->_stream->label()).ToLocalChecked());
+  info.GetReturnValue().Set(Nan::New(self->_stream->id()).ToLocalChecked());
 }
 
 NAN_GETTER(MediaStream::GetActive) {

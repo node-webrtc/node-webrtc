@@ -6,7 +6,7 @@ var wrtc = require('..');
 var RTCPeerConnection = wrtc.RTCPeerConnection;
 
 test('make sure channel is available after after connection is closed on the other side', function(t) {
-  t.plan(2);
+  t.plan(3);
 
   var peer1 = new RTCPeerConnection({ iceServers: [] });
   var peer2 = new RTCPeerConnection({ iceServers: [] });
@@ -26,11 +26,14 @@ test('make sure channel is available after after connection is closed on the oth
   function ready() {
     --waitingFor;
     if (!waitingFor) {
+      t.equal(channel2.readyState, 'open');
       channel2.close();
-      t.equal(channel2.readyState, 'closed', 'can still check ready state after closing');
+      t.ok(channel2.readyState === 'closing' || channel2.readyState === 'closed', 'can still check ready state after closing');
       peer2.close();
       setTimeout(function() {
-        channel1.send('Hello');
+        if (channel1.readyState === 'open') {
+          channel1.send('Hello');
+        }
         channel1.close();
         peer1.close();
         t.equal(channel1.readyState, 'closed', 'channel on the other side is also closed, but we did not crash');

@@ -62,10 +62,10 @@ class PromiseEvent: public Event<T> {
       auto resolver = Nan::New(*_resolver);
       _result.template FromEither<void>([resolver](L error) {
         CONVERT_OR_REJECT_AND_RETURN(resolver, error, value, v8::Local<v8::Value>);
-        resolver->Reject(value);
+        resolver->Reject(Nan::GetCurrentContext(), value).IsNothing();
       }, [resolver](R result) {
         CONVERT_OR_REJECT_AND_RETURN(resolver, result, value, v8::Local<v8::Value>);
-        resolver->Resolve(value);
+        resolver->Resolve(Nan::GetCurrentContext(), value).IsNothing();
       });
     }
   }
@@ -80,7 +80,7 @@ class PromiseEvent: public Event<T> {
 
   static std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<PromiseEvent<T, R, L>>> Create() {
     Nan::EscapableHandleScope scope;
-    auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()->GetIsolate());
+    auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
     auto event = std::unique_ptr<PromiseEvent<T, R, L>>(new PromiseEvent<T, R, L>(
                 std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>>(
                     new Nan::Persistent<v8::Promise::Resolver>(resolver))));

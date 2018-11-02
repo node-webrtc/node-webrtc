@@ -7,8 +7,8 @@
  */
 #include "peerconnection.h"
 
-#include "webrtc/base/refcountedobject.h"
 #include "webrtc/p2p/client/basicportallocator.h"
+#include "webrtc/rtc_base/refcountedobject.h"
 
 #include "common.h"
 #include "converters/arguments.h"
@@ -104,6 +104,7 @@ PeerConnection::~PeerConnection() {
     sender->RemoveRef();
   }
   _senders.clear();
+  _channels.clear();
   if (_factory) {
     if (_shouldReleaseFactory) {
       PeerConnectionFactory::Release();
@@ -282,9 +283,9 @@ NAN_METHOD(PeerConnection::AddTrack) {
   CONVERT_ARGS_OR_THROW_AND_RETURN(pair, std::tuple<MediaStreamTrack* COMMA MediaStream*>);
   auto mediaStreamTrack = std::get<0>(pair);
   auto mediaStream = std::get<1>(pair);
-  auto streams = std::vector<webrtc::MediaStreamInterface*>();
-  streams.push_back(mediaStream->stream());
-  auto rtpSender = self->_jinglePeerConnection->AddTrack(mediaStreamTrack->track(), streams);
+  std::vector<std::string> streams;
+  streams.push_back(mediaStream->stream()->id());
+  auto rtpSender = self->_jinglePeerConnection->AddTrack(mediaStreamTrack->track(), streams).value();
   Local<Value> cargv[2];
   cargv[0] = Nan::New<External>(static_cast<void*>(&self->_factory));
   cargv[1] = Nan::New<External>(static_cast<void*>(&rtpSender));
@@ -452,10 +453,13 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
 
   Local<Value> cargv[1];
   cargv[0] = Nan::New<External>(static_cast<void*>(observer));
-  Local<Value> dc = Nan::NewInstance(Nan::New(DataChannel::constructor), 1, cargv).ToLocalChecked();
+  auto channel = DataChannel::Unwrap(
+          Nan::NewInstance(Nan::New(DataChannel::constructor), 1, cargv).ToLocalChecked()
+      );
+  self->_channels.push_back(channel);
 
   TRACE_END;
-  info.GetReturnValue().Set(dc);
+  info.GetReturnValue().Set(channel->ToObject());
 }
 
 NAN_METHOD(PeerConnection::GetConfiguration) {
@@ -524,11 +528,11 @@ NAN_METHOD(PeerConnection::GetStats) {
     if (!self->_jinglePeerConnection->GetStats(statsObserver, nullptr,
             webrtc::PeerConnectionInterface::kStatsOutputLevelStandard)) {
       auto error = Nan::Error("Failed to execute getStats");
-      resolver->Reject(error);
+      resolver->Reject(Nan::GetCurrentContext(), error).IsNothing();
     }
   } else {
     auto error = Nan::Error("RTCPeerConnection is closed");
-    resolver->Reject(error);
+    resolver->Reject(Nan::GetCurrentContext(), error).IsNothing();
   }
 
   TRACE_END;
@@ -552,6 +556,9 @@ NAN_METHOD(PeerConnection::Close) {
     self->_jinglePeerConnection->Close();
     for (auto receiver : self->_receivers) {
       receiver->OnPeerConnectionClosed();
+    }
+    for (auto channel : self->_channels) {
+      channel->OnPeerConnectionClosed();
     }
   }
 
