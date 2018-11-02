@@ -76,6 +76,9 @@ wss.on('connection', function(ws) {
   }
 
   function doSendAnswer() {
+    if (ws.readyState !== ws.OPEN) {
+      return;
+    }
     ws.send(JSON.stringify(answer));
     console.log('awaiting data channels');
   }
@@ -150,6 +153,9 @@ wss.on('connection', function(ws) {
         console.info('ice gathering state change:', state);
       };
       pc.onicecandidate = function(candidate) {
+        if (ws.readyState !== ws.OPEN) {
+          return;
+        }
         ws.send(JSON.stringify({
           type: 'ice',
           sdp: {
@@ -169,6 +175,12 @@ wss.on('connection', function(ws) {
       } else {
         pendingCandidates.push(data);
       }
+    }
+  });
+
+  ws.on('close', function() {
+    if (pc) {
+      pc.close();
     }
   });
 });
