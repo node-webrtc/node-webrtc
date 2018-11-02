@@ -5,7 +5,7 @@
 
 [![NPM](https://img.shields.io/npm/v/wrtc.svg)](https://www.npmjs.com/package/wrtc) [![macOS/Linux Build Status](https://secure.travis-ci.org/js-platform/node-webrtc.svg?branch=develop)](http://travis-ci.org/js-platform/node-webrtc) [![Windows Build status](https://ci.appveyor.com/api/projects/status/iulc84we28o1i7b9?svg=true)](https://ci.appveyor.com/project/markandrus/node-webrtc-7bnua)
 
-node-webrtc provides Node.js bindings to [WebRTC M70](https://chromium.googlesource.com/external/webrtc/+/branch-heads/70). You can write Node.js applications that use RTCDataChannels with it. **Some MediaStream APIs are supported now!.**
+node-webrtc provides Node.js bindings to [WebRTC M70](https://chromium.googlesource.com/external/webrtc/+/branch-heads/70). You can write Node.js applications that use RTCDataChannels with it. **Some MediaStream APIs are supported.**
 
 |         | x86 | x64 | arm | arm64 |
 |:------- |:--- |:--- |:--- |:----- |
