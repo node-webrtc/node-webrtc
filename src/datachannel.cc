@@ -9,16 +9,18 @@
 
 #include <stdint.h>
 
-#include "common.h"
-#include "converters.h"
-#include "converters/webrtc.h"
-#include "error.h"
+#include "src/common.h"
+#include "src/converters.h"
+#include "src/converters/webrtc.h"
+#include "src/error.h"
+#include "src/errorfactory.h"
 
 using node_webrtc::AsyncObjectWrapWithLoop;
 using node_webrtc::DataChannel;
 using node_webrtc::DataChannelObserver;
 using node_webrtc::DataChannelStateChangeEvent;
 using node_webrtc::ErrorEvent;
+using node_webrtc::ErrorFactory;
 using node_webrtc::Event;
 using node_webrtc::MessageEvent;
 using node_webrtc::StateEvent;
@@ -182,7 +184,7 @@ NAN_METHOD(DataChannel::Send) {
   if (self->_jingleDataChannel != nullptr) {
     if (self->_jingleDataChannel->state() != webrtc::DataChannelInterface::DataState::kOpen) {
       TRACE_END;
-      return Nan::ThrowError("InvalidStateError");
+      return Nan::ThrowError(ErrorFactory::CreateInvalidStateError("RTCDataChannel.readyState is not 'open'"));
     }
     if (info[0]->IsString()) {
       Local<String> str = Local<String>::Cast(info[0]);
@@ -216,6 +218,9 @@ NAN_METHOD(DataChannel::Send) {
       webrtc::DataBuffer data_buffer(buffer, true);
       self->_jingleDataChannel->Send(data_buffer);
     }
+  } else {
+    TRACE_END;
+    return Nan::ThrowError(ErrorFactory::CreateInvalidStateError("RTCDataChannel.readyState is not 'open'"));
   }
 
   TRACE_END;

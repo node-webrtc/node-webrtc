@@ -1,3 +1,19 @@
+0.3.1
+=====
+
+New Features
+------------
+
+- APIs that should throw DOMExceptions, such as `addTrack`, will use
+  [domexception](https://github.com/jsdom/domexception) to construct those
+  DOMExceptions, if installed.
+
+Bug Fixes
+---------
+
+- Calling `addTrack` twice with the same MediaStreamTrack should throw an
+  InvalidAccessError (#442).
+
 0.3.0
 =====
 

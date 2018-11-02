@@ -16,6 +16,8 @@
 #include "nan.h"
 
 #include "src/converters.h"
+#include "src/errorfactory.h"
+#include "src/functional/either.h"
 #include "src/functional/validation.h"
 
 namespace node_webrtc {
@@ -26,22 +28,54 @@ class SomeError {
  public:
   SomeError() {}
 
-  explicit SomeError(const std::string& message): _message(message) {}
+  explicit SomeError(const std::string& message)
+    : SomeError(message, Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName>::Right(ErrorFactory::kError)) {}
+
+  SomeError(const std::string& message, const Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName> name)
+    : _message(message), _name(name) {}
 
   std::string message() const {
     return _message;
   }
 
+  Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName> name() const {
+    return _name;
+  }
+
  private:
   std::string _message;
+  Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName> _name;
 };
 
 template <>
 struct Converter<SomeError, v8::Local<v8::Value>> {
   static Validation<v8::Local<v8::Value>> Convert(const SomeError someError) {
     Nan::EscapableHandleScope scope;
-    auto error = static_cast<v8::Local<v8::Value>>(Nan::Error(Nan::New(someError.message()).ToLocalChecked()));
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(error));
+    auto message = someError.message();
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(someError.name().FromEither<v8::Local<v8::Value>>(
+    [message](ErrorFactory::DOMExceptionName name) {
+      switch (name) {
+        case ErrorFactory::DOMExceptionName::kInvalidAccessError:
+          return ErrorFactory::CreateInvalidAccessError(message);
+        case ErrorFactory::DOMExceptionName::kInvalidModificationError:
+          return ErrorFactory::CreateInvalidModificationError(message);
+        case ErrorFactory::DOMExceptionName::kInvalidStateError:
+          return ErrorFactory::CreateInvalidStateError(message);
+        case ErrorFactory::DOMExceptionName::kNetworkError:
+          return ErrorFactory::CreateNetworkError(message);
+        case ErrorFactory::DOMExceptionName::kOperationError:
+          return ErrorFactory::CreateOperationError(message);
+      }
+    }, [message](ErrorFactory::ErrorName name) {
+      switch (name) {
+        case ErrorFactory::ErrorName::kError:
+          return ErrorFactory::CreateError(message);
+        case ErrorFactory::ErrorName::kRangeError:
+          return ErrorFactory::CreateRangeError(message);
+        case ErrorFactory::ErrorName::kSyntaxError:
+          return ErrorFactory::CreateSyntaxError(message);
+      }
+    })));
   }
 };
 
@@ -180,6 +214,17 @@ struct Converter<std::string, v8::Local<v8::Value>> {
   static Validation<v8::Local<v8::Value>> Convert(const std::string value) {
     Nan::EscapableHandleScope scope;
     return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(Nan::New(value).ToLocalChecked()));
+  }
+};
+
+template <>
+struct Converter<v8::Local<v8::Value>, v8::Local<v8::Function>> {
+  static Validation<v8::Local<v8::Function>> Convert(const v8::Local<v8::Value> value) {
+    if (!value->IsFunction()) {
+      return Validation<v8::Local<v8::Function>>::Invalid("Expected a function");
+    }
+    auto function = v8::Local<v8::Function>::Cast(value);
+    return Validation<v8::Local<v8::Function>>::Valid(function);
   }
 };
 
