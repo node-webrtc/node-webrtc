@@ -10,23 +10,25 @@
 #include "webrtc/p2p/client/basicportallocator.h"
 #include "webrtc/rtc_base/refcountedobject.h"
 
-#include "common.h"
-#include "converters/arguments.h"
-#include "converters/webrtc.h"
-#include "createsessiondescriptionobserver.h"
-#include "datachannel.h"
-#include "error.h"
-#include "functional/maybe.h"
-#include "peerconnectionfactory.h"
-#include "rtcrtpreceiver.h"
-#include "rtcstatsresponse.h"
-#include "setsessiondescriptionobserver.h"
-#include "stats-observer.h"
+#include "src/common.h"
+#include "src/converters/arguments.h"
+#include "src/converters/webrtc.h"
+#include "src/createsessiondescriptionobserver.h"
+#include "src/datachannel.h"
+#include "src/error.h"
+#include "src/errorfactory.h"
+#include "src/functional/maybe.h"
+#include "src/peerconnectionfactory.h"
+#include "src/rtcrtpreceiver.h"
+#include "src/rtcstatsresponse.h"
+#include "src/setsessiondescriptionobserver.h"
+#include "src/stats-observer.h"
 
 using node_webrtc::Arguments;
 using node_webrtc::AsyncObjectWrap;
 using node_webrtc::AsyncObjectWrapWithLoop;
 using node_webrtc::DataChannelEvent;
+using node_webrtc::ErrorFactory;
 using node_webrtc::Event;
 using node_webrtc::ExtendedRTCConfiguration;
 using node_webrtc::From;
@@ -279,13 +281,20 @@ NAN_METHOD(PeerConnection::AddTrack) {
   auto self = AsyncObjectWrapWithLoop<PeerConnection>::Unwrap(info.This());
   if (!self->_jinglePeerConnection) {
     Nan::ThrowError("Cannot addTrack; RTCPeerConnection is closed");
+    return;
   }
   CONVERT_ARGS_OR_THROW_AND_RETURN(pair, std::tuple<MediaStreamTrack* COMMA MediaStream*>);
   auto mediaStreamTrack = std::get<0>(pair);
   auto mediaStream = std::get<1>(pair);
   std::vector<std::string> streams;
   streams.push_back(mediaStream->stream()->id());
-  auto rtpSender = self->_jinglePeerConnection->AddTrack(mediaStreamTrack->track(), streams).value();
+  auto result = self->_jinglePeerConnection->AddTrack(mediaStreamTrack->track(), streams);
+  if (!result.ok()) {
+    CONVERT_OR_THROW_AND_RETURN(&result.error(), error, Local<Value>);
+    Nan::ThrowError(error);
+    return;
+  }
+  auto rtpSender = result.value();
   Local<Value> cargv[2];
   cargv[0] = Nan::New<External>(static_cast<void*>(&self->_factory));
   cargv[1] = Nan::New<External>(static_cast<void*>(&rtpSender));
@@ -437,7 +446,9 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
 
   if (self->_jinglePeerConnection == nullptr) {
     TRACE_END;
-    Nan::ThrowError("Failed to execute 'createDataChannel' on 'RTCPeerConnection': The RTCPeerConnection's signalingState is 'closed'.");
+    Nan::ThrowError(ErrorFactory::CreateInvalidStateError(
+            "Failed to execute 'createDataChannel' on 'RTCPeerConnection': "
+            "The RTCPeerConnection's signalingState is 'closed'."));
     return;
   }
 
@@ -486,7 +497,7 @@ NAN_METHOD(PeerConnection::SetConfiguration) {
 
   if (!self->_jinglePeerConnection) {
     TRACE_END;
-    Nan::ThrowError("RTCPeerConnection is closed");
+    Nan::ThrowError(ErrorFactory::CreateInvalidStateError("RTCPeerConnection is closed"));
     return;
   }
 

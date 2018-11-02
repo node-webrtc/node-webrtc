@@ -73,6 +73,21 @@ tape('.addTrack(track, stream)', function(t) {
   });
 });
 
+tape('.addTrack(track, stream) called twice', t => {
+  return getMediaStream().then(stream => {
+    const pc = new RTCPeerConnection();
+    const [track] = stream.getTracks();
+    pc.addTrack(track, stream);
+    t.throws(
+      () => pc.addTrack(track, stream),
+      /Sender already exists for track/,
+      'calling .addTrack(track, stream) with the same track twice throws'
+    );
+    pc.close();
+    t.end();
+  });
+});
+
 tape('.replaceTrack(null)', function(t) {
   return getMediaStream().then(function(stream) {
     var pc = new RTCPeerConnection();

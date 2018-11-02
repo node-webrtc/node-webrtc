@@ -7,15 +7,16 @@
  */
 #include "node.h"
 
-#include "datachannel.h"
-#include "mediastream.h"
-#include "mediastreamtrack.h"
-#include "rtcrtpreceiver.h"
-#include "rtcrtpsender.h"
-#include "rtcstatsreport.h"
-#include "rtcstatsresponse.h"
-#include "peerconnection.h"
-#include "peerconnectionfactory.h"
+#include "src/datachannel.h"
+#include "src/errorfactory.h"
+#include "src/mediastream.h"
+#include "src/mediastreamtrack.h"
+#include "src/rtcrtpreceiver.h"
+#include "src/rtcrtpsender.h"
+#include "src/rtcstatsreport.h"
+#include "src/rtcstatsresponse.h"
+#include "src/peerconnection.h"
+#include "src/peerconnectionfactory.h"
 
 using v8::Handle;
 using v8::Object;
@@ -24,7 +25,8 @@ void dispose(void*) {
   node_webrtc::PeerConnectionFactory::Dispose();
 }
 
-void init(Handle<Object> exports) {
+void init(Handle<Object> exports, Handle<Object> module) {
+  node_webrtc::ErrorFactory::Init(module);
   node_webrtc::PeerConnectionFactory::Init(exports);
   node_webrtc::PeerConnection::Init(exports);
   node_webrtc::DataChannel::Init(exports);

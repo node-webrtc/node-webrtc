@@ -32,7 +32,7 @@ class SetSessionDescriptionObserver
     : parent(connection), _promise(std::move(promise)) {}
 
   virtual void OnSuccess();
-  virtual void OnFailure(const std::string& msg);
+  virtual void OnFailure(webrtc::RTCError);
 };
 
 }  // namespace node_webrtc

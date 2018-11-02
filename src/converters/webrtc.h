@@ -486,6 +486,21 @@ struct Converter<webrtc::RTCError*, v8::Local<v8::Value>> {
   static Validation<v8::Local<v8::Value>> Convert(webrtc::RTCError* value);
 };
 
+template <>
+struct Converter<const webrtc::RTCError*, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const webrtc::RTCError* value);
+};
+
+template <>
+struct Converter<webrtc::RTCError*, SomeError> {
+  static Validation<SomeError> Convert(webrtc::RTCError* value);
+};
+
+template <>
+struct Converter<const webrtc::RTCError*, SomeError> {
+  static Validation<SomeError> Convert(const webrtc::RTCError* value);
+};
+
 /*
  * enum RTCPeerConnectionState {
  *  "new",

@@ -21,11 +21,11 @@
 #include "webrtc/rtc_base/buffer.h"
 #include "webrtc/rtc_base/scoped_ref_ptr.h"
 
-#include "asyncobjectwrapwithloop.h"
-#include "converters/webrtc.h"
-#include "eventqueue.h"
-#include "events.h"
-#include "peerconnectionfactory.h"
+#include "src/asyncobjectwrapwithloop.h"
+#include "src/converters/webrtc.h"
+#include "src/eventqueue.h"
+#include "src/events.h"
+#include "src/peerconnectionfactory.h"
 
 namespace node_webrtc {
 

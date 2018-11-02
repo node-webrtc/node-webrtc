@@ -50,6 +50,17 @@ class Maybe {
   }
 
   /**
+   * Maybe forms a Monad. FlatMap a Maybe.
+   * @tparam S some type S
+   * @param f a function from T to a Maybe of S
+   * @return a Maybe of S
+   */
+  template <typename S>
+  Maybe<S> FlatMap(std::function<Maybe<S>(T)> f) const {
+    return _is_just ? f(_value) : Nothing();
+  }
+
+  /**
    * Eliminate a Maybe. You must provide a default value to handle the empty
    * case.
    * @param default_value the default value to use in the empty case

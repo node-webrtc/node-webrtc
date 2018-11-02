@@ -7,9 +7,12 @@
  */
 #include "setsessiondescriptionobserver.h"
 
-#include "common.h"
-#include "peerconnection.h"
+#include "src/common.h"
+#include "src/converters/v8.h"
+#include "src/peerconnection.h"
 
+using node_webrtc::Errors;
+using node_webrtc::From;
 using node_webrtc::PeerConnection;
 using node_webrtc::SetSessionDescriptionObserver;
 using node_webrtc::SomeError;
@@ -23,10 +26,13 @@ void SetSessionDescriptionObserver::OnSuccess() {
   TRACE_END;
 }
 
-void SetSessionDescriptionObserver::OnFailure(const std::string& error) {
+void SetSessionDescriptionObserver::OnFailure(const webrtc::RTCError error) {
   TRACE_CALL;
   if (_promise) {
-    _promise->Reject(SomeError(error));
+    auto someError = From<SomeError>(&error).FromValidation([](Errors errors) {
+      return SomeError(errors[0]);
+    });
+    _promise->Reject(someError);
     parent->Dispatch(std::move(_promise));
   }
   TRACE_END;

@@ -88,6 +88,16 @@ class Validation {
   }
 
   /**
+   * Eliminate a Validation. You must provide a function to compute the value in
+   * the invalid case.
+   * @param f the function to compute the value in the invalid case
+   * @return the value in the Validation, if valid; otherwise, the computed value
+   */
+  T FromValidation(std::function<T(Errors)> f) const {
+    return _is_valid ? _value : f(_errors);
+  }
+
+  /**
    * Check whether or not the Validation is invalid.
    * @return true if the Validation is invalid; otherwise, false
    */

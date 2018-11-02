@@ -23,12 +23,12 @@
 #include "webrtc/api/statstypes.h"
 #include "webrtc/rtc_base/scoped_ref_ptr.h"
 
-#include "asyncobjectwrapwithloop.h"
-#include "converters/webrtc.h"
-#include "events.h"
-#include "peerconnectionfactory.h"
-#include "rtcrtpreceiver.h"
-#include "rtcrtpsender.h"
+#include "src/asyncobjectwrapwithloop.h"
+#include "src/converters/webrtc.h"
+#include "src/events.h"
+#include "src/peerconnectionfactory.h"
+#include "src/rtcrtpreceiver.h"
+#include "src/rtcrtpsender.h"
 
 namespace node_webrtc {
 

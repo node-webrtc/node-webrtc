@@ -8,12 +8,14 @@
 #include "src/converters/webrtc.h"
 
 #include "src/converters/object.h"
+#include "src/errorfactory.h"
 #include "src/rtcstatsresponse.h"
 
 using Nan::EscapableHandleScope;
 using node_webrtc::BinaryType;
 using node_webrtc::Converter;
 using node_webrtc::Either;
+using node_webrtc::ErrorFactory;
 using node_webrtc::ExtendedRTCConfiguration;
 using node_webrtc::From;
 using node_webrtc::GetOptional;
@@ -30,6 +32,7 @@ using node_webrtc::RTCSdpType;
 using node_webrtc::RTCSessionDescriptionInit;
 using node_webrtc::RTCStatsResponse;
 using node_webrtc::RTCStatsResponseInit;
+using node_webrtc::SomeError;
 using node_webrtc::UnsignedShortRange;
 using node_webrtc::Validation;
 using v8::Array;
@@ -682,31 +685,81 @@ Validation<BinaryType> Converter<Local<Value>, BinaryType>::Convert(const Local<
 }
 
 Validation<Local<Value>> Converter<RTCError*, Local<Value>>::Convert(RTCError* error) {
+  return Converter<const RTCError*, Local<Value>>::Convert(error);
+}
+
+Validation<Local<Value>> Converter<const RTCError*, Local<Value>>::Convert(const RTCError* error) {
   EscapableHandleScope scope;
+  if (!error) {
+    return Validation<Local<Value>>::Invalid("No error? Please file a bug on https://github.com/js-platform/node-webrtc");
+  }
   switch (error->type()) {
     case RTCErrorType::NONE:
-      // NOTE: This is odd. This entire RTCError class is odd.
-      return Validation<Local<Value>>::Invalid("No error.");
+      return Validation<Local<Value>>::Invalid("No error? Please file a bug on https://github.com/js-platform/node-webrtc");
     case RTCErrorType::UNSUPPORTED_PARAMETER:
-      return Validation<Local<Value>>::Valid(scope.Escape(Nan::Error("InvalidAccessError")));
     case RTCErrorType::INVALID_PARAMETER:
-      return Validation<Local<Value>>::Valid(scope.Escape(Nan::TypeError("InvalidAccessError")));
+      return Validation<Local<Value>>::Valid(scope.Escape(ErrorFactory::CreateInvalidAccessError(error->message())));
     case RTCErrorType::INVALID_RANGE:
-      return Validation<Local<Value>>::Valid(scope.Escape(Nan::RangeError("RangeError")));
+      return Validation<Local<Value>>::Valid(scope.Escape(ErrorFactory::CreateRangeError(error->message())));
     case RTCErrorType::SYNTAX_ERROR:
-      return Validation<Local<Value>>::Valid(scope.Escape(Nan::SyntaxError("SyntaxError")));
+      return Validation<Local<Value>>::Valid(scope.Escape(ErrorFactory::CreateSyntaxError(error->message())));
     case RTCErrorType::INVALID_STATE:
-      return Validation<Local<Value>>::Valid(scope.Escape(Nan::Error("InvalidStateError")));
+      return Validation<Local<Value>>::Valid(scope.Escape(ErrorFactory::CreateInvalidStateError(error->message())));
     case RTCErrorType::INVALID_MODIFICATION:
-      return Validation<Local<Value>>::Valid(scope.Escape(Nan::Error("InvalidModificationError")));
+      return Validation<Local<Value>>::Valid(scope.Escape(ErrorFactory::CreateInvalidModificationError(error->message())));
     case RTCErrorType::NETWORK_ERROR:
-      return Validation<Local<Value>>::Valid(scope.Escape(Nan::Error("NetworkError")));
+      return Validation<Local<Value>>::Valid(scope.Escape(ErrorFactory::CreateNetworkError(error->message())));
+    // NOTE(mroberts): SetLocalDescription in the wrong state can throw this.
     case RTCErrorType::INTERNAL_ERROR:
+      return Validation<Local<Value>>::Valid(scope.Escape(ErrorFactory::CreateInvalidStateError(error->message())));
     case RTCErrorType::UNSUPPORTED_OPERATION:
     case RTCErrorType::RESOURCE_EXHAUSTED:
-      return Validation<Local<Value>>::Valid(scope.Escape(Nan::Error("OperationError")));
+      return Validation<Local<Value>>::Valid(scope.Escape(ErrorFactory::CreateOperationError(error->message())));
   }
   return Validation<Local<Value>>::Invalid("Impossible");
+}
+
+Validation<SomeError> Converter<RTCError*, SomeError>::Convert(RTCError* error) {
+  return Converter<const RTCError*, SomeError>::Convert(error);
+}
+
+Validation<SomeError> Converter<const RTCError*, SomeError>::Convert(const RTCError* error) {
+  if (!error) {
+    return Validation<SomeError>::Invalid("No error? Please file a bug on https://github.com/js-platform/node-webrtc");
+  }
+  auto type = Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName>::Right(ErrorFactory::ErrorName::kError);
+  switch (error->type()) {
+    case RTCErrorType::NONE:
+      return Validation<SomeError>::Invalid("No error? Please file a bug on https://github.com/js-platform/node-webrtc");
+    case RTCErrorType::UNSUPPORTED_PARAMETER:
+    case RTCErrorType::INVALID_PARAMETER:
+      type = Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName>::Left(ErrorFactory::DOMExceptionName::kInvalidAccessError);
+      break;
+    case RTCErrorType::INVALID_RANGE:
+      type = Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName>::Right(ErrorFactory::ErrorName::kRangeError);
+      break;
+    case RTCErrorType::SYNTAX_ERROR:
+      type = Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName>::Right(ErrorFactory::ErrorName::kSyntaxError);
+      break;
+    case RTCErrorType::INVALID_STATE:
+      type = Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName>::Left(ErrorFactory::DOMExceptionName::kInvalidStateError);
+      break;
+    case RTCErrorType::INVALID_MODIFICATION:
+      type = Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName>::Left(ErrorFactory::DOMExceptionName::kInvalidModificationError);
+      break;
+    case RTCErrorType::NETWORK_ERROR:
+      type = Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName>::Left(ErrorFactory::DOMExceptionName::kNetworkError);
+      break;
+    // NOTE(mroberts): SetLocalDescription in the wrong state can throw this.
+    case RTCErrorType::INTERNAL_ERROR:
+      type = Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName>::Left(ErrorFactory::DOMExceptionName::kInvalidStateError);
+      break;
+    case RTCErrorType::UNSUPPORTED_OPERATION:
+    case RTCErrorType::RESOURCE_EXHAUSTED:
+      type = Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName>::Left(ErrorFactory::DOMExceptionName::kOperationError);
+      break;
+  }
+  return Validation<SomeError>::Valid(SomeError(error->message(), type));
 }
 
 Validation<RTCPeerConnectionState> Converter<IceConnectionState, RTCPeerConnectionState>::Convert(IceConnectionState state) {
