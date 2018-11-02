@@ -56,7 +56,15 @@ install:
       brew upgrade cmake
     fi
 
-    SKIP_DOWNLOAD=true DEBUG=true npm install
+    if [[ $TRAVIS_TAG ]] ||
+       [[ `git show -s --format=%B $TRAVIS_COMMIT` == *'[publish binary]'* ]];
+    then
+      true
+    else
+      export DEBUG=true
+    fi
+
+    SKIP_DOWNLOAD=true npm install
 
 before_script:
   - |
@@ -86,15 +94,17 @@ script:
 
     npm run lint
 
-    cd build
-    make check
-    make format
-    cd ..
-    if [[ -n $(git diff) ]]; then
-      echo "You must run make format before submitting a pull request"
-      echo ""
-      git diff
-      exit -1
+    if [[ -n "$DEBUG" ]]; then
+      cd build
+      make check
+      make format
+      cd ..
+      if [[ -n $(git diff) ]]; then
+        echo "You must run make format before submitting a pull request"
+        echo ""
+        git diff
+        exit -1
+      fi
     fi
 
     STDERR=$(mktemp)
@@ -125,7 +135,5 @@ script:
     if [[ $TRAVIS_TAG ]] ||
        [[ `git show -s --format=%B $TRAVIS_COMMIT` == *'[publish binary]'* ]];
     then
-      rm -rf build
-      ./node_modules/.bin/ncmake rebuild
       $RUN node_modules/.bin/node-pre-gyp package publish;
     fi
