@@ -34,12 +34,6 @@ RTCRtpReceiver::RTCRtpReceiver(
   , _factory(std::move(factory))
   , _receiver(std::move(receiver))
   , _track(track) {
-  _track->AddRef();
-}
-
-RTCRtpReceiver::~RTCRtpReceiver() {
-  _track->OnRTCRtpReceiverDestroyed();
-  _track->RemoveRef();
 }
 
 NAN_METHOD(RTCRtpReceiver::New) {

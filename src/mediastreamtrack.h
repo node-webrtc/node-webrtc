@@ -48,10 +48,6 @@ class MediaStreamTrack
   // ObserverInterface
   void OnChanged() override;
 
-  void OnRTCRtpReceiverDestroyed() {
-    Stop();
-  }
-
   rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track() { return _track; }
 
   static MediaStreamTrack* GetOrCreate(
