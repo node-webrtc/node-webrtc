@@ -247,6 +247,7 @@ NAN_GETTER(DataChannel::GetBufferedAmount) {
 
   auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.Holder());
 
+  // FIXME(mroberts): We should cache the value, not reset it to zero.
   uint64_t buffered_amount = self->_jingleDataChannel != nullptr
       ? self->_jingleDataChannel->buffered_amount()
       : 0;

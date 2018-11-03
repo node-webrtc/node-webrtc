@@ -73,8 +73,8 @@
     "test": "node --expose-gc test/all.js",
     "test:bridge": "cross-env BROWSER=chrome node scripts/karma.js && cross-env BROWSER=firefox node scripts/karma.js",
     "wpt:init": "git submodule update --init --recursive",
-    "wpt:reset": "rimraf ./test/web-platform-tests/tests && yarn wpt:init",
+    "wpt:reset": "rimraf ./test/web-platform-tests/tests && npm run wpt:init",
     "wpt:test": "mocha test/web-platform-tests/run-wpts.js --exit",
-    "wpt:update": "git submodule update --recursive --remote && cd test/web-platform-tests/tests && python wpt.py manifest --path ../wpt-manifest.json"
+    "wpt:update": "git submodule update --recursive --remote --force && cd test/web-platform-tests/tests && python wpt.py manifest --path ../wpt-manifest.json"
   }
 }
