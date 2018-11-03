@@ -14,6 +14,7 @@
 #include "src/mediastreamtrack.h"  // IWYU pragma: keep
 #include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
 #include "src/rtcrtpsender.h"  // IWYU pragma: keep
+#include "src/rtcrtptransceiver.h"  // IWYU pragma: keep
 #include "src/rtcstatsreport.h"  // IWYU pragma: keep
 #include "src/rtcstatsresponse.h"  // IWYU pragma: keep
 #include "src/peerconnection.h"  // IWYU pragma: keep
@@ -35,6 +36,7 @@ void init(Handle<Object> exports, Handle<Object> module) {
   node_webrtc::MediaStreamTrack::Init(exports);
   node_webrtc::RTCRtpReceiver::Init(exports);
   node_webrtc::RTCRtpSender::Init(exports);
+  node_webrtc::RTCRtpTransceiver::Init(exports);
   node_webrtc::RTCStatsReport::Init(exports);
   node_webrtc::RTCStatsResponse::Init(exports);
   node::AtExit(dispose);
