@@ -10,11 +10,14 @@
 #include <webrtc/api/rtpreceiverinterface.h>  // IWYU pragma: keep
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
+#include "src/bidimap.h"
 #include "src/error.h"
 #include "src/converters/webrtc.h"  // IWYU pragma: keep
 #include "src/mediastreamtrack.h"
 
 using node_webrtc::AsyncObjectWrap;
+using node_webrtc::AsyncObjectWrapWithLoop;
+using node_webrtc::BidiMap;
 using node_webrtc::RTCRtpReceiver;
 using v8::External;
 using v8::Function;
@@ -25,6 +28,8 @@ using v8::Object;
 using v8::Value;
 
 Nan::Persistent<Function> RTCRtpReceiver::constructor;
+
+BidiMap<rtc::scoped_refptr<webrtc::RtpReceiverInterface>, RTCRtpReceiver*> RTCRtpReceiver::_receivers;
 
 RTCRtpReceiver::RTCRtpReceiver(
     std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
@@ -115,8 +120,24 @@ NAN_METHOD(RTCRtpReceiver::GetStats) {
   info.GetReturnValue().Set(resolver->GetPromise());
 }
 
-void RTCRtpReceiver::OnPeerConnectionClosed() {
-  _closed = true;
+RTCRtpReceiver* RTCRtpReceiver::GetOrCreate(
+    std::shared_ptr<PeerConnectionFactory> factory,
+    rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver) {
+  return _receivers.computeIfAbsent(receiver, [&factory, &receiver]() {
+    Nan::HandleScope scope;
+    Local<Value> cargv[2];
+    cargv[0] = Nan::New<External>(static_cast<void*>(&factory));
+    cargv[1] = Nan::New<External>(static_cast<void*>(&receiver));
+    auto value = Nan::NewInstance(Nan::New(RTCRtpReceiver::constructor), 2, cargv).ToLocalChecked();
+    auto instance = AsyncObjectWrapWithLoop<RTCRtpReceiver>::Unwrap(value);
+    instance->_receiver->AddRef();
+    return instance;
+  });
+}
+
+void RTCRtpReceiver::Release(RTCRtpReceiver* receiver) {
+  receiver->RemoveRef();
+  _receivers.reverseRemove(receiver);
 }
 
 void RTCRtpReceiver::Init(Handle<Object> exports) {

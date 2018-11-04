@@ -27,6 +27,8 @@ namespace node_webrtc {
 class MediaStreamTrack;
 class PeerConnectionFactory;
 
+template <typename K, typename V> class BidiMap;
+
 class RTCRtpReceiver: public node_webrtc::AsyncObjectWrap {
  public:
   RTCRtpReceiver(
@@ -49,23 +51,23 @@ class RTCRtpReceiver: public node_webrtc::AsyncObjectWrap {
   static NAN_METHOD(GetSynchronizationSources);
   static NAN_METHOD(GetStats);
 
-  /**
-   * This method is called when the RTCPeerConnection that created the underlying RTCRtpReceiver is closed. Calling this
-   * method sets _closed, which protects against subsequent accesses to getSources in GetContributingSources and
-   * GetSynchronizationSources.
-   */
-  void OnPeerConnectionClosed();
-
   // NOTE(mroberts): Working around an MSVC bug.
   static RTCRtpReceiver* Unwrap(v8::Local<v8::Object> object) {
     return node_webrtc::AsyncObjectWrap::Unwrap<RTCRtpReceiver>(object);
   }
+
+  static RTCRtpReceiver* GetOrCreate(
+      std::shared_ptr<PeerConnectionFactory>,
+      rtc::scoped_refptr<webrtc::RtpReceiverInterface>);
+  static void Release(RTCRtpReceiver*);
 
  private:
   bool _closed;
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::RtpReceiverInterface> _receiver;
   node_webrtc::MediaStreamTrack* _track;
+
+  static BidiMap<rtc::scoped_refptr<webrtc::RtpReceiverInterface>, RTCRtpReceiver*> _receivers;
 };
 
 }  // namespace node_webrtc
