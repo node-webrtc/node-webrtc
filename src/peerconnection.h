@@ -126,7 +126,8 @@ class PeerConnection
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   bool _shouldReleaseFactory;
 
-  std::vector<node_webrtc::RTCRtpReceiver*> _receivers;
+  // TODO(mroberts): Lock?
+  std::vector<rtc::scoped_refptr<webrtc::RtpReceiverInterface>> _receivers;
   std::vector<node_webrtc::RTCRtpSender*> _senders;
   std::vector<node_webrtc::DataChannel*> _channels;
 };

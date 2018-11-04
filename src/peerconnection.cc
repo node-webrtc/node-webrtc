@@ -121,9 +121,6 @@ PeerConnection::PeerConnection(ExtendedRTCConfiguration configuration)
 PeerConnection::~PeerConnection() {
   TRACE_CALL;
   _jinglePeerConnection = nullptr;
-  for (auto receiver : _receivers) {
-    receiver->RemoveRef();
-  }
   _receivers.clear();
   for (auto sender : _senders) {
     sender->RemoveRef();
@@ -193,16 +190,8 @@ void PeerConnection::HandleOnAddTrackEvent(const OnAddTrackEvent& event) {
   TRACE_CALL;
   Nan::HandleScope scope;
 
-  auto rtpReceiver = event.receiver;
-
-  Local<Value> cargv[2];
-  cargv[0] = Nan::New<External>(static_cast<void*>(&_factory));
-  cargv[1] = Nan::New<External>(static_cast<void*>(&rtpReceiver));
-  auto receiver = RTCRtpReceiver::Unwrap(
-          Nan::NewInstance(Nan::New(RTCRtpReceiver::constructor), 2, cargv).ToLocalChecked()
-      );
-  receiver->AddRef();
-  _receivers.push_back(receiver);
+  _receivers.push_back(event.receiver);
+  auto receiver = RTCRtpReceiver::GetOrCreate(_factory, event.receiver);
 
   auto mediaStreams = std::vector<MediaStream*>();
   for (auto const& stream : event.streams) {
@@ -537,7 +526,12 @@ NAN_METHOD(PeerConnection::SetConfiguration) {
 NAN_METHOD(PeerConnection::GetReceivers) {
   TRACE_CALL;
   auto self = AsyncObjectWrapWithLoop<PeerConnection>::Unwrap(info.This());
-  CONVERT_OR_THROW_AND_RETURN(self->_receivers, result, Local<Value>);
+  // CONVERT_OR_THROW_AND_RETURN(self->_receivers, result, Local<Value>);
+  std::vector<RTCRtpReceiver*> receivers;
+  for (auto receiver : self->_receivers) {
+    receivers.emplace_back(RTCRtpReceiver::GetOrCreate(self->_factory, receiver));
+  }
+  CONVERT_OR_THROW_AND_RETURN(receivers, result, Local<Value>);
   info.GetReturnValue().Set(result);
   TRACE_END;
 }
@@ -588,9 +582,6 @@ NAN_METHOD(PeerConnection::Close) {
             self->_jinglePeerConnection->GetConfiguration(),
             self->_port_range);
     self->_jinglePeerConnection->Close();
-    for (auto receiver : self->_receivers) {
-      receiver->OnPeerConnectionClosed();
-    }
     for (auto channel : self->_channels) {
       channel->OnPeerConnectionClosed();
     }
