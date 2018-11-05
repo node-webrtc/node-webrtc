@@ -11,8 +11,9 @@
 
 #include <webrtc/api/peerconnectioninterface.h>
 #include <webrtc/api/rtcerror.h>
-#include <webrtc/p2p/client/basicportallocator.h>  // IWYU pragma: keep
+#include <webrtc/api/mediatypes.h>
 #include <webrtc/api/rtptransceiverinterface.h>  // IWYU pragma: keep
+#include <webrtc/p2p/client/basicportallocator.h>  // IWYU pragma: keep
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
 #include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
@@ -25,6 +26,7 @@
 #include "src/error.h"
 #include "src/events.h"
 #include "src/errorfactory.h"  // IWYU pragma: keep
+#include "src/functional/either.h"
 #include "src/functional/maybe.h"
 #include "src/mediastream.h"  // IWYU pragma: keep
 #include "src/mediastreamtrack.h"  // IWYU pragma: keep
@@ -52,6 +54,7 @@ using node_webrtc::Arguments;
 using node_webrtc::AsyncObjectWrap;
 using node_webrtc::AsyncObjectWrapWithLoop;
 using node_webrtc::DataChannelEvent;
+using node_webrtc::Either;
 using node_webrtc::ErrorFactory;
 using node_webrtc::Event;
 using node_webrtc::ExtendedRTCConfiguration;
@@ -315,12 +318,16 @@ NAN_METHOD(PeerConnection::AddTransceiver) {
     Nan::ThrowError("AddTransceiver is only available with Unified Plan SdpSemanticsAbort");
     return;
   }
-  CONVERT_ARGS_OR_THROW_AND_RETURN(args, std::tuple<cricket::MediaType COMMA Maybe<webrtc::RtpTransceiverInit>>);
-  auto media_type = std::get<0>(args);
+  CONVERT_ARGS_OR_THROW_AND_RETURN(args, std::tuple<Either<cricket::MediaType COMMA MediaStreamTrack*> COMMA Maybe<webrtc::RtpTransceiverInit>>);
+  Either<cricket::MediaType, MediaStreamTrack*> kindOrTrack = std::get<0>(args);
   Maybe<webrtc::RtpTransceiverInit> maybeInit = std::get<1>(args);
-  auto result = maybeInit.IsNothing()
-      ? self->_jinglePeerConnection->AddTransceiver(media_type)
-      : self->_jinglePeerConnection->AddTransceiver(media_type, maybeInit.UnsafeFromJust());
+  auto result = kindOrTrack.IsLeft()
+      ? maybeInit.IsNothing()
+      ? self->_jinglePeerConnection->AddTransceiver(kindOrTrack.UnsafeFromLeft())
+      : self->_jinglePeerConnection->AddTransceiver(kindOrTrack.UnsafeFromLeft(), maybeInit.UnsafeFromJust())
+      : maybeInit.IsNothing()
+      ? self->_jinglePeerConnection->AddTransceiver(kindOrTrack.UnsafeFromRight()->track())
+      : self->_jinglePeerConnection->AddTransceiver(kindOrTrack.UnsafeFromRight()->track(), maybeInit.UnsafeFromJust());
   if (!result.ok()) {
     CONVERT_OR_THROW_AND_RETURN(&result.error(), error, Local<Value>);
     Nan::ThrowError(error);
