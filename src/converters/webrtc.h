@@ -579,7 +579,7 @@ TO_AND_FROM_JS(webrtc::RtpTransceiverDirection)
  * };
  */
 
-FROM_JS(webrtc::RtpTransceiverInit);
+FROM_JS(webrtc::RtpTransceiverInit)
 
 #undef CONVERTER
 #undef TO_JS
