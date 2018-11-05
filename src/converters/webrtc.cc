@@ -15,6 +15,7 @@
 #include <webrtc/api/rtcerror.h>
 #include <webrtc/api/rtpparameters.h>
 #include <webrtc/api/rtpreceiverinterface.h>
+#include <webrtc/api/rtptransceiverinterface.h>
 #include <v8.h>
 
 #include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
@@ -28,6 +29,8 @@
 #include "src/rtcrtpsender.h"  // IWYU pragma: keep
 #include "src/rtcrtptransceiver.h"  // IWYU pragma: keep
 #include "src/rtcstatsresponse.h"  // IWYU pragma: keep
+
+// IWYU pragma: no_include <api/mediatypes.h>
 
 using Nan::EscapableHandleScope;
 using node_webrtc::AsyncObjectWrapWithLoop;
@@ -105,8 +108,6 @@ CONVERTER(cricket::MediaType, std::string, value) {
       return Validation<std::string>::Valid("video");
     case cricket::MediaType::MEDIA_TYPE_DATA:
       return Validation<std::string>::Valid("data");
-    default:
-      return Validation<std::string>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
@@ -215,7 +216,8 @@ CONVERTER(IceTransportsType, std::string, value) {
       return Validation<std::string>::Valid("all");
     case IceTransportsType::kRelay:
       return Validation<std::string>::Valid("relay");
-    default:
+    case IceTransportsType::kNoHost:
+    case IceTransportsType::kNone:
       return Validation<std::string>::Invalid(
               "Somehow you've set RTCIceTransportPolicy to an unsupported value; "
               "please file a bug at https://github.com/js-platform/node-webrtc");
@@ -248,8 +250,6 @@ TO_JS(BundlePolicy, type) {
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("max-bundle").ToLocalChecked()));
     case BundlePolicy::kBundlePolicyMaxCompat:
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("max-compat").ToLocalChecked()));
-    default:
-      return Validation<Local<Value>>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
@@ -272,8 +272,6 @@ TO_JS(RtcpMuxPolicy, type) {
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("negotiate").ToLocalChecked()));
     case RtcpMuxPolicy::kRtcpMuxPolicyRequire:
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("require").ToLocalChecked()));
-    default:
-      return Validation<Local<Value>>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
@@ -330,8 +328,6 @@ CONVERTER(webrtc::SdpSemantics, std::string, value) {
       return Validation<std::string>::Valid("plan-b");
     case webrtc::SdpSemantics::kUnifiedPlan:
       return Validation<std::string>::Valid("unified-plan");
-    default:
-      return Validation<std::string>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
@@ -498,14 +494,12 @@ Validation<std::string> Converter<RTCSdpType, std::string>::Convert(const RTCSdp
       return Validation<std::string>::Valid("pranswer");
     case RTCSdpType::kRollback:
       return Validation<std::string>::Valid("rollback");
-    default:
-      return Validation<std::string>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
 FROM_JS_ENUM(RTCSdpType)
 
-RTCSessionDescriptionInit CreateRTCSessionDescriptionInit(
+static RTCSessionDescriptionInit CreateRTCSessionDescriptionInit(
     const RTCSdpType type,
     const std::string sdp) {
   return RTCSessionDescriptionInit(type, sdp);
@@ -533,7 +527,7 @@ Validation<SessionDescriptionInterface*> Converter<RTCSessionDescriptionInit, Se
     case RTCSdpType::kAnswer:
       type_ = "answer";
       break;
-    default: // kRollback
+    case RTCSdpType::kRollback:
       return Validation<SessionDescriptionInterface*>::Invalid("Rollback is not currently supported");
   }
   SdpParseError error;
@@ -706,8 +700,6 @@ TO_JS(SignalingState, state) {
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("have-remote-pranswer").ToLocalChecked()));
     case SignalingState::kClosed:
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("closed").ToLocalChecked()));
-    default:
-      return Validation<Local<Value>>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
@@ -720,8 +712,6 @@ TO_JS(IceGatheringState, state) {
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("gathering").ToLocalChecked()));
     case IceGatheringState::kIceGatheringComplete:
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("complete").ToLocalChecked()));
-    default:
-      return Validation<Local<Value>>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
@@ -746,8 +736,6 @@ TO_JS(IceConnectionState, state) {
               "what this means. If you see this error, file a bug on https://github.com/js-platform/node-webrtc");
     case IceConnectionState::kIceConnectionNew:
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("new").ToLocalChecked()));
-    default:
-      return Validation<Local<Value>>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
@@ -762,8 +750,6 @@ TO_JS(DataState, state) {
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("connecting").ToLocalChecked()));
     case DataState::kOpen:
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("open").ToLocalChecked()));
-    default:
-      return Validation<Local<Value>>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
@@ -774,8 +760,6 @@ TO_JS(BinaryType, binaryType) {
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("arraybuffer").ToLocalChecked()));
     case BinaryType::kBlob:
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("blob").ToLocalChecked()));
-    default:
-      return Validation<Local<Value>>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
@@ -823,8 +807,6 @@ TO_JS(const RTCError*, error) {
     case RTCErrorType::UNSUPPORTED_OPERATION:
     case RTCErrorType::RESOURCE_EXHAUSTED:
       return Validation<Local<Value>>::Valid(scope.Escape(ErrorFactory::CreateOperationError(error->message())));
-    default:
-      return Validation<Local<Value>>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
@@ -867,8 +849,6 @@ Validation<SomeError> Converter<const RTCError*, SomeError>::Convert(const RTCEr
     case RTCErrorType::RESOURCE_EXHAUSTED:
       type = Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName>::Left(ErrorFactory::DOMExceptionName::kOperationError);
       break;
-    default:
-      return Validation<SomeError>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
   return Validation<SomeError>::Valid(SomeError(error->message(), type));
 }
@@ -892,8 +872,6 @@ Validation<RTCPeerConnectionState> Converter<IceConnectionState, RTCPeerConnecti
       return Validation<RTCPeerConnectionState>::Invalid(
               "WebRTC\'s RTCPeerConnection has an ICE connection state \"max\", but I have no idea"
               "what this means. If you see this error, file a bug on https://github.com/js-platform/node-webrtc");
-    default:
-      return Validation<RTCPeerConnectionState>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
@@ -912,18 +890,12 @@ TO_JS(RTCPeerConnectionState, state) {
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("failed").ToLocalChecked()));
     case RTCPeerConnectionState::kNew:
       return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("new").ToLocalChecked()));
-    default:
-      return Validation<Local<Value>>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
 TO_JS(RTCStatsResponseInit, init) {
   EscapableHandleScope scope;
-  Local<Value> cargv[2];
-  cargv[0] = Nan::New<External>(const_cast<void*>(static_cast<const void*>(&init.first)));
-  cargv[1] = Nan::New<External>(const_cast<void*>(static_cast<const void*>(&init.second)));
-  auto response = static_cast<Local<Value>>(Nan::NewInstance(Nan::New(RTCStatsResponse::constructor), 2, cargv).ToLocalChecked());
-  return Validation<Local<Value>>::Valid(scope.Escape(response));
+  return Validation<Local<Value>>::Valid(scope.Escape(RTCStatsResponse::Create(init.first, init.second)->handle()));
 }
 
 TO_JS(webrtc::RtpSource, source) {
@@ -1055,8 +1027,6 @@ Validation<std::string> Converter<webrtc::MediaStreamTrackInterface::TrackState,
       return Validation<std::string>::Valid("ended");
     case webrtc::MediaStreamTrackInterface::TrackState::kLive:
       return Validation<std::string>::Valid("live");
-    default:
-      return Validation<std::string>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
@@ -1077,8 +1047,6 @@ CONVERTER(webrtc::RtpTransceiverDirection, std::string, value) {
       return Validation<std::string>::Valid("recvonly");
     case webrtc::RtpTransceiverDirection::kInactive:
       return Validation<std::string>::Valid("inactive");
-    default:
-      return Validation<std::string>::Invalid("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 

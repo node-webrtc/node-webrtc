@@ -18,20 +18,27 @@ namespace node_webrtc {
 class RTCStatsResponse
   : public Nan::ObjectWrap {
  public:
-  explicit RTCStatsResponse(double timestamp, const std::vector<std::map<std::string, std::string>>& reports)
-    : _timestamp(timestamp), _reports(reports) {}
-  ~RTCStatsResponse() {}
+  RTCStatsResponse() = delete;
+
+  ~RTCStatsResponse() override = default;
 
   //
   // Nodejs wrapping.
   //
   static void Init(v8::Handle<v8::Object> exports);
-  static Nan::Persistent<v8::Function> constructor;
+
+  static RTCStatsResponse* Create(double timestamp, const std::vector<std::map<std::string, std::string>>& reports);
+
+ private:
+  explicit RTCStatsResponse(double timestamp, const std::vector<std::map<std::string, std::string>>& reports)
+    : _timestamp(timestamp), _reports(reports) {}
+
+  static Nan::Persistent<v8::Function>& constructor();
+
   static NAN_METHOD(New);
 
   static NAN_METHOD(result);
 
- private:
   double _timestamp;
   std::vector<std::map<std::string, std::string>> _reports;
 };

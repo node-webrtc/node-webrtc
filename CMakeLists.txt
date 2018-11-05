@@ -209,7 +209,7 @@ nodejs_init()
 file(GLOB_RECURSE MODULE_SRC src/*.cc src/*.h)
 add_nodejs_module(${MODULE} ${MODULE_SRC})
 
-if(iwyu_path STREQUAL "")
+if(NOT iwyu_path STREQUAL "")
   set_property(TARGET ${MODULE} PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
@@ -287,6 +287,24 @@ else()
     target_link_libraries(${MODULE} PRIVATE
       "-framework AppKit"
       "-framework AVFoundation"
+    )
+
+    target_compile_options(${MODULE} PRIVATE
+      -Weverything
+      -Wno-c++98-compat
+      -Wno-c++98-compat-pedantic
+      -Wno-documentation
+      -Wno-exit-time-destructors
+      -Wno-float-conversion
+      -Wno-global-constructors
+      -Wno-padded
+      -Wno-shadow
+      -Wno-shadow-field-in-constructor
+      -Wno-shorten-64-to-32
+      -Wno-sign-conversion
+      -Wno-thread-safety-negative
+      -Wno-unused-template
+      -Wno-weak-vtables
     )
 
     target_compile_definitions(${MODULE} PRIVATE

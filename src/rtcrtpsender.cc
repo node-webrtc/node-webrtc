@@ -9,7 +9,6 @@
 
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
-#include "src/bidimap.h"
 #include "src/converters/arguments.h"  // IWYU pragma: keep
 #include "src/converters/webrtc.h"  // IWYU pragma: keep
 #include "src/error.h"
@@ -22,7 +21,6 @@ template <typename T> class Maybe;
 }  // namespace node_webrtc;
 
 using node_webrtc::AsyncObjectWrap;
-using node_webrtc::BidiMap;
 using node_webrtc::Maybe;
 using node_webrtc::MediaStreamTrack;
 using node_webrtc::RTCRtpSender;
@@ -34,9 +32,10 @@ using v8::Local;
 using v8::Object;
 using v8::Value;
 
-Nan::Persistent<Function> RTCRtpSender::constructor;
-
-BidiMap<rtc::scoped_refptr<webrtc::RtpSenderInterface>, RTCRtpSender*> RTCRtpSender::_senders;
+Nan::Persistent<Function>& RTCRtpSender::constructor() {
+  static Nan::Persistent<Function> constructor;
+  return constructor;
+}
 
 RTCRtpSender::RTCRtpSender(
     std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
@@ -47,7 +46,7 @@ RTCRtpSender::RTCRtpSender(
 }
 
 RTCRtpSender::~RTCRtpSender() {
-  Release(this);
+  wrap.Release(this);
 }
 
 NAN_METHOD(RTCRtpSender::New) {
@@ -70,7 +69,7 @@ NAN_GETTER(RTCRtpSender::GetTrack) {
   Local<Value> result = Nan::Null();
   auto track = self->_sender->track();
   if (track) {
-    result = MediaStreamTrack::GetOrCreate(self->_factory, track)->ToObject();
+    result = MediaStreamTrack::wrap.GetOrCreate(self->_factory, track)->ToObject();
   }
   info.GetReturnValue().Set(result);
 }
@@ -127,21 +126,21 @@ NAN_METHOD(RTCRtpSender::ReplaceTrack) {
   }
 }
 
-RTCRtpSender* RTCRtpSender::GetOrCreate(
+node_webrtc::Wrap <
+RTCRtpSender*,
+rtc::scoped_refptr<webrtc::RtpSenderInterface>,
+std::shared_ptr<node_webrtc::PeerConnectionFactory>
+> RTCRtpSender::wrap(RTCRtpSender::Create);
+
+RTCRtpSender* RTCRtpSender::Create(
     std::shared_ptr<PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::RtpSenderInterface> sender) {
-  return _senders.computeIfAbsent(sender, [&factory, &sender]() {
-    Nan::HandleScope scope;
-    Local<Value> cargv[2];
-    cargv[0] = Nan::New<External>(static_cast<void*>(&factory));
-    cargv[1] = Nan::New<External>(static_cast<void*>(&sender));
-    auto value = Nan::NewInstance(Nan::New(RTCRtpSender::constructor), 2, cargv).ToLocalChecked();
-    return AsyncObjectWrapWithLoop<RTCRtpSender>::Unwrap(value);
-  });
-}
-
-void RTCRtpSender::Release(RTCRtpSender* sender) {
-  _senders.reverseRemove(sender);
+  Nan::HandleScope scope;
+  Local<Value> cargv[2];
+  cargv[0] = Nan::New<External>(static_cast<void*>(&factory));
+  cargv[1] = Nan::New<External>(static_cast<void*>(&sender));
+  auto value = Nan::NewInstance(Nan::New(RTCRtpSender::constructor()), 2, cargv).ToLocalChecked();
+  return AsyncObjectWrapWithLoop<RTCRtpSender>::Unwrap(value);
 }
 
 void RTCRtpSender::Init(Handle<Object> exports) {
@@ -156,6 +155,6 @@ void RTCRtpSender::Init(Handle<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "setParameters", SetParameters);
   Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
   Nan::SetPrototypeMethod(tpl, "replaceTrack", ReplaceTrack);
-  constructor.Reset(tpl->GetFunction());
+  constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("RTCRtpSender").ToLocalChecked(), tpl->GetFunction());
 }

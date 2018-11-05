@@ -42,13 +42,11 @@ class PeerConnection
   : public node_webrtc::AsyncObjectWrapWithLoop<PeerConnection>
   , public webrtc::PeerConnectionObserver {
  public:
-  explicit PeerConnection(ExtendedRTCConfiguration configuration);
   ~PeerConnection() override;
 
   //
   // PeerConnectionObserver implementation.
   //
-
   void OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state) override;
   void OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState new_state) override;
   void OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState new_state) override;
@@ -67,7 +65,22 @@ class PeerConnection
   // Nodejs wrapping.
   //
   static void Init(v8::Handle<v8::Object> exports);
-  static Nan::Persistent<v8::Function> constructor;
+
+  void HandleIceConnectionStateChangeEvent(const IceConnectionStateChangeEvent& event);
+  void HandleIceGatheringStateChangeEvent(const IceGatheringStateChangeEvent& event);
+  void HandleIceCandidateEvent(const IceEvent& event);
+  void HandleDataChannelEvent(const DataChannelEvent& event);
+  void HandleNegotiationNeededEvent(const NegotiationNeededEvent& event);
+  void HandleOnAddTrackEvent(const OnAddTrackEvent& event);
+  void HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event);
+
+  void SaveLastSdp(const RTCSessionDescriptionInit& lastSdp);
+
+ private:
+  explicit PeerConnection(ExtendedRTCConfiguration configuration);
+
+  static Nan::Persistent<v8::Function>& constructor();
+
   static NAN_METHOD(New);
 
   static NAN_METHOD(AddTrack);
@@ -108,17 +121,6 @@ class PeerConnection
   static NAN_GETTER(GetIceGatheringState);
   static NAN_SETTER(ReadOnly);
 
-  void HandleIceConnectionStateChangeEvent(const IceConnectionStateChangeEvent& event);
-  void HandleIceGatheringStateChangeEvent(const IceGatheringStateChangeEvent& event);
-  void HandleIceCandidateEvent(const IceEvent& event);
-  void HandleDataChannelEvent(const DataChannelEvent& event);
-  void HandleNegotiationNeededEvent(const NegotiationNeededEvent& event);
-  void HandleOnAddTrackEvent(const OnAddTrackEvent& event);
-  void HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event);
-
-  void SaveLastSdp(const RTCSessionDescriptionInit& lastSdp);
-
- private:
   RTCSessionDescriptionInit _lastSdp;
 
   UnsignedShortRange _port_range;

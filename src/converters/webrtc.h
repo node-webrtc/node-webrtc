@@ -16,21 +16,18 @@
 
 #include <iosfwd>
 
-#include <nan.h>
+#include <absl/types/optional.h>
+#include <nan.h>  // IWYU pragma: keep
 #include <webrtc/api/datachannelinterface.h>
 #include <webrtc/api/mediastreaminterface.h>
+#include <webrtc/api/mediatypes.h>
 #include <webrtc/api/peerconnectioninterface.h>
 #include <webrtc/api/rtpparameters.h>
 #include <v8.h>  // IWYU pragma: keep
 
+#include "src/converters.h"
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
-
-namespace absl {
-
-template <typename T> class optional;
-
-}
 
 namespace webrtc {
 
@@ -38,6 +35,7 @@ class IceCandidateInterface;
 class RTCError;
 class RtpSource;
 enum class RtpTransceiverDirection;
+struct RtpTransceiverInit;
 enum class SdpSemantics;
 class SessionDescriptionInterface;
 
@@ -80,8 +78,6 @@ class RTCRtpReceiver;
 class RTCRtpSender;
 class RTCRtpTransceiver;
 class SomeError;
-
-template <typename S, typename T> struct Converter;
 
 template <typename T>
 struct Converter<absl::optional<T>, v8::Local<v8::Value>> {

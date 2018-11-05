@@ -15,6 +15,7 @@
 #include <v8.h>
 
 #include "src/asyncobjectwrap.h"  // IWYU pragma: keep
+#include "src/wrap.h"
 
 namespace webrtc {
 
@@ -24,21 +25,36 @@ class RtpReceiverInterface;
 
 namespace node_webrtc {
 
-class MediaStreamTrack;
 class PeerConnectionFactory;
-
-template <typename K, typename V> class BidiMap;
 
 class RTCRtpReceiver: public node_webrtc::AsyncObjectWrap {
  public:
+  ~RTCRtpReceiver() override;
+
+  static void Init(v8::Handle<v8::Object> exports);
+
+  // NOTE(mroberts): Working around an MSVC bug.
+  static RTCRtpReceiver* Unwrap(v8::Local<v8::Object> object) {
+    return node_webrtc::AsyncObjectWrap::Unwrap<RTCRtpReceiver>(object);
+  }
+
+  static ::node_webrtc::Wrap <
+  RTCRtpReceiver*,
+  rtc::scoped_refptr<webrtc::RtpReceiverInterface>,
+  std::shared_ptr<PeerConnectionFactory>
+  > wrap;
+
+ private:
   RTCRtpReceiver(
       std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
       rtc::scoped_refptr<webrtc::RtpReceiverInterface>&& receiver);
 
-  ~RTCRtpReceiver() override;
+  static RTCRtpReceiver* Create(
+      std::shared_ptr<PeerConnectionFactory>,
+      rtc::scoped_refptr<webrtc::RtpReceiverInterface>);
 
-  static void Init(v8::Handle<v8::Object> exports);
-  static Nan::Persistent<v8::Function> constructor;
+  static Nan::Persistent<v8::Function>& constructor();
+
   static NAN_METHOD(New);
 
   static NAN_GETTER(GetTrack);
@@ -52,21 +68,8 @@ class RTCRtpReceiver: public node_webrtc::AsyncObjectWrap {
   static NAN_METHOD(GetSynchronizationSources);
   static NAN_METHOD(GetStats);
 
-  // NOTE(mroberts): Working around an MSVC bug.
-  static RTCRtpReceiver* Unwrap(v8::Local<v8::Object> object) {
-    return node_webrtc::AsyncObjectWrap::Unwrap<RTCRtpReceiver>(object);
-  }
-
-  static RTCRtpReceiver* GetOrCreate(
-      std::shared_ptr<PeerConnectionFactory>,
-      rtc::scoped_refptr<webrtc::RtpReceiverInterface>);
-  static void Release(RTCRtpReceiver*);
-
- private:
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::RtpReceiverInterface> _receiver;
-
-  static BidiMap<rtc::scoped_refptr<webrtc::RtpReceiverInterface>, RTCRtpReceiver*> _receivers;
 };
 
 }  // namespace node_webrtc

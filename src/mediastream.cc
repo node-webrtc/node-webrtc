@@ -13,7 +13,6 @@
 #include "src/converters.h"  // IWYU pragma: keep
 #include "src/converters/arguments.h"  // IWYU pragma: keep
 #include "src/converters/webrtc.h"  // IWYU pragma: keep
-#include "src/bidimap.h"
 #include "src/error.h"
 #include "src/functional/either.h"  // IWYU pragma: keep
 #include "src/mediastreamtrack.h"  // IWYU pragma: keep
@@ -25,7 +24,6 @@ template <typename T> class Maybe;
 
 }  // namespace node_webrtc
 
-using node_webrtc::BidiMap;
 using node_webrtc::Either;
 using node_webrtc::Maybe;
 using node_webrtc::MediaStream;
@@ -39,9 +37,10 @@ using v8::Local;
 using v8::Object;
 using v8::Value;
 
-Nan::Persistent<Function> MediaStream::constructor;
-
-BidiMap<rtc::scoped_refptr<webrtc::MediaStreamInterface>, MediaStream*> MediaStream::_streams;
+Nan::Persistent<Function>& MediaStream::constructor() {
+  static Nan::Persistent<Function> constructor;
+  return constructor;
+}
 
 MediaStream::MediaStream(std::shared_ptr<PeerConnectionFactory>&& factory)
   : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault())
@@ -73,7 +72,7 @@ MediaStream::MediaStream(
 }
 
 MediaStream::~MediaStream() {
-  MediaStream::Release(this);
+  wrap.Release(this);
   if (_shouldReleaseFactory) {
     PeerConnectionFactory::Release();
   }
@@ -115,7 +114,7 @@ NAN_METHOD(MediaStream::New) {
         auto factory = existingStream->_factory;
         auto tracks = std::vector<MediaStreamTrack*>();
         for (auto const& track : existingStream->tracks()) {
-          tracks.push_back(MediaStreamTrack::GetOrCreate(factory, track));
+          tracks.push_back(MediaStreamTrack::wrap.GetOrCreate(factory, track));
         }
         mediaStream = new MediaStream(std::move(tracks), std::move(factory));
       } else {
@@ -150,7 +149,7 @@ NAN_METHOD(MediaStream::GetAudioTracks) {
   auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
   auto tracks = std::vector<MediaStreamTrack*>();
   for (auto const& track : self->_stream->GetAudioTracks()) {
-    auto mediaStreamTrack = MediaStreamTrack::GetOrCreate(self->_factory, track);
+    auto mediaStreamTrack = MediaStreamTrack::wrap.GetOrCreate(self->_factory, track);
     tracks.push_back(mediaStreamTrack);
   }
   CONVERT_OR_THROW_AND_RETURN(tracks, result, Local<Value>);
@@ -161,7 +160,7 @@ NAN_METHOD(MediaStream::GetVideoTracks) {
   auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
   auto tracks = std::vector<MediaStreamTrack*>();
   for (auto const& track : self->_stream->GetVideoTracks()) {
-    auto mediaStreamTrack = MediaStreamTrack::GetOrCreate(self->_factory, track);
+    auto mediaStreamTrack = MediaStreamTrack::wrap.GetOrCreate(self->_factory, track);
     tracks.push_back(mediaStreamTrack);
   }
   CONVERT_OR_THROW_AND_RETURN(tracks, result, Local<Value>);
@@ -172,7 +171,7 @@ NAN_METHOD(MediaStream::GetTracks) {
   auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
   auto tracks = std::vector<MediaStreamTrack*>();
   for (auto const& track : self->tracks()) {
-    auto mediaStreamTrack = MediaStreamTrack::GetOrCreate(self->_factory, track);
+    auto mediaStreamTrack = MediaStreamTrack::wrap.GetOrCreate(self->_factory, track);
     tracks.push_back(mediaStreamTrack);
   }
   CONVERT_OR_THROW_AND_RETURN(tracks, result, Local<Value>);
@@ -184,12 +183,12 @@ NAN_METHOD(MediaStream::GetTrackById) {
   auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
   auto audioTrack = self->_stream->FindAudioTrack(label);
   if (audioTrack) {
-    auto track = MediaStreamTrack::GetOrCreate(self->_factory, audioTrack);
+    auto track = MediaStreamTrack::wrap.GetOrCreate(self->_factory, audioTrack);
     info.GetReturnValue().Set(track->ToObject());
   }
   auto videoTrack = self->_stream->FindAudioTrack(label);
   if (videoTrack) {
-    auto track = MediaStreamTrack::GetOrCreate(self->_factory, videoTrack);
+    auto track = MediaStreamTrack::wrap.GetOrCreate(self->_factory, videoTrack);
     info.GetReturnValue().Set(track->ToObject());
   }
 }
@@ -223,7 +222,7 @@ NAN_METHOD(MediaStream::Clone) {
   auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
   auto clonedMediaStreamTracks = std::vector<Local<Value>>();
   for (auto const& track : self->tracks()) {
-    auto mediaStreamTrack = MediaStreamTrack::GetOrCreate(self->_factory, track);
+    auto mediaStreamTrack = MediaStreamTrack::wrap.GetOrCreate(self->_factory, track);
     auto clonedMediaStreamTrack = Nan::Call("clone", mediaStreamTrack->ToObject(), 0, nullptr);
     if (!clonedMediaStreamTrack.IsEmpty()) {
       clonedMediaStreamTracks.push_back(clonedMediaStreamTrack.ToLocalChecked());
@@ -232,25 +231,25 @@ NAN_METHOD(MediaStream::Clone) {
   CONVERT_OR_THROW_AND_RETURN(clonedMediaStreamTracks, tracks, Local<Value>);
   Local<Value> cargv[1];
   cargv[0] = tracks;
-  auto mediaStream = Nan::NewInstance(Nan::New(MediaStream::constructor), 1, cargv).ToLocalChecked();
+  auto mediaStream = Nan::NewInstance(Nan::New(MediaStream::constructor()), 1, cargv).ToLocalChecked();
   info.GetReturnValue().Set(mediaStream);
 }
 
-MediaStream* MediaStream::GetOrCreate(
+node_webrtc::Wrap <
+MediaStream*,
+rtc::scoped_refptr<webrtc::MediaStreamInterface>,
+std::shared_ptr<PeerConnectionFactory>
+> MediaStream::wrap(MediaStream::Create);
+
+MediaStream* MediaStream::Create(
     std::shared_ptr<PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) {
-  return _streams.computeIfAbsent(stream, [&factory, &stream]() {
-    Nan::HandleScope scope;
-    Local<Value> cargv[2];
-    cargv[0] = Nan::New<External>(static_cast<void*>(&factory));
-    cargv[1] = Nan::New<External>(static_cast<void*>(&stream));
-    auto mediaStream = Nan::NewInstance(Nan::New(MediaStream::constructor), 2, cargv).ToLocalChecked();
-    return Nan::ObjectWrap::Unwrap<MediaStream>(mediaStream);
-  });
-}
-
-void MediaStream::Release(MediaStream* stream) {
-  _streams.reverseRemove(stream);
+  Nan::HandleScope scope;
+  Local<Value> cargv[2];
+  cargv[0] = Nan::New<External>(static_cast<void*>(&factory));
+  cargv[1] = Nan::New<External>(static_cast<void*>(&stream));
+  auto mediaStream = Nan::NewInstance(Nan::New(MediaStream::constructor()), 2, cargv).ToLocalChecked();
+  return Nan::ObjectWrap::Unwrap<MediaStream>(mediaStream);
 }
 
 void MediaStream::Init(Handle<Object> exports) {
@@ -266,6 +265,6 @@ void MediaStream::Init(Handle<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "addTrack", AddTrack);
   Nan::SetPrototypeMethod(tpl, "removeTrack", RemoveTrack);
   Nan::SetPrototypeMethod(tpl, "clone", Clone);
-  constructor.Reset(tpl->GetFunction());
+  constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("MediaStream").ToLocalChecked(), tpl->GetFunction());
 }

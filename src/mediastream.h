@@ -14,6 +14,8 @@
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 #include <v8.h>  // IWYU pragma: keep
 
+#include "src/wrap.h"
+
 namespace webrtc {
 
 class MediaStreamInterface;
@@ -26,11 +28,22 @@ namespace node_webrtc {
 class MediaStreamTrack;  // IWYU pragma: keep
 class PeerConnectionFactory;
 
-template <typename K, typename V> class BidiMap;
-
 class MediaStream
   : public Nan::ObjectWrap {
  public:
+  ~MediaStream() override;
+
+  static void Init(v8::Handle<v8::Object> exports);
+
+  static ::node_webrtc::Wrap <
+  MediaStream*,
+  rtc::scoped_refptr<webrtc::MediaStreamInterface>,
+  std::shared_ptr<node_webrtc::PeerConnectionFactory>
+  > wrap;
+
+  rtc::scoped_refptr<webrtc::MediaStreamInterface> stream() { return _stream; }
+
+ private:
   explicit MediaStream(std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory = nullptr);
 
   explicit MediaStream(
@@ -41,10 +54,12 @@ class MediaStream
       rtc::scoped_refptr<webrtc::MediaStreamInterface>&& stream,
       std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory = nullptr);
 
-  ~MediaStream() override;
+  static MediaStream* Create(
+      std::shared_ptr<PeerConnectionFactory>,
+      rtc::scoped_refptr<webrtc::MediaStreamInterface>);
 
-  static void Init(v8::Handle<v8::Object> exports);
-  static Nan::Persistent<v8::Function> constructor;
+  static Nan::Persistent<v8::Function>& constructor();
+
   static NAN_METHOD(New);
 
   static NAN_GETTER(GetId);
@@ -58,22 +73,13 @@ class MediaStream
   static NAN_METHOD(RemoveTrack);
   static NAN_METHOD(Clone);
 
-  static MediaStream* GetOrCreate(
-      std::shared_ptr<PeerConnectionFactory>,
-      rtc::scoped_refptr<webrtc::MediaStreamInterface>);
-  static void Release(MediaStream*);
-
-  rtc::scoped_refptr<webrtc::MediaStreamInterface> stream() { return _stream; }
-
- private:
   std::vector<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> tracks();
 
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::MediaStreamInterface> _stream;
   const bool _shouldReleaseFactory;
-
-  static BidiMap<rtc::scoped_refptr<webrtc::MediaStreamInterface>, MediaStream*> _streams;
 };
+
 
 }  // namespace node_webrtc
 

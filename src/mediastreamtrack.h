@@ -16,25 +16,46 @@
 #include <v8.h>  // IWYU pragma: keep
 
 #include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
+#include "src/wrap.h"
 
 namespace node_webrtc {
 
 class PeerConnectionFactory;
 
-template <typename K, typename V> class BidiMap;
-
 class MediaStreamTrack
   : public node_webrtc::AsyncObjectWrapWithLoop<MediaStreamTrack>
   , public webrtc::ObserverInterface {
  public:
+  ~MediaStreamTrack() override;
+
+  static void Init(v8::Handle<v8::Object> exports);
+
+  // ObserverInterface
+  void OnChanged() override;
+
+  rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track() { return _track; }
+
+  static ::node_webrtc::Wrap <
+  MediaStreamTrack*,
+  rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>,
+  std::shared_ptr<PeerConnectionFactory>
+  > wrap;
+
+  std::shared_ptr<node_webrtc::PeerConnectionFactory> factory() { return _factory; }
+
+  void OnPeerConnectionClosed();
+
+ private:
   MediaStreamTrack(
       std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
       rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>&& track);
 
-  ~MediaStreamTrack() override;
+  static MediaStreamTrack* Create(
+      std::shared_ptr<PeerConnectionFactory>,
+      rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>);
 
-  static void Init(v8::Handle<v8::Object> exports);
-  static Nan::Persistent<v8::Function> constructor;
+  static Nan::Persistent<v8::Function>& constructor();
+
   static NAN_METHOD(New);
 
   static NAN_GETTER(GetEnabled);
@@ -45,25 +66,8 @@ class MediaStreamTrack
   static NAN_METHOD(Clone);
   static NAN_METHOD(JsStop);
 
-  // ObserverInterface
-  void OnChanged() override;
-
-  rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track() { return _track; }
-
-  static MediaStreamTrack* GetOrCreate(
-      std::shared_ptr<PeerConnectionFactory>,
-      rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>);
-  static void Release(MediaStreamTrack*);
-
-  std::shared_ptr<node_webrtc::PeerConnectionFactory> factory() { return _factory; }
-
-  void OnPeerConnectionClosed();
-
- private:
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> _track;
-
-  static BidiMap<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>, MediaStreamTrack*> _tracks;
 };
 
 }  // namespace node_webrtc
