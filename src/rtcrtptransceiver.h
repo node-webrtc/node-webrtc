@@ -27,6 +27,8 @@ namespace node_webrtc {
 class MediaStreamTrack;
 class PeerConnectionFactory;
 
+template <typename K, typename V> class BidiMap;
+
 class RTCRtpTransceiver: public node_webrtc::AsyncObjectWrap {
  public:
   RTCRtpTransceiver(
@@ -44,6 +46,7 @@ class RTCRtpTransceiver: public node_webrtc::AsyncObjectWrap {
   static NAN_GETTER(GetReceiver);
   static NAN_GETTER(GetStopped);
   static NAN_GETTER(GetDirection);
+  static NAN_SETTER(SetDirection);
   static NAN_GETTER(GetCurrentDirection);
 
   static NAN_METHOD(Stop);
@@ -54,9 +57,16 @@ class RTCRtpTransceiver: public node_webrtc::AsyncObjectWrap {
     return node_webrtc::AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(object);
   }
 
+  static RTCRtpTransceiver* GetOrCreate(
+      std::shared_ptr<PeerConnectionFactory>,
+      rtc::scoped_refptr<webrtc::RtpTransceiverInterface>);
+  static void Release(RTCRtpTransceiver*);
+
  private:
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::RtpTransceiverInterface> _transceiver;
+
+  static BidiMap<rtc::scoped_refptr<webrtc::RtpTransceiverInterface>, RTCRtpTransceiver*> _transceivers;
 };
 
 }  // namespace node_webrtc

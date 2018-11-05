@@ -27,12 +27,13 @@ namespace node_webrtc {
 class MediaStreamTrack;
 class PeerConnectionFactory;
 
+template <typename K, typename V> class BidiMap;
+
 class RTCRtpSender: public node_webrtc::AsyncObjectWrap {
  public:
   RTCRtpSender(
       std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
-      rtc::scoped_refptr<webrtc::RtpSenderInterface>&& sender,
-      node_webrtc::MediaStreamTrack* track);
+      rtc::scoped_refptr<webrtc::RtpSenderInterface>&& sender);
 
   ~RTCRtpSender() override;
 
@@ -53,10 +54,16 @@ class RTCRtpSender: public node_webrtc::AsyncObjectWrap {
 
   rtc::scoped_refptr<webrtc::RtpSenderInterface> sender() { return _sender; }
 
+  static RTCRtpSender* GetOrCreate(
+      std::shared_ptr<PeerConnectionFactory>,
+      rtc::scoped_refptr<webrtc::RtpSenderInterface>);
+  static void Release(RTCRtpSender*);
+
  private:
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::RtpSenderInterface> _sender;
-  node_webrtc::MediaStreamTrack* _track;
+
+  static BidiMap<rtc::scoped_refptr<webrtc::RtpSenderInterface>, RTCRtpSender*> _senders;
 };
 
 }  // namespace node_webrtc

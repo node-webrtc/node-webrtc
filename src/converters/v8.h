@@ -130,6 +130,16 @@ struct Converter<v8::Local<v8::Value>, bool> {
 };
 
 template <>
+struct Converter<bool, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const bool value) {
+    Nan::EscapableHandleScope scope;
+    return value
+        ? Validation<v8::Local<v8::Value>>::Valid(scope.Escape(v8::Local<v8::Value>::Cast(Nan::True())))
+        : Validation<v8::Local<v8::Value>>::Valid(scope.Escape(v8::Local<v8::Value>::Cast(Nan::False())));
+  }
+};
+
+template <>
 struct Converter<v8::Local<v8::Value>, uint8_t> {
   static Validation<uint8_t> Convert(const v8::Local<v8::Value> value) {
     auto maybeInt32 = Nan::To<v8::Int32>(value);

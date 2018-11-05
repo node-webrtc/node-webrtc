@@ -70,6 +70,10 @@ void MediaStreamTrack::OnChanged() {
   }
 }
 
+void MediaStreamTrack::OnPeerConnectionClosed() {
+  Stop();
+}
+
 NAN_GETTER(MediaStreamTrack::GetEnabled) {
   (void) property;
   auto self = AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(info.Holder());

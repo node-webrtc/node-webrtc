@@ -33,8 +33,9 @@ class RTCRtpReceiver: public node_webrtc::AsyncObjectWrap {
  public:
   RTCRtpReceiver(
       std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
-      rtc::scoped_refptr<webrtc::RtpReceiverInterface>&& receiver,
-      node_webrtc::MediaStreamTrack* track);
+      rtc::scoped_refptr<webrtc::RtpReceiverInterface>&& receiver);
+
+  ~RTCRtpReceiver() override;
 
   static void Init(v8::Handle<v8::Object> exports);
   static Nan::Persistent<v8::Function> constructor;
@@ -62,10 +63,8 @@ class RTCRtpReceiver: public node_webrtc::AsyncObjectWrap {
   static void Release(RTCRtpReceiver*);
 
  private:
-  bool _closed;
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::RtpReceiverInterface> _receiver;
-  node_webrtc::MediaStreamTrack* _track;
 
   static BidiMap<rtc::scoped_refptr<webrtc::RtpReceiverInterface>, RTCRtpReceiver*> _receivers;
 };

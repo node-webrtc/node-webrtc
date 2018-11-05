@@ -16,6 +16,7 @@
 
 #include <iosfwd>
 
+#include <nan.h>
 #include <webrtc/api/datachannelinterface.h>
 #include <webrtc/api/mediastreaminterface.h>
 #include <webrtc/api/peerconnectioninterface.h>
@@ -25,24 +26,76 @@
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
 
+namespace absl {
+
+template <typename T> class optional;
+
+};
+
 namespace webrtc {
 
 class IceCandidateInterface;
 class RTCError;
 class RtpSource;
+enum class RtpTransceiverDirection;
+enum class SdpSemantics;
 class SessionDescriptionInterface;
 
 }  // namespace webrtc;
 
 namespace node_webrtc {
 
+#define CONVERTER(I, O) \
+  template <> \
+  struct Converter<I, O> { \
+    static Validation<O> Convert(I); \
+  };
+
+#define TO_JS(T) \
+  template <> \
+  struct Converter<T, v8::Local<v8::Value>> { \
+    static Validation<v8::Local<v8::Value>> Convert(T); \
+  };
+
+#define FROM_JS(T) \
+  template <> \
+  struct Converter<v8::Local<v8::Value>, T> { \
+    static Validation<T> Convert(v8::Local<v8::Value>); \
+  };
+
+#define TO_AND_FROM_JS(T) \
+  template <> \
+  struct Converter<T, v8::Local<v8::Value>> { \
+    static Validation<v8::Local<v8::Value>> Convert(T); \
+  }; \
+  \
+  template <> \
+  struct Converter<v8::Local<v8::Value>, T> { \
+    static Validation<T> Convert(v8::Local<v8::Value>); \
+  };
+
 class MediaStream;
 class MediaStreamTrack;
 class RTCRtpReceiver;
 class RTCRtpSender;
+class RTCRtpTransceiver;
 class SomeError;
 
 template <typename S, typename T> struct Converter;
+
+template <typename T>
+struct Converter<absl::optional<T>, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(absl::optional<T> value) {
+    if (value) {
+      return Converter<T, v8::Local<v8::Value>>::Convert(*value);
+    }
+    return Validation<v8::Local<v8::Value>>::Valid(Nan::Null());
+  }
+};
+
+CONVERTER(cricket::MediaType, std::string);
+CONVERTER(std::string, cricket::MediaType);
+TO_AND_FROM_JS(cricket::MediaType);
 
 /*
  * dictionary RTCOAuthCredential {
@@ -60,10 +113,7 @@ struct RTCOAuthCredential {
   const std::string accessToken;
 };
 
-template <>
-struct Converter<v8::Local<v8::Value>, RTCOAuthCredential> {
-  static Validation<RTCOAuthCredential> Convert(v8::Local<v8::Value> value);
-};
+FROM_JS(RTCOAuthCredential);
 
 /*
  * enum RTCIceCredentialType {
@@ -77,10 +127,7 @@ enum RTCIceCredentialType {
   kOAuth
 };
 
-template <>
-struct Converter<v8::Local<v8::Value>, RTCIceCredentialType> {
-  static Validation<RTCIceCredentialType> Convert(v8::Local<v8::Value> value);
-};
+FROM_JS(RTCIceCredentialType);
 
 /*
  * dictionary RTCIceServer {
@@ -91,15 +138,7 @@ struct Converter<v8::Local<v8::Value>, RTCIceCredentialType> {
  * };
  */
 
-template <>
-struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::IceServer> {
-  static Validation<webrtc::PeerConnectionInterface::IceServer> Convert(v8::Local<v8::Value> value);
-};
-
-template <>
-struct Converter<webrtc::PeerConnectionInterface::IceServer, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::IceServer value);
-};
+TO_AND_FROM_JS(webrtc::PeerConnectionInterface::IceServer);
 
 /*
  * enum RTCIceTransportPolicy {
@@ -108,15 +147,9 @@ struct Converter<webrtc::PeerConnectionInterface::IceServer, v8::Local<v8::Value
  * };
  */
 
-template <>
-struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::IceTransportsType> {
-  static Validation<webrtc::PeerConnectionInterface::IceTransportsType> Convert(v8::Local<v8::Value> value);
-};
-
-template <>
-struct Converter<webrtc::PeerConnectionInterface::IceTransportsType, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::IceTransportsType value);
-};
+CONVERTER(std::string, webrtc::PeerConnectionInterface::IceTransportsType);
+CONVERTER(webrtc::PeerConnectionInterface::IceTransportsType, std::string);
+TO_AND_FROM_JS(webrtc::PeerConnectionInterface::IceTransportsType);
 
 /*
  * enum RTCBundlePolicy {
@@ -126,15 +159,7 @@ struct Converter<webrtc::PeerConnectionInterface::IceTransportsType, v8::Local<v
  * };
  */
 
-template <>
-struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::BundlePolicy> {
-  static Validation<webrtc::PeerConnectionInterface::BundlePolicy> Convert(v8::Local<v8::Value> value);
-};
-
-template <>
-struct Converter<webrtc::PeerConnectionInterface::BundlePolicy, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::BundlePolicy value);
-};
+TO_AND_FROM_JS(webrtc::PeerConnectionInterface::BundlePolicy);
 
 /*
  * enum RTCRtcpMuxPolicy {
@@ -144,15 +169,7 @@ struct Converter<webrtc::PeerConnectionInterface::BundlePolicy, v8::Local<v8::Va
  * };
  */
 
-template <>
-struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::RtcpMuxPolicy> {
-  static Validation<webrtc::PeerConnectionInterface::RtcpMuxPolicy> Convert(v8::Local<v8::Value> value);
-};
-
-template <>
-struct Converter<webrtc::PeerConnectionInterface::RtcpMuxPolicy, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::RtcpMuxPolicy value);
-};
+TO_AND_FROM_JS(webrtc::PeerConnectionInterface::RtcpMuxPolicy);
 
 /*
  * dictionary RTCDtlsFingerprint {
@@ -170,10 +187,7 @@ struct RTCDtlsFingerprint {
   const Maybe<std::string> value;
 };
 
-template <>
-struct Converter<v8::Local<v8::Value>, RTCDtlsFingerprint> {
-  static Validation<RTCDtlsFingerprint> Convert(v8::Local<v8::Value> value);
-};
+FROM_JS(RTCDtlsFingerprint);
 
 /*
  * dictionary UnsignedShortRange {
@@ -189,15 +203,18 @@ struct UnsignedShortRange {
   Maybe<uint16_t> max;
 };
 
-template <>
-struct Converter<v8::Local<v8::Value>, UnsignedShortRange> {
-  static Validation<UnsignedShortRange> Convert(v8::Local<v8::Value> value);
-};
+TO_AND_FROM_JS(UnsignedShortRange);
 
-template <>
-struct Converter<UnsignedShortRange, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(UnsignedShortRange value);
-};
+/*
+ * enum SdpSemantics {
+ *   "plan-b",
+ *   "unified-plan"
+ * }
+ */
+
+CONVERTER(webrtc::SdpSemantics, std::string)
+CONVERTER(std::string, webrtc::SdpSemantics)
+TO_AND_FROM_JS(webrtc::SdpSemantics)
 
 /*
  * dictionary RTCConfiguration {
@@ -210,13 +227,11 @@ struct Converter<UnsignedShortRange, v8::Local<v8::Value>> {
  *   [EnforceRange]
  *   octet                    iceCandidatePoolSize = 0;
  *   UnsignedShortRange       portRange;
+ *   SdpSemantics             sdpSemantics = "plan-b";
  * };
  */
 
-template <>
-struct Converter<v8::Local<v8::Value>, webrtc::PeerConnectionInterface::RTCConfiguration> {
-  static Validation<webrtc::PeerConnectionInterface::RTCConfiguration> Convert(v8::Local<v8::Value> value);
-};
+FROM_JS(webrtc::PeerConnectionInterface::RTCConfiguration);
 
 struct ExtendedRTCConfiguration {
   ExtendedRTCConfiguration(): configuration(webrtc::PeerConnectionInterface::RTCConfiguration()), portRange(UnsignedShortRange()) {}
@@ -225,15 +240,7 @@ struct ExtendedRTCConfiguration {
   UnsignedShortRange portRange;
 };
 
-template <>
-struct Converter<v8::Local<v8::Value>, ExtendedRTCConfiguration> {
-  static Validation<ExtendedRTCConfiguration> Convert(v8::Local<v8::Value> value);
-};
-
-template <>
-struct Converter<ExtendedRTCConfiguration, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(ExtendedRTCConfiguration value);
-};
+TO_AND_FROM_JS(ExtendedRTCConfiguration);
 
 /*
  * dictionary RTCOfferAnswerOptions {
@@ -259,10 +266,7 @@ struct RTCOfferOptions {
   const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
 };
 
-template <>
-struct Converter<v8::Local<v8::Value>, RTCOfferOptions> {
-  static Validation<RTCOfferOptions> Convert(v8::Local<v8::Value> value);
-};
+FROM_JS(RTCOfferOptions);
 
 /*
  * dictionary RTCAnswerOptions : RTCOfferAnswerOptions {
@@ -276,10 +280,7 @@ struct RTCAnswerOptions {
   const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
 };
 
-template <>
-struct Converter<v8::Local<v8::Value>, RTCAnswerOptions> {
-  static Validation<RTCAnswerOptions> Convert(v8::Local<v8::Value> value);
-};
+FROM_JS(RTCAnswerOptions);
 
 /*
  * enum RTCSdpType {
@@ -297,20 +298,10 @@ enum RTCSdpType {
   kRollback
 };
 
-template <>
-struct Converter<std::string, RTCSdpType> {
-  static Validation<RTCSdpType> Convert(std::string value);
-};
+CONVERTER(std::string, RTCSdpType);
+CONVERTER(RTCSdpType, std::string);
 
-template <>
-struct Converter<v8::Local<v8::Value>, RTCSdpType> {
-  static Validation<RTCSdpType> Convert(v8::Local<v8::Value> value);
-};
-
-template <>
-struct Converter<RTCSdpType, std::string> {
-  static Validation<std::string> Convert(RTCSdpType value);
-};
+FROM_JS(RTCSdpType);
 
 /*
  * dictionary RTCSessionDescriptionInit {
@@ -326,35 +317,14 @@ struct RTCSessionDescriptionInit {
   std::string sdp;
 };
 
-template <>
-struct Converter<v8::Local<v8::Value>, RTCSessionDescriptionInit> {
-  static Validation<RTCSessionDescriptionInit> Convert(v8::Local<v8::Value> value);
-};
 
-template <>
-struct Converter<RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*> {
-  static Validation<webrtc::SessionDescriptionInterface*> Convert(RTCSessionDescriptionInit value);
-};
+TO_AND_FROM_JS(RTCSessionDescriptionInit);
 
-template <>
-struct Converter<RTCSessionDescriptionInit, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(RTCSessionDescriptionInit value);
-};
+CONVERTER(webrtc::SessionDescriptionInterface*, RTCSessionDescriptionInit);
+CONVERTER(RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*);
 
-template <>
-struct Converter<webrtc::SessionDescriptionInterface*, RTCSessionDescriptionInit> {
-  static Validation<RTCSessionDescriptionInit> Convert(webrtc::SessionDescriptionInterface* value);
-};
-
-template <>
-struct Converter<v8::Local<v8::Value>, webrtc::SessionDescriptionInterface*> {
-  static Validation<webrtc::SessionDescriptionInterface*> Convert(v8::Local<v8::Value> value);
-};
-
-template <>
-struct Converter<const webrtc::SessionDescriptionInterface*, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(const webrtc::SessionDescriptionInterface* value);
-};
+FROM_JS(webrtc::SessionDescriptionInterface*);
+TO_JS(const webrtc::SessionDescriptionInterface*);
 
 /*
  * dictionary RTCIceCandidateInit {
@@ -365,15 +335,8 @@ struct Converter<const webrtc::SessionDescriptionInterface*, v8::Local<v8::Value
  * };
  */
 
-template <>
-struct Converter<v8::Local<v8::Value>, webrtc::IceCandidateInterface*> {
-  static Validation<webrtc::IceCandidateInterface*> Convert(v8::Local<v8::Value> value);
-};
-
-template <>
-struct Converter<const webrtc::IceCandidateInterface*, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(const webrtc::IceCandidateInterface* value);
-};
+FROM_JS(webrtc::IceCandidateInterface*);
+TO_JS(const webrtc::IceCandidateInterface*);
 
 /*
  * enum RTCPriorityType {
@@ -391,10 +354,7 @@ enum RTCPriorityType {
   kHigh
 };
 
-template <>
-struct Converter<v8::Local<v8::Value>, RTCPriorityType> {
-  static Validation<RTCPriorityType> Convert(v8::Local<v8::Value> value);
-};
+FROM_JS(RTCPriorityType);
 
 /*
  * dictionary RTCDataChannelInit {
@@ -409,10 +369,7 @@ struct Converter<v8::Local<v8::Value>, RTCPriorityType> {
  * };
  */
 
-template <>
-struct Converter<v8::Local<v8::Value>, webrtc::DataChannelInit> {
-  static Validation<webrtc::DataChannelInit> Convert(v8::Local<v8::Value> value);
-};
+FROM_JS(webrtc::DataChannelInit);
 
 /*
  * enum RTCSignalingState {
@@ -425,10 +382,7 @@ struct Converter<v8::Local<v8::Value>, webrtc::DataChannelInit> {
  * }
  */
 
-template <>
-struct Converter<webrtc::PeerConnectionInterface::SignalingState, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::SignalingState value);
-};
+TO_JS(webrtc::PeerConnectionInterface::SignalingState);
 
 /*
  * enum RTCIceGatheringState {
@@ -438,10 +392,7 @@ struct Converter<webrtc::PeerConnectionInterface::SignalingState, v8::Local<v8::
  * }
  */
 
-template <>
-struct Converter<webrtc::PeerConnectionInterface::IceGatheringState, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::IceGatheringState value);
-};
+TO_JS(webrtc::PeerConnectionInterface::IceGatheringState);
 
 /*
  * enum RTCIceConnectionState {
@@ -455,10 +406,7 @@ struct Converter<webrtc::PeerConnectionInterface::IceGatheringState, v8::Local<v
  * }
  */
 
-template <>
-struct Converter<webrtc::PeerConnectionInterface::IceConnectionState, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(webrtc::PeerConnectionInterface::IceConnectionState value);
-};
+TO_JS(webrtc::PeerConnectionInterface::IceConnectionState);
 
 /*
  * enum RTCDataChannelState {
@@ -469,10 +417,7 @@ struct Converter<webrtc::PeerConnectionInterface::IceConnectionState, v8::Local<
  * }
  */
 
-template <>
-struct Converter<webrtc::DataChannelInterface::DataState, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(webrtc::DataChannelInterface::DataState value);
-};
+TO_JS(webrtc::DataChannelInterface::DataState);
 
 /*
  * enum BinaryType {
@@ -486,35 +431,13 @@ enum BinaryType {
   kArrayBuffer,
 };
 
-template <>
-struct Converter<BinaryType, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(BinaryType value);
-};
+TO_AND_FROM_JS(BinaryType);
 
-template <>
-struct Converter<v8::Local<v8::Value>, BinaryType> {
-  static Validation<BinaryType> Convert(v8::Local<v8::Value> value);
-};
+TO_JS(webrtc::RTCError*);
+TO_JS(const webrtc::RTCError*);
 
-template <>
-struct Converter<webrtc::RTCError*, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(webrtc::RTCError* value);
-};
-
-template <>
-struct Converter<const webrtc::RTCError*, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(const webrtc::RTCError* value);
-};
-
-template <>
-struct Converter<webrtc::RTCError*, SomeError> {
-  static Validation<SomeError> Convert(webrtc::RTCError* value);
-};
-
-template <>
-struct Converter<const webrtc::RTCError*, SomeError> {
-  static Validation<SomeError> Convert(const webrtc::RTCError* value);
-};
+CONVERTER(webrtc::RTCError*, SomeError);
+CONVERTER(const webrtc::RTCError*, SomeError);
 
 /*
  * enum RTCPeerConnectionState {
@@ -537,22 +460,13 @@ enum RTCPeerConnectionState {
 };
 
 // NOTE(mroberts): This is a hack until we update WebRTC.
-template <>
-struct Converter<webrtc::PeerConnectionInterface::IceConnectionState, RTCPeerConnectionState> {
-  static Validation<RTCPeerConnectionState> Convert(webrtc::PeerConnectionInterface::IceConnectionState value);
-};
+CONVERTER(webrtc::PeerConnectionInterface::IceConnectionState, RTCPeerConnectionState);
 
-template <>
-struct Converter<RTCPeerConnectionState, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(RTCPeerConnectionState value);
-};
+TO_JS(RTCPeerConnectionState);
 
 typedef std::pair<double, std::vector<std::map<std::string, std::string>>> RTCStatsResponseInit;
 
-template <>
-struct Converter<RTCStatsResponseInit, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(RTCStatsResponseInit value);
-};
+TO_JS(RTCStatsResponseInit);
 
 /*
  * dictionary RTCRtpContributingSource {
@@ -562,10 +476,7 @@ struct Converter<RTCStatsResponseInit, v8::Local<v8::Value>> {
  * };
  */
 
-template <>
-struct Converter<webrtc::RtpSource, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(webrtc::RtpSource value);
-};
+TO_JS(webrtc::RtpSource);
 
 /*
  * dictionary RTCRtpHeaderExtensionParameters {
@@ -575,10 +486,7 @@ struct Converter<webrtc::RtpSource, v8::Local<v8::Value>> {
  * };
  */
 
-template <>
-struct Converter<webrtc::RtpHeaderExtensionParameters, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(webrtc::RtpHeaderExtensionParameters value);
-};
+TO_JS(webrtc::RtpHeaderExtensionParameters);
 
 /*
  * dictionary RTCRtcpParameters {
@@ -597,10 +505,16 @@ struct Converter<webrtc::RtpHeaderExtensionParameters, v8::Local<v8::Value>> {
  * };
  */
 
-template <>
-struct Converter<webrtc::RtpCodecParameters, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(webrtc::RtpCodecParameters value);
-};
+TO_JS(webrtc::RtpCodecParameters);
+
+/*
+ * dictionary RTCRtcpParameters {
+ *     DOMString cname;
+ *     boolean   reducedSize;
+ * };
+ */
+
+TO_JS(webrtc::RtcpParameters);
 
 /*
  * dictionary RTCRtpParameters {
@@ -610,10 +524,7 @@ struct Converter<webrtc::RtpCodecParameters, v8::Local<v8::Value>> {
  * };
  */
 
-template <>
-struct Converter<webrtc::RtpParameters, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(webrtc::RtpParameters value);
-};
+TO_JS(webrtc::RtpParameters);
 
 /*
  * dictionary RTCRtpCodingParameters {
@@ -632,10 +543,7 @@ struct Converter<webrtc::RtpParameters, v8::Local<v8::Value>> {
  * };
  */
 
-template <>
-struct Converter<node_webrtc::RTCRtpReceiver*, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::RTCRtpReceiver* receiver);
-};
+TO_JS(node_webrtc::RTCRtpReceiver*);
 
 /*
  * enum MediaStreamTrackState {
@@ -644,40 +552,33 @@ struct Converter<node_webrtc::RTCRtpReceiver*, v8::Local<v8::Value>> {
  * };
  */
 
-template <>
-struct Converter<webrtc::MediaStreamTrackInterface::TrackState, std::string> {
-  static Validation<std::string> Convert(webrtc::MediaStreamTrackInterface::TrackState value);
-};
+CONVERTER(webrtc::MediaStreamTrackInterface::TrackState, std::string);
 
-template <>
-struct Converter<node_webrtc::MediaStream*, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::MediaStream* track);
-};
+TO_AND_FROM_JS(node_webrtc::MediaStream*);
 
-template <>
-struct Converter<v8::Local<v8::Value>, node_webrtc::MediaStream*> {
-  static Validation<node_webrtc::MediaStream*> Convert(v8::Local<v8::Value> value);
-};
+TO_AND_FROM_JS(node_webrtc::MediaStreamTrack*);
 
-template <>
-struct Converter<node_webrtc::MediaStreamTrack*, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::MediaStreamTrack* track);
-};
+TO_AND_FROM_JS(node_webrtc::RTCRtpSender*);
 
-template <>
-struct Converter<v8::Local<v8::Value>, node_webrtc::MediaStreamTrack*> {
-  static Validation<node_webrtc::MediaStreamTrack*> Convert(v8::Local<v8::Value> value);
-};
+TO_JS(node_webrtc::RTCRtpTransceiver*);
 
-template <>
-struct Converter<node_webrtc::RTCRtpSender*, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(node_webrtc::RTCRtpSender* track);
-};
+/*
+ * enum RTCRtpTransceiverDirection {
+ *     "sendrecv",
+ *     "sendonly",
+ *     "recvonly",
+ *     "inactive"
+ * };
+ */
 
-template <>
-struct Converter<v8::Local<v8::Value>, node_webrtc::RTCRtpSender*> {
-  static Validation<node_webrtc::RTCRtpSender*> Convert(v8::Local<v8::Value> value);
-};
+CONVERTER(webrtc::RtpTransceiverDirection, std::string)
+CONVERTER(std::string, webrtc::RtpTransceiverDirection);
+TO_AND_FROM_JS(webrtc::RtpTransceiverDirection)
+
+#undef CONVERTER
+#undef TO_JS
+#undef FROM_JS
+#undef TO_AND_FROM_JS
 
 }  // namespace node_webrtc
 
