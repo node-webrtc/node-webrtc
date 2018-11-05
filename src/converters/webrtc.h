@@ -575,6 +575,16 @@ CONVERTER(webrtc::RtpTransceiverDirection, std::string)
 CONVERTER(std::string, webrtc::RtpTransceiverDirection)
 TO_AND_FROM_JS(webrtc::RtpTransceiverDirection)
 
+/*
+ * dictionary RTCRtpTransceiverInit {
+ *     RTCRtpTransceiverDirection         direction = "sendrecv";
+ *     sequence<MediaStream>              streams = [];
+ *     sequence<RTCRtpEncodingParameters> sendEncodings = [];
+ * };
+ */
+
+FROM_JS(webrtc::RtpTransceiverInit);
+
 #undef CONVERTER
 #undef TO_JS
 #undef FROM_JS

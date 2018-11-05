@@ -89,6 +89,7 @@ void DataChannel::OnPeerConnectionClosed() {
     _cached_max_retransmits = _jingleDataChannel->maxRetransmits();
     _cached_ordered = _jingleDataChannel->ordered();
     _cached_protocol = _jingleDataChannel->protocol();
+    _cached_buffered_amount = _jingleDataChannel->buffered_amount();
     _jingleDataChannel = nullptr;
     Stop();
   }
@@ -168,6 +169,7 @@ void DataChannel::OnStateChange() {
     _cached_max_retransmits = _jingleDataChannel->maxRetransmits();
     _cached_ordered = _jingleDataChannel->ordered();
     _cached_protocol = _jingleDataChannel->protocol();
+    _cached_buffered_amount = _jingleDataChannel->buffered_amount();
     _jingleDataChannel = nullptr;
   }
   TRACE_END;
@@ -247,10 +249,9 @@ NAN_GETTER(DataChannel::GetBufferedAmount) {
 
   auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.Holder());
 
-  // FIXME(mroberts): We should cache the value, not reset it to zero.
   uint64_t buffered_amount = self->_jingleDataChannel != nullptr
       ? self->_jingleDataChannel->buffered_amount()
-      : 0;
+      : self->_cached_buffered_amount;
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New<Number>(buffered_amount));

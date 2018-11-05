@@ -317,8 +317,12 @@ NAN_METHOD(PeerConnection::AddTransceiver) {
     Nan::ThrowError("AddTransceiver is only available with Unified Plan SdpSemanticsAbort");
     return;
   }
-  CONVERT_ARGS_OR_THROW_AND_RETURN(media_type, cricket::MediaType);
-  auto result = self->_jinglePeerConnection->AddTransceiver(media_type);
+  CONVERT_ARGS_OR_THROW_AND_RETURN(args, std::tuple<cricket::MediaType COMMA Maybe<webrtc::RtpTransceiverInit>>);
+  auto media_type = std::get<0>(args);
+  Maybe<webrtc::RtpTransceiverInit> maybeInit = std::get<1>(args);
+  auto result = maybeInit.IsNothing()
+      ? self->_jinglePeerConnection->AddTransceiver(media_type)
+      : self->_jinglePeerConnection->AddTransceiver(media_type, maybeInit.UnsafeFromJust());
   if (!result.ok()) {
     CONVERT_OR_THROW_AND_RETURN(&result.error(), error, Local<Value>);
     Nan::ThrowError(error);
