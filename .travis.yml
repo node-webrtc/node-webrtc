@@ -12,12 +12,18 @@ node_js:
 
 addons:
   hosts:
-    - web-platform.test
-    - www.web-platform.test
+    - xn--lve-6lad.not-web-platform.test
+    - xn--lve-6lad.web-platform.test
+    - xn--n8j6ds53lwwkrqhv28a.not-web-platform.test
     - www1.web-platform.test
     - www2.web-platform.test
+    - not-web-platform.test
+    - web-platform.test
+    - www2.not-web-platform.test
+    - www1.not-web-platform.test
+    - www.not-web-platform.test
+    - www.web-platform.test
     - xn--n8j6ds53lwwkrqhv28a.web-platform.test
-    - xn--lve-6lad.web-platform.test
   apt:
     sources:
       - ubuntu-toolchain-r-test

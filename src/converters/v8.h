@@ -65,6 +65,8 @@ struct Converter<SomeError, v8::Local<v8::Value>> {
           return ErrorFactory::CreateNetworkError(message);
         case ErrorFactory::DOMExceptionName::kOperationError:
           return ErrorFactory::CreateOperationError(message);
+        default:
+          return ErrorFactory::CreateError("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
       }
     }, [message](ErrorFactory::ErrorName name) {
       switch (name) {
@@ -74,6 +76,8 @@ struct Converter<SomeError, v8::Local<v8::Value>> {
           return ErrorFactory::CreateRangeError(message);
         case ErrorFactory::ErrorName::kSyntaxError:
           return ErrorFactory::CreateSyntaxError(message);
+        default:
+          return ErrorFactory::CreateError("Impossible! Please file a bug at https://github.com/js-platform/node-webrtc");
       }
     })));
   }

@@ -30,7 +30,7 @@ namespace absl {
 
 template <typename T> class optional;
 
-};
+}
 
 namespace webrtc {
 
@@ -93,9 +93,9 @@ struct Converter<absl::optional<T>, v8::Local<v8::Value>> {
   }
 };
 
-CONVERTER(cricket::MediaType, std::string);
-CONVERTER(std::string, cricket::MediaType);
-TO_AND_FROM_JS(cricket::MediaType);
+CONVERTER(cricket::MediaType, std::string)
+CONVERTER(std::string, cricket::MediaType)
+TO_AND_FROM_JS(cricket::MediaType)
 
 /*
  * dictionary RTCOAuthCredential {
@@ -113,7 +113,7 @@ struct RTCOAuthCredential {
   const std::string accessToken;
 };
 
-FROM_JS(RTCOAuthCredential);
+FROM_JS(RTCOAuthCredential)
 
 /*
  * enum RTCIceCredentialType {
@@ -127,7 +127,7 @@ enum RTCIceCredentialType {
   kOAuth
 };
 
-FROM_JS(RTCIceCredentialType);
+FROM_JS(RTCIceCredentialType)
 
 /*
  * dictionary RTCIceServer {
@@ -138,7 +138,7 @@ FROM_JS(RTCIceCredentialType);
  * };
  */
 
-TO_AND_FROM_JS(webrtc::PeerConnectionInterface::IceServer);
+TO_AND_FROM_JS(webrtc::PeerConnectionInterface::IceServer)
 
 /*
  * enum RTCIceTransportPolicy {
@@ -147,9 +147,9 @@ TO_AND_FROM_JS(webrtc::PeerConnectionInterface::IceServer);
  * };
  */
 
-CONVERTER(std::string, webrtc::PeerConnectionInterface::IceTransportsType);
-CONVERTER(webrtc::PeerConnectionInterface::IceTransportsType, std::string);
-TO_AND_FROM_JS(webrtc::PeerConnectionInterface::IceTransportsType);
+CONVERTER(std::string, webrtc::PeerConnectionInterface::IceTransportsType)
+CONVERTER(webrtc::PeerConnectionInterface::IceTransportsType, std::string)
+TO_AND_FROM_JS(webrtc::PeerConnectionInterface::IceTransportsType)
 
 /*
  * enum RTCBundlePolicy {
@@ -159,7 +159,7 @@ TO_AND_FROM_JS(webrtc::PeerConnectionInterface::IceTransportsType);
  * };
  */
 
-TO_AND_FROM_JS(webrtc::PeerConnectionInterface::BundlePolicy);
+TO_AND_FROM_JS(webrtc::PeerConnectionInterface::BundlePolicy)
 
 /*
  * enum RTCRtcpMuxPolicy {
@@ -169,7 +169,7 @@ TO_AND_FROM_JS(webrtc::PeerConnectionInterface::BundlePolicy);
  * };
  */
 
-TO_AND_FROM_JS(webrtc::PeerConnectionInterface::RtcpMuxPolicy);
+TO_AND_FROM_JS(webrtc::PeerConnectionInterface::RtcpMuxPolicy)
 
 /*
  * dictionary RTCDtlsFingerprint {
@@ -187,7 +187,7 @@ struct RTCDtlsFingerprint {
   const Maybe<std::string> value;
 };
 
-FROM_JS(RTCDtlsFingerprint);
+FROM_JS(RTCDtlsFingerprint)
 
 /*
  * dictionary UnsignedShortRange {
@@ -203,7 +203,7 @@ struct UnsignedShortRange {
   Maybe<uint16_t> max;
 };
 
-TO_AND_FROM_JS(UnsignedShortRange);
+TO_AND_FROM_JS(UnsignedShortRange)
 
 /*
  * enum SdpSemantics {
@@ -231,7 +231,7 @@ TO_AND_FROM_JS(webrtc::SdpSemantics)
  * };
  */
 
-FROM_JS(webrtc::PeerConnectionInterface::RTCConfiguration);
+FROM_JS(webrtc::PeerConnectionInterface::RTCConfiguration)
 
 struct ExtendedRTCConfiguration {
   ExtendedRTCConfiguration(): configuration(webrtc::PeerConnectionInterface::RTCConfiguration()), portRange(UnsignedShortRange()) {}
@@ -240,7 +240,7 @@ struct ExtendedRTCConfiguration {
   UnsignedShortRange portRange;
 };
 
-TO_AND_FROM_JS(ExtendedRTCConfiguration);
+TO_AND_FROM_JS(ExtendedRTCConfiguration)
 
 /*
  * dictionary RTCOfferAnswerOptions {
@@ -266,7 +266,7 @@ struct RTCOfferOptions {
   const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
 };
 
-FROM_JS(RTCOfferOptions);
+FROM_JS(RTCOfferOptions)
 
 /*
  * dictionary RTCAnswerOptions : RTCOfferAnswerOptions {
@@ -280,7 +280,7 @@ struct RTCAnswerOptions {
   const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
 };
 
-FROM_JS(RTCAnswerOptions);
+FROM_JS(RTCAnswerOptions)
 
 /*
  * enum RTCSdpType {
@@ -298,10 +298,10 @@ enum RTCSdpType {
   kRollback
 };
 
-CONVERTER(std::string, RTCSdpType);
-CONVERTER(RTCSdpType, std::string);
+CONVERTER(std::string, RTCSdpType)
+CONVERTER(RTCSdpType, std::string)
 
-FROM_JS(RTCSdpType);
+FROM_JS(RTCSdpType)
 
 /*
  * dictionary RTCSessionDescriptionInit {
@@ -318,13 +318,13 @@ struct RTCSessionDescriptionInit {
 };
 
 
-TO_AND_FROM_JS(RTCSessionDescriptionInit);
+TO_AND_FROM_JS(RTCSessionDescriptionInit)
 
-CONVERTER(webrtc::SessionDescriptionInterface*, RTCSessionDescriptionInit);
-CONVERTER(RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*);
+CONVERTER(webrtc::SessionDescriptionInterface*, RTCSessionDescriptionInit)
+CONVERTER(RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*)
 
-FROM_JS(webrtc::SessionDescriptionInterface*);
-TO_JS(const webrtc::SessionDescriptionInterface*);
+FROM_JS(webrtc::SessionDescriptionInterface*)
+TO_JS(const webrtc::SessionDescriptionInterface*)
 
 /*
  * dictionary RTCIceCandidateInit {
@@ -335,8 +335,8 @@ TO_JS(const webrtc::SessionDescriptionInterface*);
  * };
  */
 
-FROM_JS(webrtc::IceCandidateInterface*);
-TO_JS(const webrtc::IceCandidateInterface*);
+FROM_JS(webrtc::IceCandidateInterface*)
+TO_JS(const webrtc::IceCandidateInterface*)
 
 /*
  * enum RTCPriorityType {
@@ -354,7 +354,7 @@ enum RTCPriorityType {
   kHigh
 };
 
-FROM_JS(RTCPriorityType);
+FROM_JS(RTCPriorityType)
 
 /*
  * dictionary RTCDataChannelInit {
@@ -369,7 +369,7 @@ FROM_JS(RTCPriorityType);
  * };
  */
 
-FROM_JS(webrtc::DataChannelInit);
+FROM_JS(webrtc::DataChannelInit)
 
 /*
  * enum RTCSignalingState {
@@ -382,7 +382,7 @@ FROM_JS(webrtc::DataChannelInit);
  * }
  */
 
-TO_JS(webrtc::PeerConnectionInterface::SignalingState);
+TO_JS(webrtc::PeerConnectionInterface::SignalingState)
 
 /*
  * enum RTCIceGatheringState {
@@ -392,7 +392,7 @@ TO_JS(webrtc::PeerConnectionInterface::SignalingState);
  * }
  */
 
-TO_JS(webrtc::PeerConnectionInterface::IceGatheringState);
+TO_JS(webrtc::PeerConnectionInterface::IceGatheringState)
 
 /*
  * enum RTCIceConnectionState {
@@ -406,7 +406,7 @@ TO_JS(webrtc::PeerConnectionInterface::IceGatheringState);
  * }
  */
 
-TO_JS(webrtc::PeerConnectionInterface::IceConnectionState);
+TO_JS(webrtc::PeerConnectionInterface::IceConnectionState)
 
 /*
  * enum RTCDataChannelState {
@@ -417,7 +417,7 @@ TO_JS(webrtc::PeerConnectionInterface::IceConnectionState);
  * }
  */
 
-TO_JS(webrtc::DataChannelInterface::DataState);
+TO_JS(webrtc::DataChannelInterface::DataState)
 
 /*
  * enum BinaryType {
@@ -431,13 +431,13 @@ enum BinaryType {
   kArrayBuffer,
 };
 
-TO_AND_FROM_JS(BinaryType);
+TO_AND_FROM_JS(BinaryType)
 
-TO_JS(webrtc::RTCError*);
-TO_JS(const webrtc::RTCError*);
+TO_JS(webrtc::RTCError*)
+TO_JS(const webrtc::RTCError*)
 
-CONVERTER(webrtc::RTCError*, SomeError);
-CONVERTER(const webrtc::RTCError*, SomeError);
+CONVERTER(webrtc::RTCError*, SomeError)
+CONVERTER(const webrtc::RTCError*, SomeError)
 
 /*
  * enum RTCPeerConnectionState {
@@ -460,13 +460,13 @@ enum RTCPeerConnectionState {
 };
 
 // NOTE(mroberts): This is a hack until we update WebRTC.
-CONVERTER(webrtc::PeerConnectionInterface::IceConnectionState, RTCPeerConnectionState);
+CONVERTER(webrtc::PeerConnectionInterface::IceConnectionState, RTCPeerConnectionState)
 
-TO_JS(RTCPeerConnectionState);
+TO_JS(RTCPeerConnectionState)
 
 typedef std::pair<double, std::vector<std::map<std::string, std::string>>> RTCStatsResponseInit;
 
-TO_JS(RTCStatsResponseInit);
+TO_JS(RTCStatsResponseInit)
 
 /*
  * dictionary RTCRtpContributingSource {
@@ -476,7 +476,7 @@ TO_JS(RTCStatsResponseInit);
  * };
  */
 
-TO_JS(webrtc::RtpSource);
+TO_JS(webrtc::RtpSource)
 
 /*
  * dictionary RTCRtpHeaderExtensionParameters {
@@ -486,7 +486,7 @@ TO_JS(webrtc::RtpSource);
  * };
  */
 
-TO_JS(webrtc::RtpHeaderExtensionParameters);
+TO_JS(webrtc::RtpHeaderExtensionParameters)
 
 /*
  * dictionary RTCRtcpParameters {
@@ -505,7 +505,7 @@ TO_JS(webrtc::RtpHeaderExtensionParameters);
  * };
  */
 
-TO_JS(webrtc::RtpCodecParameters);
+TO_JS(webrtc::RtpCodecParameters)
 
 /*
  * dictionary RTCRtcpParameters {
@@ -514,7 +514,7 @@ TO_JS(webrtc::RtpCodecParameters);
  * };
  */
 
-TO_JS(webrtc::RtcpParameters);
+TO_JS(webrtc::RtcpParameters)
 
 /*
  * dictionary RTCRtpParameters {
@@ -524,7 +524,7 @@ TO_JS(webrtc::RtcpParameters);
  * };
  */
 
-TO_JS(webrtc::RtpParameters);
+TO_JS(webrtc::RtpParameters)
 
 /*
  * dictionary RTCRtpCodingParameters {
@@ -543,7 +543,7 @@ TO_JS(webrtc::RtpParameters);
  * };
  */
 
-TO_JS(node_webrtc::RTCRtpReceiver*);
+TO_JS(node_webrtc::RTCRtpReceiver*)
 
 /*
  * enum MediaStreamTrackState {
@@ -552,15 +552,15 @@ TO_JS(node_webrtc::RTCRtpReceiver*);
  * };
  */
 
-CONVERTER(webrtc::MediaStreamTrackInterface::TrackState, std::string);
+CONVERTER(webrtc::MediaStreamTrackInterface::TrackState, std::string)
 
-TO_AND_FROM_JS(node_webrtc::MediaStream*);
+TO_AND_FROM_JS(node_webrtc::MediaStream*)
 
-TO_AND_FROM_JS(node_webrtc::MediaStreamTrack*);
+TO_AND_FROM_JS(node_webrtc::MediaStreamTrack*)
 
-TO_AND_FROM_JS(node_webrtc::RTCRtpSender*);
+TO_AND_FROM_JS(node_webrtc::RTCRtpSender*)
 
-TO_JS(node_webrtc::RTCRtpTransceiver*);
+TO_JS(node_webrtc::RTCRtpTransceiver*)
 
 /*
  * enum RTCRtpTransceiverDirection {
@@ -572,7 +572,7 @@ TO_JS(node_webrtc::RTCRtpTransceiver*);
  */
 
 CONVERTER(webrtc::RtpTransceiverDirection, std::string)
-CONVERTER(std::string, webrtc::RtpTransceiverDirection);
+CONVERTER(std::string, webrtc::RtpTransceiverDirection)
 TO_AND_FROM_JS(webrtc::RtpTransceiverDirection)
 
 #undef CONVERTER
