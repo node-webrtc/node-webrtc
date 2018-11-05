@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 include(ExternalProject)
 find_package(Git REQUIRED)
 find_package(Threads REQUIRED)
-find_program(iwyu_path NAMES include-what-you-use iwyu)
+find_program(iwyu_path OPTIONAL NAMES include-what-you-use iwyu)
 
 # depot_tools
 # -----------------------------------------------------------------------------
@@ -209,7 +209,7 @@ nodejs_init()
 file(GLOB_RECURSE MODULE_SRC src/*.cc src/*.h)
 add_nodejs_module(${MODULE} ${MODULE_SRC})
 
-if(NOT iwyu_path STREQUAL "")
+if(NOT iwyu_path STREQUAL "iwyu_path-NOTFOUND")
   set_property(TARGET ${MODULE} PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
 endif()
 
