@@ -20,13 +20,18 @@ aliases:
     run:
       name: Setup /etc/hosts for Web Platform Tests
       command: |
+        echo >>/etc/hosts 127.0.0.1	xn--lve-6lad.not-web-platform.test
+        echo >>/etc/hosts 127.0.0.1	xn--lve-6lad.web-platform.test
+        echo >>/etc/hosts 127.0.0.1	xn--n8j6ds53lwwkrqhv28a.not-web-platform.test
+        echo >>/etc/hosts 127.0.0.1	www1.web-platform.test
+        echo >>/etc/hosts 127.0.0.1	www2.web-platform.test
+        echo >>/etc/hosts 127.0.0.1	not-web-platform.test
         echo >>/etc/hosts 127.0.0.1	web-platform.test
+        echo >>/etc/hosts 127.0.0.1	www2.not-web-platform.test
+        echo >>/etc/hosts 127.0.0.1	www1.not-web-platform.test
+        echo >>/etc/hosts 127.0.0.1	www.not-web-platform.test
         echo >>/etc/hosts 127.0.0.1	www.web-platform.test
         echo >>/etc/hosts 127.0.0.1	xn--n8j6ds53lwwkrqhv28a.web-platform.test
-        echo >>/etc/hosts 127.0.0.1	xn--lve-6lad.web-platform.test
-        echo >>/etc/hosts 127.0.0.1	www2.web-platform.test
-        echo >>/etc/hosts 127.0.0.1	www1.web-platform.test
-        echo >>/etc/hosts 0.0.0.0	nonexistent-origin.web-platform.test
 
   web-platform-tests: &web-platform-tests
     run:

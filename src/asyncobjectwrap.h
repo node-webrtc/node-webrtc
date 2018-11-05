@@ -110,6 +110,7 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
   inline void DestroyAsyncResource() {
     uv_mutex_lock(&_async_resource_lock);
     if (_async_resource) {
+#if NODE_MAJOR_VERSION >= 9
       if (!Nan::GetCurrentContext().IsEmpty()) {
         delete _async_resource;
       } else {
@@ -119,6 +120,9 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
         delete _async_resource;
         context->Exit();
       }
+#else
+      delete _async_resource;
+#endif
       _async_resource = nullptr;
     }
     uv_mutex_unlock(&_async_resource_lock);
