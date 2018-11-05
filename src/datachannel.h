@@ -77,6 +77,7 @@ class DataChannel
   uint16_t _cached_max_retransmits;
   bool _cached_ordered;
   std::string _cached_protocol;
+  uint64_t _cached_buffered_amount;
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
 };

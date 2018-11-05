@@ -1,3 +1,4 @@
 [submodule "test/web-platform-tests/tests"]
 	path = test/web-platform-tests/tests
-	url = https://github.com/w3c/web-platform-tests.git
+	url = https://github.com/markandrus/wpt.git
+	branch = fix-9438

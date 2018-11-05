@@ -654,7 +654,7 @@ FROM_JS(RTCPriorityType, value) {
   });
 }
 
-static DataChannelInit CreateDataChannelInit(
+static Validation<DataChannelInit> CreateDataChannelInit(
     const bool ordered,
     const Maybe<uint32_t> maxPacketLifeTime,
     const Maybe<uint32_t> maxRetransmits,
@@ -662,6 +662,11 @@ static DataChannelInit CreateDataChannelInit(
     const bool negotiated,
     const Maybe<uint32_t> id,
     const RTCPriorityType) {
+  if (id.FromMaybe(0) > UINT16_MAX) {
+    return Validation<DataChannelInit>::Invalid("id must be between 0 and 65534, inclusive");
+  } else if (maxPacketLifeTime.IsJust() && maxRetransmits.IsJust()) {
+    return Validation<DataChannelInit>::Invalid("You cannot set both maxPacketLifeTime and maxRetransmits");
+  }
   DataChannelInit init;
   init.ordered = ordered;
   init.maxRetransmitTime = maxPacketLifeTime.Map([](const uint32_t i) { return static_cast<int>(i); }).FromMaybe(-1);
@@ -669,20 +674,20 @@ static DataChannelInit CreateDataChannelInit(
   init.protocol = protocol;
   init.negotiated = negotiated;
   init.id = id.Map([](const uint32_t i) { return static_cast<int>(i); }).FromMaybe(-1);
-  return init;
+  return Validation<DataChannelInit>::Valid(init);
 }
 
 FROM_JS(DataChannelInit, value) {
   return From<Local<Object>>(value).FlatMap<DataChannelInit>(
   [](const Local<Object> object) {
-    return curry(CreateDataChannelInit)
-        % GetOptional<bool>(object, "ordered", true)
-        * GetOptional<uint32_t>(object, "maxPacketLifeTime")
-        * GetOptional<uint32_t>(object, "maxRetransmits")
-        * GetOptional<std::string>(object, "protocol", "")
-        * GetOptional<bool>(object, "negotiated", false)
-        * GetOptional<uint32_t>(object, "id")
-        * GetOptional<RTCPriorityType>(object, "priority", kLow);
+    return Validation<DataChannelInit>::Join(curry(CreateDataChannelInit)
+            % GetOptional<bool>(object, "ordered", true)
+            * GetOptional<uint32_t>(object, "maxPacketLifeTime")
+            * GetOptional<uint32_t>(object, "maxRetransmits")
+            * GetOptional<std::string>(object, "protocol", "")
+            * GetOptional<bool>(object, "negotiated", false)
+            * GetOptional<uint32_t>(object, "id")
+            * GetOptional<RTCPriorityType>(object, "priority", kLow));
   });
 }
 
@@ -1092,3 +1097,18 @@ CONVERTER(std::string, webrtc::RtpTransceiverDirection, value) {
 
 TO_JS_ENUM(webrtc::RtpTransceiverDirection)
 FROM_JS_ENUM(webrtc::RtpTransceiverDirection)
+
+static webrtc::RtpTransceiverInit CreateRtpTransceiverInit(
+    const webrtc::RtpTransceiverDirection direction) {
+  webrtc::RtpTransceiverInit init;
+  init.direction = direction;
+  return init;
+}
+
+CONVERTER(Local<Value>, webrtc::RtpTransceiverInit, value) {
+  return From<Local<Object>>(value).FlatMap<webrtc::RtpTransceiverInit>(
+  [](const Local<Object> object) {
+    return curry(CreateRtpTransceiverInit)
+        % GetOptional<webrtc::RtpTransceiverDirection>(object, "direction", webrtc::RtpTransceiverDirection::kSendRecv);
+  });
+}
