@@ -11,7 +11,8 @@ test('getConfiguration', function(t) {
     bundlePolicy: 'balanced',
     rtcpMuxPolicy: 'require',
     iceCandidatePoolSize: 0,
-    portRange: {}
+    portRange: {},
+    sdpSemantics: 'plan-b'
   };
 
   t.test('before calling close, with defaults', function(t) {

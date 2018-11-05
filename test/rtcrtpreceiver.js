@@ -83,13 +83,15 @@ tape('applying a remote offer creates receivers (checked via .getReceivers)', fu
     var pc = new RTCPeerConnection();
     var offer = new RTCSessionDescription({ type: 'offer', sdp: sdp1 });
     return pc.setRemoteDescription(offer).then(function() {
+      var receivers = pc.getReceivers();
+      t.equal(receivers.length, 2, 'getReceivers returns an Array with length 2');
       pc.close();
-      return pc.getReceivers();
+      t.equal(pc.getReceivers().length, 0, 'getReceivers returns an Array with length 0 aftering closing');
+      return receivers;
     });
   }).then(function(receivers) {
     return new Promise(function(resolve) { setTimeout(resolve.bind(null, receivers)); });
   }).then(function(receivers) {
-    t.equal(receivers.length, 2, 'getReceivers returns an Array with length 2');
     t.ok(receivers.every(function(receiver) {
       return receiver instanceof RTCRtpReceiver;
     }), 'each entry in the Array is an RTCRtpReceiver');
@@ -232,23 +234,31 @@ tape('applying a remote offer and then applying a local answer causes .getParame
 tape('negotiating MediaStreamTracks and then renegotiating without them', function(t) {
   var pc = new RTCPeerConnection();
   var offer1 = new RTCSessionDescription({ type: 'offer', sdp: sdp1 });
+  t.equal(pc.getReceivers().length, 0, 'initially, .getReceivers() returns nothing');
   return pc.setRemoteDescription(offer1).then(function() {
-    return pc.createAnswer();
-  }).then(function(answer1) {
-    return pc.setLocalDescription(answer1);
-  }).then(function() {
-    var offer2 = new RTCSessionDescription({ type: 'offer', sdp: sdp2 });
-    return pc.setRemoteDescription(offer2);
-  }).then(function() {
-    return pc.createAnswer();
-  }).then(function(answer2) {
-    return pc.setLocalDescription(answer2);
-  }).then(function() {
     var receivers = pc.getReceivers();
-    t.equal(receivers[0].track.readyState, 'ended', 'the audio RTCRtpReceiver\'s .track has .readyState "live"');
-    t.equal(receivers[1].track.readyState, 'ended', 'the video RTCRtpReceiver\'s .track has .readyState "live"');
-    pc.close();
-    t.end();
+    t.equal(receivers.length, 2, 'after calling .setRemoteDescription(), .getReceivers() returns 2 RTCRtpReceivers');
+    t.equal(receivers[0].track.readyState, 'live', 'the audio RTCRtpReceiver\'s .track has .readyState "live"');
+    t.equal(receivers[1].track.readyState, 'live', 'the video RTCRtpReceiver\'s .track has .readyState "live"');
+    return pc.createAnswer().then(function(answer1) {
+      return pc.setLocalDescription(answer1);
+    }).then(function() {
+      var offer2 = new RTCSessionDescription({ type: 'offer', sdp: sdp2 });
+      return pc.setRemoteDescription(offer2);
+    }).then(function() {
+      t.equal(pc.getReceivers().length, 0, 'after calling .setRemoteDescription() again, .getReceivers() returns nothing');
+      t.equal(receivers[0].track.readyState, 'ended', 'but the previous audio RTCRtpReceiver\'s .track has .readyState "ended"');
+      t.equal(receivers[1].track.readyState, 'ended', 'but the previous video RTCRtpReceiver\'s .track has .readyState "ended"');
+      return pc.createAnswer();
+    }).then(function(answer2) {
+      return pc.setLocalDescription(answer2);
+    }).then(function() {
+      t.equal(pc.getReceivers().length, 0, 'after calling .close(), .getReceivers() returns nothing');
+      pc.close();
+      t.equal(receivers[0].track.readyState, 'ended', 'but the previous audio RTCRtpReceiver\'s .track has .readyState "ended"');
+      t.equal(receivers[1].track.readyState, 'ended', 'but the previous video RTCRtpReceiver\'s .track has .readyState "ended"');
+      t.end();
+    });
   });
 });
 

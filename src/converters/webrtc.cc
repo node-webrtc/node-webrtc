@@ -26,6 +26,7 @@
 #include "src/mediastreamtrack.h"  // IWYU pragma: keep
 #include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
 #include "src/rtcrtpsender.h"  // IWYU pragma: keep
+#include "src/rtcrtptransceiver.h"  // IWYU pragma: keep
 #include "src/rtcstatsresponse.h"  // IWYU pragma: keep
 
 using Nan::EscapableHandleScope;
@@ -50,6 +51,7 @@ using node_webrtc::RTCPeerConnectionState;
 using node_webrtc::RTCPriorityType ;
 using node_webrtc::RTCRtpReceiver;
 using node_webrtc::RTCRtpSender;
+using node_webrtc::RTCRtpTransceiver;
 using node_webrtc::RTCSdpType;
 using node_webrtc::RTCSessionDescriptionInit;
 using node_webrtc::RTCStatsResponse;
@@ -81,13 +83,52 @@ using RtcpMuxPolicy = webrtc::PeerConnectionInterface::RtcpMuxPolicy;
 using SdpParseError = webrtc::SdpParseError;
 using SignalingState = webrtc::PeerConnectionInterface::SignalingState ;
 
+#define CONVERTER(I, O, V) Validation<O> Converter<I, O>::Convert(I V)
+#define TO_JS(T, V) Validation<Local<Value>> Converter<T, Local<Value>>::Convert(T V)
+#define FROM_JS(T, V) Validation<T> Converter<Local<Value>, T>::Convert(Local<Value> V)
+
+#define FROM_JS_ENUM(T) \
+  Validation<T> Converter<Local<Value>, T>::Convert(Local<Value> value) { \
+    return From<std::string>(value).FlatMap<T>(Converter<std::string, T>::Convert); \
+  }
+
+#define TO_JS_ENUM(T) \
+  Validation<Local<Value>> Converter<T, Local<Value>>::Convert(T value) { \
+    return From<std::string>(value).FlatMap<Local<Value>>(Converter<std::string, Local<Value>>::Convert); \
+  }
+
+CONVERTER(cricket::MediaType, std::string, value) {
+  switch (value) {
+    case cricket::MediaType::MEDIA_TYPE_AUDIO:
+      return Validation<std::string>::Valid("audio");
+    case cricket::MediaType::MEDIA_TYPE_VIDEO:
+      return Validation<std::string>::Valid("video");
+    case cricket::MediaType::MEDIA_TYPE_DATA:
+      return Validation<std::string>::Valid("data");
+  }
+}
+
+CONVERTER(std::string, cricket::MediaType, value) {
+  if (value == "audio") {
+    return Validation<cricket::MediaType>::Valid(cricket::MediaType::MEDIA_TYPE_AUDIO);
+  } else if (value == "video") {
+    return Validation<cricket::MediaType>::Valid(cricket::MediaType::MEDIA_TYPE_VIDEO);
+  } else if (value == "data") {
+    return Validation<cricket::MediaType>::Valid(cricket::MediaType::MEDIA_TYPE_DATA);
+  }
+  return Validation<cricket::MediaType>::Invalid(R"(Expected "audio", "video" or "data")");
+}
+
+TO_JS_ENUM(cricket::MediaType);
+FROM_JS_ENUM(cricket::MediaType);
+
 static RTCOAuthCredential CreateRTCOAuthCredential(
     const std::string& macKey,
     const std::string& accessToken) {
   return RTCOAuthCredential(macKey, accessToken);
 }
 
-Validation<RTCOAuthCredential> Converter<Local<Value>, RTCOAuthCredential>::Convert(const Local<Value> value) {
+FROM_JS(RTCOAuthCredential, value) {
   return From<Local<Object>>(value).FlatMap<RTCOAuthCredential>(
   [](const Local<Object> object) {
     return curry(CreateRTCOAuthCredential)
@@ -96,7 +137,7 @@ Validation<RTCOAuthCredential> Converter<Local<Value>, RTCOAuthCredential>::Conv
   });
 }
 
-Validation<RTCIceCredentialType> Converter<Local<Value>, RTCIceCredentialType>::Convert(const Local<Value> value) {
+FROM_JS(RTCIceCredentialType, value) {
   return From<std::string>(value).FlatMap<RTCIceCredentialType>(
   [](const std::string string) {
     if (string == "password") {
@@ -124,7 +165,7 @@ static Validation<IceServer> CreateIceServer(
   return Validation<IceServer>::Valid(iceServer);
 }
 
-Validation<IceServer> Converter<Local<Value>, IceServer>::Convert(const Local<Value> value) {
+FROM_JS(IceServer, value) {
   return From<Local<Object>>(value).FlatMap<IceServer>(
   [](const Local<Object> object) {
     return Validation<IceServer>::Join(curry(CreateIceServer)
@@ -135,7 +176,7 @@ Validation<IceServer> Converter<Local<Value>, IceServer>::Convert(const Local<Va
   });
 }
 
-Validation<Local<Value>> Converter<IceServer, Local<Value>>::Convert(IceServer iceServer) {
+TO_JS(IceServer, iceServer) {
   EscapableHandleScope scope;
   auto object = Nan::New<Object>();
   if (!iceServer.uri.empty()) {
@@ -157,31 +198,32 @@ Validation<Local<Value>> Converter<IceServer, Local<Value>>::Convert(IceServer i
   return Validation<Local<Value>>::Valid(scope.Escape(object));
 }
 
-Validation<IceTransportsType> Converter<Local<Value>, IceTransportsType>::Convert(const Local<Value> value) {
-  return From<std::string>(value).FlatMap<IceTransportsType>(
-  [](const std::string string) {
-    if (string == "all") {
-      return Validation<IceTransportsType>::Valid(IceTransportsType::kAll);
-    } else if (string == "relay") {
-      return Validation<IceTransportsType>::Valid(IceTransportsType::kRelay);
-    }
-    return Validation<IceTransportsType>::Invalid(R"(Expected "all" or "relay")");
-  });
+CONVERTER(std::string, IceTransportsType, value) {
+  if (value == "all") {
+    return Validation<IceTransportsType >::Valid(IceTransportsType::kAll);
+  } else if (value == "relay") {
+    return Validation<IceTransportsType >::Valid(IceTransportsType::kRelay);
+  }
+  return Validation<IceTransportsType>::Invalid(R"(Expected "all" or "relay")");
 }
 
-Validation<Local<Value>> Converter<IceTransportsType, Local<Value>>::Convert(const IceTransportsType type) {
-  EscapableHandleScope scope;
-  switch (type) {
+CONVERTER(IceTransportsType, std::string, value) {
+  switch (value) {
     case IceTransportsType::kAll:
-      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("all").ToLocalChecked()));
+      return Validation<std::string>::Valid("all");
     case IceTransportsType::kRelay:
-      return Validation<Local<Value>>::Valid(scope.Escape(Nan::New("relay").ToLocalChecked()));
+      return Validation<std::string>::Valid("relay");
     default:
-      return Validation<Local<Value>>::Invalid("Somehow you've set RTCIceTransportPolicy to an unsupported value; please file a bug at https://github.com/js-platform/node-webrtc");
+      return Validation<std::string>::Invalid(
+              "Somehow you've set RTCIceTransportPolicy to an unsupported value; "
+              "please file a bug at https://github.com/js-platform/node-webrtc");
   }
 }
 
-Validation<BundlePolicy> Converter<Local<Value>, BundlePolicy>::Convert(const Local<Value> value) {
+FROM_JS_ENUM(IceTransportsType)
+TO_JS_ENUM(IceTransportsType)
+
+FROM_JS(BundlePolicy, value) {
   return From<std::string>(value).FlatMap<BundlePolicy>(
   [](const std::string string) {
     if (string == "balanced") {
@@ -195,7 +237,7 @@ Validation<BundlePolicy> Converter<Local<Value>, BundlePolicy>::Convert(const Lo
   });
 }
 
-Validation<Local<Value>> Converter<BundlePolicy, Local<Value>>::Convert(const BundlePolicy type) {
+TO_JS(BundlePolicy, type) {
   EscapableHandleScope scope;
   switch (type) {
     case BundlePolicy::kBundlePolicyBalanced:
@@ -208,7 +250,7 @@ Validation<Local<Value>> Converter<BundlePolicy, Local<Value>>::Convert(const Bu
   return Validation<Local<Value>>::Invalid("Impossible");
 }
 
-Validation<RtcpMuxPolicy> Converter<Local<Value>, RtcpMuxPolicy>::Convert(const Local<Value> value) {
+FROM_JS(RtcpMuxPolicy, value) {
   return From<std::string>(value).FlatMap<RtcpMuxPolicy>(
   [](const std::string string) {
     if (string == "negotiate") {
@@ -220,7 +262,7 @@ Validation<RtcpMuxPolicy> Converter<Local<Value>, RtcpMuxPolicy>::Convert(const 
   });
 }
 
-Validation<Local<Value>> Converter<RtcpMuxPolicy, Local<Value>>::Convert(const RtcpMuxPolicy type) {
+TO_JS(RtcpMuxPolicy, type) {
   EscapableHandleScope scope;
   switch (type) {
     case RtcpMuxPolicy::kRtcpMuxPolicyNegotiate:
@@ -237,7 +279,7 @@ static RTCDtlsFingerprint CreateRTCDtlsFingerprint(
   return RTCDtlsFingerprint(algorithm, value);
 }
 
-Validation<RTCDtlsFingerprint> Converter<Local<Value>, RTCDtlsFingerprint>::Convert(const Local<Value> value) {
+FROM_JS(RTCDtlsFingerprint, value) {
   return From<Local<Object>>(value).FlatMap<RTCDtlsFingerprint>(
   [](const Local<Object> object) {
     return curry(CreateRTCDtlsFingerprint)
@@ -257,7 +299,7 @@ static Validation<UnsignedShortRange> CreateUnsignedShortRange(
   return Validation<UnsignedShortRange>::Valid(UnsignedShortRange(maybeMin, maybeMax));
 }
 
-Validation<UnsignedShortRange> Converter<Local<Value>, UnsignedShortRange>::Convert(const Local<Value> value) {
+FROM_JS(UnsignedShortRange, value) {
   return From<Local<Object>>(value).FlatMap<UnsignedShortRange>(
   [](const Local<Object> object) {
     return Validation<UnsignedShortRange>::Join(curry(CreateUnsignedShortRange)
@@ -266,7 +308,7 @@ Validation<UnsignedShortRange> Converter<Local<Value>, UnsignedShortRange>::Conv
   });
 }
 
-Validation<Local<Value>> Converter<UnsignedShortRange, Local<Value>>::Convert(const UnsignedShortRange value) {
+TO_JS(UnsignedShortRange, value) {
   EscapableHandleScope scope;
   auto object = Nan::New<Object>();
   if (value.min.IsJust()) {
@@ -278,6 +320,27 @@ Validation<Local<Value>> Converter<UnsignedShortRange, Local<Value>>::Convert(co
   return Validation<Local<Value>>::Valid(scope.Escape(object));
 }
 
+CONVERTER(webrtc::SdpSemantics, std::string, value) {
+  switch (value) {
+    case webrtc::SdpSemantics::kPlanB:
+      return Validation<std::string>::Valid("plan-b");
+    case webrtc::SdpSemantics::kUnifiedPlan:
+      return Validation<std::string>::Valid("unified-plan");
+  }
+}
+
+CONVERTER(std::string, webrtc::SdpSemantics, value) {
+  if (value == "plan-b") {
+    return Validation<webrtc::SdpSemantics>::Valid(webrtc::SdpSemantics::kPlanB);
+  } else if (value == "unified-plan") {
+    return Validation<webrtc::SdpSemantics>::Valid(webrtc::SdpSemantics::kUnifiedPlan);
+  }
+  return Validation<webrtc::SdpSemantics>::Invalid(R"(Expected "plan-b" or "unified-plan")");
+}
+
+TO_JS_ENUM(webrtc::SdpSemantics);
+FROM_JS_ENUM(webrtc::SdpSemantics);
+
 static RTCConfiguration CreateRTCConfiguration(
     const std::vector<IceServer>& iceServers,
     const IceTransportsType iceTransportsPolicy,
@@ -285,19 +348,26 @@ static RTCConfiguration CreateRTCConfiguration(
     const RtcpMuxPolicy rtcpMuxPolicy,
     const Maybe<std::string>&,
     const Maybe<std::vector<Local<Object>>>&,
-    const uint32_t iceCandidatePoolSize) {
+    const uint32_t iceCandidatePoolSize,
+    const webrtc::SdpSemantics sdpSemantics) {
   RTCConfiguration configuration;
   configuration.servers = iceServers;
   configuration.type = iceTransportsPolicy;
   configuration.bundle_policy = bundlePolicy;
   configuration.rtcp_mux_policy = rtcpMuxPolicy;
   configuration.ice_candidate_pool_size = iceCandidatePoolSize;
+  configuration.sdp_semantics = sdpSemantics;
   return configuration;
 }
 
-Validation<RTCConfiguration> Converter<Local<Value>, RTCConfiguration>::Convert(const Local<Value> value) {
+FROM_JS(RTCConfiguration, value) {
+  // NOTE(mroberts): Allow overriding the default SdpSemantics via environment variable.
+  // Makes web-platform-tests easier to run.
+  auto sdp_semantics_env = std::getenv("SDP_SEMANTICS");
+  auto sdp_semantics_str = sdp_semantics_env ? std::string(sdp_semantics_env) : std::string();
+  auto sdp_semantics = From<webrtc::SdpSemantics>(sdp_semantics_str).FromValidation(webrtc::SdpSemantics::kPlanB);
   return From<Local<Object>>(value).FlatMap<RTCConfiguration>(
-  [](const Local<Object> object) {
+  [sdp_semantics](const Local<Object> object) {
     return curry(CreateRTCConfiguration)
         % GetOptional<std::vector<IceServer>>(object, "iceServers", std::vector<IceServer>())
         * GetOptional<IceTransportsType>(object, "iceTransportPolicy", IceTransportsType::kAll)
@@ -306,7 +376,8 @@ Validation<RTCConfiguration> Converter<Local<Value>, RTCConfiguration>::Convert(
         * GetOptional<std::string>(object, "peerIdentity")
         * GetOptional<std::vector<Local<Object>>>(object, "certificates")
         // TODO(mroberts): Implement EnforceRange and change to uint8_t.
-        * GetOptional<uint8_t>(object, "iceCandidatePoolSize", 0);
+        * GetOptional<uint8_t>(object, "iceCandidatePoolSize", 0)
+        * GetOptional<webrtc::SdpSemantics>(object, "sdpSemantics", sdp_semantics);
   });
 }
 
@@ -316,7 +387,7 @@ static ExtendedRTCConfiguration CreateExtendedRTCConfiguration(
   return ExtendedRTCConfiguration(configuration, portRange);
 }
 
-Validation<ExtendedRTCConfiguration> Converter<Local<Value>, ExtendedRTCConfiguration>::Convert(const Local<Value> value) {
+FROM_JS(ExtendedRTCConfiguration, value) {
   return From<Local<Object>>(value).FlatMap<ExtendedRTCConfiguration>(
   [](const Local<Object> object) {
     return curry(CreateExtendedRTCConfiguration)
@@ -331,7 +402,8 @@ static Local<Value> ExtendedRTCConfigurationToJavaScript(
     const Local<Value> bundlePolicy,
     const Local<Value> rtcpMuxPolicy,
     const Local<Value> iceCandidatePoolSize,
-    const Local<Value> portRange) {
+    const Local<Value> portRange,
+    const Local<Value> sdpSemantics) {
   EscapableHandleScope scope;
   auto object = Nan::New<Object>();
   object->Set(Nan::New("iceServers").ToLocalChecked(), iceServers);
@@ -340,17 +412,19 @@ static Local<Value> ExtendedRTCConfigurationToJavaScript(
   object->Set(Nan::New("rtcpMuxPolicy").ToLocalChecked(), rtcpMuxPolicy);
   object->Set(Nan::New("iceCandidatePoolSize").ToLocalChecked(), iceCandidatePoolSize);
   object->Set(Nan::New("portRange").ToLocalChecked(), portRange);
+  object->Set(Nan::New("sdpSemantics").ToLocalChecked(), sdpSemantics);
   return scope.Escape(object);
 }
 
-Validation<Local<Value>> Converter<ExtendedRTCConfiguration, Local<Value>>::Convert(ExtendedRTCConfiguration configuration) {
+TO_JS(ExtendedRTCConfiguration, configuration) {
   return curry(ExtendedRTCConfigurationToJavaScript)
       % From<Local<Value>>(configuration.configuration.servers)
       * From<Local<Value>>(configuration.configuration.type)
       * From<Local<Value>>(configuration.configuration.bundle_policy)
       * From<Local<Value>>(configuration.configuration.rtcp_mux_policy)
       * Validation<Local<Value>>::Valid(Nan::New(configuration.configuration.ice_candidate_pool_size))
-      * From<Local<Value>>(configuration.portRange);
+      * From<Local<Value>>(configuration.portRange)
+      * From<Local<Value>>(configuration.configuration.sdp_semantics);
 }
 
 static RTCOfferOptions CreateRTCOfferOptions(
@@ -370,7 +444,7 @@ static RTCOfferOptions CreateRTCOfferOptions(
   return RTCOfferOptions(options);
 }
 
-Validation<RTCOfferOptions> Converter<Local<Value>, RTCOfferOptions>::Convert(const Local<Value> value) {
+FROM_JS(RTCOfferOptions, value) {
   return From<Local<Object>>(value).FlatMap<RTCOfferOptions>(
   [](const Local<Object> object) {
     return curry(CreateRTCOfferOptions)
@@ -387,7 +461,7 @@ static RTCAnswerOptions CreateRTCAnswerOptions(const bool voiceActivityDetection
   return RTCAnswerOptions(options);
 }
 
-Validation<RTCAnswerOptions> Converter<Local<Value>, RTCAnswerOptions>::Convert(const Local<Value> value) {
+FROM_JS(RTCAnswerOptions, value) {
   return From<Local<Object>>(value).FlatMap<RTCAnswerOptions>(
   [](const Local<Object> object) {
     return curry(CreateRTCAnswerOptions)
@@ -422,9 +496,7 @@ Validation<std::string> Converter<RTCSdpType, std::string>::Convert(const RTCSdp
   return Validation<std::string>::Invalid("Impossible");
 }
 
-Validation<RTCSdpType> Converter<Local<Value>, RTCSdpType>::Convert(const Local<Value> value) {
-  return From<std::string>(value).FlatMap<RTCSdpType>(Converter<std::string, RTCSdpType>::Convert);
-}
+FROM_JS_ENUM(RTCSdpType);
 
 RTCSessionDescriptionInit CreateRTCSessionDescriptionInit(
     const RTCSdpType type,
@@ -432,8 +504,7 @@ RTCSessionDescriptionInit CreateRTCSessionDescriptionInit(
   return RTCSessionDescriptionInit(type, sdp);
 }
 
-Validation<RTCSessionDescriptionInit> Converter<Local<Value>, RTCSessionDescriptionInit>::Convert(
-    const Local<Value> value) {
+FROM_JS(RTCSessionDescriptionInit, value) {
   return From<Local<Object>>(value).FlatMap<RTCSessionDescriptionInit>(
   [](const Local<Object> object) {
     return curry(CreateRTCSessionDescriptionInit)
@@ -466,8 +537,7 @@ Validation<SessionDescriptionInterface*> Converter<RTCSessionDescriptionInit, Se
   return Validation<SessionDescriptionInterface*>::Valid(description);
 }
 
-Validation<Local<Value>> Converter<RTCSessionDescriptionInit, Local<Value>>::Convert(
-const RTCSessionDescriptionInit init) {
+TO_JS(RTCSessionDescriptionInit, init) {
   EscapableHandleScope scope;
   auto maybeType = From<std::string>(init.type);
   if (maybeType.IsInvalid()) {
@@ -493,13 +563,12 @@ Validation<RTCSessionDescriptionInit> Converter<SessionDescriptionInterface*, RT
       * Validation<std::string>(sdp);
 }
 
-Validation<SessionDescriptionInterface*> Converter<Local<Value>, SessionDescriptionInterface*>::Convert(
-    const Local<Value> value) {
+FROM_JS(SessionDescriptionInterface*, value) {
   return From<RTCSessionDescriptionInit>(value)
       .FlatMap<SessionDescriptionInterface*>(Converter<RTCSessionDescriptionInit, SessionDescriptionInterface*>::Convert);
 }
 
-Validation<Local<Value>> Converter<const SessionDescriptionInterface*, Local<Value>>::Convert(const SessionDescriptionInterface* value) {
+TO_JS(const SessionDescriptionInterface*, value) {
   EscapableHandleScope scope;
 
   if (!value) {
@@ -531,7 +600,7 @@ static Validation<IceCandidateInterface*> CreateIceCandidateInterface(
   return Validation<IceCandidateInterface*>::Valid(candidate_);
 }
 
-Validation<IceCandidateInterface*> Converter<Local<Value>, IceCandidateInterface*>::Convert(const Local<Value> value) {
+FROM_JS(IceCandidateInterface*, value) {
   return From<Local<Object>>(value).FlatMap<IceCandidateInterface*>(
   [](const Local<Object> object) {
     return Validation<IceCandidateInterface*>::Join(curry(CreateIceCandidateInterface)
@@ -542,7 +611,7 @@ Validation<IceCandidateInterface*> Converter<Local<Value>, IceCandidateInterface
   });
 }
 
-Validation<Local<Value>> Converter<const IceCandidateInterface*, Local<Value>>::Convert(const IceCandidateInterface* value) {
+TO_JS(const IceCandidateInterface*, value) {
   EscapableHandleScope scope;
 
   if (!value) {
@@ -562,7 +631,7 @@ Validation<Local<Value>> Converter<const IceCandidateInterface*, Local<Value>>::
   return Validation<Local<Value>>::Valid(scope.Escape(object));
 }
 
-Validation<RTCPriorityType> Converter<Local<Value>, RTCPriorityType>::Convert(const Local<Value> value) {
+FROM_JS(RTCPriorityType, value) {
   return From<std::string>(value).FlatMap<RTCPriorityType>(
   [](const std::string string) {
     if (string == "very-low") {
@@ -596,7 +665,7 @@ static DataChannelInit CreateDataChannelInit(
   return init;
 }
 
-Validation<DataChannelInit> Converter<Local<Value>, DataChannelInit>::Convert(const Local<Value> value) {
+FROM_JS(DataChannelInit, value) {
   return From<Local<Object>>(value).FlatMap<DataChannelInit>(
   [](const Local<Object> object) {
     return curry(CreateDataChannelInit)
@@ -610,7 +679,7 @@ Validation<DataChannelInit> Converter<Local<Value>, DataChannelInit>::Convert(co
   });
 }
 
-Validation<Local<Value>> Converter<SignalingState, Local<Value>>::Convert(const SignalingState state) {
+TO_JS(SignalingState, state) {
   EscapableHandleScope scope;
   switch (state) {
     case SignalingState::kStable:
@@ -629,7 +698,7 @@ Validation<Local<Value>> Converter<SignalingState, Local<Value>>::Convert(const 
   return Validation<Local<Value>>::Invalid("Impossible");
 }
 
-Validation<Local<Value>> Converter<IceGatheringState, Local<Value>>::Convert(const IceGatheringState state) {
+TO_JS(IceGatheringState, state) {
   EscapableHandleScope scope;
   switch (state) {
     case IceGatheringState::kIceGatheringNew:
@@ -642,7 +711,7 @@ Validation<Local<Value>> Converter<IceGatheringState, Local<Value>>::Convert(con
   return Validation<Local<Value>>::Invalid("Impossible");
 }
 
-Validation<Local<Value>> Converter<IceConnectionState, Local<Value>>::Convert(const IceConnectionState state) {
+TO_JS(IceConnectionState, state) {
   EscapableHandleScope scope;
   switch (state) {
     case IceConnectionState::kIceConnectionChecking:
@@ -667,7 +736,7 @@ Validation<Local<Value>> Converter<IceConnectionState, Local<Value>>::Convert(co
   return Validation<Local<Value>>::Invalid("Impossible");
 }
 
-Validation<Local<Value>> Converter<DataState, Local<Value>>::Convert(const DataState state) {
+TO_JS(DataState, state) {
   EscapableHandleScope scope;
   switch (state) {
     case DataState::kClosed:
@@ -682,7 +751,7 @@ Validation<Local<Value>> Converter<DataState, Local<Value>>::Convert(const DataS
   return Validation<Local<Value>>::Invalid("Impossible");
 }
 
-Validation<Local<Value>> Converter<BinaryType, Local<Value>>::Convert(const BinaryType binaryType) {
+TO_JS(BinaryType, binaryType) {
   EscapableHandleScope scope;
   switch (binaryType) {
     case BinaryType::kArrayBuffer:
@@ -693,7 +762,7 @@ Validation<Local<Value>> Converter<BinaryType, Local<Value>>::Convert(const Bina
   return Validation<Local<Value>>::Invalid("Impossible");
 }
 
-Validation<BinaryType> Converter<Local<Value>, BinaryType>::Convert(const Local<Value> value) {
+FROM_JS(BinaryType, value) {
   return From<std::string>(value).FlatMap<BinaryType>(
   [](const std::string string) {
     if (string == "blob") {
@@ -706,11 +775,11 @@ Validation<BinaryType> Converter<Local<Value>, BinaryType>::Convert(const Local<
   });
 }
 
-Validation<Local<Value>> Converter<RTCError*, Local<Value>>::Convert(RTCError* error) {
+TO_JS(RTCError*, error) {
   return Converter<const RTCError*, Local<Value>>::Convert(error);
 }
 
-Validation<Local<Value>> Converter<const RTCError*, Local<Value>>::Convert(const RTCError* error) {
+TO_JS(const RTCError*, error) {
   EscapableHandleScope scope;
   if (!error) {
     return Validation<Local<Value>>::Invalid("No error? Please file a bug on https://github.com/js-platform/node-webrtc");
@@ -807,7 +876,7 @@ Validation<RTCPeerConnectionState> Converter<IceConnectionState, RTCPeerConnecti
   return Validation<RTCPeerConnectionState>::Invalid("Impossible");
 }
 
-Validation<Local<Value>> Converter<RTCPeerConnectionState, Local<Value>>::Convert(RTCPeerConnectionState state) {
+TO_JS(RTCPeerConnectionState, state) {
   EscapableHandleScope scope;
   switch (state) {
     case RTCPeerConnectionState::kClosed:
@@ -826,7 +895,7 @@ Validation<Local<Value>> Converter<RTCPeerConnectionState, Local<Value>>::Conver
   return Validation<Local<Value>>::Invalid("Impossible");
 }
 
-Validation<Local<Value>> Converter<RTCStatsResponseInit, Local<Value>>::Convert(RTCStatsResponseInit init) {
+TO_JS(RTCStatsResponseInit, init) {
   EscapableHandleScope scope;
   Local<Value> cargv[2];
   cargv[0] = Nan::New<External>(const_cast<void*>(static_cast<const void*>(&init.first)));
@@ -835,7 +904,7 @@ Validation<Local<Value>> Converter<RTCStatsResponseInit, Local<Value>>::Convert(
   return Validation<Local<Value>>::Valid(scope.Escape(response));
 }
 
-Validation<Local<Value>> Converter<webrtc::RtpSource, Local<Value>>::Convert(webrtc::RtpSource source) {
+TO_JS(webrtc::RtpSource, source) {
   EscapableHandleScope scope;
   auto object = Nan::New<Object>();
   object->Set(Nan::New("timestamp").ToLocalChecked(), Nan::New<Number>(source.timestamp_ms()));
@@ -843,7 +912,7 @@ Validation<Local<Value>> Converter<webrtc::RtpSource, Local<Value>>::Convert(web
   return Validation<Local<Value>>::Valid(scope.Escape(object));
 }
 
-Validation<Local<Value>> Converter<webrtc::RtpHeaderExtensionParameters, Local<Value>>::Convert(webrtc::RtpHeaderExtensionParameters params) {
+TO_JS(webrtc::RtpHeaderExtensionParameters, params) {
   EscapableHandleScope scope;
   auto object = Nan::New<Object>();
   object->Set(Nan::New("uri").ToLocalChecked(), Nan::New(params.uri).ToLocalChecked());
@@ -851,7 +920,7 @@ Validation<Local<Value>> Converter<webrtc::RtpHeaderExtensionParameters, Local<V
   return Validation<Local<Value>>::Valid(scope.Escape(object));
 }
 
-Validation<Local<Value>> Converter<webrtc::RtpCodecParameters, Local<Value>>::Convert(webrtc::RtpCodecParameters params) {
+TO_JS(webrtc::RtpCodecParameters, params) {
   EscapableHandleScope scope;
   auto object = Nan::New<Object>();
   object->Set(Nan::New("payloadType").ToLocalChecked(), Nan::New(params.payload_type));
@@ -877,22 +946,34 @@ Validation<Local<Value>> Converter<webrtc::RtpCodecParameters, Local<Value>>::Co
   return Validation<Local<Value>>::Valid(scope.Escape(object));
 }
 
-static Local<Value> CreateRtpParameters(Local<Value> headerExtensions, Local<Value> codecs) {
+TO_JS(webrtc::RtcpParameters, params) {
+  EscapableHandleScope scope;
+  auto object = Nan::New<Object>();
+  if (!params.cname.empty()) {
+    object->Set(Nan::New("cname").ToLocalChecked(), Nan::New(params.cname).ToLocalChecked());
+  }
+  object->Set(Nan::New("reducedSize").ToLocalChecked(), Nan::New(params.reduced_size));
+  return Validation<Local<Value>>::Valid(scope.Escape(Local<Value>::Cast(object)));
+}
+
+static Local<Value> CreateRtpParameters(Local<Value> headerExtensions, Local<Value> codecs, Local<Value> rtcp) {
   EscapableHandleScope scope;
   auto object = Nan::New<Object>();
   object->Set(Nan::New("headerExtensions").ToLocalChecked(), headerExtensions);
   object->Set(Nan::New("codecs").ToLocalChecked(), codecs);
   object->Set(Nan::New("encodings").ToLocalChecked(), Nan::New<Array>());
+  object->Set(Nan::New("rtcp").ToLocalChecked(), rtcp);
   return scope.Escape(object);
 }
 
-Validation<Local<Value>> Converter<webrtc::RtpParameters, v8::Local<v8::Value>>::Convert(webrtc::RtpParameters params) {
+TO_JS(webrtc::RtpParameters, params) {
   return curry(CreateRtpParameters)
       % From<Local<Value>>(params.header_extensions)
-      * From<Local<Value>>(params.codecs);
+      * From<Local<Value>>(params.codecs)
+      * From<Local<Value>>(params.rtcp);
 }
 
-Validation<Local<Value>> Converter<RTCRtpSender*, Local<Value>>::Convert(RTCRtpSender* sender) {
+TO_JS(RTCRtpSender*, sender) {
   Nan::EscapableHandleScope scope;
   if (!sender) {
     return Validation<v8::Local<v8::Value>>::Invalid("RTCRtpSender is null");
@@ -900,14 +981,14 @@ Validation<Local<Value>> Converter<RTCRtpSender*, Local<Value>>::Convert(RTCRtpS
   return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(sender->ToObject()));
 }
 
-Validation<RTCRtpSender*> Converter<Local<Value>, RTCRtpSender*>::Convert(Local<Value> value) {
+FROM_JS(RTCRtpSender*, value) {
   // TODO(mroberts): This is not safe.
   return value->IsObject() && !value->IsNull() && !value->IsArray()
       ? Validation<RTCRtpSender*>::Valid(AsyncObjectWrapWithLoop<RTCRtpSender>::Unwrap(value->ToObject()))
       : Validation<RTCRtpSender*>::Invalid("IDK");
 }
 
-Validation<Local<Value>> Converter<RTCRtpReceiver*, Local<Value>>::Convert(RTCRtpReceiver* receiver) {
+TO_JS(RTCRtpReceiver*, receiver) {
   Nan::EscapableHandleScope scope;
   if (!receiver) {
     return Validation<Local<Value>>::Invalid("RTCRtpReceiver is null");
@@ -915,7 +996,15 @@ Validation<Local<Value>> Converter<RTCRtpReceiver*, Local<Value>>::Convert(RTCRt
   return Validation<Local<Value>>::Valid(scope.Escape(receiver->ToObject()));
 }
 
-Validation<Local<Value>> Converter<MediaStream*, Local<Value>>::Convert(MediaStream* stream) {
+TO_JS(RTCRtpTransceiver*, transceiver) {
+  Nan::EscapableHandleScope scope;
+  if (!transceiver) {
+    return Validation<v8::Local<v8::Value>>::Invalid("RTCRtpTransceiver is null");
+  }
+  return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(transceiver->ToObject()));
+}
+
+TO_JS(MediaStream*, stream) {
   Nan::EscapableHandleScope scope;
   if (!stream) {
     return Validation<v8::Local<v8::Value>>::Invalid("MediaStream is null");
@@ -923,14 +1012,14 @@ Validation<Local<Value>> Converter<MediaStream*, Local<Value>>::Convert(MediaStr
   return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(stream->handle()));
 }
 
-Validation<MediaStream*> Converter<Local<Value>, MediaStream*>::Convert(Local<Value> value) {
+FROM_JS(MediaStream*, value) {
   // TODO(mroberts): This is not safe.
   return value->IsObject() && !value->IsNull() && !value->IsArray()
       ? Validation<MediaStream*>::Valid(Nan::ObjectWrap::Unwrap<MediaStream>(value->ToObject()))
       : Validation<MediaStream*>::Invalid("IDK");
 }
 
-Validation<Local<Value>> Converter<MediaStreamTrack*, Local<Value>>::Convert(MediaStreamTrack* track) {
+TO_JS(MediaStreamTrack*, track) {
   Nan::EscapableHandleScope scope;
   if (!track) {
     return Validation<v8::Local<v8::Value>>::Invalid("MediaStreamTrack is null");
@@ -948,9 +1037,38 @@ Validation<std::string> Converter<webrtc::MediaStreamTrackInterface::TrackState,
   return Validation<std::string>::Invalid("Impossible");
 }
 
-Validation<MediaStreamTrack*> Converter<Local<Value>, MediaStreamTrack*>::Convert(Local<Value> value) {
+FROM_JS(MediaStreamTrack*, value) {
   // TODO(mroberts): This is not safe.
   return value->IsObject() && !value->IsNull() && !value->IsArray()
       ? Validation<MediaStreamTrack*>::Valid(AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(value->ToObject()))
       : Validation<MediaStreamTrack*>::Invalid("IDK");
 }
+
+CONVERTER(webrtc::RtpTransceiverDirection, std::string, value) {
+  switch (value) {
+    case webrtc::RtpTransceiverDirection::kSendRecv:
+      return Validation<std::string>::Valid("sendrecv");
+    case webrtc::RtpTransceiverDirection::kSendOnly:
+      return Validation<std::string>::Valid("sendonly");
+    case webrtc::RtpTransceiverDirection::kRecvOnly:
+      return Validation<std::string>::Valid("recvonly");
+    case webrtc::RtpTransceiverDirection::kInactive:
+      return Validation<std::string>::Valid("inactive");
+  }
+}
+
+CONVERTER(std::string, webrtc::RtpTransceiverDirection, value) {
+  if (value == "sendrecv") {
+    return Validation<webrtc::RtpTransceiverDirection>::Valid(webrtc::RtpTransceiverDirection::kSendRecv);
+  } else if (value == "sendonly") {
+    return Validation<webrtc::RtpTransceiverDirection>::Valid(webrtc::RtpTransceiverDirection::kSendOnly);
+  } else if (value == "recvonly") {
+    return Validation<webrtc::RtpTransceiverDirection>::Valid(webrtc::RtpTransceiverDirection::kRecvOnly);
+  } else if (value == "inactive") {
+    return Validation<webrtc::RtpTransceiverDirection>::Valid(webrtc::RtpTransceiverDirection::kInactive);
+  }
+  return Validation<webrtc::RtpTransceiverDirection>::Invalid(R"(Expected "sendrecv", "sendonly", "recvonly" or "inactive")");
+}
+
+TO_JS_ENUM(webrtc::RtpTransceiverDirection);
+FROM_JS_ENUM(webrtc::RtpTransceiverDirection);

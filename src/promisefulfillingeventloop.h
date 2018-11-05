@@ -8,6 +8,7 @@
 #ifndef SRC_PROMISEFULFILLINGEVENTLOOP_H_
 #define SRC_PROMISEFULFILLINGEVENTLOOP_H_
 
+#include <iostream>
 #include <memory>
 #include <queue>
 
@@ -31,6 +32,9 @@ class PromiseFulfillingEventLoop: public EventLoop<T> {
 
   void Run() override {
     Nan::HandleScope scope;
+    if (Nan::GetCurrentContext().IsEmpty()) {
+      std::cout << "This is surprising" << std::endl;
+    }
     EventLoop<T>::Run();
     if (!this->should_stop()) {
       Nan::GetCurrentContext()->GetIsolate()->RunMicrotasks();

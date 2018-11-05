@@ -57,6 +57,8 @@ class MediaStreamTrack
 
   std::shared_ptr<node_webrtc::PeerConnectionFactory> factory() { return _factory; }
 
+  void OnPeerConnectionClosed();
+
  private:
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> _track;

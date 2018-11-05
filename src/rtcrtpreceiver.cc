@@ -33,12 +33,14 @@ BidiMap<rtc::scoped_refptr<webrtc::RtpReceiverInterface>, RTCRtpReceiver*> RTCRt
 
 RTCRtpReceiver::RTCRtpReceiver(
     std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
-    rtc::scoped_refptr<webrtc::RtpReceiverInterface>&& receiver,
-    node_webrtc::MediaStreamTrack* track)
+    rtc::scoped_refptr<webrtc::RtpReceiverInterface>&& receiver)
   : AsyncObjectWrap("RTCRtpReceiver")
   , _factory(std::move(factory))
-  , _receiver(std::move(receiver))
-  , _track(track) {
+  , _receiver(std::move(receiver)) {
+}
+
+RTCRtpReceiver::~RTCRtpReceiver() {
+  Release(this);
 }
 
 NAN_METHOD(RTCRtpReceiver::New) {
@@ -48,9 +50,8 @@ NAN_METHOD(RTCRtpReceiver::New) {
 
   auto factory = *static_cast<std::shared_ptr<node_webrtc::PeerConnectionFactory>*>(Local<External>::Cast(info[0])->Value());
   auto receiver = *static_cast<rtc::scoped_refptr<webrtc::RtpReceiverInterface>*>(Local<External>::Cast(info[1])->Value());
-  auto track = MediaStreamTrack::GetOrCreate(factory, receiver->track());
 
-  auto obj = new RTCRtpReceiver(std::move(factory), std::move(receiver), track);
+  auto obj = new RTCRtpReceiver(std::move(factory), std::move(receiver));
   obj->Wrap(info.This());
 
   info.GetReturnValue().Set(info.This());
@@ -59,7 +60,8 @@ NAN_METHOD(RTCRtpReceiver::New) {
 NAN_GETTER(RTCRtpReceiver::GetTrack) {
   (void) property;
   auto self = AsyncObjectWrap::Unwrap<RTCRtpReceiver>(info.Holder());
-  info.GetReturnValue().Set(self->_track->ToObject());
+  auto track = MediaStreamTrack::GetOrCreate(self->_factory, self->_receiver->track());
+  info.GetReturnValue().Set(track->ToObject());
 }
 
 NAN_GETTER(RTCRtpReceiver::GetTransport) {
@@ -87,12 +89,10 @@ NAN_METHOD(RTCRtpReceiver::GetParameters) {
 NAN_METHOD(RTCRtpReceiver::GetContributingSources) {
   auto self = AsyncObjectWrap::Unwrap<RTCRtpReceiver>(info.Holder());
   auto contributingSources = std::vector<webrtc::RtpSource>();
-  if (!self->_closed) {
-    auto sources = self->_receiver->GetSources();
-    for (auto source : sources) {
-      if (source.source_type() == webrtc::RtpSourceType::CSRC) {
-        contributingSources.push_back(source);
-      }
+  auto sources = self->_receiver->GetSources();
+  for (auto source : sources) {
+    if (source.source_type() == webrtc::RtpSourceType::CSRC) {
+      contributingSources.push_back(source);
     }
   }
   CONVERT_OR_THROW_AND_RETURN(contributingSources, result, Local<Value>);
@@ -102,12 +102,10 @@ NAN_METHOD(RTCRtpReceiver::GetContributingSources) {
 NAN_METHOD(RTCRtpReceiver::GetSynchronizationSources) {
   auto self = AsyncObjectWrap::Unwrap<RTCRtpReceiver>(info.Holder());
   auto synchronizationSources = std::vector<webrtc::RtpSource>();
-  if (!self->_closed) {
-    auto sources = self->_receiver->GetSources();
-    for (auto source : sources) {
-      if (source.source_type() == webrtc::RtpSourceType::SSRC) {
-        synchronizationSources.push_back(source);
-      }
+  auto sources = self->_receiver->GetSources();
+  for (auto source : sources) {
+    if (source.source_type() == webrtc::RtpSourceType::SSRC) {
+      synchronizationSources.push_back(source);
     }
   }
   CONVERT_OR_THROW_AND_RETURN(synchronizationSources, result, Local<Value>);
@@ -129,14 +127,11 @@ RTCRtpReceiver* RTCRtpReceiver::GetOrCreate(
     cargv[0] = Nan::New<External>(static_cast<void*>(&factory));
     cargv[1] = Nan::New<External>(static_cast<void*>(&receiver));
     auto value = Nan::NewInstance(Nan::New(RTCRtpReceiver::constructor), 2, cargv).ToLocalChecked();
-    auto instance = AsyncObjectWrapWithLoop<RTCRtpReceiver>::Unwrap(value);
-    instance->_receiver->AddRef();
-    return instance;
+    return AsyncObjectWrapWithLoop<RTCRtpReceiver>::Unwrap(value);
   });
 }
 
 void RTCRtpReceiver::Release(RTCRtpReceiver* receiver) {
-  receiver->RemoveRef();
   _receivers.reverseRemove(receiver);
 }
 

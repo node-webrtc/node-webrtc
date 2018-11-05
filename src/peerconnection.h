@@ -71,6 +71,7 @@ class PeerConnection
   static NAN_METHOD(New);
 
   static NAN_METHOD(AddTrack);
+  static NAN_METHOD(AddTransceiver);
   static NAN_METHOD(RemoveTrack);
   static NAN_METHOD(CreateOffer);
   static NAN_METHOD(CreateAnswer);
@@ -91,6 +92,7 @@ class PeerConnection
   static NAN_METHOD(GetReceivers);
   static NAN_METHOD(GetSenders);
   static NAN_METHOD(GetStats);
+  static NAN_METHOD(GetTransceivers);
   static NAN_METHOD(Close);
 
   static NAN_GETTER(GetCanTrickleIceCandidates);
@@ -126,9 +128,6 @@ class PeerConnection
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   bool _shouldReleaseFactory;
 
-  // TODO(mroberts): Lock?
-  std::vector<rtc::scoped_refptr<webrtc::RtpReceiverInterface>> _receivers;
-  std::vector<node_webrtc::RTCRtpSender*> _senders;
   std::vector<node_webrtc::DataChannel*> _channels;
 };
 

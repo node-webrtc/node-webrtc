@@ -9,6 +9,7 @@
 #define SRC_ASYNCOBJECTWRAP_H_
 
 #include <atomic>
+#include <thread>
 
 #include "nan.h"
 #include "uv.h"
@@ -26,8 +27,7 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
    * Construct an AsyncObjectWrap. The name you provide is the name of the AsyncResource.
    * @param name the name of the AsyncResource
    */
-  explicit AsyncObjectWrap(const char* name) {
-    _async_resource = new Nan::AsyncResource(name);
+  explicit AsyncObjectWrap(const char* name): _async_resource(new Nan::AsyncResource(name)) {
     uv_mutex_init(&_async_resource_lock);
   }
 
@@ -51,7 +51,6 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
   inline void RemoveRef() {
     Nan::HandleScope scope;
     if (_reference_count.fetch_sub(1) == 1) {
-      DestroyAsyncResource();
       Unref();
     }
   }
@@ -111,7 +110,15 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
   inline void DestroyAsyncResource() {
     uv_mutex_lock(&_async_resource_lock);
     if (_async_resource) {
-      delete _async_resource;
+      if (!Nan::GetCurrentContext().IsEmpty()) {
+        delete _async_resource;
+      } else {
+        // HACK(mroberts): This is probably unsafe, but sometimes the current Context is null...
+        auto context = v8::Isolate::GetCurrent()->GetCallingContext();
+        context->Enter();
+        delete _async_resource;
+        context->Exit();
+      }
       _async_resource = nullptr;
     }
     uv_mutex_unlock(&_async_resource_lock);

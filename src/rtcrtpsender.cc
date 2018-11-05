@@ -9,6 +9,7 @@
 
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
+#include "src/bidimap.h"
 #include "src/converters/arguments.h"  // IWYU pragma: keep
 #include "src/converters/webrtc.h"  // IWYU pragma: keep
 #include "src/error.h"
@@ -21,6 +22,7 @@ template <typename T> class Maybe;
 }  // namespace node_webrtc;
 
 using node_webrtc::AsyncObjectWrap;
+using node_webrtc::BidiMap;
 using node_webrtc::Maybe;
 using node_webrtc::MediaStreamTrack;
 using node_webrtc::RTCRtpSender;
@@ -34,23 +36,18 @@ using v8::Value;
 
 Nan::Persistent<Function> RTCRtpSender::constructor;
 
+BidiMap<rtc::scoped_refptr<webrtc::RtpSenderInterface>, RTCRtpSender*> RTCRtpSender::_senders;
+
 RTCRtpSender::RTCRtpSender(
     std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
-    rtc::scoped_refptr<webrtc::RtpSenderInterface>&& sender,
-    node_webrtc::MediaStreamTrack* track)
+    rtc::scoped_refptr<webrtc::RtpSenderInterface>&& sender)
   : AsyncObjectWrap("RTCRtpSender")
   , _factory(std::move(factory))
-  , _sender(std::move(sender))
-  , _track(track) {
-  if (_track) {
-    _track->AddRef();
-  }
+  , _sender(std::move(sender)) {
 }
 
 RTCRtpSender::~RTCRtpSender() {
-  if (_track) {
-    _track->RemoveRef();
-  }
+  Release(this);
 }
 
 NAN_METHOD(RTCRtpSender::New) {
@@ -60,9 +57,8 @@ NAN_METHOD(RTCRtpSender::New) {
 
   auto factory = *static_cast<std::shared_ptr<node_webrtc::PeerConnectionFactory>*>(Local<External>::Cast(info[0])->Value());
   auto sender = *static_cast<rtc::scoped_refptr<webrtc::RtpSenderInterface>*>(Local<External>::Cast(info[1])->Value());
-  auto track = MediaStreamTrack::GetOrCreate(factory, sender->track());
 
-  auto obj = new RTCRtpSender(std::move(factory), std::move(sender), track);
+  auto obj = new RTCRtpSender(std::move(factory), std::move(sender));
   obj->Wrap(info.This());
 
   info.GetReturnValue().Set(info.This());
@@ -72,8 +68,9 @@ NAN_GETTER(RTCRtpSender::GetTrack) {
   (void) property;
   auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
   Local<Value> result = Nan::Null();
-  if (self->_track) {
-    result = self->_track->ToObject();
+  auto track = self->_sender->track();
+  if (track) {
+    result = MediaStreamTrack::GetOrCreate(self->_factory, track)->ToObject();
   }
   info.GetReturnValue().Set(result);
 }
@@ -124,17 +121,27 @@ NAN_METHOD(RTCRtpSender::ReplaceTrack) {
   });
   auto track = mediaStreamTrack ? mediaStreamTrack->track().get() : nullptr;
   if (self->_sender->SetTrack(track)) {
-    if (self->_track) {
-      self->_track->RemoveRef();
-    }
-    self->_track = mediaStreamTrack;
-    if (mediaStreamTrack) {
-      mediaStreamTrack->AddRef();
-    }
     resolver->Resolve(Nan::GetCurrentContext(), Nan::Undefined()).IsNothing();
   } else {
     resolver->Reject(Nan::GetCurrentContext(), Nan::Error("Failed to replaceTrack")).IsNothing();
   }
+}
+
+RTCRtpSender* RTCRtpSender::GetOrCreate(
+    std::shared_ptr<PeerConnectionFactory> factory,
+    rtc::scoped_refptr<webrtc::RtpSenderInterface> sender) {
+  return _senders.computeIfAbsent(sender, [&factory, &sender]() {
+    Nan::HandleScope scope;
+    Local<Value> cargv[2];
+    cargv[0] = Nan::New<External>(static_cast<void*>(&factory));
+    cargv[1] = Nan::New<External>(static_cast<void*>(&sender));
+    auto value = Nan::NewInstance(Nan::New(RTCRtpSender::constructor), 2, cargv).ToLocalChecked();
+    return AsyncObjectWrapWithLoop<RTCRtpSender>::Unwrap(value);
+  });
+}
+
+void RTCRtpSender::Release(RTCRtpSender* sender) {
+  _senders.reverseRemove(sender);
 }
 
 void RTCRtpSender::Init(Handle<Object> exports) {
