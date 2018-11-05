@@ -15,6 +15,7 @@
 #include <v8.h>
 
 #include "src/asyncobjectwrap.h"  // IWYU pragma: keep
+#include "src/wrap.h"
 
 namespace webrtc {
 
@@ -24,21 +25,36 @@ class RtpTransceiverInterface;
 
 namespace node_webrtc {
 
-class MediaStreamTrack;
 class PeerConnectionFactory;
-
-template <typename K, typename V> class BidiMap;
 
 class RTCRtpTransceiver: public node_webrtc::AsyncObjectWrap {
  public:
+  ~RTCRtpTransceiver() override;
+
+  static void Init(v8::Handle<v8::Object> exports);
+
+  // NOTE(mroberts): Working around an MSVC bug.
+  static RTCRtpTransceiver* Unwrap(v8::Local<v8::Object> object) {
+    return node_webrtc::AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(object);
+  }
+
+  static ::node_webrtc::Wrap <
+  RTCRtpTransceiver*,
+  rtc::scoped_refptr<webrtc::RtpTransceiverInterface>,
+  std::shared_ptr<PeerConnectionFactory>
+  > wrap;
+
+ private:
   RTCRtpTransceiver(
       std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
       rtc::scoped_refptr<webrtc::RtpTransceiverInterface>&& transceiver);
 
-  ~RTCRtpTransceiver() override;
+  static RTCRtpTransceiver* Create(
+      std::shared_ptr<PeerConnectionFactory>,
+      rtc::scoped_refptr<webrtc::RtpTransceiverInterface>);
 
-  static void Init(v8::Handle<v8::Object> exports);
-  static Nan::Persistent<v8::Function> constructor;
+  static Nan::Persistent<v8::Function>& constructor();
+
   static NAN_METHOD(New);
 
   static NAN_GETTER(GetMid);
@@ -52,21 +68,8 @@ class RTCRtpTransceiver: public node_webrtc::AsyncObjectWrap {
   static NAN_METHOD(Stop);
   static NAN_METHOD(SetCodecPreferences);
 
-  // NOTE(mroberts): Working around an MSVC bug.
-  static RTCRtpTransceiver* Unwrap(v8::Local<v8::Object> object) {
-    return node_webrtc::AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(object);
-  }
-
-  static RTCRtpTransceiver* GetOrCreate(
-      std::shared_ptr<PeerConnectionFactory>,
-      rtc::scoped_refptr<webrtc::RtpTransceiverInterface>);
-  static void Release(RTCRtpTransceiver*);
-
- private:
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::RtpTransceiverInterface> _transceiver;
-
-  static BidiMap<rtc::scoped_refptr<webrtc::RtpTransceiverInterface>, RTCRtpTransceiver*> _transceivers;
 };
 
 }  // namespace node_webrtc

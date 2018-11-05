@@ -9,10 +9,12 @@
 #define SRC_ASYNCOBJECTWRAP_H_
 
 #include <atomic>
-#include <thread>
 
-#include "nan.h"
-#include "uv.h"
+#include <nan.h>
+#include <uv.h>  // IWYU pragma: keep
+#include <v8.h>
+
+// IWYU pragma: no_include <uv/unix.h>
 
 namespace node_webrtc {
 
@@ -27,42 +29,25 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
    * Construct an AsyncObjectWrap. The name you provide is the name of the AsyncResource.
    * @param name the name of the AsyncResource
    */
-  explicit AsyncObjectWrap(const char* name): _async_resource(new Nan::AsyncResource(name)) {
-    uv_mutex_init(&_async_resource_lock);
-  }
+  explicit AsyncObjectWrap(const char* name);
 
-  virtual ~AsyncObjectWrap() override {
-    DestroyAsyncResource();
-    uv_mutex_destroy(&_async_resource_lock);
-  }
+  virtual ~AsyncObjectWrap() override;
 
   /**
    * Increment the reference count.
    */
-  inline void AddRef() {
-    if (_reference_count.fetch_add(1) == 0) {
-      Ref();
-    }
-  }
+  void AddRef();
 
   /**
    * Decrement the reference count.
    */
-  inline void RemoveRef() {
-    Nan::HandleScope scope;
-    if (_reference_count.fetch_sub(1) == 1) {
-      Unref();
-    }
-  }
+  void RemoveRef();
 
   /**
    * Convert the AsyncObjectWrap to an Object.
    * @return object the Object
    */
-  inline v8::Local<v8::Object> ToObject() {
-    Nan::EscapableHandleScope scope;
-    return scope.Escape(handle());
-  }
+  v8::Local<v8::Object> ToObject();
 
   /**
    * Convert an Object to an AsyncObjectWrap.
@@ -71,7 +56,7 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
    * @return asyncObjectWrap an AsyncObjectWrap
    */
   template <typename T>
-  inline static T* Unwrap(v8::Local<v8::Object> object) {
+  static T* Unwrap(v8::Local<v8::Object> object) {
     auto unwrapped = Nan::ObjectWrap::Unwrap<Nan::ObjectWrap>(object);
     return reinterpret_cast<T*>(unwrapped);
   }
@@ -80,9 +65,7 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
    * Wrap an Object.
    * @param object the Object to wrap
    */
-  inline void Wrap(v8::Local<v8::Object> object) {
-    Nan::ObjectWrap::Wrap(object);
-  }
+  void Wrap(v8::Local<v8::Object> object);
 
  protected:
   /**
@@ -91,13 +74,7 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
    * @param argc the number of arguments
    * @param argv the arguments
    */
-  inline void MakeCallback(const char* name, const int argc, v8::Local<v8::Value>* argv) {
-    uv_mutex_lock(&_async_resource_lock);
-    if (_async_resource) {
-      _async_resource->runInAsyncScope(ToObject(), name, argc, argv);
-    }
-    uv_mutex_unlock(&_async_resource_lock);
-  }
+  void MakeCallback(const char* name, int argc, v8::Local<v8::Value>* argv);
 
  private:
   Nan::AsyncResource* _async_resource;
@@ -107,26 +84,7 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
   /**
    * Destroy the AsyncResource.
    */
-  inline void DestroyAsyncResource() {
-    uv_mutex_lock(&_async_resource_lock);
-    if (_async_resource) {
-#if NODE_MAJOR_VERSION >= 9
-      if (!Nan::GetCurrentContext().IsEmpty()) {
-        delete _async_resource;
-      } else {
-        // HACK(mroberts): This is probably unsafe, but sometimes the current Context is null...
-        auto context = v8::Isolate::GetCurrent()->GetCallingContext();
-        context->Enter();
-        delete _async_resource;
-        context->Exit();
-      }
-#else
-      delete _async_resource;
-#endif
-      _async_resource = nullptr;
-    }
-    uv_mutex_unlock(&_async_resource_lock);
-  }
+  void DestroyAsyncResource();
 };
 
 }  // namespace node_webrtc

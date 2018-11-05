@@ -71,11 +71,14 @@ class PeerConnectionFactory
   // Nodejs wrapping.
   //
   static void Init(v8::Handle<v8::Object> exports);
+
   static void Dispose();
-  static Nan::Persistent<v8::Function> constructor;
-  static NAN_METHOD(New);
 
  private:
+  static Nan::Persistent<v8::Function>& constructor();
+
+  static NAN_METHOD(New);
+
   static std::shared_ptr<PeerConnectionFactory> _default;
   static uv_mutex_t _lock;
   static int _references;

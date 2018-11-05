@@ -38,7 +38,10 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
-Nan::Persistent<Function> DataChannel::constructor;
+Nan::Persistent<Function>& DataChannel::constructor() {
+  static Nan::Persistent<Function> constructor;
+  return constructor;
+}
 
 DataChannelObserver::DataChannelObserver(std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel)
@@ -62,7 +65,7 @@ void DataChannelObserver::OnMessage(const webrtc::DataBuffer& buffer) {
   TRACE_END;
 }
 
-void requeue(DataChannelObserver& observer, DataChannel& channel) {
+static void requeue(DataChannelObserver& observer, DataChannel& channel) {
   while (auto event = observer.Dequeue()) {
     channel.Dispatch(std::move(event));
   }
@@ -79,6 +82,10 @@ DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
   requeue(*observer, *this);
 
   delete observer;
+}
+
+DataChannel::~DataChannel() {
+  wrap.Release(this);
 }
 
 void DataChannel::OnPeerConnectionClosed() {
@@ -383,6 +390,21 @@ NAN_SETTER(DataChannel::ReadOnly) {
   INFO("PeerConnection::ReadOnly");
 }
 
+node_webrtc::Wrap <
+DataChannel*,
+rtc::scoped_refptr<webrtc::DataChannelInterface>,
+node_webrtc::DataChannelObserver*
+> DataChannel::wrap(node_webrtc::DataChannel::Create);
+
+DataChannel* DataChannel::Create(
+    node_webrtc::DataChannelObserver* observer,
+    rtc::scoped_refptr<webrtc::DataChannelInterface>) {
+  Nan::HandleScope scope;
+  Local<Value> cargv = Nan::New<External>(static_cast<void*>(observer));
+  auto channel = Nan::NewInstance(Nan::New(DataChannel::constructor()), 1, &cargv).ToLocalChecked();
+  return AsyncObjectWrapWithLoop<DataChannel>::Unwrap(channel);
+}
+
 void DataChannel::Init(Handle<Object> exports) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("DataChannel").ToLocalChecked());
@@ -401,6 +423,6 @@ void DataChannel::Init(Handle<Object> exports) {
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("binaryType").ToLocalChecked(), GetBinaryType, SetBinaryType);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("readyState").ToLocalChecked(), GetReadyState, ReadOnly);
 
-  constructor.Reset(tpl->GetFunction());
+  constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("DataChannel").ToLocalChecked(), tpl->GetFunction());
 }

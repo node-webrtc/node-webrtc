@@ -38,7 +38,11 @@ using v8::Value;
 using v8::Array;
 using webrtc::AudioDeviceModule;
 
-Nan::Persistent<Function> PeerConnectionFactory::constructor;
+Nan::Persistent<Function>& PeerConnectionFactory::constructor() {
+  static Nan::Persistent<Function> constructor;
+  return constructor;
+}
+
 std::shared_ptr<PeerConnectionFactory> PeerConnectionFactory::_default;
 uv_mutex_t PeerConnectionFactory::_lock;
 int PeerConnectionFactory::_references = 0;
@@ -165,6 +169,6 @@ void PeerConnectionFactory::Init(Handle<Object> exports) {
   tpl->SetClassName(Nan::New("PeerConnectionFactory").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  constructor.Reset(tpl->GetFunction());
+  constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("PeerConnectionFactory").ToLocalChecked(), tpl->GetFunction());
 }

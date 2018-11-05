@@ -120,13 +120,16 @@ script:
       exit 1
     fi
 
-    npm run wpt:init
+    # NOTE(mroberts): web-platform-tests use syntax incompatible with Node 6.
+    if [[ ! $(node -v) =~ "v6" ]]; then
+      npm run wpt:init
 
-    STDERR=$(mktemp)
-    npm run wpt:test 2>$STDERR
-    if [ $? -ne 0 ]; then
-      tail $STDERR
-      exit 1
+      STDERR=$(mktemp)
+      npm run wpt:test 2>$STDERR
+      if [ $? -ne 0 ]; then
+        tail $STDERR
+        exit 1
+      fi
     fi
 
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then

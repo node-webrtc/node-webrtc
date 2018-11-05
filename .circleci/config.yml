@@ -36,7 +36,12 @@ aliases:
   web-platform-tests: &web-platform-tests
     run:
       name: Run Web Platform Tests
-      command: npm run wpt:init && npm run wpt:test
+      command: |
+        # NOTE(mroberts): web-platform-tests use syntax incompatible with Node 6.
+        if [[ ! $(node -v) =~ "v6" ]]; then
+          npm run wpt:init
+          npm run wpt:test
+        fi
 
   bridge-test: &bridge-test
     run:

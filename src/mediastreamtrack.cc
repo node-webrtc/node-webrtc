@@ -9,7 +9,6 @@
 
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
-#include "src/bidimap.h"
 #include "src/error.h"
 #include "src/converters/webrtc.h"  // IWYU pragma: keep
 #include "src/peerconnectionfactory.h"  // IWYU pragma: keep
@@ -21,7 +20,6 @@ class MediaStreamTrackInterface;
 }  // namespace webrtc
 
 using node_webrtc::AsyncObjectWrapWithLoop;
-using node_webrtc::BidiMap;
 using node_webrtc::MediaStreamTrack;
 using node_webrtc::PeerConnectionFactory;
 using v8::External;
@@ -32,9 +30,10 @@ using v8::Local;
 using v8::Object;
 using v8::Value;
 
-Nan::Persistent<Function> MediaStreamTrack::constructor;
-
-BidiMap<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>, MediaStreamTrack*> MediaStreamTrack::_tracks;
+Nan::Persistent<Function>& MediaStreamTrack::constructor() {
+  static Nan::Persistent<Function> constructor;
+  return constructor;
+}
 
 MediaStreamTrack::MediaStreamTrack(
     std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
@@ -47,7 +46,7 @@ MediaStreamTrack::MediaStreamTrack(
 
 MediaStreamTrack::~MediaStreamTrack() {
   _track->UnregisterObserver(this);
-  MediaStreamTrack::Release(this);
+  wrap.Release(this);
 }
 
 NAN_METHOD(MediaStreamTrack::New) {
@@ -110,7 +109,7 @@ NAN_METHOD(MediaStreamTrack::Clone) {
     auto videoTrack = static_cast<webrtc::VideoTrackInterface*>(self->_track.get());
     clonedTrack = self->_factory->factory()->CreateVideoTrack(label, videoTrack->GetSource());
   }
-  auto clonedMediaStreamTrack = MediaStreamTrack::GetOrCreate(self->_factory, clonedTrack);
+  auto clonedMediaStreamTrack = wrap.GetOrCreate(self->_factory, clonedTrack);
   if (self->_track->state() != webrtc::MediaStreamTrackInterface::TrackState::kLive) {
     clonedMediaStreamTrack->Stop();
   }
@@ -122,21 +121,21 @@ NAN_METHOD(MediaStreamTrack::JsStop) {
   self->Stop();
 }
 
-MediaStreamTrack* MediaStreamTrack::GetOrCreate(
+node_webrtc::Wrap <
+MediaStreamTrack*,
+rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>,
+std::shared_ptr<PeerConnectionFactory>
+> MediaStreamTrack::wrap(MediaStreamTrack::Create);
+
+MediaStreamTrack* MediaStreamTrack::Create(
     std::shared_ptr<PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) {
-  return _tracks.computeIfAbsent(track, [&factory, &track]() {
-    Nan::HandleScope scope;
-    Local<Value> cargv[2];
-    cargv[0] = Nan::New<External>(static_cast<void*>(&factory));
-    cargv[1] = Nan::New<External>(static_cast<void*>(&track));
-    auto mediaStreamTrack = Nan::NewInstance(Nan::New(MediaStreamTrack::constructor), 2, cargv).ToLocalChecked();
-    return AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(mediaStreamTrack);
-  });
-}
-
-void MediaStreamTrack::Release(MediaStreamTrack* track) {
-  _tracks.reverseRemove(track);
+  Nan::HandleScope scope;
+  Local<Value> cargv[2];
+  cargv[0] = Nan::New<External>(static_cast<void*>(&factory));
+  cargv[1] = Nan::New<External>(static_cast<void*>(&track));
+  auto mediaStreamTrack = Nan::NewInstance(Nan::New(MediaStreamTrack::constructor()), 2, cargv).ToLocalChecked();
+  return AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(mediaStreamTrack);
 }
 
 void MediaStreamTrack::Init(Handle<Object> exports) {
@@ -149,6 +148,6 @@ void MediaStreamTrack::Init(Handle<Object> exports) {
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("readyState").ToLocalChecked(), GetReadyState, nullptr);
   Nan::SetPrototypeMethod(tpl, "clone", Clone);
   Nan::SetPrototypeMethod(tpl, "stop", JsStop);
-  constructor.Reset(tpl->GetFunction());
+  constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("MediaStreamTrack").ToLocalChecked(), tpl->GetFunction());
 }

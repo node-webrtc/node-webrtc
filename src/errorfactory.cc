@@ -103,8 +103,6 @@ const char* ErrorFactory::DOMExceptionNameToString(DOMExceptionName name) {
       return "NetworkError";
     case kOperationError:
       return "OperationError";
-    default:
-      return "Impossible!";
   }
 }
 

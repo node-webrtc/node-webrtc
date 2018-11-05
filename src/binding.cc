@@ -23,11 +23,11 @@
 using v8::Handle;
 using v8::Object;
 
-void dispose(void*) {
+static void dispose(void*) {
   node_webrtc::PeerConnectionFactory::Dispose();
 }
 
-void init(Handle<Object> exports, Handle<Object> module) {
+static void init(Handle<Object> exports, Handle<Object> module) {
   node_webrtc::ErrorFactory::Init(module);
   node_webrtc::PeerConnectionFactory::Init(exports);
   node_webrtc::PeerConnection::Init(exports);

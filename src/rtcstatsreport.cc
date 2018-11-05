@@ -24,7 +24,10 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
-Nan::Persistent<Function> RTCStatsReport::constructor;
+Nan::Persistent<Function>& RTCStatsReport::constructor() {
+  static Nan::Persistent<Function> constructor;
+  return constructor;
+}
 
 NAN_METHOD(RTCStatsReport::New) {
   TRACE_CALL;
@@ -107,6 +110,15 @@ NAN_SETTER(RTCStatsReport::ReadOnly) {
   INFO("RTCStatsReport::ReadOnly");
 }
 
+RTCStatsReport* RTCStatsReport::Create(double timestamp, const std::map<std::string, std::string>& stats) {
+  Nan::HandleScope scope;
+  Local<Value> cargv[2];
+  cargv[0] = Nan::New<External>(static_cast<void*>(&timestamp));
+  cargv[1] = Nan::New<External>(const_cast<void*>(static_cast<const void*>(&stats)));
+  auto report = Nan::NewInstance(Nan::New(RTCStatsReport::constructor()), 2, cargv).ToLocalChecked();
+  return Nan::ObjectWrap::Unwrap<RTCStatsReport>(report);
+}
+
 void RTCStatsReport::Init(Handle<Object> exports) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate> (New);
   tpl->SetClassName(Nan::New("RTCStatsReport").ToLocalChecked());
@@ -118,6 +130,6 @@ void RTCStatsReport::Init(Handle<Object> exports) {
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("timestamp").ToLocalChecked(), GetTimestamp, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("type").ToLocalChecked(), GetType, ReadOnly);
 
-  constructor.Reset(tpl->GetFunction());
+  constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("RTCStatsReport").ToLocalChecked(), tpl->GetFunction());
 }

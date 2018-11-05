@@ -17,15 +17,23 @@ namespace node_webrtc {
 class RTCStatsReport
   : public Nan::ObjectWrap {
  public:
-  explicit RTCStatsReport(double timestamp, const std::map<std::string, std::string>& stats)
-    : _timestamp(timestamp), _stats(stats) {}
-  ~RTCStatsReport() {}
+  RTCStatsReport() = delete;
+
+  ~RTCStatsReport() override = default;
 
   //
   // Nodejs wrapping.
   //
   static void Init(v8::Handle<v8::Object> exports);
-  static Nan::Persistent<v8::Function> constructor;
+
+  static RTCStatsReport* Create(double timestamp, const std::map<std::string, std::string>& stats);
+
+ private:
+  explicit RTCStatsReport(double timestamp, const std::map<std::string, std::string>& stats)
+    : _timestamp(timestamp), _stats(stats) {}
+
+  static Nan::Persistent<v8::Function>& constructor();
+
   static NAN_METHOD(New);
 
   static NAN_METHOD(names);
@@ -36,7 +44,6 @@ class RTCStatsReport
 
   static NAN_SETTER(ReadOnly);
 
- private:
   double _timestamp;
   std::map<std::string, std::string> _stats;
 };

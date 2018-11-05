@@ -7,21 +7,16 @@
  */
 #include "src/rtcrtptransceiver.h"
 
-#include <iostream>
-
 #include <webrtc/api/rtptransceiverinterface.h>  // IWYU pragma: keep
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
-#include "src/bidimap.h"
 #include "src/error.h"
-#include "src/converters/v8.h"
+#include "src/converters/v8.h"  // IWYU pragma: keep
 #include "src/converters/webrtc.h"  // IWYU pragma: keep
-#include "src/rtcrtpreceiver.h"
-#include "src/rtcrtpsender.h"
-#include "src/mediastreamtrack.h"
+#include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
+#include "src/rtcrtpsender.h"  // IWYU pragma: keep
 
 using node_webrtc::AsyncObjectWrap;
-using node_webrtc::BidiMap;
 using node_webrtc::RTCRtpTransceiver;
 using v8::External;
 using v8::Function;
@@ -31,9 +26,10 @@ using v8::Local;
 using v8::Object;
 using v8::Value;
 
-Nan::Persistent<Function> RTCRtpTransceiver::constructor;
-
-BidiMap<rtc::scoped_refptr<webrtc::RtpTransceiverInterface>, RTCRtpTransceiver*> RTCRtpTransceiver::_transceivers;
+Nan::Persistent<Function>& RTCRtpTransceiver::constructor() {
+  static Nan::Persistent<Function> constructor;
+  return constructor;
+}
 
 RTCRtpTransceiver::RTCRtpTransceiver(
     std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
@@ -44,7 +40,7 @@ RTCRtpTransceiver::RTCRtpTransceiver(
 }
 
 RTCRtpTransceiver::~RTCRtpTransceiver() {
-  Release(this);
+  wrap.Release(this);
 }
 
 NAN_METHOD(RTCRtpTransceiver::New) {
@@ -71,14 +67,14 @@ NAN_GETTER(RTCRtpTransceiver::GetMid) {
 NAN_GETTER(RTCRtpTransceiver::GetSender) {
   (void) property;
   auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  auto sender = RTCRtpSender::GetOrCreate(self->_factory, self->_transceiver->sender());
+  auto sender = RTCRtpSender::wrap.GetOrCreate(self->_factory, self->_transceiver->sender());
   info.GetReturnValue().Set(sender->ToObject());
 }
 
 NAN_GETTER(RTCRtpTransceiver::GetReceiver) {
   (void) property;
   auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  auto receiver = RTCRtpReceiver::GetOrCreate(self->_factory, self->_transceiver->receiver());
+  auto receiver = RTCRtpReceiver::wrap.GetOrCreate(self->_factory, self->_transceiver->receiver());
   info.GetReturnValue().Set(receiver->ToObject());
 }
 
@@ -99,7 +95,7 @@ NAN_GETTER(RTCRtpTransceiver::GetDirection) {
 NAN_SETTER(RTCRtpTransceiver::SetDirection) {
   (void) property;
 
-  auto self = AsyncObjectWrapWithLoop<RTCRtpTransceiver>::Unwrap(info.Holder());
+  auto self = RTCRtpTransceiver::Unwrap(info.Holder());
 
   CONVERT_OR_THROW_AND_RETURN(value, direction, webrtc::RtpTransceiverDirection);
 
@@ -124,21 +120,21 @@ NAN_METHOD(RTCRtpTransceiver::SetCodecPreferences) {
   Nan::ThrowError("Not yet implemented; file a feature request against node-webrtc");
 }
 
-RTCRtpTransceiver* RTCRtpTransceiver::GetOrCreate(
+node_webrtc::Wrap <
+RTCRtpTransceiver*,
+rtc::scoped_refptr<webrtc::RtpTransceiverInterface>,
+std::shared_ptr<node_webrtc::PeerConnectionFactory>
+> RTCRtpTransceiver::wrap(RTCRtpTransceiver::Create);
+
+RTCRtpTransceiver* RTCRtpTransceiver::Create(
     std::shared_ptr<PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
-  return _transceivers.computeIfAbsent(transceiver, [&factory, &transceiver]() {
-    Nan::HandleScope scope;
-    Local<Value> cargv[2];
-    cargv[0] = Nan::New<External>(static_cast<void*>(&factory));
-    cargv[1] = Nan::New<External>(static_cast<void*>(&transceiver));
-    auto value = Nan::NewInstance(Nan::New(RTCRtpTransceiver::constructor), 2, cargv).ToLocalChecked();
-    return AsyncObjectWrapWithLoop<RTCRtpTransceiver>::Unwrap(value);
-  });
-}
-
-void RTCRtpTransceiver::Release(RTCRtpTransceiver* transceiver) {
-  _transceivers.reverseRemove(transceiver);
+  Nan::HandleScope scope;
+  Local<Value> cargv[2];
+  cargv[0] = Nan::New<External>(static_cast<void*>(&factory));
+  cargv[1] = Nan::New<External>(static_cast<void*>(&transceiver));
+  auto value = Nan::NewInstance(Nan::New(RTCRtpTransceiver::constructor()), 2, cargv).ToLocalChecked();
+  return RTCRtpTransceiver::Unwrap(value);
 }
 
 void RTCRtpTransceiver::Init(Handle<Object> exports) {
@@ -153,6 +149,6 @@ void RTCRtpTransceiver::Init(Handle<Object> exports) {
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("currentDirection").ToLocalChecked(), GetCurrentDirection, nullptr);
   Nan::SetPrototypeMethod(tpl, "stop", Stop);
   Nan::SetPrototypeMethod(tpl, "setCodecPreferences", SetCodecPreferences);
-  constructor.Reset(tpl->GetFunction());
+  constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("RTCRtpTransceiver").ToLocalChecked(), tpl->GetFunction());
 }
