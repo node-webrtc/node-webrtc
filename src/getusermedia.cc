@@ -24,12 +24,7 @@
 #include "src/functional/operators.h"  // IWYU pragma: keep
 #include "src/peerconnectionfactory.h"  // IWYU pragma: keep
 #include "src/mediastream.h"  // IWYU pragma: keep
-
-namespace cricket {
-
-class VideoCapturer;
-
-}  // namsepace cricket;
+#include "src/webrtc/fakevideocapturer.h"  // IWYU pragma: keep
 
 // TODO(mroberts): Expand support for other members.
 struct MediaTrackConstraintSet {
@@ -132,13 +127,13 @@ NAN_METHOD(node_webrtc::GetUserMedia::GetUserMediaImpl) {
   }
 
   if (video) {
-    // TODO(mroberts): Figure out how to manage the capturer.
-    cricket::VideoCapturer* capturer = nullptr;
-    auto source = factory->factory()->CreateVideoSource(capturer);
+    std::unique_ptr<cricket::VideoCapturer> capturer(new node_webrtc::FakeVideoCapturer());
+    auto source = factory->factory()->CreateVideoSource(std::move(capturer));
     auto track = factory->factory()->CreateVideoTrack(rtc::CreateRandomUuid(), source);
+    stream->AddTrack(track);
   }
 
-  resolver->Resolve(MediaStream::wrap.GetOrCreate(factory, stream)->handle());
+  resolver->Resolve(Nan::GetCurrentContext(), MediaStream::wrap.GetOrCreate(factory, stream)->handle()).IsNothing();
 }
 
 void node_webrtc::GetUserMedia::Init(v8::Handle<v8::Object> exports) {

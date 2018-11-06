@@ -72,6 +72,9 @@ function createJSDOM(urlPrefix, testPath) {
         if (window) {
           // NOTE(mroberts): Here is where we inject node-webrtc.
           Object.assign(window, wrtc);
+          window.navigator.mediaDevices = Object.assign({}, window.navigator.mediaDevices, {
+            getUserMedia: wrtc.getUserMedia
+          });
         }
         createdResolver(error, window);
       },

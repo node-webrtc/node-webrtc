@@ -23,6 +23,7 @@
 namespace webrtc {
 
 class RtpReceiverInterface;
+class RtpTransceiverInterface;
 
 }  // namespace webrtc
 
@@ -259,10 +260,16 @@ class DataChannelEvent: public Event<PeerConnection> {
 
 class OnAddTrackEvent: public Event<PeerConnection> {
  public:
+  rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver;
   rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver;
   const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>> streams;
 
   void Dispatch(PeerConnection& peerConnection) override;
+
+  static std::unique_ptr<OnAddTrackEvent> Create(
+      rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
+    return std::unique_ptr<OnAddTrackEvent>(new OnAddTrackEvent(transceiver));
+  }
 
   static std::unique_ptr<OnAddTrackEvent> Create(
       rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
@@ -271,7 +278,12 @@ class OnAddTrackEvent: public Event<PeerConnection> {
   }
 
  private:
-  explicit OnAddTrackEvent(
+  explicit OnAddTrackEvent(rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver)
+    : transceiver(transceiver)
+    , receiver(transceiver->receiver())
+    , streams(transceiver->receiver()->streams()) {}
+
+  OnAddTrackEvent(
       rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
       const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>& streams)
     : receiver(receiver)

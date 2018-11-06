@@ -7,8 +7,8 @@
  *  in the file PATENTS.  All contributing project authors may
  *  be found in the AUTHORS file in the root of the source tree.
  */
-#ifndef WEBRTC_TEST_FAKE_AUDIO_DEVICE_H_
-#define WEBRTC_TEST_FAKE_AUDIO_DEVICE_H_
+#ifndef SRC_WEBRTC_FAKE_AUDIO_DEVICE_H_
+#define SRC_WEBRTC_FAKE_AUDIO_DEVICE_H_
 
 // #include <memory>
 // #include <string>
@@ -152,4 +152,4 @@ class FakeAudioDevice : public webrtc::FakeAudioDeviceModule {
 
 }  // namespace node_webrtc
 
-#endif  // WEBRTC_TEST_FAKE_AUDIO_DEVICE_H_
+#endif  // SRC_WEBRTC_FAKE_AUDIO_DEVICE_H_

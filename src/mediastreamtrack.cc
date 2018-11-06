@@ -7,17 +7,13 @@
  */
 #include "src/mediastreamtrack.h"
 
+#include <webrtc/api/mediastreaminterface.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/location.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
 #include "src/error.h"
 #include "src/converters/webrtc.h"  // IWYU pragma: keep
 #include "src/peerconnectionfactory.h"  // IWYU pragma: keep
-
-namespace webrtc {
-
-class MediaStreamTrackInterface;
-
-}  // namespace webrtc
 
 using node_webrtc::AsyncObjectWrapWithLoop;
 using node_webrtc::MediaStreamTrack;
@@ -98,6 +94,24 @@ NAN_GETTER(MediaStreamTrack::GetReadyState) {
   info.GetReturnValue().Set(Nan::New(result).ToLocalChecked());
 }
 
+NAN_GETTER(MediaStreamTrack::GetMuted) {
+  (void) property;
+  auto self = AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(info.Holder());
+  auto track = self->track();
+  webrtc::MediaSourceInterface* source = nullptr;
+  if (track->kind() == webrtc::MediaStreamTrackInterface::kAudioKind) {
+    auto audioTrack = static_cast<webrtc::AudioTrackInterface*>(track.get());
+    source = audioTrack->GetSource();
+  } else if (track->kind() == webrtc::MediaStreamTrackInterface::kVideoKind) {
+    auto videoTrack = static_cast<webrtc::AudioTrackInterface*>(track.get());
+    source = videoTrack->GetSource();
+  }
+  auto muted = source && self->factory()->_signalingThread->Invoke<bool>(RTC_FROM_HERE, [source]() {
+    return source->state() == webrtc::MediaSourceInterface::kMuted;
+  });
+  info.GetReturnValue().Set(muted);
+}
+
 NAN_METHOD(MediaStreamTrack::Clone) {
   auto self = AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(info.Holder());
   auto label = rtc::CreateRandomUuid();
@@ -146,6 +160,7 @@ void MediaStreamTrack::Init(Handle<Object> exports) {
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("id").ToLocalChecked(), GetId, nullptr);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("kind").ToLocalChecked(), GetKind, nullptr);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("readyState").ToLocalChecked(), GetReadyState, nullptr);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("muted").ToLocalChecked(), GetMuted, nullptr);
   Nan::SetPrototypeMethod(tpl, "clone", Clone);
   Nan::SetPrototypeMethod(tpl, "stop", JsStop);
   constructor().Reset(tpl->GetFunction());
