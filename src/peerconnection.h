@@ -24,6 +24,7 @@ class DataChannelInterface;
 class IceCandidateInterface;
 class MediaStreamInterface;
 class RtpReceiverInterface;
+class RtpTransceiverInterface;
 
 }  // namespace webrtc
 
@@ -60,6 +61,7 @@ class PeerConnection
 
   void OnAddTrack(rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
       const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>& streams) override;
+  void OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) override;
 
   //
   // Nodejs wrapping.

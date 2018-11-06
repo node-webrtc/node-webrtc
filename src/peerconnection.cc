@@ -188,6 +188,10 @@ void PeerConnection::HandleOnAddTrackEvent(const OnAddTrackEvent& event) {
   TRACE_CALL;
   Nan::HandleScope scope;
 
+  auto transceiver = event.transceiver
+      ? RTCRtpTransceiver::wrap.GetOrCreate(_factory, event.transceiver)
+      : nullptr;
+
   auto receiver = RTCRtpReceiver::wrap.GetOrCreate(_factory, event.receiver);
 
   auto mediaStreams = std::vector<MediaStream*>();
@@ -197,10 +201,11 @@ void PeerConnection::HandleOnAddTrackEvent(const OnAddTrackEvent& event) {
   }
   CONVERT_OR_THROW_AND_RETURN(mediaStreams, streams, Local<Value>);
 
-  Local<Value> argv[2];
+  Local<Value> argv[3];
   argv[0] = receiver->ToObject();
   argv[1] = streams;
-  MakeCallback("ontrack", 2, argv);
+  argv[2] = transceiver ? Local<Value>::Cast(transceiver->ToObject()) : Local<Value>::Cast(Nan::Null());
+  MakeCallback("ontrack", 3, argv);
 
   TRACE_END;
 }
@@ -253,7 +258,15 @@ void PeerConnection::OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface
 void PeerConnection::OnAddTrack(rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
     const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>& streams) {
   TRACE_CALL;
-  Dispatch(OnAddTrackEvent::Create(receiver, streams));
+  if (_jinglePeerConnection->GetConfiguration().sdp_semantics == webrtc::SdpSemantics::kPlanB) {
+    Dispatch(OnAddTrackEvent::Create(receiver, streams));
+  }
+  TRACE_END;
+}
+
+void PeerConnection::OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
+  TRACE_CALL;
+  Dispatch(OnAddTrackEvent::Create(transceiver));
   TRACE_END;
 }
 

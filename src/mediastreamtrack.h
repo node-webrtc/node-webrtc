@@ -62,6 +62,7 @@ class MediaStreamTrack
   static NAN_GETTER(GetId);
   static NAN_GETTER(GetKind);
   static NAN_GETTER(GetReadyState);
+  static NAN_GETTER(GetMuted);
 
   static NAN_METHOD(Clone);
   static NAN_METHOD(JsStop);
