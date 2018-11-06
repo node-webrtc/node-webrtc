@@ -127,7 +127,7 @@ std::shared_ptr<node_webrtc::PeerConnectionFactory>
 > RTCRtpTransceiver::wrap(RTCRtpTransceiver::Create);
 
 RTCRtpTransceiver* RTCRtpTransceiver::Create(
-    std::shared_ptr<PeerConnectionFactory> factory,
+    std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
   Nan::HandleScope scope;
   Local<Value> cargv[2];
