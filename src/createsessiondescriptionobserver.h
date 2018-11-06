@@ -30,7 +30,7 @@ class CreateSessionDescriptionObserver
   std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, node_webrtc::RTCSessionDescriptionInit>> _promise;
 
  public:
-  explicit CreateSessionDescriptionObserver(
+  CreateSessionDescriptionObserver(
       PeerConnection* parent,
       std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, node_webrtc::RTCSessionDescriptionInit>> promise)
     : parent(parent), _promise(std::move(promise)) {}

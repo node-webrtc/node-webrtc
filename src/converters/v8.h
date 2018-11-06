@@ -184,6 +184,14 @@ struct Converter<v8::Local<v8::Value>, int32_t> {
 };
 
 template <>
+struct Converter<int32_t, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const int32_t value) {
+    Nan::EscapableHandleScope scope;
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(Nan::New(value)));
+  }
+};
+
+template <>
 struct Converter<v8::Local<v8::Value>, int64_t> {
   static Validation<int64_t> Convert(const v8::Local<v8::Value> value) {
     auto maybeInteger = Nan::To<v8::Integer>(value);
@@ -196,6 +204,15 @@ struct Converter<v8::Local<v8::Value>, int64_t> {
 };
 
 template <>
+struct Converter<int64_t, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const int64_t value) {
+    Nan::EscapableHandleScope scope;
+    // NOTE(mroberts): Is this correct?
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(Nan::New(static_cast<double>(value))));
+  }
+};
+
+template <>
 struct Converter<v8::Local<v8::Value>, double> {
   static Validation<double> Convert(const v8::Local<v8::Value> value) {
     auto maybeNumber = Nan::To<v8::Number>(value);
@@ -204,6 +221,14 @@ struct Converter<v8::Local<v8::Value>, double> {
     }
     auto number = (*maybeNumber.ToLocalChecked())->Value();
     return Validation<double>::Valid(number);
+  }
+};
+
+template <>
+struct Converter<double, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const double value) {
+    Nan::EscapableHandleScope scope;
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(Nan::New(value)));
   }
 };
 
@@ -253,6 +278,23 @@ struct Converter<v8::Local<v8::Value>, std::vector<T>> {
   }
 };
 
+template <>
+struct Converter<std::vector<bool>, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const std::vector<bool>& values) {
+    Nan::EscapableHandleScope scope;
+    auto array = Nan::New<v8::Array>();
+    uint32_t i = 0;
+    for (bool value : values) {
+      auto maybeValue = From<v8::Local<v8::Value>>(value);
+      if (maybeValue.IsInvalid()) {
+        return Validation<v8::Local<v8::Value>>::Invalid(maybeValue.ToErrors());
+      }
+      array->Set(i++, maybeValue.UnsafeFromValid());
+    }
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(array));
+  }
+};
+
 template <typename T>
 struct Converter<std::vector<T>, v8::Local<v8::Value>> {
   static Validation<v8::Local<v8::Value>> Convert(const std::vector<T>& values) {
@@ -279,6 +321,23 @@ struct Converter<v8::Local<v8::Value>, uint32_t> {
     }
     auto uint32 = (*maybeUint32.ToLocalChecked())->Value();
     return Validation<uint32_t>::Valid(uint32);
+  }
+};
+
+template <>
+struct Converter<uint32_t, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const uint32_t value) {
+    Nan::EscapableHandleScope scope;
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(Nan::New(value)));
+  }
+};
+
+template <>
+struct Converter<uint64_t, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const uint64_t value) {
+    Nan::EscapableHandleScope scope;
+    // NOTE(mroberts): Is this correct?
+    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(Nan::New(static_cast<double>(value))));
   }
 };
 

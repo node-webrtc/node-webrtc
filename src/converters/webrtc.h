@@ -581,6 +581,16 @@ TO_AND_FROM_JS(webrtc::RtpTransceiverDirection)
 
 FROM_JS(webrtc::RtpTransceiverInit)
 
+/*
+ * interface RTCStatsReport {
+ *     readonly maplike<DOMString, object>;
+ * };
+ */
+
+TO_JS(const webrtc::RTCStatsMemberInterface*)
+TO_JS(const webrtc::RTCStats*);
+TO_JS(rtc::scoped_refptr<webrtc::RTCStatsReport>);
+
 #undef CONVERTER
 #undef TO_JS
 #undef FROM_JS
