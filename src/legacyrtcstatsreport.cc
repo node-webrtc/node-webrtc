@@ -5,14 +5,14 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/rtcstatsreport.h"
+#include "src/legacyrtcstatsreport.h"
 
 #include <nan.h>
 #include <v8.h>
 
 #include "src/common.h"
 
-using node_webrtc::RTCStatsReport;
+using node_webrtc::LegacyStatsReport;
 using v8::Array;
 using v8::External;
 using v8::Function;
@@ -24,33 +24,33 @@ using v8::Object;
 using v8::String;
 using v8::Value;
 
-Nan::Persistent<Function>& RTCStatsReport::constructor() {
+Nan::Persistent<Function>& LegacyStatsReport::constructor() {
   static Nan::Persistent<Function> constructor;
   return constructor;
 }
 
-NAN_METHOD(RTCStatsReport::New) {
+NAN_METHOD(LegacyStatsReport::New) {
   TRACE_CALL;
 
   if (info.Length() != 2 || !info[0]->IsExternal() || !info[1]->IsExternal()) {
-    return Nan::ThrowTypeError("You cannot construct an RTCStatsReport");
+    return Nan::ThrowTypeError("You cannot construct an LegacyStatsReport");
   }
 
   auto timestamp = static_cast<double*>(Local<External>::Cast(info[0])->Value());
   auto stats = static_cast<std::map<std::string, std::string>*>(Local<External>::Cast(info[1])->Value());
 
-  auto obj = new RTCStatsReport(*timestamp, *stats);
+  auto obj = new LegacyStatsReport(*timestamp, *stats);
   obj->Wrap(info.This());
 
   TRACE_END;
   info.GetReturnValue().Set(info.This());
 }
 
-NAN_METHOD(RTCStatsReport::names) {
+NAN_METHOD(LegacyStatsReport::names) {
   TRACE_CALL;
   Nan::HandleScope scope;
 
-  auto self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.This());
+  auto self = Nan::ObjectWrap::Unwrap<LegacyStatsReport>(info.This());
   Local<Array> names = Nan::New<Array>(self->_stats.size());
 
   uint32_t i = 0;
@@ -63,11 +63,11 @@ NAN_METHOD(RTCStatsReport::names) {
   info.GetReturnValue().Set(names);
 }
 
-NAN_METHOD(RTCStatsReport::stat) {
+NAN_METHOD(LegacyStatsReport::stat) {
   TRACE_CALL;
   Nan::HandleScope scope;
 
-  auto self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.This());
+  auto self = Nan::ObjectWrap::Unwrap<LegacyStatsReport>(info.This());
   auto requested = std::string(*v8::String::Utf8Value(info[0]->ToString()));
 
   Local<Value> found = Nan::Undefined();
@@ -82,46 +82,46 @@ NAN_METHOD(RTCStatsReport::stat) {
   info.GetReturnValue().Set(found);
 }
 
-NAN_GETTER(RTCStatsReport::GetTimestamp) {
+NAN_GETTER(LegacyStatsReport::GetTimestamp) {
   TRACE_CALL;
   (void) property;
 
-  auto self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.Holder());
+  auto self = Nan::ObjectWrap::Unwrap<LegacyStatsReport>(info.Holder());
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New<Number>(self->_timestamp));
 }
 
-NAN_GETTER(RTCStatsReport::GetType) {
+NAN_GETTER(LegacyStatsReport::GetType) {
   TRACE_CALL;
   (void) property;
 
-  auto self = Nan::ObjectWrap::Unwrap<RTCStatsReport>(info.Holder());
+  auto self = Nan::ObjectWrap::Unwrap<LegacyStatsReport>(info.Holder());
   auto type = self->_stats.find("type")->second;
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New<String>(type).ToLocalChecked());
 }
 
-NAN_SETTER(RTCStatsReport::ReadOnly) {
+NAN_SETTER(LegacyStatsReport::ReadOnly) {
   (void) info;
   (void) property;
   (void) value;
-  INFO("RTCStatsReport::ReadOnly");
+  INFO("LegacyStatsReport::ReadOnly");
 }
 
-RTCStatsReport* RTCStatsReport::Create(double timestamp, const std::map<std::string, std::string>& stats) {
+LegacyStatsReport* LegacyStatsReport::Create(double timestamp, const std::map<std::string, std::string>& stats) {
   Nan::HandleScope scope;
   Local<Value> cargv[2];
   cargv[0] = Nan::New<External>(static_cast<void*>(&timestamp));
   cargv[1] = Nan::New<External>(const_cast<void*>(static_cast<const void*>(&stats)));
-  auto report = Nan::NewInstance(Nan::New(RTCStatsReport::constructor()), 2, cargv).ToLocalChecked();
-  return Nan::ObjectWrap::Unwrap<RTCStatsReport>(report);
+  auto report = Nan::NewInstance(Nan::New(LegacyStatsReport::constructor()), 2, cargv).ToLocalChecked();
+  return Nan::ObjectWrap::Unwrap<LegacyStatsReport>(report);
 }
 
-void RTCStatsReport::Init(Handle<Object> exports) {
+void LegacyStatsReport::Init(Handle<Object> exports) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate> (New);
-  tpl->SetClassName(Nan::New("RTCStatsReport").ToLocalChecked());
+  tpl->SetClassName(Nan::New("LegacyStatsReport").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   Nan::SetPrototypeMethod(tpl, "names", names);
@@ -131,5 +131,5 @@ void RTCStatsReport::Init(Handle<Object> exports) {
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("type").ToLocalChecked(), GetType, ReadOnly);
 
   constructor().Reset(tpl->GetFunction());
-  exports->Set(Nan::New("RTCStatsReport").ToLocalChecked(), tpl->GetFunction());
+  exports->Set(Nan::New("LegacyStatsReport").ToLocalChecked(), tpl->GetFunction());
 }

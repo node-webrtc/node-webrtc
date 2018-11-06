@@ -11,7 +11,7 @@
 #include <v8.h>  // IWYU pragma: keep
 
 #include "src/common.h"
-#include "src/rtcstatsreport.h"  // IWYU pragma: keep
+#include "src/legacyrtcstatsreport.h"  // IWYU pragma: keep
 
 using node_webrtc::RTCStatsResponse;
 using v8::Array;
@@ -54,7 +54,7 @@ NAN_METHOD(RTCStatsResponse::result) {
 
   uint32_t i = 0;
   for (auto const& stats : self->_reports) {
-    auto report = RTCStatsReport::Create(timestamp, stats);
+    auto report = LegacyStatsReport::Create(timestamp, stats);
     reports->Set(i++, report->handle());
   }
 

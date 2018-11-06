@@ -26,7 +26,7 @@ class StatsObserver
   std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, node_webrtc::RTCStatsResponseInit>> _promise;
 
  public:
-  explicit StatsObserver(
+  StatsObserver(
       PeerConnection* parent,
       std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, node_webrtc::RTCStatsResponseInit>> promise)
     : parent(parent), _promise(std::move(promise)) {}

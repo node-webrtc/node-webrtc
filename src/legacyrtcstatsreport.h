@@ -14,22 +14,22 @@
 
 namespace node_webrtc {
 
-class RTCStatsReport
+class LegacyStatsReport
   : public Nan::ObjectWrap {
  public:
-  RTCStatsReport() = delete;
+  LegacyStatsReport() = delete;
 
-  ~RTCStatsReport() override = default;
+  ~LegacyStatsReport() override = default;
 
   //
   // Nodejs wrapping.
   //
   static void Init(v8::Handle<v8::Object> exports);
 
-  static RTCStatsReport* Create(double timestamp, const std::map<std::string, std::string>& stats);
+  static LegacyStatsReport* Create(double timestamp, const std::map<std::string, std::string>& stats);
 
  private:
-  explicit RTCStatsReport(double timestamp, const std::map<std::string, std::string>& stats)
+  explicit LegacyStatsReport(double timestamp, const std::map<std::string, std::string>& stats)
     : _timestamp(timestamp), _stats(stats) {}
 
   static Nan::Persistent<v8::Function>& constructor();

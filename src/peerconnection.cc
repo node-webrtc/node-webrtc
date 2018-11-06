@@ -34,6 +34,7 @@
 #include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
 #include "src/rtcrtpsender.h"  // IWYU pragma: keep
 #include "src/rtcrtptransceiver.h"  // IWYU pragma: keep
+#include "src/rtcstatscollector.h"  // IWYU pragma: keep
 #include "src/setsessiondescriptionobserver.h"  // IWYU pragma: keep
 #include "src/stats-observer.h"  // IWYU pragma: keep
 
@@ -579,6 +580,21 @@ NAN_METHOD(PeerConnection::GetSenders) {
 }
 
 NAN_METHOD(PeerConnection::GetStats) {
+  SETUP_PROMISE(PeerConnection, rtc::scoped_refptr<webrtc::RTCStatsReport>);
+
+  auto self = AsyncObjectWrapWithLoop<PeerConnection>::Unwrap(info.This());
+
+  if (!self->_jinglePeerConnection) {
+    auto error = Nan::Error("RTCPeerConnection is closed");
+    resolver->Reject(Nan::GetCurrentContext(), error).IsNothing();
+    return;
+  }
+
+  auto callback = new rtc::RefCountedObject<node_webrtc::RTCStatsCollector>(self, std::move(promise));
+  self->_jinglePeerConnection->GetStats(callback);
+}
+
+NAN_METHOD(PeerConnection::LegacyGetStats) {
   TRACE_CALL;
 
   auto self = AsyncObjectWrapWithLoop<PeerConnection>::Unwrap(info.This());
@@ -853,6 +869,7 @@ void PeerConnection::Init(Handle<Object> exports) {
   Nan::SetPrototypeMethod(tpl, "getReceivers", GetReceivers);
   Nan::SetPrototypeMethod(tpl, "getSenders", GetSenders);
   Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
+  Nan::SetPrototypeMethod(tpl, "legacyGetStats", LegacyGetStats);
   Nan::SetPrototypeMethod(tpl, "getTransceivers", GetTransceivers);
   Nan::SetPrototypeMethod(tpl, "updateIce", UpdateIce);
   Nan::SetPrototypeMethod(tpl, "addIceCandidate", AddIceCandidate);

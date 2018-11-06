@@ -20,6 +20,7 @@
 
 #include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
 #include "src/converters.h"
+#include "src/converters/v8.h"
 #include "src/converters/object.h"
 #include "src/functional/either.h"  // IWYU pragma: keep
 #include "src/errorfactory.h"  // IWYU pragma: keep
@@ -1079,4 +1080,59 @@ CONVERTER(Local<Value>, webrtc::RtpTransceiverInit, value) {
     return curry(CreateRtpTransceiverInit)
         % GetOptional<webrtc::RtpTransceiverDirection>(object, "direction", webrtc::RtpTransceiverDirection::kSendRecv);
   });
+}
+
+TO_JS(const webrtc::RTCStatsMemberInterface*, value) {
+  switch (value->type()) {
+    case webrtc::RTCStatsMemberInterface::Type::kBool:  // bool
+      return From<Local<Value>>(*value->cast_to<webrtc::RTCStatsMember<bool>>());
+    case webrtc::RTCStatsMemberInterface::Type::kInt32:  // int32_t
+      return From<Local<Value>>(*value->cast_to<webrtc::RTCStatsMember<int32_t>>());
+    case webrtc::RTCStatsMemberInterface::Type::kUint32:  // uint32_t
+      return From<Local<Value>>(*value->cast_to<webrtc::RTCStatsMember<uint32_t>>());
+    case webrtc::RTCStatsMemberInterface::Type::kInt64:   // int64_t
+      return From<Local<Value>>(*value->cast_to<webrtc::RTCStatsMember<int64_t>>());
+    case webrtc::RTCStatsMemberInterface::Type::kUint64:  // uint64_t
+      return From<Local<Value>>(*value->cast_to<webrtc::RTCStatsMember<uint64_t>>());
+    case webrtc::RTCStatsMemberInterface::Type::kDouble:  // double
+      return From<Local<Value>>(*value->cast_to<webrtc::RTCStatsMember<double>>());
+    case webrtc::RTCStatsMemberInterface::Type::kString:  // std::string
+      return From<Local<Value>>(*value->cast_to<webrtc::RTCStatsMember<std::string>>());
+    case webrtc::RTCStatsMemberInterface::Type::kSequenceBool:  // std::vector<bool>
+      return From<Local<Value>>(*value->cast_to<webrtc::RTCStatsMember<std::vector<bool>>>());
+    case webrtc::RTCStatsMemberInterface::Type::kSequenceInt32:  // std::vector<int32_t>
+      return From<Local<Value>>(*value->cast_to<webrtc::RTCStatsMember<std::vector<int32_t>>>());
+    case webrtc::RTCStatsMemberInterface::Type::kSequenceUint32:  // std::vector<uint32_t>
+      return From<Local<Value>>(*value->cast_to<webrtc::RTCStatsMember<std::vector<uint32_t>>>());
+    case webrtc::RTCStatsMemberInterface::Type::kSequenceInt64:  // std::vector<int64_t>
+      return From<Local<Value>>(*value->cast_to<webrtc::RTCStatsMember<std::vector<int64_t>>>());
+    case webrtc::RTCStatsMemberInterface::Type::kSequenceUint64:  // std::vector<uint64_t>
+      return From<Local<Value>>(*value->cast_to<webrtc::RTCStatsMember<std::vector<uint64_t>>>());
+    case webrtc::RTCStatsMemberInterface::Type::kSequenceDouble:  // std::vector<double>
+      return From<Local<Value>>(*value->cast_to<webrtc::RTCStatsMember<std::vector<double>>>());
+    case webrtc::RTCStatsMemberInterface::Type::kSequenceString:  // std::vector<std::string>
+      return From<Local<Value>>(*value->cast_to<webrtc::RTCStatsMember<std::vector<std::string>>>());
+  }
+}
+
+TO_JS(const webrtc::RTCStats*, value) {
+  Nan::EscapableHandleScope scope;
+  auto context = Nan::GetCurrentContext();
+  auto stats = v8::Map::New(context->GetIsolate());
+  for (const webrtc::RTCStatsMemberInterface* member : value->Members()) {
+    if (member->is_defined()) {
+      stats->Set(context, Nan::New(member->name()).ToLocalChecked(), From<Local<Value>>(member).UnsafeFromValid()).IsEmpty();
+    }
+  }
+  return Validation<Local<Value>>::Valid(scope.Escape(stats));
+}
+
+TO_JS(rtc::scoped_refptr<webrtc::RTCStatsReport>, value) {
+  Nan::EscapableHandleScope scope;
+  auto context = Nan::GetCurrentContext();
+  auto report = v8::Map::New(context->GetIsolate());
+  for (const webrtc::RTCStats& stats : *value) {
+    report->Set(context, Nan::New("id").ToLocalChecked(), From<Local<Value>>(&stats).UnsafeFromValid()).IsEmpty();
+  }
+  return Validation<Local<Value>>::Valid(scope.Escape(Local<Value>::Cast(report)));
 }

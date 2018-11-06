@@ -29,7 +29,7 @@ class SetSessionDescriptionObserver
   std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection>> _promise;
 
  public:
-  explicit SetSessionDescriptionObserver(
+  SetSessionDescriptionObserver(
       PeerConnection* connection,
       std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection>> promise)
     : parent(connection), _promise(std::move(promise)) {}
