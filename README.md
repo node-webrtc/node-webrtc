@@ -95,7 +95,7 @@ npm test
 
 ## Web Platform Tests
 
-[w3c/web-platform-tests](https://github.com/w3c/web-platform-tests) defines a suite of WebRTC tests. node-webrtc borrows a technique from [jsdom/jsdom](https://github.com/jsdom/jsdom) to run these tests in Node.js. Run the tests with
+[web-platform-tests/wpt](https://github.com/web-platform-tests/wpt) defines a suite of WebRTC tests. node-webrtc borrows a technique from [jsdom/jsdom](https://github.com/jsdom/jsdom) to run these tests in Node.js. Run the tests with
 
 ```
 npm run wpt:test
