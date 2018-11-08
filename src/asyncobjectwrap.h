@@ -31,7 +31,7 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
    */
   explicit AsyncObjectWrap(const char* name);
 
-  virtual ~AsyncObjectWrap() override;
+  ~AsyncObjectWrap() override;
 
   /**
    * Increment the reference count.
