@@ -306,11 +306,13 @@ NAN_METHOD(PeerConnection::AddTrack) {
     Nan::ThrowError("Cannot addTrack; RTCPeerConnection is closed");
     return;
   }
-  CONVERT_ARGS_OR_THROW_AND_RETURN(pair, std::tuple<MediaStreamTrack* COMMA MediaStream*>);
+  CONVERT_ARGS_OR_THROW_AND_RETURN(pair, std::tuple<MediaStreamTrack* COMMA Maybe<MediaStream*>>);
   auto mediaStreamTrack = std::get<0>(pair);
-  auto mediaStream = std::get<1>(pair);
+  Maybe<MediaStream*> mediaStream = std::get<1>(pair);
   std::vector<std::string> streams;
-  streams.push_back(mediaStream->stream()->id());
+  if (mediaStream.IsJust()) {
+    streams.push_back(mediaStream.UnsafeFromJust()->stream()->id());
+  }
   auto result = self->_jinglePeerConnection->AddTrack(mediaStreamTrack->track(), streams);
   if (!result.ok()) {
     CONVERT_OR_THROW_AND_RETURN(&result.error(), error, Local<Value>);
@@ -356,10 +358,21 @@ NAN_METHOD(PeerConnection::RemoveTrack) {
   TRACE_CALL;
   auto self = AsyncObjectWrapWithLoop<PeerConnection>::Unwrap(info.This());
   if (!self->_jinglePeerConnection) {
-    Nan::ThrowError("Cannot removeTrack; RTCPeerConnection is closed");
+    Nan::ThrowError(ErrorFactory::CreateInvalidStateError("Cannot removeTrack; RTCPeerConnection is closed"));
+    return;
   }
   CONVERT_ARGS_OR_THROW_AND_RETURN(sender, RTCRtpSender*);
-  self->_jinglePeerConnection->RemoveTrack(sender->sender());
+  auto senders = self->_jinglePeerConnection->GetSenders();
+  if (std::find(senders.begin(), senders.end(), sender->sender()) == senders.end()) {
+    TRACE_END;
+    Nan::ThrowError(ErrorFactory::CreateInvalidAccessError("Cannot removeTrack"));
+    return;
+  }
+  if (!self->_jinglePeerConnection->RemoveTrack(sender->sender())) {
+    TRACE_END;
+    Nan::ThrowError(ErrorFactory::CreateInvalidAccessError("Cannot removeTrack"));
+    return;
+  }
   TRACE_END;
 }
 
@@ -380,9 +393,16 @@ NAN_METHOD(PeerConnection::CreateOffer) {
 
   auto options = validationOptions.UnsafeFromValid();
 
-  if (self->_jinglePeerConnection != nullptr) {
+  if (self->_jinglePeerConnection
+      && self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed) {
     auto observer = new rtc::RefCountedObject<CreateSessionDescriptionObserver>(self, std::move(promise));
     self->_jinglePeerConnection->CreateOffer(observer, options.options);
+  } else {
+    TRACE_END;
+    resolver->Reject(Nan::GetCurrentContext(), ErrorFactory::CreateInvalidStateError(
+            "Failed to execute 'createOffer' on 'RTCPeerConnection': "
+            "The RTCPeerConnection's signalingState is 'closed'.")).IsNothing();
+    return;
   }
 
   TRACE_END;
@@ -405,9 +425,16 @@ NAN_METHOD(PeerConnection::CreateAnswer) {
 
   auto options = validationOptions.UnsafeFromValid();
 
-  if (self->_jinglePeerConnection != nullptr) {
+  if (self->_jinglePeerConnection
+      && self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed) {
     auto observer = new rtc::RefCountedObject<CreateSessionDescriptionObserver>(self, std::move(promise));
     self->_jinglePeerConnection->CreateAnswer(observer, options.options);
+  } else {
+    TRACE_END;
+    resolver->Reject(Nan::GetCurrentContext(), ErrorFactory::CreateInvalidStateError(
+            "Failed to execute 'createAnswer' on 'RTCPeerConnection': "
+            "The RTCPeerConnection's signalingState is 'closed'.")).IsNothing();
+    return;
   }
 
   TRACE_END;
@@ -428,11 +455,16 @@ NAN_METHOD(PeerConnection::SetLocalDescription) {
 
   CONVERT_OR_REJECT_AND_RETURN(resolver, descriptionInit, description, SessionDescriptionInterface*);
 
-  if (self->_jinglePeerConnection != nullptr) {
+  if (self->_jinglePeerConnection
+      && self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed) {
     auto observer = new rtc::RefCountedObject<SetSessionDescriptionObserver>(self, std::move(promise));
     self->_jinglePeerConnection->SetLocalDescription(observer, description);
   } else {
     delete description;
+    resolver->Reject(Nan::GetCurrentContext(), ErrorFactory::CreateInvalidStateError(
+            "Failed to execute 'setLocalDescription' on 'RTCPeerConnection': "
+            "The RTCPeerConnection's signalingState is 'closed'."
+        )).IsNothing();
   }
 
   TRACE_END;
@@ -447,11 +479,16 @@ NAN_METHOD(PeerConnection::SetRemoteDescription) {
 
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, description, SessionDescriptionInterface*);
 
-  if (self->_jinglePeerConnection != nullptr) {
+  if (self->_jinglePeerConnection
+      && self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed) {
     auto observer = new rtc::RefCountedObject<SetSessionDescriptionObserver>(self, std::move(promise));
     self->_jinglePeerConnection->SetRemoteDescription(observer, description);
   } else {
     delete description;
+    resolver->Reject(Nan::GetCurrentContext(), ErrorFactory::CreateInvalidStateError(
+            "Failed to execute 'setRemoteDescription' on 'RTCPeerConnection': "
+            "The RTCPeerConnection's signalingState is 'closed'."
+        )).IsNothing();
   }
 
   TRACE_END;
@@ -466,13 +503,16 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
 
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, candidate, IceCandidateInterface*);
 
-  if (self->_jinglePeerConnection != nullptr && self->_jinglePeerConnection->AddIceCandidate(candidate)) {
+  if (self->_jinglePeerConnection
+      && self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed
+      && self->_jinglePeerConnection->AddIceCandidate(candidate)) {
     promise->Resolve(Undefined());
     self->Dispatch(std::move(promise));
   } else {
     std::string error = std::string("Failed to set ICE candidate");
-    if (self->_jinglePeerConnection == nullptr) {
-      error += ", no jingle peer connection";
+    if (!self->_jinglePeerConnection
+        || self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed) {
+      error += "; RTCPeerConnection is closed";
     }
     error += ".";
     promise->Reject(SomeError(error));

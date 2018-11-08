@@ -981,7 +981,7 @@ FROM_JS(RTCRtpSender*, value) {
   // TODO(mroberts): This is not safe.
   return value->IsObject() && !value->IsNull() && !value->IsArray()
       ? Validation<RTCRtpSender*>::Valid(AsyncObjectWrapWithLoop<RTCRtpSender>::Unwrap(value->ToObject()))
-      : Validation<RTCRtpSender*>::Invalid("IDK");
+      : Validation<RTCRtpSender*>::Invalid("This is not an RTCRtpSender");
 }
 
 TO_JS(RTCRtpReceiver*, receiver) {
@@ -1012,7 +1012,7 @@ FROM_JS(MediaStream*, value) {
   // TODO(mroberts): This is not safe.
   return value->IsObject() && !value->IsNull() && !value->IsArray()
       ? Validation<MediaStream*>::Valid(Nan::ObjectWrap::Unwrap<MediaStream>(value->ToObject()))
-      : Validation<MediaStream*>::Invalid("IDK");
+      : Validation<MediaStream*>::Invalid("This is not a MediaStream");
 }
 
 TO_JS(MediaStreamTrack*, track) {
@@ -1036,7 +1036,7 @@ FROM_JS(MediaStreamTrack*, value) {
   // TODO(mroberts): This is not safe.
   return value->IsObject() && !value->IsNull() && !value->IsArray()
       ? Validation<MediaStreamTrack*>::Valid(AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(value->ToObject()))
-      : Validation<MediaStreamTrack*>::Invalid("IDK");
+      : Validation<MediaStreamTrack*>::Invalid("This is not a MediaStreamTrack");
 }
 
 CONVERTER(webrtc::RtpTransceiverDirection, std::string, value) {
@@ -1069,9 +1069,15 @@ TO_JS_ENUM(webrtc::RtpTransceiverDirection)
 FROM_JS_ENUM(webrtc::RtpTransceiverDirection)
 
 static webrtc::RtpTransceiverInit CreateRtpTransceiverInit(
-    const webrtc::RtpTransceiverDirection direction) {
+    const webrtc::RtpTransceiverDirection direction,
+    const std::vector<node_webrtc::MediaStream*> streams) {
   webrtc::RtpTransceiverInit init;
   init.direction = direction;
+  std::vector<std::string> stream_ids;
+  for (const auto& stream : streams) {
+    stream_ids.emplace_back(stream->stream()->id());
+  }
+  init.stream_ids = stream_ids;
   return init;
 }
 
@@ -1079,7 +1085,8 @@ CONVERTER(Local<Value>, webrtc::RtpTransceiverInit, value) {
   return From<Local<Object>>(value).FlatMap<webrtc::RtpTransceiverInit>(
   [](const Local<Object> object) {
     return curry(CreateRtpTransceiverInit)
-        % GetOptional<webrtc::RtpTransceiverDirection>(object, "direction", webrtc::RtpTransceiverDirection::kSendRecv);
+        % GetOptional<webrtc::RtpTransceiverDirection>(object, "direction", webrtc::RtpTransceiverDirection::kSendRecv)
+        * GetOptional<std::vector<node_webrtc::MediaStream*>>(object, "streams", std::vector<node_webrtc::MediaStream*>());
   });
 }
 
