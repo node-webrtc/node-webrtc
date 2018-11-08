@@ -3,6 +3,7 @@
 var tape = require('tape');
 var wrtc = require('..');
 
+var getUserMedia = wrtc.getUserMedia;
 var MediaStream = wrtc.MediaStream;
 var RTCPeerConnection = wrtc.RTCPeerConnection;
 var RTCSessionDescription = wrtc.RTCSessionDescription;
@@ -105,6 +106,37 @@ tape('.clone', function(t) {
       return track.id !== stream2.getTracks()[i].id &&
         track.id !== stream3.getTracks()[i].id;
     }), 'the cloned MediaStreams\'s MediaStreamTracks do not have the same .ids');
+    t.end();
+  });
+});
+
+tape('.clone and .stop', function(t) {
+  getUserMedia({ audio: true }).then(function(stream1) {
+    var track1 = stream1.getTracks()[0];
+
+    t.ok(stream1.active, 'stream1 is active');
+    t.equal(track1.readyState, 'live', 'track1 is live');
+
+    var stream2 = stream1.clone();
+    var track2 = stream2.getTracks()[0];
+
+    t.ok(stream2.active, 'stream2 is active');
+    t.equal(track2.readyState, 'live', 'track2 is live');
+    t.notEqual(stream1, stream2, 'stream1 and stream2 are different');
+    t.notEqual(track1, track2, 'track1 and track2 are different');
+
+    track1.stop();
+
+    t.ok(!stream1.active, 'stream1 is inactive');
+    t.ok(stream2.active, 'stream2 is active');
+    t.equal(track1.readyState, 'ended', 'track1 is ended');
+    t.equal(track2.readyState, 'live', 'track2 is live');
+
+    track2.stop();
+
+    t.ok(!stream2.active, 'stream2 is inactive');
+    t.equal(track2.readyState, 'ended', 'track2 is ended');
+
     t.end();
   });
 });

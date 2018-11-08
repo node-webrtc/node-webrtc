@@ -1,3 +1,27 @@
+DIR: mediacapture-streams
+
+GUM-deny.https.html: [fail, "SEGFAULT"]
+GUM-impossible-constraint.https.html: [fail]
+GUM-invalid-facing-mode.https.html: [fail, "The empty string is not a valid facingMode"]
+MediaDevices-enumerateDevices.https.html: [fail]
+MediaDevices-getUserMedia.https.html: [fail]
+MediaStream-MediaElement-srcObject.https.html: [fail]
+MediaStream-clone.https.html: [fail, "readyState/source management needs a rework"]
+MediaStream-default-feature-policy.https.html: [fail, "hangs"]
+MediaStream-finished-add.https.html: [fail, "readyState/source management needs a rework"]
+MediaStream-idl.https.html: [fail, "EventTarget"]
+MediaStream-removetrack.https.html: [fail, "hangs"]
+MediaStreamTrack-MediaElement-disabled-audio-is-silence.https.html: [fail, "AudioContext"]
+MediaStreamTrack-MediaElement-disabled-video-is-black.https.html: [fail, "hangs"]
+MediaStreamTrack-applyConstraints.https.html: [fail]
+MediaStreamTrack-getCapabilities.https.html: [fail]
+MediaStreamTrack-getSettings.https.html: [fail]
+MediaStreamTrack-init.https.html: [fail, "readyState/source management needs a rework"]
+MediaStreamTrackEvent-constructor.https.html: [fail]
+idlharness.https.window.html: [fail, "fetch is not defined"]
+
+---
+
 DIR: webrtc
 
 RTCCertificate-postMessage.html: [fail]
