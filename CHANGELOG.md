@@ -14,7 +14,7 @@ This release adds limited `getUserMedia` support. You can create audio and video
 MediaStreamTracks; however, the resulting MediaStreamTracks do not capture any
 media. You can add these MediaStreamTracks to an RTCPeerConnection; however, no
 media will be transmitted. You can confirm by checking `bytesSent` and
-`bytesReceived` in `getStats`
+`bytesReceived` in `getStats`.
 
 ```js
 const { getUserMedia } = require('wrtc');

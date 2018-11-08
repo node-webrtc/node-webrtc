@@ -1126,13 +1126,13 @@ TO_JS(const webrtc::RTCStatsMemberInterface*, value) {
 TO_JS(const webrtc::RTCStats*, value) {
   Nan::EscapableHandleScope scope;
   auto context = Nan::GetCurrentContext();
-  auto stats = v8::Map::New(context->GetIsolate());
-  stats->Set(context, Nan::New("id").ToLocalChecked(), From<Local<Value>>(value->id()).UnsafeFromValid()).IsEmpty();
-  stats->Set(context, Nan::New("timestamp").ToLocalChecked(), From<Local<Value>>(value->timestamp_us() / 1000.0).UnsafeFromValid()).IsEmpty();
-  stats->Set(context, Nan::New("type").ToLocalChecked(), From<Local<Value>>(std::string(value->type())).UnsafeFromValid()).IsEmpty();
+  auto stats = Nan::New<Object>();
+  stats->Set(Nan::New("id").ToLocalChecked(), From<Local<Value>>(value->id()).UnsafeFromValid());
+  stats->Set(Nan::New("timestamp").ToLocalChecked(), From<Local<Value>>(value->timestamp_us() / 1000.0).UnsafeFromValid());
+  stats->Set(Nan::New("type").ToLocalChecked(), From<Local<Value>>(std::string(value->type())).UnsafeFromValid());
   for (const webrtc::RTCStatsMemberInterface* member : value->Members()) {
     if (member->is_defined()) {
-      stats->Set(context, Nan::New(member->name()).ToLocalChecked(), From<Local<Value>>(member).UnsafeFromValid()).IsEmpty();
+      stats->Set(Nan::New(member->name()).ToLocalChecked(), From<Local<Value>>(member).UnsafeFromValid());
     }
   }
   return Validation<Local<Value>>::Valid(scope.Escape(stats));
