@@ -33,6 +33,10 @@ class MediaStreamTrack
   // ObserverInterface
   void OnChanged() override;
 
+  void OnPeerConnectionClosed();
+
+  bool active() { return _ended ? false : _track->state() == webrtc::MediaStreamTrackInterface::TrackState::kLive; }
+  std::shared_ptr<node_webrtc::PeerConnectionFactory> factory() { return _factory; }
   rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track() { return _track; }
 
   static ::node_webrtc::Wrap <
@@ -40,10 +44,6 @@ class MediaStreamTrack
   rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>,
   std::shared_ptr<PeerConnectionFactory>
   > * wrap();
-
-  std::shared_ptr<node_webrtc::PeerConnectionFactory> factory() { return _factory; }
-
-  void OnPeerConnectionClosed();
 
  private:
   MediaStreamTrack(
@@ -67,6 +67,7 @@ class MediaStreamTrack
   static NAN_METHOD(Clone);
   static NAN_METHOD(JsStop);
 
+  bool _ended;
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> _track;
 };

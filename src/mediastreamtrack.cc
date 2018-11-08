@@ -90,7 +90,10 @@ NAN_GETTER(MediaStreamTrack::GetKind) {
 NAN_GETTER(MediaStreamTrack::GetReadyState) {
   (void) property;
   auto self = AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(info.Holder());
-  CONVERT_OR_THROW_AND_RETURN(self->_track->state(), result, std::string);
+  auto state = self->_ended
+      ? webrtc::MediaStreamTrackInterface::TrackState::kEnded
+      : self->_track->state();
+  CONVERT_OR_THROW_AND_RETURN(state, result, std::string);
   info.GetReturnValue().Set(Nan::New(result).ToLocalChecked());
 }
 
@@ -107,7 +110,9 @@ NAN_GETTER(MediaStreamTrack::GetMuted) {
     source = videoTrack->GetSource();
   }
   auto muted = source && self->factory()->_signalingThread->Invoke<bool>(RTC_FROM_HERE, [source]() {
-    return source->state() == webrtc::MediaSourceInterface::kMuted;
+    // NOTE(mroberts): I got a EXC_I386_GPFLT here...
+    // return source->state() == webrtc::MediaSourceInterface::kMuted;
+    return false;
   });
   info.GetReturnValue().Set(muted);
 }
@@ -124,7 +129,9 @@ NAN_METHOD(MediaStreamTrack::Clone) {
     clonedTrack = self->_factory->factory()->CreateVideoTrack(label, videoTrack->GetSource());
   }
   auto clonedMediaStreamTrack = wrap()->GetOrCreate(self->_factory, clonedTrack);
-  if (self->_track->state() != webrtc::MediaStreamTrackInterface::TrackState::kLive) {
+  if (self->_ended) {
+    // NOTE(mroberts): There ought to be a more principled way of doing this; also, we aren't considering the source.
+    clonedMediaStreamTrack->_ended = true;
     clonedMediaStreamTrack->Stop();
   }
   info.GetReturnValue().Set(clonedMediaStreamTrack->ToObject());
@@ -132,6 +139,7 @@ NAN_METHOD(MediaStreamTrack::Clone) {
 
 NAN_METHOD(MediaStreamTrack::JsStop) {
   auto self = AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(info.Holder());
+  self->_ended = true;
   self->Stop();
 }
 

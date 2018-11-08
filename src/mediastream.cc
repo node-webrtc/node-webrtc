@@ -140,7 +140,8 @@ NAN_GETTER(MediaStream::GetActive) {
   auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
   auto active = false;
   for (auto const& track : self->tracks()) {
-    active = active || track->state() == webrtc::MediaStreamTrackInterface::TrackState::kLive;
+    auto mediaStreamTrack = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, track);
+    active = active || mediaStreamTrack->active();
   }
   info.GetReturnValue().Set(Nan::New(active));
 }
@@ -185,12 +186,15 @@ NAN_METHOD(MediaStream::GetTrackById) {
   if (audioTrack) {
     auto track = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, audioTrack);
     info.GetReturnValue().Set(track->ToObject());
+    return;
   }
-  auto videoTrack = self->_stream->FindAudioTrack(label);
+  auto videoTrack = self->_stream->FindVideoTrack(label);
   if (videoTrack) {
     auto track = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, videoTrack);
     info.GetReturnValue().Set(track->ToObject());
+    return;
   }
+  info.GetReturnValue().Set(Nan::Null());
 }
 
 NAN_METHOD(MediaStream::AddTrack) {
@@ -220,19 +224,22 @@ NAN_METHOD(MediaStream::RemoveTrack) {
 NAN_METHOD(MediaStream::Clone) {
   (void) info;
   auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
-  auto clonedMediaStreamTracks = std::vector<Local<Value>>();
+  auto clonedStream = self->_factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid());
   for (auto const& track : self->tracks()) {
-    auto mediaStreamTrack = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, track);
-    auto clonedMediaStreamTrack = Nan::Call("clone", mediaStreamTrack->ToObject(), 0, nullptr);
-    if (!clonedMediaStreamTrack.IsEmpty()) {
-      clonedMediaStreamTracks.push_back(clonedMediaStreamTrack.ToLocalChecked());
+    if (track->kind() == track->kAudioKind) {
+      auto audioTrack = static_cast<webrtc::AudioTrackInterface*>(track.get());
+      auto source = audioTrack->GetSource();
+      auto clonedTrack = self->_factory->factory()->CreateAudioTrack(rtc::CreateRandomUuid(), source);
+      clonedStream->AddTrack(clonedTrack);
+    } else {
+      auto videoTrack = static_cast<webrtc::VideoTrackInterface*>(track.get());
+      auto source = videoTrack->GetSource();
+      auto clonedTrack = self->_factory->factory()->CreateVideoTrack(rtc::CreateRandomUuid(), source);
+      clonedStream->AddTrack(clonedTrack);
     }
   }
-  CONVERT_OR_THROW_AND_RETURN(clonedMediaStreamTracks, tracks, Local<Value>);
-  Local<Value> cargv[1];
-  cargv[0] = tracks;
-  auto mediaStream = Nan::NewInstance(Nan::New(MediaStream::constructor()), 1, cargv).ToLocalChecked();
-  info.GetReturnValue().Set(mediaStream);
+  auto mediaStream = MediaStream::wrap()->GetOrCreate(self->_factory, clonedStream);
+  info.GetReturnValue().Set(mediaStream->handle());
 }
 
 node_webrtc::Wrap <
