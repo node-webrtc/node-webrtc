@@ -16,11 +16,12 @@
 #include <webrtc/api/rtpparameters.h>
 #include <webrtc/api/rtpreceiverinterface.h>
 #include <webrtc/api/rtptransceiverinterface.h>
+#include <webrtc/api/stats/rtcstats.h>
 #include <v8.h>
 
 #include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
 #include "src/converters.h"
-#include "src/converters/v8.h"
+#include "src/converters/v8.h"  // IWYU pragma: keep
 #include "src/converters/object.h"
 #include "src/functional/either.h"  // IWYU pragma: keep
 #include "src/errorfactory.h"  // IWYU pragma: keep
@@ -1120,6 +1121,8 @@ TO_JS(const webrtc::RTCStats*, value) {
   auto context = Nan::GetCurrentContext();
   auto stats = v8::Map::New(context->GetIsolate());
   stats->Set(context, Nan::New("id").ToLocalChecked(), From<Local<Value>>(value->id()).UnsafeFromValid()).IsEmpty();
+  stats->Set(context, Nan::New("timestamp").ToLocalChecked(), From<Local<Value>>(value->timestamp_us() / 1000.0).UnsafeFromValid()).IsEmpty();
+  stats->Set(context, Nan::New("type").ToLocalChecked(), From<Local<Value>>(std::string(value->type())).UnsafeFromValid()).IsEmpty();
   for (const webrtc::RTCStatsMemberInterface* member : value->Members()) {
     if (member->is_defined()) {
       stats->Set(context, Nan::New(member->name()).ToLocalChecked(), From<Local<Value>>(member).UnsafeFromValid()).IsEmpty();

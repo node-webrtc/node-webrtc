@@ -172,7 +172,7 @@ void PeerConnection::HandleIceCandidateEvent(const IceEvent& event) {
 void PeerConnection::HandleDataChannelEvent(const DataChannelEvent& event) {
   TRACE_CALL;
   Nan::HandleScope scope;
-  auto channel = DataChannel::wrap->GetOrCreate(event.observer, event.observer->channel());
+  auto channel = DataChannel::wrap()->GetOrCreate(event.observer, event.observer->channel());
   Local<Value> argv = channel->ToObject();
   MakeCallback("ondatachannel", 1, &argv);
   TRACE_END;
@@ -190,14 +190,14 @@ void PeerConnection::HandleOnAddTrackEvent(const OnAddTrackEvent& event) {
   Nan::HandleScope scope;
 
   auto transceiver = event.transceiver
-      ? RTCRtpTransceiver::wrap.GetOrCreate(_factory, event.transceiver)
+      ? RTCRtpTransceiver::wrap()->GetOrCreate(_factory, event.transceiver)
       : nullptr;
 
-  auto receiver = RTCRtpReceiver::wrap.GetOrCreate(_factory, event.receiver);
+  auto receiver = RTCRtpReceiver::wrap()->GetOrCreate(_factory, event.receiver);
 
   auto mediaStreams = std::vector<MediaStream*>();
   for (auto const& stream : event.streams) {
-    auto mediaStream = MediaStream::wrap.GetOrCreate(_factory, stream);
+    auto mediaStream = MediaStream::wrap()->GetOrCreate(_factory, stream);
     mediaStreams.push_back(mediaStream);
   }
   CONVERT_OR_THROW_AND_RETURN(mediaStreams, streams, Local<Value>);
@@ -318,7 +318,7 @@ NAN_METHOD(PeerConnection::AddTrack) {
     return;
   }
   auto rtpSender = result.value();
-  auto sender = RTCRtpSender::wrap.GetOrCreate(self->_factory, rtpSender);
+  auto sender = RTCRtpSender::wrap()->GetOrCreate(self->_factory, rtpSender);
   TRACE_END;
   info.GetReturnValue().Set(sender->ToObject());
 }
@@ -348,7 +348,7 @@ NAN_METHOD(PeerConnection::AddTransceiver) {
     return;
   }
   auto rtpTransceiver = result.value();
-  auto transceiver = RTCRtpTransceiver::wrap.GetOrCreate(self->_factory, rtpTransceiver);
+  auto transceiver = RTCRtpTransceiver::wrap()->GetOrCreate(self->_factory, rtpTransceiver);
   info.GetReturnValue().Set(transceiver->ToObject());
 }
 
@@ -505,7 +505,7 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
       self->_jinglePeerConnection->CreateDataChannel(label, &dataChannelInit);
 
   auto observer = new DataChannelObserver(self->_factory, data_channel_interface);
-  auto channel = DataChannel::wrap->GetOrCreate(observer, observer->channel());
+  auto channel = DataChannel::wrap()->GetOrCreate(observer, observer->channel());
   self->_channels.push_back(channel);
 
   TRACE_END;
@@ -556,7 +556,7 @@ NAN_METHOD(PeerConnection::GetReceivers) {
   std::vector<RTCRtpReceiver*> receivers;
   if (self->_jinglePeerConnection) {
     for (auto receiver : self->_jinglePeerConnection->GetReceivers()) {
-      receivers.emplace_back(RTCRtpReceiver::wrap.GetOrCreate(self->_factory, receiver));
+      receivers.emplace_back(RTCRtpReceiver::wrap()->GetOrCreate(self->_factory, receiver));
     }
   }
   CONVERT_OR_THROW_AND_RETURN(receivers, result, Local<Value>);
@@ -570,7 +570,7 @@ NAN_METHOD(PeerConnection::GetSenders) {
   std::vector<RTCRtpSender*> senders;
   if (self->_jinglePeerConnection) {
     for (auto sender : self->_jinglePeerConnection->GetSenders()) {
-      senders.emplace_back(RTCRtpSender::wrap.GetOrCreate(self->_factory, sender));
+      senders.emplace_back(RTCRtpSender::wrap()->GetOrCreate(self->_factory, sender));
     }
   }
   CONVERT_OR_THROW_AND_RETURN(senders, result, Local<Value>);
@@ -622,7 +622,7 @@ NAN_METHOD(PeerConnection::GetTransceivers) {
   if (self->_jinglePeerConnection
       && self->_jinglePeerConnection->GetConfiguration().sdp_semantics == webrtc::SdpSemantics::kUnifiedPlan) {
     for (auto transceiver : self->_jinglePeerConnection->GetTransceivers()) {
-      transceivers.emplace_back(RTCRtpTransceiver::wrap.GetOrCreate(self->_factory, transceiver));
+      transceivers.emplace_back(RTCRtpTransceiver::wrap()->GetOrCreate(self->_factory, transceiver));
     }
   }
   CONVERT_OR_THROW_AND_RETURN(transceivers, result, Local<Value>);
@@ -650,7 +650,7 @@ NAN_METHOD(PeerConnection::Close) {
     // RTCPeerConnection, not unlike what we do with RTCDataChannels.
     if (self->_jinglePeerConnection->GetConfiguration().sdp_semantics == webrtc::SdpSemantics::kUnifiedPlan) {
       for (auto transceiver : self->_jinglePeerConnection->GetTransceivers()) {
-        auto track = MediaStreamTrack::wrap.GetOrCreate(self->_factory, transceiver->receiver()->track());
+        auto track = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, transceiver->receiver()->track());
         track->OnPeerConnectionClosed();
       }
     }

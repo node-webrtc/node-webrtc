@@ -133,7 +133,7 @@ NAN_METHOD(node_webrtc::GetUserMedia::GetUserMediaImpl) {
     stream->AddTrack(track);
   }
 
-  resolver->Resolve(Nan::GetCurrentContext(), MediaStream::wrap.GetOrCreate(factory, stream)->handle()).IsNothing();
+  resolver->Resolve(Nan::GetCurrentContext(), MediaStream::wrap()->GetOrCreate(factory, stream)->handle()).IsNothing();
 }
 
 void node_webrtc::GetUserMedia::Init(v8::Handle<v8::Object> exports) {

@@ -39,7 +39,7 @@ class MediaStreamTrack
   MediaStreamTrack*,
   rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>,
   std::shared_ptr<PeerConnectionFactory>
-  > wrap;
+  > * wrap();
 
   std::shared_ptr<node_webrtc::PeerConnectionFactory> factory() { return _factory; }
 

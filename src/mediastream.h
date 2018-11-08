@@ -39,7 +39,7 @@ class MediaStream
   MediaStream*,
   rtc::scoped_refptr<webrtc::MediaStreamInterface>,
   std::shared_ptr<node_webrtc::PeerConnectionFactory>
-  > wrap;
+  > * wrap();
 
   rtc::scoped_refptr<webrtc::MediaStreamInterface> stream() { return _stream; }
 

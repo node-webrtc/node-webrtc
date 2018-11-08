@@ -29,10 +29,19 @@
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
 
+namespace rtc {
+
+template <class T> class scoped_refptr;
+
+}  // namespace rtc
+
 namespace webrtc {
 
 class IceCandidateInterface;
 class RTCError;
+class RTCStats;
+class RTCStatsMemberInterface;
+class RTCStatsReport;
 class RtpSource;
 enum class RtpTransceiverDirection;
 struct RtpTransceiverInit;

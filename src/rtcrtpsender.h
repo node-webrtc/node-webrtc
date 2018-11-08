@@ -39,7 +39,7 @@ class RTCRtpSender: public node_webrtc::AsyncObjectWrap {
   RTCRtpSender*,
   rtc::scoped_refptr<webrtc::RtpSenderInterface>,
   std::shared_ptr<PeerConnectionFactory>
-  > wrap;
+  > * wrap();
 
  private:
   RTCRtpSender(

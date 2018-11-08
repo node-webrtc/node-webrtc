@@ -24,7 +24,7 @@ RTCPeerConnection-createDataChannel.html: [fail, "SEGFAULT"]
 RTCPeerConnection-createOffer.html: [fail, "Hangs for some reason"]
 RTCPeerConnection-generateCertificate.html: [fail, "RTCPeerConnection.generateCertificate is not a function"]
 RTCPeerConnection-getDefaultIceServers.html: [fail, "RTCPeerConnection.getDefaultIceServers is not a function"]
-RTCPeerConnection-getStats.https.html: [fail]
+RTCPeerConnection-getStats.https.html: [fail, "Need selector support"]
 # NOTE(mroberts): Suspicious of this test.
 # RTCPeerConnection-getTransceivers.html: [fail]
 RTCPeerConnection-iceConnectionState.html: [fail, "Cannot read property 'transport' of undefined"]
