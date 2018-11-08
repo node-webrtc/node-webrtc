@@ -36,14 +36,7 @@ class AsyncObjectWrapWithLoop
    */
   AsyncObjectWrapWithLoop(const char* name, T& target): AsyncObjectWrap(name), PromiseFulfillingEventLoop<T>(target) {}
 
-  virtual ~AsyncObjectWrapWithLoop() override = default;
-
-  /**
-   * Increment the reference count.
-   */
-  inline void AddRef() {
-    AsyncObjectWrap::AddRef();
-  }
+  ~AsyncObjectWrapWithLoop() override = default;
 
   /**
    * Dispatch an event to the AsyncObjectWrapWithLoop.
@@ -54,17 +47,10 @@ class AsyncObjectWrapWithLoop
   }
 
   /**
-   * Decrement the reference count.
-   */
-  inline void RemoveRef() {
-    AsyncObjectWrap::RemoveRef();
-  }
-
-  /**
    * Convert the AsyncObjectWrapWithLoop to an Object.
    * @return object the Object
    */
-  inline v8::Local<v8::Object> ToObject() {
+  v8::Local<v8::Object> ToObject() {
     Nan::EscapableHandleScope scope;
     return scope.Escape(AsyncObjectWrap::ToObject());
   }
@@ -83,9 +69,9 @@ class AsyncObjectWrapWithLoop
    * Wrap an Object. This also calls AddRef once; therefore, Wrap initializes the reference count to one.
    * @param object the Object to wrap
    */
-  inline void Wrap(v8::Local<v8::Object> object) {
+  void Wrap(v8::Local<v8::Object> object) {
     AsyncObjectWrap::Wrap(object);
-    AddRef();
+    AsyncObjectWrap::AddRef();
   }
 
  protected:
@@ -93,7 +79,7 @@ class AsyncObjectWrapWithLoop
    * Invoked when the event loop closes. This calls RemoveRef.
    */
   void DidStop() override {
-    RemoveRef();
+    AsyncObjectWrap::RemoveRef();
   }
 
   /**
@@ -102,14 +88,14 @@ class AsyncObjectWrapWithLoop
    * @param argc the number of arguments
    * @param argv the arguments
    */
-  inline void MakeCallback(const char* name, const int argc, v8::Local<v8::Value>* argv) {
+  void MakeCallback(const char* name, const int argc, v8::Local<v8::Value>* argv) {
     AsyncObjectWrap::MakeCallback(name, argc, argv);
   }
 
   /**
    * Stop the event loop.
    */
-  inline void Stop() {
+  void Stop() {
     PromiseFulfillingEventLoop<T>::Stop();
   }
 };

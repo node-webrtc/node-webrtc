@@ -1119,6 +1119,7 @@ TO_JS(const webrtc::RTCStats*, value) {
   Nan::EscapableHandleScope scope;
   auto context = Nan::GetCurrentContext();
   auto stats = v8::Map::New(context->GetIsolate());
+  stats->Set(context, Nan::New("id").ToLocalChecked(), From<Local<Value>>(value->id()).UnsafeFromValid()).IsEmpty();
   for (const webrtc::RTCStatsMemberInterface* member : value->Members()) {
     if (member->is_defined()) {
       stats->Set(context, Nan::New(member->name()).ToLocalChecked(), From<Local<Value>>(member).UnsafeFromValid()).IsEmpty();
@@ -1132,7 +1133,7 @@ TO_JS(rtc::scoped_refptr<webrtc::RTCStatsReport>, value) {
   auto context = Nan::GetCurrentContext();
   auto report = v8::Map::New(context->GetIsolate());
   for (const webrtc::RTCStats& stats : *value) {
-    report->Set(context, Nan::New("id").ToLocalChecked(), From<Local<Value>>(&stats).UnsafeFromValid()).IsEmpty();
+    report->Set(context, Nan::New(stats.id()).ToLocalChecked(), From<Local<Value>>(&stats).UnsafeFromValid()).IsEmpty();
   }
   return Validation<Local<Value>>::Valid(scope.Escape(Local<Value>::Cast(report)));
 }

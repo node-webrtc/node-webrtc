@@ -40,7 +40,7 @@ class EventLoop: private EventQueue<T> {
     uv_mutex_unlock(&_lock);
   }
 
-  virtual ~EventLoop() override {
+  ~EventLoop() override {
     uv_mutex_destroy(&_lock);
   }
 

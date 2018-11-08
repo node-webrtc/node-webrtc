@@ -172,7 +172,7 @@ void PeerConnection::HandleIceCandidateEvent(const IceEvent& event) {
 void PeerConnection::HandleDataChannelEvent(const DataChannelEvent& event) {
   TRACE_CALL;
   Nan::HandleScope scope;
-  auto channel = DataChannel::wrap.GetOrCreate(event.observer, event.observer->channel());
+  auto channel = DataChannel::wrap->GetOrCreate(event.observer, event.observer->channel());
   Local<Value> argv = channel->ToObject();
   MakeCallback("ondatachannel", 1, &argv);
   TRACE_END;
@@ -359,7 +359,6 @@ NAN_METHOD(PeerConnection::RemoveTrack) {
     Nan::ThrowError("Cannot removeTrack; RTCPeerConnection is closed");
   }
   CONVERT_ARGS_OR_THROW_AND_RETURN(sender, RTCRtpSender*);
-  sender->RemoveRef();
   self->_jinglePeerConnection->RemoveTrack(sender->sender());
   TRACE_END;
 }
@@ -506,7 +505,7 @@ NAN_METHOD(PeerConnection::CreateDataChannel) {
       self->_jinglePeerConnection->CreateDataChannel(label, &dataChannelInit);
 
   auto observer = new DataChannelObserver(self->_factory, data_channel_interface);
-  auto channel = DataChannel::wrap.GetOrCreate(observer, observer->channel());
+  auto channel = DataChannel::wrap->GetOrCreate(observer, observer->channel());
   self->_channels.push_back(channel);
 
   TRACE_END;

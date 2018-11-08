@@ -66,20 +66,6 @@ class FakeVideoCapturer : public cricket::VideoCapturer {
   std::unique_ptr<node_webrtc::FakeFrameSource> frame_source_;
 };
 
-// Inherits from FakeVideoCapturer but adds a TaskQueue so that frames can be
-// delivered on a TaskQueue as expected by VideoSinkInterface implementations.
-class FakeVideoCapturerWithTaskQueue : public FakeVideoCapturer {
- public:
-  explicit FakeVideoCapturerWithTaskQueue(bool is_screencast);
-  FakeVideoCapturerWithTaskQueue();
-
-  bool CaptureFrame() override;
-  bool CaptureCustomFrame(int width, int height) override;
-
- protected:
-  rtc::test::TaskQueueForTest task_queue_{"FakeVideoCapturerWithTaskQueue"};
-};
-
 }  // namespace node_webrtc
 
 #endif  // SRC_WEBRTC_FAKEVIDEOCAPTURER_H_

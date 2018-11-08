@@ -60,7 +60,7 @@ class DataChannel
   DataChannel*,
   rtc::scoped_refptr<webrtc::DataChannelInterface>,
   node_webrtc::DataChannelObserver*
-  > wrap;
+  >* wrap;
 
  private:
   explicit DataChannel(node_webrtc::DataChannelObserver* observer);
