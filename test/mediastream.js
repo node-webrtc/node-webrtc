@@ -110,7 +110,7 @@ tape('.clone', function(t) {
   });
 });
 
-tape('.clone and .stop', function(t) {
+tape.skip('.clone and .stop', function(t) {
   getUserMedia({ audio: true }).then(function(stream1) {
     var track1 = stream1.getTracks()[0];
 
