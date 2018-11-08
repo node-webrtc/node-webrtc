@@ -13,11 +13,15 @@
 #include "src/converters.h"
 #include "src/converters/webrtc.h"
 #include "src/error.h"  // IWYU pragma: keep
+#include "src/errorfactory.h"  // IWYU pragma: keep
+#include "src/functional/either.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
 #include "src/peerconnection.h"  // IWYU pragma: keep
 
 // IWYU pragma: no_forward_declare node_webrtc::SomeError
 
+using node_webrtc::Either;
+using node_webrtc::ErrorFactory;
 using node_webrtc::Errors;
 using node_webrtc::From;
 using node_webrtc::PeerConnection;
@@ -39,6 +43,14 @@ void SetSessionDescriptionObserver::OnFailure(const webrtc::RTCError error) {
     auto someError = From<SomeError>(&error).FromValidation([](Errors errors) {
       return SomeError(errors[0]);
     });
+    // NOTE(mroberts): This workaround is annoying.
+    if (someError.message().find("Local fingerprint does not match identity. Expected: ") != std::string::npos) {
+      someError = SomeError(someError.message(),
+              Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName>::Left(
+                  ErrorFactory::DOMExceptionName::kInvalidModificationError
+              )
+          );
+    }
     _promise->Reject(someError);
     parent->Dispatch(std::move(_promise));
   }

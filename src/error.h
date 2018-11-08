@@ -67,7 +67,7 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
   } \
   if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
     auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
-    resolver->Resolve(Nan::GetCurrentContext(), Nan::TypeError(Nan::New(error).ToLocalChecked())).IsNothing(); \
+    resolver->Reject(Nan::GetCurrentContext(), Nan::TypeError(Nan::New(error).ToLocalChecked())).IsNothing(); \
     return; \
   } \
   auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
@@ -84,7 +84,7 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
   } \
   if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
     auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
-    resolver->Resolve(Nan::GetCurrentContext(), Nan::TypeError(Nan::New(error).ToLocalChecked())).IsNothing(); \
+    resolver->Reject(Nan::GetCurrentContext(), Nan::TypeError(Nan::New(error).ToLocalChecked())).IsNothing(); \
     return; \
   } \
   auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
