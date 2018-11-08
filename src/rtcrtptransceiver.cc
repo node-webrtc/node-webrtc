@@ -40,7 +40,7 @@ RTCRtpTransceiver::RTCRtpTransceiver(
 }
 
 RTCRtpTransceiver::~RTCRtpTransceiver() {
-  wrap.Release(this);
+  wrap()->Release(this);
 }
 
 NAN_METHOD(RTCRtpTransceiver::New) {
@@ -67,14 +67,14 @@ NAN_GETTER(RTCRtpTransceiver::GetMid) {
 NAN_GETTER(RTCRtpTransceiver::GetSender) {
   (void) property;
   auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  auto sender = RTCRtpSender::wrap.GetOrCreate(self->_factory, self->_transceiver->sender());
+  auto sender = RTCRtpSender::wrap()->GetOrCreate(self->_factory, self->_transceiver->sender());
   info.GetReturnValue().Set(sender->ToObject());
 }
 
 NAN_GETTER(RTCRtpTransceiver::GetReceiver) {
   (void) property;
   auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  auto receiver = RTCRtpReceiver::wrap.GetOrCreate(self->_factory, self->_transceiver->receiver());
+  auto receiver = RTCRtpReceiver::wrap()->GetOrCreate(self->_factory, self->_transceiver->receiver());
   info.GetReturnValue().Set(receiver->ToObject());
 }
 
@@ -124,7 +124,14 @@ node_webrtc::Wrap <
 RTCRtpTransceiver*,
 rtc::scoped_refptr<webrtc::RtpTransceiverInterface>,
 std::shared_ptr<node_webrtc::PeerConnectionFactory>
-> RTCRtpTransceiver::wrap(RTCRtpTransceiver::Create);
+> * RTCRtpTransceiver::wrap() {
+  static auto wrap = new node_webrtc::Wrap <
+  RTCRtpTransceiver*,
+  rtc::scoped_refptr<webrtc::RtpTransceiverInterface>,
+  std::shared_ptr<node_webrtc::PeerConnectionFactory>
+  > (RTCRtpTransceiver::Create);
+  return wrap;
+}
 
 RTCRtpTransceiver* RTCRtpTransceiver::Create(
     std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,

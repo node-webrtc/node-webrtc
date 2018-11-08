@@ -46,7 +46,7 @@ RTCRtpSender::RTCRtpSender(
 }
 
 RTCRtpSender::~RTCRtpSender() {
-  wrap.Release(this);
+  wrap()->Release(this);
 }
 
 NAN_METHOD(RTCRtpSender::New) {
@@ -69,7 +69,7 @@ NAN_GETTER(RTCRtpSender::GetTrack) {
   Local<Value> result = Nan::Null();
   auto track = self->_sender->track();
   if (track) {
-    result = MediaStreamTrack::wrap.GetOrCreate(self->_factory, track)->ToObject();
+    result = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, track)->ToObject();
   }
   info.GetReturnValue().Set(result);
 }
@@ -130,7 +130,14 @@ node_webrtc::Wrap <
 RTCRtpSender*,
 rtc::scoped_refptr<webrtc::RtpSenderInterface>,
 std::shared_ptr<node_webrtc::PeerConnectionFactory>
-> RTCRtpSender::wrap(RTCRtpSender::Create);
+> * RTCRtpSender::wrap() {
+  static auto wrap = new node_webrtc::Wrap <
+  RTCRtpSender*,
+  rtc::scoped_refptr<webrtc::RtpSenderInterface>,
+  std::shared_ptr<node_webrtc::PeerConnectionFactory>
+  > (RTCRtpSender::Create);
+  return wrap;
+}
 
 RTCRtpSender* RTCRtpSender::Create(
     std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,

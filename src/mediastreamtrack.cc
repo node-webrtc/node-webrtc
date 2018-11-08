@@ -42,7 +42,7 @@ MediaStreamTrack::MediaStreamTrack(
 
 MediaStreamTrack::~MediaStreamTrack() {
   _track->UnregisterObserver(this);
-  wrap.Release(this);
+  wrap()->Release(this);
 }
 
 NAN_METHOD(MediaStreamTrack::New) {
@@ -123,7 +123,7 @@ NAN_METHOD(MediaStreamTrack::Clone) {
     auto videoTrack = static_cast<webrtc::VideoTrackInterface*>(self->_track.get());
     clonedTrack = self->_factory->factory()->CreateVideoTrack(label, videoTrack->GetSource());
   }
-  auto clonedMediaStreamTrack = wrap.GetOrCreate(self->_factory, clonedTrack);
+  auto clonedMediaStreamTrack = wrap()->GetOrCreate(self->_factory, clonedTrack);
   if (self->_track->state() != webrtc::MediaStreamTrackInterface::TrackState::kLive) {
     clonedMediaStreamTrack->Stop();
   }
@@ -139,7 +139,14 @@ node_webrtc::Wrap <
 MediaStreamTrack*,
 rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>,
 std::shared_ptr<PeerConnectionFactory>
-> MediaStreamTrack::wrap(MediaStreamTrack::Create);
+> * MediaStreamTrack::wrap() {
+  static auto wrap = new node_webrtc::Wrap <
+  MediaStreamTrack*,
+  rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>,
+  std::shared_ptr<PeerConnectionFactory>
+  > (MediaStreamTrack::Create);
+  return wrap;
+}
 
 MediaStreamTrack* MediaStreamTrack::Create(
     std::shared_ptr<PeerConnectionFactory> factory,

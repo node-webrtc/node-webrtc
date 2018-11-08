@@ -85,7 +85,7 @@ DataChannel::DataChannel(node_webrtc::DataChannelObserver* observer)
 }
 
 DataChannel::~DataChannel() {
-  wrap->Release(this);
+  wrap()->Release(this);
 }
 
 void DataChannel::OnPeerConnectionClosed() {
@@ -394,11 +394,14 @@ node_webrtc::Wrap <
 DataChannel*,
 rtc::scoped_refptr<webrtc::DataChannelInterface>,
 node_webrtc::DataChannelObserver*
->* DataChannel::wrap = new node_webrtc::Wrap<
-DataChannel*,
-rtc::scoped_refptr<webrtc::DataChannelInterface>,
-node_webrtc::DataChannelObserver*
->(node_webrtc::DataChannel::Create);
+> * DataChannel::wrap() {
+  static auto wrap = new node_webrtc::Wrap <
+  DataChannel*,
+  rtc::scoped_refptr<webrtc::DataChannelInterface>,
+  node_webrtc::DataChannelObserver*
+  > (node_webrtc::DataChannel::Create);
+  return wrap;
+}
 
 DataChannel* DataChannel::Create(
     node_webrtc::DataChannelObserver* observer,
