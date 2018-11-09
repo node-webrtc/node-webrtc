@@ -25,7 +25,7 @@
     "host": "https://node-webrtc.s3.amazonaws.com"
   },
   "engines": {
-    "node": "6.x || 8.x - 10.x"
+    "node": "6.x || 8.x || 10.x || 11.x"
   },
   "dependencies": {
     "nan": "^2.3.2",
