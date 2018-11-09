@@ -1,3 +1,11 @@
+0.3.2
+=====
+
+New Features
+------------
+
+- Support for Node 11 on Windows.
+
 0.3.1
 =====
 
