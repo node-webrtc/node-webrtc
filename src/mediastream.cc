@@ -12,7 +12,8 @@
 
 #include "src/converters.h"  // IWYU pragma: keep
 #include "src/converters/arguments.h"  // IWYU pragma: keep
-#include "src/converters/webrtc.h"  // IWYU pragma: keep
+#include "src/converters/dictionaries.h"  // IWYU pragma: keep
+#include "src/converters/interfaces.h"  // IWYU pragma: keep
 #include "src/error.h"
 #include "src/functional/either.h"  // IWYU pragma: keep
 #include "src/mediastreamtrack.h"  // IWYU pragma: keep

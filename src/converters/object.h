@@ -29,7 +29,7 @@ template <typename T>
 static Validation<Maybe<T>> GetOptional(const v8::Local<v8::Object> object, const std::string& property) {
   auto value = object->Get(Nan::New(property).ToLocalChecked());
   if (value->IsUndefined()) {
-    return Validation<Maybe<T>>::Valid(Maybe<T>::Nothing());
+    return Pure(Maybe<T>::Nothing());
   }
   return From<T>(value).Map(&Maybe<T>::Just);
 }

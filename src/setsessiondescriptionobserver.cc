@@ -11,7 +11,7 @@
 
 #include "src/common.h"
 #include "src/converters.h"
-#include "src/converters/webrtc.h"
+#include "src/converters/dictionaries.h"
 #include "src/error.h"  // IWYU pragma: keep
 #include "src/errorfactory.h"  // IWYU pragma: keep
 #include "src/functional/either.h"  // IWYU pragma: keep

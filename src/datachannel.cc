@@ -13,7 +13,7 @@
 #include <v8.h>
 
 #include "src/common.h"
-#include "src/converters/webrtc.h"
+#include "src/converters/dictionaries.h"
 #include "src/error.h"
 #include "src/errorfactory.h"  // IWYU pragma: keep
 #include "src/events.h"

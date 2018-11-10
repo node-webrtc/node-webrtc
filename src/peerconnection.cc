@@ -20,7 +20,8 @@
 #include "src/common.h"
 #include "src/converters.h"
 #include "src/converters/arguments.h"  // IWYU pragma: keep
-#include "src/converters/webrtc.h"
+#include "src/converters/dictionaries.h"
+#include "src/converters/interfaces.h"
 #include "src/createsessiondescriptionobserver.h"  // IWYU pragma: keep
 #include "src/datachannel.h"  // IWYU pragma: keep
 #include "src/error.h"

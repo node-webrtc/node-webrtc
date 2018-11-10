@@ -29,7 +29,7 @@ class SomeError {
   SomeError() {}
 
   explicit SomeError(const std::string& message)
-    : SomeError(message, Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName>::Right(ErrorFactory::kError)) {}
+    : SomeError(message, MakeRight<ErrorFactory::DOMExceptionName>(ErrorFactory::kError)) {}
 
   SomeError(const std::string& message, const Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName> name)
     : _message(message), _name(name) {}
@@ -47,219 +47,43 @@ class SomeError {
   Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName> _name;
 };
 
-template <>
-struct Converter<SomeError, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(const SomeError someError) {
-    Nan::EscapableHandleScope scope;
-    auto message = someError.message();
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(someError.name().FromEither<v8::Local<v8::Value>>(
-    [message](ErrorFactory::DOMExceptionName name) {
-      switch (name) {
-        case ErrorFactory::DOMExceptionName::kInvalidAccessError:
-          return ErrorFactory::CreateInvalidAccessError(message);
-        case ErrorFactory::DOMExceptionName::kInvalidModificationError:
-          return ErrorFactory::CreateInvalidModificationError(message);
-        case ErrorFactory::DOMExceptionName::kInvalidStateError:
-          return ErrorFactory::CreateInvalidStateError(message);
-        case ErrorFactory::DOMExceptionName::kNetworkError:
-          return ErrorFactory::CreateNetworkError(message);
-        case ErrorFactory::DOMExceptionName::kOperationError:
-          return ErrorFactory::CreateOperationError(message);
-      }
-    }, [message](ErrorFactory::ErrorName name) {
-      switch (name) {
-        case ErrorFactory::ErrorName::kError:
-          return ErrorFactory::CreateError(message);
-        case ErrorFactory::ErrorName::kRangeError:
-          return ErrorFactory::CreateRangeError(message);
-        case ErrorFactory::ErrorName::kSyntaxError:
-          return ErrorFactory::CreateSyntaxError(message);
-      }
-    })));
-  }
-};
+DECLARE_TO_JS(SomeError)
 
 class Null {
  public:
   Null() {}
 };
 
-template <>
-struct Converter<v8::Local<v8::Value>, Null> {
-  static Validation<Null> Convert(const v8::Local<v8::Value> value) {
-    return value->IsNull()
-        ? Validation<Null>::Valid(Null())
-        : Validation<Null>::Invalid("Expected null");
-  }
-};
+DECLARE_FROM_JS(Null)
 
 class Undefined {
  public:
   Undefined() {}
 };
 
-template <>
-struct Converter<Undefined, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(const Undefined) {
-    Nan::EscapableHandleScope scope;
-    auto undefined = static_cast<v8::Local<v8::Value>>(Nan::Undefined());
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(undefined));
-  }
-};
+DECLARE_TO_JS(Undefined)
+
+DECLARE_TO_AND_FROM_JS(bool)
+DECLARE_TO_AND_FROM_JS(double)
+DECLARE_TO_AND_FROM_JS(int32_t)
+DECLARE_TO_AND_FROM_JS(int64_t)
+DECLARE_FROM_JS(uint8_t)
+DECLARE_FROM_JS(uint16_t)
+DECLARE_TO_AND_FROM_JS(uint32_t)
+DECLARE_TO_JS(uint64_t)
+DECLARE_TO_AND_FROM_JS(std::string)
+DECLARE_FROM_JS(v8::Local<v8::External>)
+DECLARE_FROM_JS(v8::Local<v8::Function>)
+DECLARE_FROM_JS(v8::Local<v8::Object>)
+DECLARE_TO_JS(std::vector<bool>)
 
 template <typename T>
 struct Converter<v8::Local<v8::Value>, Maybe<T>> {
   static Validation<Maybe<T>> Convert(const v8::Local<v8::Value> value) {
     if (value.IsEmpty() || value->IsUndefined()) {
-      return Validation<Maybe<T>>::Valid(Maybe<T>::Nothing());
+      return Pure(Maybe<T>::Nothing());
     }
     return From<T>(value).Map(&Maybe<T>::Just);
-  }
-};
-
-template <>
-struct Converter<v8::Local<v8::Value>, bool> {
-  static Validation<bool> Convert(const v8::Local<v8::Value> value) {
-    auto maybeBoolean = Nan::To<v8::Boolean>(value);
-    if (maybeBoolean.IsEmpty()) {
-      return Validation<bool>::Invalid("Expected a bool");
-    }
-    auto boolean = (*maybeBoolean.ToLocalChecked())->Value();
-    return Validation<bool>::Valid(boolean);
-  }
-};
-
-template <>
-struct Converter<bool, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(const bool value) {
-    Nan::EscapableHandleScope scope;
-    return value
-        ? Validation<v8::Local<v8::Value>>::Valid(scope.Escape(v8::Local<v8::Value>::Cast(Nan::True())))
-        : Validation<v8::Local<v8::Value>>::Valid(scope.Escape(v8::Local<v8::Value>::Cast(Nan::False())));
-  }
-};
-
-template <>
-struct Converter<v8::Local<v8::Value>, uint8_t> {
-  static Validation<uint8_t> Convert(const v8::Local<v8::Value> value) {
-    auto maybeInt32 = Nan::To<v8::Int32>(value);
-    if (maybeInt32.IsEmpty()) {
-      return Validation<uint8_t>::Invalid("Expected an 8-bit unsigned integer");
-    }
-    auto int32 = (*maybeInt32.ToLocalChecked())->Value();
-    if (int32 < 0 || int32 > 255) {
-      return Validation<uint8_t>::Invalid("Expected an 8-bit unsigned integer");
-    }
-    uint8_t uint8 = static_cast<uint8_t>(int32);
-    return Validation<uint8_t>(uint8);
-  }
-};
-
-template <>
-struct Converter<v8::Local<v8::Value>, uint16_t> {
-  static Validation<uint16_t> Convert(const v8::Local<v8::Value> value) {
-    auto maybeInt32 = Nan::To<v8::Int32>(value);
-    if (maybeInt32.IsEmpty()) {
-      return Validation<uint16_t>::Invalid("Expected a 16-bit unsigned integer");
-    }
-    auto int32 = (*maybeInt32.ToLocalChecked())->Value();
-    if (int32 < 0 || int32 > 65535) {
-      return Validation<uint16_t>::Invalid("Expected a 16-bit unsigned integer");
-    }
-    uint16_t uint16 = static_cast<uint16_t>(int32);
-    return Validation<uint16_t>(uint16);
-  }
-};
-
-template <>
-struct Converter<v8::Local<v8::Value>, int32_t> {
-  static Validation<int32_t> Convert(const v8::Local<v8::Value> value) {
-    auto maybeInt32 = Nan::To<v8::Int32>(value);
-    if (maybeInt32.IsEmpty()) {
-      return Validation<int32_t>::Invalid("Expected a 32-bit integer");
-    }
-    auto int32 = (*maybeInt32.ToLocalChecked())->Value();
-    return Validation<int32_t>::Valid(int32);
-  }
-};
-
-template <>
-struct Converter<int32_t, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(const int32_t value) {
-    Nan::EscapableHandleScope scope;
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(Nan::New(value)));
-  }
-};
-
-template <>
-struct Converter<v8::Local<v8::Value>, int64_t> {
-  static Validation<int64_t> Convert(const v8::Local<v8::Value> value) {
-    auto maybeInteger = Nan::To<v8::Integer>(value);
-    if (maybeInteger.IsEmpty()) {
-      return Validation<int64_t>::Invalid("Expected a 64-bit integer");
-    }
-    auto integer = (*maybeInteger.ToLocalChecked())->Value();
-    return Validation<int64_t>::Valid(integer);
-  }
-};
-
-template <>
-struct Converter<int64_t, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(const int64_t value) {
-    Nan::EscapableHandleScope scope;
-    // NOTE(mroberts): Is this correct?
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(Nan::New(static_cast<double>(value))));
-  }
-};
-
-template <>
-struct Converter<v8::Local<v8::Value>, double> {
-  static Validation<double> Convert(const v8::Local<v8::Value> value) {
-    auto maybeNumber = Nan::To<v8::Number>(value);
-    if (maybeNumber.IsEmpty()) {
-      return Validation<double>::Invalid("Expected a double");
-    }
-    auto number = (*maybeNumber.ToLocalChecked())->Value();
-    return Validation<double>::Valid(number);
-  }
-};
-
-template <>
-struct Converter<double, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(const double value) {
-    Nan::EscapableHandleScope scope;
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(Nan::New(value)));
-  }
-};
-
-template <>
-struct Converter<v8::Local<v8::Value>, std::string> {
-  static Validation<std::string> Convert(const v8::Local<v8::Value> value) {
-    auto maybeString = value->ToString();
-    if (maybeString.IsEmpty()) {
-      return Validation<std::string>::Invalid("Expected a string");
-    }
-    auto string = std::string(*v8::String::Utf8Value(maybeString));
-    return Validation<std::string>::Valid(string);
-  }
-};
-
-template <>
-struct Converter<std::string, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(const std::string value) {
-    Nan::EscapableHandleScope scope;
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(Nan::New(value).ToLocalChecked()));
-  }
-};
-
-template <>
-struct Converter<v8::Local<v8::Value>, v8::Local<v8::Function>> {
-  static Validation<v8::Local<v8::Function>> Convert(const v8::Local<v8::Value> value) {
-    if (!value->IsFunction()) {
-      return Validation<v8::Local<v8::Function>>::Invalid("Expected a function");
-    }
-    auto function = v8::Local<v8::Function>::Cast(value);
-    return Validation<v8::Local<v8::Function>>::Valid(function);
   }
 };
 
@@ -278,23 +102,6 @@ struct Converter<v8::Local<v8::Value>, std::vector<T>> {
   }
 };
 
-template <>
-struct Converter<std::vector<bool>, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(const std::vector<bool>& values) {
-    Nan::EscapableHandleScope scope;
-    auto array = Nan::New<v8::Array>();
-    uint32_t i = 0;
-    for (bool value : values) {
-      auto maybeValue = From<v8::Local<v8::Value>>(value);
-      if (maybeValue.IsInvalid()) {
-        return Validation<v8::Local<v8::Value>>::Invalid(maybeValue.ToErrors());
-      }
-      array->Set(i++, maybeValue.UnsafeFromValid());
-    }
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(array));
-  }
-};
-
 template <typename T>
 struct Converter<std::vector<T>, v8::Local<v8::Value>> {
   static Validation<v8::Local<v8::Value>> Convert(const std::vector<T>& values) {
@@ -308,59 +115,7 @@ struct Converter<std::vector<T>, v8::Local<v8::Value>> {
       }
       array->Set(i++, maybeValue.UnsafeFromValid());
     }
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(array));
-  }
-};
-
-template <>
-struct Converter<v8::Local<v8::Value>, uint32_t> {
-  static Validation<uint32_t> Convert(const v8::Local<v8::Value> value) {
-    auto maybeUint32 = Nan::To<v8::Uint32>(value);
-    if (maybeUint32.IsEmpty()) {
-      return Validation<uint32_t>::Invalid("Expected a 32-bit unsigned integer");
-    }
-    auto uint32 = (*maybeUint32.ToLocalChecked())->Value();
-    return Validation<uint32_t>::Valid(uint32);
-  }
-};
-
-template <>
-struct Converter<uint32_t, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(const uint32_t value) {
-    Nan::EscapableHandleScope scope;
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(Nan::New(value)));
-  }
-};
-
-template <>
-struct Converter<uint64_t, v8::Local<v8::Value>> {
-  static Validation<v8::Local<v8::Value>> Convert(const uint64_t value) {
-    Nan::EscapableHandleScope scope;
-    // NOTE(mroberts): Is this correct?
-    return Validation<v8::Local<v8::Value>>::Valid(scope.Escape(Nan::New(static_cast<double>(value))));
-  }
-};
-
-template <>
-struct Converter<v8::Local<v8::Value>, v8::Local<v8::Object>> {
-  static Validation<v8::Local<v8::Object>> Convert(const v8::Local<v8::Value> value) {
-    Nan::EscapableHandleScope scope;
-    auto maybeObject = Nan::To<v8::Object>(value);
-    if (maybeObject.IsEmpty()) {
-      return Validation<v8::Local<v8::Object>>::Invalid("Expected an object");
-    }
-    auto object = maybeObject.ToLocalChecked();
-    return Validation<v8::Local<v8::Object>>::Valid(scope.Escape(object));
-  }
-};
-
-template <>
-struct Converter<v8::Local<v8::Value>, v8::Local<v8::External>> {
-  static Validation<v8::Local<v8::External>> Convert(const v8::Local<v8::Value> value) {
-    Nan::EscapableHandleScope scope;
-    return !value.IsEmpty() && value->IsExternal()
-        ? Validation<v8::Local<v8::External>>::Valid(scope.Escape(v8::Local<v8::External>::Cast(value)))
-        : Validation<v8::Local<v8::External>>::Invalid("Expected an external");
+    return Pure(scope.Escape(array).As<v8::Value>());
   }
 };
 

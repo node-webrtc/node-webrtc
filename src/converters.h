@@ -20,6 +20,85 @@
 #include "src/functional/operators.h"
 #include "src/functional/validation.h"
 
+/**
+ * This macro declares a node_webrtc::Converter from I to O.
+ *
+ * @param I the input type
+ * @param O the output type
+ */
+#define DECLARE_CONVERTER(I, O) \
+  template <> \
+  struct Converter<I, O> { \
+    static Validation<O> Convert(I); \
+  };
+
+/**
+ * This macro declares a node_webrtc::Converter from T to v8::Local<v8::Value>.
+ *
+ * @param T the input type
+ */
+#define DECLARE_TO_JS(T) DECLARE_CONVERTER(T, v8::Local<v8::Value>)
+
+/**
+ * This macro declares a node_webrtc::Converter from v8::Local<v8::Value> to T.
+ *
+ * @param T the output type
+ */
+#define DECLARE_FROM_JS(T) DECLARE_CONVERTER(v8::Local<v8::Value>, T)
+
+/**
+ * This macro declares node_webrtc::Converter instances between T and v8::Local<v8::Value>.
+ *
+ * @param T the type to convert
+ */
+#define DECLARE_TO_AND_FROM_JS(T) \
+  DECLARE_TO_JS(T) \
+  DECLARE_FROM_JS(T)
+
+/**
+ * This macro simplifies defining a node_webrtc::Converter from I to O.
+ *
+ * @param I the input type
+ * @param O the output type
+ * @param V the name of the input variable to convert
+ */
+#define CONVERTER_IMPL(I, O, V) node_webrtc::Validation<O> node_webrtc::Converter<I, O>::Convert(I V)
+
+/**
+ * This macro simplifies defining a node_webrtc::Converter from T to v8::Local<v8::Value>.
+ *
+ * @param T the input type
+ * @param V the name of the input variable to convert
+ */
+#define TO_JS_IMPL(T, V) CONVERTER_IMPL(T, v8::Local<v8::Value>, V)
+
+/**
+ * This macro simplifies defining a node_webrtc::Converter from v8::Local<v8::Value> to T.
+ *
+ * @param T the output type
+ * @param V the name of the input variable to convert
+ */
+#define FROM_JS_IMPL(T, V) CONVERTER_IMPL(v8::Local<v8::Value>, T, V)
+
+/**
+ * This macro defines a node_webrtc::Converter from I to O when node_webrtc::Converter instances from
+ *
+ * 1. I to M, and
+ * 2. M to O
+ *
+ * exist.
+ *
+ * @param I the input type
+ * @param M the intermediate type
+ * @param O the output type
+ */
+#define CONVERT_VIA(I, M, O) \
+  CONVERTER_IMPL(I, O, value) { \
+    return node_webrtc::Converter<I, M>::Convert(value).FlatMap<O>(node_webrtc::Converter<M, O>::Convert); \
+  }
+// TODO(mroberts): This stuff is not so general as to warrant inclusion in converters.h.
+
+
 namespace node_webrtc {
 
 /**
@@ -63,8 +142,8 @@ struct Converter<T, T> {
 template <typename S, typename L, typename R>
 struct Converter<S, Either<L, R>> {
   static Validation<Either<L, R>> Convert(const S s) {
-    return From<L>(s).Map(&Either<L, R>::Left)
-        | (From<R>(s).Map(&Either<L, R>::Right));
+    return From<L>(s).Map(&MakeLeft<R, L>)
+        | (From<R>(s).Map(&MakeRight<L, R>));
   }
 };
 
