@@ -11,7 +11,7 @@
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
 #include "src/error.h"
-#include "src/converters/webrtc.h"  // IWYU pragma: keep
+#include "src/converters/dictionaries.h"  // IWYU pragma: keep
 #include "src/mediastreamtrack.h"  // IWYU pragma: keep
 
 using node_webrtc::AsyncObjectWrap;

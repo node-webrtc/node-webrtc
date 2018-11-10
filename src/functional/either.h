@@ -160,6 +160,16 @@ class Either {
   R _right;
 };
 
+template <typename L, typename R>
+static Either<L, R> MakeRight(const R right) {
+  return Either<L, R>::Right(right);
+}
+
+template <typename R, typename L>
+static Either<L, R> MakeLeft(const L left) {
+  return Either<L, R>::Left(left);
+}
+
 }  // namespace node_webrtc
 
 #endif  // SRC_FUNCTIONAL_EITHER_H_

@@ -16,7 +16,7 @@
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
 #include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
-#include "src/converters/webrtc.h"
+#include "src/converters/dictionaries.h"
 #include "src/eventqueue.h"  // IWYU pragma: keep
 #include "src/wrap.h"
 

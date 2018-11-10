@@ -11,8 +11,8 @@
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
 #include "src/error.h"
+#include "src/converters/dictionaries.h"  // IWYU pragma: keep
 #include "src/converters/v8.h"  // IWYU pragma: keep
-#include "src/converters/webrtc.h"  // IWYU pragma: keep
 #include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
 #include "src/rtcrtpsender.h"  // IWYU pragma: keep
 

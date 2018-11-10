@@ -16,7 +16,7 @@
 #include <v8.h>  // IWYU pragma: keep
 
 #include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
-#include "src/converters/webrtc.h"
+#include "src/converters/dictionaries.h"
 
 namespace webrtc {
 

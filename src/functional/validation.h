@@ -216,6 +216,11 @@ class Validation {
   T _value;
 };
 
+template <typename T>
+Validation<T> Pure(const T& value) {
+  return Validation<T>::Valid(value);
+}
+
 }  // namespace node_webrtc
 
 #endif  // SRC_FUNCTIONAL_VALIDATION_H_
