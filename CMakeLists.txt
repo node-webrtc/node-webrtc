@@ -357,6 +357,10 @@ else()
         -fpermissive
         -nostdinc++
         -nodefaultlibs
+        -march=armv7-a
+        -mfloat-abi=hard
+        -mtune=generic-armv7-a
+        -mfpu=neon
       )
 
       set(CMAKE_SYSTEM_NAME Linux)
