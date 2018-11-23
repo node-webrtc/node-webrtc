@@ -34,15 +34,31 @@ set(depot_tools_install_dir ${SOURCE_DIR})
 
 set(WEBRTC_REVISION branch-heads/70)
 
-list(APPEND GN_GEN_ARGS
-  rtc_build_examples=false
-  rtc_build_tools=false
-  rtc_use_x11=false
-  rtc_enable_protobuf=false
-  rtc_use_gtk=false
-  rtc_include_pulse_audio=false
-  rtc_include_tests=false
-)
+if ("$ENV{TARGET_ARCH}" STREQUAL "arm")
+  list(APPEND GN_GEN_ARGS
+    target_os="linux"
+    target_cpu="arm"
+    rtc_build_examples=false
+    rtc_build_tools=true
+    rtc_use_x11=false
+    rtc_enable_protobuf=false
+    rtc_use_gtk=false
+    rtc_include_pulse_audio=false
+    rtc_include_tests=false
+    treat_warnings_as_errors=false
+    fatal_linker_warnings=false
+  )
+else()
+    list(APPEND GN_GEN_ARGS
+      rtc_build_examples=false
+      rtc_build_tools=false
+      rtc_use_x11=false
+      rtc_enable_protobuf=false
+      rtc_use_gtk=false
+      rtc_include_pulse_audio=false
+      rtc_include_tests=false
+  )
+endif()
 
 if (WIN32)
   list(APPEND GN_GEN_ARGS is_clang=false)
@@ -219,6 +235,7 @@ endif()
 #
 # is to include all the header files here.
 target_include_directories(${MODULE} SYSTEM PRIVATE
+  #/home/murat/js/node-webrtc-0.3.2/build/external/libwebrtc/download/src/build/linux/debian_sid_arm-sysroot/usr/include/arm-linux-gnueabihf
   ${libwebrtc_source_dir}
   ${libwebrtc_source_dir}/webrtc
   ${libwebrtc_source_dir}/webrtc/third_party/abseil-cpp
@@ -335,13 +352,35 @@ else()
       -DWEBRTC_LINUX
     )
 
-    target_compile_options(${MODULE} PRIVATE
-      -B${libwebrtc_source_dir}/src/third_party/binutils/Linux_x64/Release/bin
-      -fpermissive
-      -nostdinc++
-      -nodefaultlibs
-      --sysroot=${libwebrtc_source_dir}/src/build/linux/debian_sid_amd64-sysroot
-    )
+    if ("$ENV{TARGET_ARCH}" STREQUAL "arm")
+      target_compile_options(${MODULE} PRIVATE        
+        -fpermissive
+        -nostdinc++
+        -nodefaultlibs
+      )
+
+      set(CMAKE_SYSTEM_NAME Linux)
+      set(CMAKE_SYSTEM_PROCESSOR arm)
+      
+      set(CMAKE_SYSROOT ${libwebrtc_source_dir}/src/build/linux/debian_sid_arm-sysroot)
+
+      set(tools $ENV{ARM_TOOLS_PATH})
+      set(CMAKE_C_COMPILER ${tools}/bin/arm-linux-gnueabihf-gcc)
+      set(CMAKE_CXX_COMPILER ${tools}/bin/arm-linux-gnueabihf-g++)
+
+      set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+      set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+      set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+      set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+    else()
+      target_compile_options(${MODULE} PRIVATE
+        -B${libwebrtc_source_dir}/src/third_party/binutils/Linux_x64/Release/bin
+        -fpermissive
+        -nostdinc++
+        -nodefaultlibs
+        --sysroot=${libwebrtc_source_dir}/src/build/linux/debian_sid_amd64-sysroot
+      )
+    endif()    
   endif()
 endif()
 
