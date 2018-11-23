@@ -34,29 +34,26 @@ set(depot_tools_install_dir ${SOURCE_DIR})
 
 set(WEBRTC_REVISION branch-heads/70)
 
-if ("$ENV{TARGET_ARCH}" STREQUAL "arm")
-  list(APPEND GN_GEN_ARGS
-    target_os="linux"
-    target_cpu="arm"
+list(APPEND GN_GEN_ARGS
     rtc_build_examples=false
-    rtc_build_tools=true
     rtc_use_x11=false
     rtc_enable_protobuf=false
     rtc_use_gtk=false
     rtc_include_pulse_audio=false
     rtc_include_tests=false
+  )
+
+if ("$ENV{TARGET_ARCH}" STREQUAL "arm")
+  list(APPEND GN_GEN_ARGS
+    target_os="linux"
+    target_cpu="arm"
+    rtc_build_tools=true
     treat_warnings_as_errors=false
     fatal_linker_warnings=false
   )
 else()
     list(APPEND GN_GEN_ARGS
-      rtc_build_examples=false
       rtc_build_tools=false
-      rtc_use_x11=false
-      rtc_enable_protobuf=false
-      rtc_use_gtk=false
-      rtc_include_pulse_audio=false
-      rtc_include_tests=false
   )
 endif()
 
@@ -235,7 +232,6 @@ endif()
 #
 # is to include all the header files here.
 target_include_directories(${MODULE} SYSTEM PRIVATE
-  #/home/murat/js/node-webrtc-0.3.2/build/external/libwebrtc/download/src/build/linux/debian_sid_arm-sysroot/usr/include/arm-linux-gnueabihf
   ${libwebrtc_source_dir}
   ${libwebrtc_source_dir}/webrtc
   ${libwebrtc_source_dir}/webrtc/third_party/abseil-cpp
@@ -352,11 +348,14 @@ else()
       -DWEBRTC_LINUX
     )
 
-    if ("$ENV{TARGET_ARCH}" STREQUAL "arm")
-      target_compile_options(${MODULE} PRIVATE        
+     target_compile_options(${MODULE} PRIVATE        
         -fpermissive
         -nostdinc++
         -nodefaultlibs
+      )
+
+    if ("$ENV{TARGET_ARCH}" STREQUAL "arm")
+      target_compile_options(${MODULE} PRIVATE        
         -march=armv7-a
         -mfloat-abi=hard
         -mtune=generic-armv7-a
@@ -379,9 +378,6 @@ else()
     else()
       target_compile_options(${MODULE} PRIVATE
         -B${libwebrtc_source_dir}/src/third_party/binutils/Linux_x64/Release/bin
-        -fpermissive
-        -nostdinc++
-        -nodefaultlibs
         --sysroot=${libwebrtc_source_dir}/src/build/linux/debian_sid_amd64-sysroot
       )
     endif()    
