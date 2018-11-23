@@ -18,7 +18,8 @@ else
 fi
 
 # Install deps
-src/build/install-build-deps.sh
+# Problem for travis-ci
+# src/build/install-build-deps.sh
 
 python src/tools/clang/scripts/update.py
 
