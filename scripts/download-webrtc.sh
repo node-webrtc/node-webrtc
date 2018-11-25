@@ -17,6 +17,10 @@ else
   python src/build/linux/sysroot_scripts/install-sysroot.py --arch=amd64
 fi
 
+# Install deps
+# Problem for travis-ci
+# src/build/install-build-deps.sh
+
 python src/tools/clang/scripts/update.py
 
 rm -f webrtc

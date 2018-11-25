@@ -72,6 +72,13 @@ On Linux, we statically link libc++ and libc++abi. Also, although we compile
 WebRTC sources with Clang (downloaded as part of WebRTC's build process), we
 compile node-webrtc sources with GCC 5.4 or newer.
 
+#### Arm
+
+In order to cross build for ARM on Linux;
+* Download Linaro toolchains [link](https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabihf/gcc-linaro-7.3.1-2018.05-i686_arm-linux-gnueabihf.tar.xz)
+* Extract toolchain (Don't use spaces on toolchain path)
+* Run TARGET_ARCH=arm ARM_TOOLS_PATH=<PATH_TO_TOOLCHAIN> npm i
+
 #### macOS
 
 On macOS, we compile WebRTC sources with the version of Clang downloaded as part
