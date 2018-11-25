@@ -7,11 +7,11 @@
 
 node-webrtc provides Node.js bindings to [WebRTC M70](https://chromium.googlesource.com/external/webrtc/+/branch-heads/70). You can write Node.js applications that use RTCDataChannels with it. **Some MediaStream APIs are supported.**
 
-|         | x86 | x64 | arm | arm64 |
-|:------- |:--- |:--- |:--- |:----- |
-| Linux   |     | ✔︎   |     |       |
-| macOS   |     | ✔︎   |     |       |
-| Windows |     | ✔︎   |     |       |
+|         | x86 | x64 | armv6l | armv7l | arm64 |
+|:------- |:--- |:--- |:------ |:------ |:----- |
+| Linux   |     | ✔︎   |        |        |       |
+| macOS   |     | ✔︎   |        |        |       |
+| Windows |     | ✔︎   |        |        |       |
 
 # Getting Started
 
@@ -77,9 +77,9 @@ compile node-webrtc sources with GCC 5.4 or newer.
 In order to cross-compile for ARM on Linux:
 
 ```
-wget https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabihf/gcc-linaro-7.3.1-2018.05-i686_arm-linux-gnueabihf.tar.xz
-tar xf gcc-linaro-7.3.1-2018.05-i686_arm-linux-gnueabihf.tar.xz
-SKIP_DOWNLOAD=true TARGET_ARCH=arm ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-i686_arm-linux-gnueabihf npm install
+wget https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabihf/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
+tar xf gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
+SKIP_DOWNLOAD=true TARGET_ARCH=arm ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf npm install
 ```
 
 #### macOS
