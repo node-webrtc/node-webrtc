@@ -14,12 +14,7 @@ if [ "${PLATFORM}" = darwin ]; then
   download_from_google_storage --no_resume --platform=${PLATFORM} --no_auth --bucket chromium-gn -s src/buildtools/mac/gn.sha1
 else
   download_from_google_storage --no_resume --platform=${PLATFORM} --no_auth --bucket chromium-gn -s src/buildtools/linux64/gn.sha1
-  python src/build/linux/sysroot_scripts/install-sysroot.py --arch=amd64
 fi
-
-# Install deps
-# Problem for travis-ci
-# src/build/install-build-deps.sh
 
 python src/tools/clang/scripts/update.py
 

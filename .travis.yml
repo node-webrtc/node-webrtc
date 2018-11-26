@@ -41,6 +41,14 @@ env:
     - DISPLAY=:99.0
     - secure: "SFMrz/7qLPlVUN0clzthZlkILAdMoRClAggSux61wSITGvor6+jXx245muW66b1U3BoO5bjy1BwXSQwTNSc9uHfq0to9b7QwGCh04X4MDtAgcVwOCEXWkIKTZLVLkBQpxG+XPkLCwxA0Mkc8amFGEHSqn0w664UwoSqlRgUnAvg="
     - secure: "TboT8Z9uoFCb2ocvP+Srbm+rU799Fv2vJ+Za3+DcVLqG7IJyYOHUK7BNogSkbjO70+Ns2vFcDY1OZYwAbqXQ+1ah0Sh186u0PJaCyR3wTTbPdoHSNCFXLvcD82GE/NkLWurBmpDXB+3NaPgvEz3Xpy0O1Shl2bQMwW2m5NaV3eg="
+  matrix:
+    - TARGET_ARCH=amd64
+    - TARGET_ARCH=arm
+
+matrix:
+  exclude:
+    - os: osx
+      env: TARGET_ARCH=arm
 
 install:
   - |
@@ -58,6 +66,15 @@ install:
       sudo ln -s $(pwd)/bin/* /usr/local/bin
       rm cmake-3.12.3-Linux-x86_64.sh
       export PATH=/usr/local/bin:$PATH
+
+      if [ "$TARGET_ARCH" == "arm" ]; then
+        wget https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabihf/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
+        tar xf gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
+        export ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf
+
+        # NOTE(mroberts): This is needed so that the WebRTC build finds the correct ld.gold.
+        sudo apt-get install -y g++-arm-linux-gnueabihf
+      fi
     else
       brew upgrade cmake
     fi
@@ -113,36 +130,49 @@ script:
       fi
     fi
 
-    STDERR=$(mktemp)
-    npm test 2>$STDERR
-    if [ $? -ne 0 ]; then
-      tail $STDERR
-      exit 1
-    fi
-
-    # NOTE(mroberts): web-platform-tests use syntax incompatible with Node 6.
-    if [[ ! $(node -v) =~ "v6" ]]; then
-      npm run wpt:init
-
+    if [ "$TARGET_ARCH" == "amd64" ]; then
       STDERR=$(mktemp)
-      npm run wpt:test 2>$STDERR
+      set +e
+      npm test 2>$STDERR
       if [ $? -ne 0 ]; then
         tail $STDERR
         exit 1
       fi
+      set -e
     fi
 
-    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      STDERR=$(mktemp)
-      npm run test:bridge 2>$STDERR
-      if [ $? -ne 0 ]; then
-        tail $STDERR
-        exit 1
+    if [ "$TARGET_ARCH" == "amd64" ]; then
+      # NOTE(mroberts): web-platform-tests use syntax incompatible with Node 6.
+      if [[ ! $(node -v) =~ "v6" ]]; then
+        npm run wpt:init
+
+        STDERR=$(mktemp)
+        set +e
+        npm run wpt:test 2>$STDERR
+        if [ $? -ne 0 ]; then
+          tail $STDERR
+          exit 1
+        fi
+        set -e
       fi
     fi
 
-    if [[ $TRAVIS_TAG ]] ||
-       [[ `git show -s --format=%B $TRAVIS_COMMIT` == *'[publish binary]'* ]];
-    then
+    if [ "$TARGET_ARCH" == "amd64" ]; then
+      if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+        STDERR=$(mktemp)
+        set +e
+        npm run test:bridge 2>$STDERR
+        if [ $? -ne 0 ]; then
+          tail $STDERR
+          exit 1
+        fi
+        set -e
+      fi
+    fi
+
+    if [ "$TARGET_ARCH" == "arm" ]; then
+      echo "Don't publish ARM binaries until https://github.com/mapbox/node-pre-gyp/issues/348 is fixed."
+    elif [[ $TRAVIS_TAG ]] ||
+         [[ `git show -s --format=%B $TRAVIS_COMMIT` == *'[publish binary]'* ]]; then
       $RUN node_modules/.bin/node-pre-gyp package publish;
     fi

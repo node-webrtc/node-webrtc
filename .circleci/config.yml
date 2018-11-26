@@ -13,13 +13,24 @@ aliases:
 
   test-javascript: &test-javascript
     run:
-      name: Run Unit and Integration Tests
-      command: npm test
+      name: Run Unit and Integration Tests (x86_64-only)
+      command: |
+        if [ "$TARGET_ARCH" == "arm" ]; then
+          echo "Skipping..."
+          exit 0
+        fi
+
+        npm test
 
   prepare-for-web-platform-tests: &prepare-for-web-platform-tests
     run:
-      name: Setup /etc/hosts for Web Platform Tests
+      name: Setup /etc/hosts for Web Platform Tests (x86_64-only)
       command: |
+        if [ "$TARGET_ARCH" == "arm" ]; then
+          echo "Skipping..."
+          exit 0
+        fi
+
         echo >>/etc/hosts 127.0.0.1	xn--lve-6lad.not-web-platform.test
         echo >>/etc/hosts 127.0.0.1	xn--lve-6lad.web-platform.test
         echo >>/etc/hosts 127.0.0.1	xn--n8j6ds53lwwkrqhv28a.not-web-platform.test
@@ -35,8 +46,13 @@ aliases:
 
   web-platform-tests: &web-platform-tests
     run:
-      name: Run Web Platform Tests
+      name: Run Web Platform Tests (x86_64-only)
       command: |
+        if [ "$TARGET_ARCH" == "arm" ]; then
+          echo "Skipping..."
+          exit 0
+        fi
+
         # NOTE(mroberts): web-platform-tests use syntax incompatible with Node 6.
         if [[ ! $(node -v) =~ "v6" ]]; then
           npm run wpt:init
@@ -45,8 +61,14 @@ aliases:
 
   bridge-test: &bridge-test
     run:
-      name: Run Bridge Test
-      command: npm run test:bridge
+      name: Run Bridge Test (x86_64-only)
+      command: |
+        if [ "$TARGET_ARCH" == "arm" ]; then
+          echo "Skipping..."
+          exit 0
+        fi
+
+        npm run test:bridge
 
   linux-x86_64: &linux-x86_64
     working_directory: ~/node-webrtc
@@ -85,6 +107,23 @@ aliases:
             sudo ./cmake-3.12.3-Linux-x86_64.sh --skip-license
             sudo ln -s $(pwd)/bin/* /usr/local/bin
             rm cmake-3.12.3-Linux-x86_64.sh
+
+      - run:
+          name: Install ARM Tools (ARM-only)
+          command: |
+            if [ "$TARGET_ARCH" != "arm" ]; then
+              echo "Skipping..."
+              exit 0
+            fi
+
+            cd ~
+            wget https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabihf/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
+            tar xf gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
+            rm gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
+            echo >> $BASH_ENV export ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf
+
+            # NOTE(mroberts): This is needed so that the WebRTC build finds the correct ld.gold.
+            sudo apt-get install -y g++-arm-linux-gnueabihf
 
       - checkout
 
@@ -132,8 +171,13 @@ aliases:
       - <<: *web-platform-tests
 
       - run:
-          name: Install Chrome and Firefox
+          name: Install Chrome and Firefox (x86_64-only)
           command: |
+            if [ "$TARGET_ARCH" == "arm" ]; then
+              echo "Skipping..."
+              exit 0
+            fi
+
             sudo apt-get install -y \
               gconf-service \
               libasound2 \
@@ -235,6 +279,12 @@ jobs:
     environment:
       NODE_VERSION: 11
 
+  linux-armv7l-node-11-release:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 11
+      TARGET_ARCH: arm
+
   darwin-x86_64-node-11-debug:
     <<: *darwin-x86_64
     environment:
@@ -256,6 +306,12 @@ jobs:
     <<: *linux-x86_64
     environment:
       NODE_VERSION: 10
+
+  linux-armv7l-node-10-release:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 10
+      TARGET_ARCH: arm
 
   darwin-x86_64-node-10-debug:
     <<: *darwin-x86_64
@@ -279,6 +335,12 @@ jobs:
     environment:
       NODE_VERSION: 8
 
+  linux-armv7l-node-8-release:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 8
+      TARGET_ARCH: arm
+
   darwin-x86_64-node-8-debug:
     <<: *darwin-x86_64
     environment:
@@ -301,6 +363,12 @@ jobs:
     environment:
       NODE_VERSION: 6
 
+  linux-armv7l-node-6-release:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 6
+      TARGET_ARCH: arm
+
   darwin-x86_64-node-6-debug:
     <<: *darwin-x86_64
     environment:
@@ -318,17 +386,21 @@ workflows:
     jobs:
       - linux-x86_64-node-11-debug
       - linux-x86_64-node-11-release
+      - linux-armv7l-node-11-release
       # - darwin-x86_64-node-11-debug
       # - darwin-x86_64-node-11-release
       - linux-x86_64-node-10-debug
       - linux-x86_64-node-10-release
+      - linux-armv7l-node-10-release
       # - darwin-x86_64-node-10-debug
       # - darwin-x86_64-node-10-release
       - linux-x86_64-node-8-debug
       - linux-x86_64-node-8-release
+      - linux-armv7l-node-8-release
       # - darwin-x86_64-node-8-debug
       # - darwin-x86_64-node-8-release
       - linux-x86_64-node-6-debug
       - linux-x86_64-node-6-release
+      - linux-armv7l-node-6-release
       # - darwin-x86_64-node-6-debug
       # - darwin-x86_64-node-8-release
