@@ -130,7 +130,7 @@ script:
       fi
     fi
 
-    if [ "$TARGET_ARCH" == "am64" ]; then
+    if [ "$TARGET_ARCH" == "amd64" ]; then
       STDERR=$(mktemp)
       unset -e
       npm test 2>$STDERR
@@ -141,7 +141,7 @@ script:
       set -e
     fi
 
-    if [ "$TARGET_ARCH" == "am64" ]; then
+    if [ "$TARGET_ARCH" == "amd64" ]; then
       # NOTE(mroberts): web-platform-tests use syntax incompatible with Node 6.
       if [[ ! $(node -v) =~ "v6" ]]; then
         npm run wpt:init
@@ -157,7 +157,7 @@ script:
       fi
     fi
 
-    if [ "$TARGET_ARCH" == "am64" ]; then
+    if [ "$TARGET_ARCH" == "amd64" ]; then
       if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         STDERR=$(mktemp)
         unset -e
