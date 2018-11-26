@@ -31,18 +31,18 @@ aliases:
           exit 0
         fi
 
-        echo >>/etc/hosts 127.0.0.1	xn--lve-6lad.not-web-platform.test
-        echo >>/etc/hosts 127.0.0.1	xn--lve-6lad.web-platform.test
-        echo >>/etc/hosts 127.0.0.1	xn--n8j6ds53lwwkrqhv28a.not-web-platform.test
-        echo >>/etc/hosts 127.0.0.1	www1.web-platform.test
-        echo >>/etc/hosts 127.0.0.1	www2.web-platform.test
-        echo >>/etc/hosts 127.0.0.1	not-web-platform.test
-        echo >>/etc/hosts 127.0.0.1	web-platform.test
-        echo >>/etc/hosts 127.0.0.1	www2.not-web-platform.test
-        echo >>/etc/hosts 127.0.0.1	www1.not-web-platform.test
-        echo >>/etc/hosts 127.0.0.1	www.not-web-platform.test
-        echo >>/etc/hosts 127.0.0.1	www.web-platform.test
-        echo >>/etc/hosts 127.0.0.1	xn--n8j6ds53lwwkrqhv28a.web-platform.test
+        sudo sh -c 'echo >>/etc/hosts 127.0.0.1	xn--lve-6lad.not-web-platform.test'
+        sudo sh -c 'echo >>/etc/hosts 127.0.0.1	xn--lve-6lad.web-platform.test'
+        sudo sh -c 'echo >>/etc/hosts 127.0.0.1	xn--n8j6ds53lwwkrqhv28a.not-web-platform.test'
+        sudo sh -c 'echo >>/etc/hosts 127.0.0.1	www1.web-platform.test'
+        sudo sh -c 'echo >>/etc/hosts 127.0.0.1	www2.web-platform.test'
+        sudo sh -c 'echo >>/etc/hosts 127.0.0.1	not-web-platform.test'
+        sudo sh -c 'echo >>/etc/hosts 127.0.0.1	web-platform.test'
+        sudo sh -c 'echo >>/etc/hosts 127.0.0.1	www2.not-web-platform.test'
+        sudo sh -c 'echo >>/etc/hosts 127.0.0.1	www1.not-web-platform.test'
+        sudo sh -c 'echo >>/etc/hosts 127.0.0.1	www.not-web-platform.test'
+        sudo sh -c 'echo >>/etc/hosts 127.0.0.1	www.web-platform.test'
+        sudo sh -c 'echo >>/etc/hosts 127.0.0.1	xn--n8j6ds53lwwkrqhv28a.web-platform.test'
 
   web-platform-tests: &web-platform-tests
     run:
@@ -69,6 +69,21 @@ aliases:
         fi
 
         npm run test:bridge
+
+  publish-binary: &publish-binary
+    run:
+      name: Publish Binary (x86_64-only)
+      command: |
+        if [ "$TARGET_ARCH" == "arm" ]; then
+          echo "Don't publish ARM binaries until https://github.com/mapbox/node-pre-gyp/issues/348 is fixed."
+          exit 0
+        fi
+
+        if [[ `git show -s --format=%B $CIRCLE_SHA1` == *'[publish binary]'* ]]; then
+          ./node_modules/.bin/node-pre-gyp package publish
+        else
+          echo "Skipping..."
+        fi
 
   linux-x86_64: &linux-x86_64
     working_directory: ~/node-webrtc
@@ -227,6 +242,8 @@ aliases:
 
       - <<: *bridge-test
 
+      - <<: *publish-binary
+
   darwin-x86_64: &darwin-x86_64
     working_directory: ~/node-webrtc
 
@@ -241,6 +258,12 @@ aliases:
       - run:
           name: Install Node
           command: |
+            # NOTE(mroberts): Needed for macOS.
+            if ! [ -x "$(command -v nvm)" ]; then
+              export NVM_DIR="$HOME/.nvm"
+              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            fi
+
             nvm install $NODE_VERSION
             nvm use $NODE_VERSION
 
@@ -265,7 +288,13 @@ aliases:
 
       - <<: *test-javascript
 
+      - <<: *prepare-for-web-platform-tests
+
       - <<: *web-platform-tests
+
+      - <<: *bridge-test
+
+      - <<: *publish-binary
 
 jobs:
   linux-x86_64-node-11-debug:
@@ -387,20 +416,20 @@ workflows:
       - linux-x86_64-node-11-debug
       - linux-x86_64-node-11-release
       - linux-armv7l-node-11-release
-      # - darwin-x86_64-node-11-debug
-      # - darwin-x86_64-node-11-release
+      - darwin-x86_64-node-11-debug
+      - darwin-x86_64-node-11-release
       - linux-x86_64-node-10-debug
       - linux-x86_64-node-10-release
       - linux-armv7l-node-10-release
-      # - darwin-x86_64-node-10-debug
-      # - darwin-x86_64-node-10-release
+      - darwin-x86_64-node-10-debug
+      - darwin-x86_64-node-10-release
       - linux-x86_64-node-8-debug
       - linux-x86_64-node-8-release
       - linux-armv7l-node-8-release
-      # - darwin-x86_64-node-8-debug
-      # - darwin-x86_64-node-8-release
+      - darwin-x86_64-node-8-debug
+      - darwin-x86_64-node-8-release
       - linux-x86_64-node-6-debug
       - linux-x86_64-node-6-release
       - linux-armv7l-node-6-release
-      # - darwin-x86_64-node-6-debug
-      # - darwin-x86_64-node-8-release
+      - darwin-x86_64-node-6-debug
+      - darwin-x86_64-node-8-release
