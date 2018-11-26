@@ -132,7 +132,7 @@ script:
 
     if [ "$TARGET_ARCH" == "amd64" ]; then
       STDERR=$(mktemp)
-      unset -e
+      set +e
       npm test 2>$STDERR
       if [ $? -ne 0 ]; then
         tail $STDERR
@@ -147,7 +147,7 @@ script:
         npm run wpt:init
 
         STDERR=$(mktemp)
-        unset -e
+        set +e
         npm run wpt:test 2>$STDERR
         if [ $? -ne 0 ]; then
           tail $STDERR
@@ -160,7 +160,7 @@ script:
     if [ "$TARGET_ARCH" == "amd64" ]; then
       if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         STDERR=$(mktemp)
-        unset -e
+        set +e
         npm run test:bridge 2>$STDERR
         if [ $? -ne 0 ]; then
           tail $STDERR
