@@ -16,6 +16,8 @@ else
   download_from_google_storage --no_resume --platform=${PLATFORM} --no_auth --bucket chromium-gn -s src/buildtools/linux64/gn.sha1
 fi
 
+sudo src/build/install-build-deps.sh
+
 python src/tools/clang/scripts/update.py
 
 rm -f webrtc
