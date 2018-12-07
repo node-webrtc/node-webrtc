@@ -42,7 +42,6 @@ list(APPEND GN_GEN_ARGS
   rtc_include_pulse_audio=false
   rtc_include_tests=false
 )
-
 if ("$ENV{TARGET_ARCH}" STREQUAL "arm")
   list(APPEND GN_GEN_ARGS
     target_os="linux"
@@ -52,11 +51,20 @@ if ("$ENV{TARGET_ARCH}" STREQUAL "arm")
     fatal_linker_warnings=false
   )
 else()
-  list(APPEND GN_GEN_ARGS
-    rtc_build_tools=false
-  )
+  if ("$ENV{TARGET_ARCH}" STREQUAL "arm64")
+    list(APPEND GN_GEN_ARGS
+      target_os="linux"
+      target_cpu="arm64"
+      rtc_build_tools=true
+      treat_warnings_as_errors=false
+      fatal_linker_warnings=false
+    )
+  else()
+    list(APPEND GN_GEN_ARGS
+      rtc_build_tools=false
+    )
+  endif()
 endif()
-
 if (WIN32)
   list(APPEND GN_GEN_ARGS is_clang=false)
 endif()
@@ -353,7 +361,7 @@ else()
       -nostdinc++
       -nodefaultlibs
     )
-
+    
     if ("$ENV{TARGET_ARCH}" STREQUAL "arm")
       target_compile_options(${MODULE} PRIVATE
         -march=armv7-a
@@ -376,11 +384,30 @@ else()
       set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
       set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
     else()
-      target_compile_options(${MODULE} PRIVATE
-        -B${libwebrtc_source_dir}/src/third_party/binutils/Linux_x64/Release/bin
-        --sysroot=${libwebrtc_source_dir}/src/build/linux/debian_sid_amd64-sysroot
-      )
-    endif()    
+      if ("$ENV{TARGET_ARCH}" STREQUAL "arm64")
+        target_compile_options(${MODULE} PRIVATE
+        )
+  
+        set(CMAKE_SYSTEM_NAME Linux)
+        set(CMAKE_SYSTEM_PROCESSOR arm64)
+        
+        set(CMAKE_SYSROOT ${libwebrtc_source_dir}/src/build/linux/debian_sid_arm64-sysroot)
+  
+        set(tools $ENV{ARM_TOOLS_PATH})
+        set(CMAKE_C_COMPILER ${tools}/bin/aarch64-linux-gnu-gcc)
+        set(CMAKE_CXX_COMPILER ${tools}/bin/aarch64-linux-gnu-g++)
+  
+        set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+        set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+        set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+        set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+      else()
+        target_compile_options(${MODULE} PRIVATE
+          -B${libwebrtc_source_dir}/src/third_party/binutils/Linux_x64/Release/bin
+          --sysroot=${libwebrtc_source_dir}/src/build/linux/debian_sid_amd64-sysroot
+        )
+      endif()
+    endif()
   endif()
 endif()
 
