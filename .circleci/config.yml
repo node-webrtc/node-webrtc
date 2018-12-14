@@ -89,6 +89,40 @@ aliases:
           echo "Skipping..."
         fi
 
+  before-restore-cache: &before-restore-cache
+    run:
+      name: Before restore cache...
+      command: |
+        if [ -z "$TARGET_ARCH" ]; then
+          export TARGET_ARCH=x86_64
+        fi
+
+        if [ "$DEBUG" == "true" ]; then
+          export CMAKE_BUILD_TYPE=Debug
+        else
+          export CMAKE_BUILD_TYPE=Release
+        fi
+
+        echo >>CACHE_KEY "TARGET_ARCH=$TARGET_ARCH"
+        echo >>CACHE_KEY "CMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE"
+
+        cat CACHE_KEY
+
+  restore-cache: &restore-cache
+    restore_cache:
+      key: asset-cache-v1-{{ arch }}-{{ checksum "CACHE_KEY" }}-{{ checksum "CMakeLists.txt" }}
+
+  save-cache: &save-cache
+    save_cache:
+      key: asset-cache-v1-{{ arch }}-{{ checksum "CACHE_KEY" }}-{{ checksum "CMakeLists.txt" }}
+      paths:
+        - build/external
+
+  after-save-cache: &after-save-cache
+    run:
+      name: After save cache...
+      command: rm CACHE_KEY
+
   linux-x86_64: &linux-x86_64
     working_directory: ~/node-webrtc
 
@@ -157,6 +191,10 @@ aliases:
 
       - checkout
 
+      - <<: *before-restore-cache
+
+      - <<: *restore-cache
+
       - run:
           name: npm install
           command: |
@@ -175,6 +213,8 @@ aliases:
             # NOTE(mroberts): We need `--unsafe-perm` to run the install script
             # as root.
             npm install --unsafe-perm
+
+      - <<: *save-cache
 
       - <<: *lint-javascript
 
@@ -290,6 +330,10 @@ aliases:
 
       - checkout
 
+      - <<: *before-restore-cache
+
+      - <<: *restore-cache
+
       - run:
           name: npm install
           command:
@@ -298,6 +342,8 @@ aliases:
             export SKIP_DOWNLOAD=true
 
             npm install
+
+      - <<: *save-cache
 
       - <<: *lint-javascript
 
