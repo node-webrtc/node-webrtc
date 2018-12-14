@@ -15,18 +15,22 @@ aliases:
     run:
       name: Run Unit and Integration Tests (x86_64-only)
       command: |
-        if [ "$TARGET_ARCH" == "arm" ]; then
+        if [[ "$TARGET_ARCH" == arm* ]]; then
           echo "Skipping..."
           exit 0
         fi
 
-        npm test
+        # NOTE(mroberts): https://github.com/feross/simple-peer/pull/355
+        # introduced syntax incompatible with Node 6.
+        if [[ ! $(node -v) =~ "v6" ]]; then
+          npm test
+        fi
 
   prepare-for-web-platform-tests: &prepare-for-web-platform-tests
     run:
       name: Setup /etc/hosts for Web Platform Tests (x86_64-only)
       command: |
-        if [ "$TARGET_ARCH" == "arm" ]; then
+        if [[ "$TARGET_ARCH" == arm* ]]; then
           echo "Skipping..."
           exit 0
         fi
@@ -48,7 +52,7 @@ aliases:
     run:
       name: Run Web Platform Tests (x86_64-only)
       command: |
-        if [ "$TARGET_ARCH" == "arm" ]; then
+        if [[ "$TARGET_ARCH" == arm* ]]; then
           echo "Skipping..."
           exit 0
         fi
@@ -63,7 +67,7 @@ aliases:
     run:
       name: Run Bridge Test (x86_64-only)
       command: |
-        if [ "$TARGET_ARCH" == "arm" ]; then
+        if [[ "$TARGET_ARCH" == arm* ]]; then
           echo "Skipping..."
           exit 0
         fi
@@ -72,10 +76,10 @@ aliases:
 
   publish-binary: &publish-binary
     run:
-      name: Publish Binary (x86_64-only)
+      name: Publish Binary (arm64-, x86_64-only)
       command: |
-        if [ "$TARGET_ARCH" == "arm" ]; then
-          echo "Don't publish ARM binaries until https://github.com/mapbox/node-pre-gyp/issues/348 is fixed."
+        if [ "$TARGET_ARCH" == arm ]; then
+          echo "Don't publish armv7l binaries until https://github.com/mapbox/node-pre-gyp/issues/348 is fixed."
           exit 0
         fi
 
@@ -126,19 +130,30 @@ aliases:
       - run:
           name: Install ARM Tools (ARM-only)
           command: |
-            if [ "$TARGET_ARCH" != "arm" ]; then
+            if [[ "$TARGET_ARCH" != arm* ]]; then
               echo "Skipping..."
               exit 0
             fi
 
             cd ~
-            wget https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabihf/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
-            tar xf gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
-            rm gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
-            echo >> $BASH_ENV export ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf
 
-            # NOTE(mroberts): This is needed so that the WebRTC build finds the correct ld.gold.
-            sudo apt-get install -y g++-arm-linux-gnueabihf
+            if [ "$TARGET_ARCH" == "arm" ]; then
+              wget https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabihf/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
+              tar xf gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
+              rm gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
+              echo >> $BASH_ENV export ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf
+
+              # NOTE(mroberts): This is needed so that the WebRTC build finds the correct ld.gold.
+              sudo apt-get install -y g++-arm-linux-gnueabihf
+            else
+              wget https://releases.linaro.org/components/toolchain/binaries/latest-7/aarch64-linux-gnu/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu.tar.xz
+              tar xf gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu.tar.xz
+              rm gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu.tar.xz
+              echo >> $BASH_ENV export ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu
+
+              # NOTE(mroberts): This is needed so that the WebRTC build finds the correct ld.gold.
+              sudo apt-get install -y g++-aarch64-linux-gnu
+            fi
 
       - checkout
 
@@ -188,7 +203,7 @@ aliases:
       - run:
           name: Install Chrome and Firefox (x86_64-only)
           command: |
-            if [ "$TARGET_ARCH" == "arm" ]; then
+            if [[ "$TARGET_ARCH" == arm* ]]; then
               echo "Skipping..."
               exit 0
             fi
@@ -312,6 +327,12 @@ jobs:
       NODE_VERSION: 11
       TARGET_ARCH: arm
 
+  linux-arm64-node-11-release:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 11
+      TARGET_ARCH: arm64
+
   darwin-x86_64-node-11-debug:
     <<: *darwin-x86_64
     environment:
@@ -339,6 +360,12 @@ jobs:
     environment:
       NODE_VERSION: 10
       TARGET_ARCH: arm
+
+  linux-arm64-node-10-release:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 10
+      TARGET_ARCH: arm64
 
   darwin-x86_64-node-10-debug:
     <<: *darwin-x86_64
@@ -368,6 +395,12 @@ jobs:
       NODE_VERSION: 8
       TARGET_ARCH: arm
 
+  linux-arm64-node-8-release:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 8
+      TARGET_ARCH: arm64
+
   darwin-x86_64-node-8-debug:
     <<: *darwin-x86_64
     environment:
@@ -396,6 +429,12 @@ jobs:
       NODE_VERSION: 6
       TARGET_ARCH: arm
 
+  linux-arm64-node-6-release:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 6
+      TARGET_ARCH: arm64
+
   darwin-x86_64-node-6-debug:
     <<: *darwin-x86_64
     environment:
@@ -414,20 +453,24 @@ workflows:
       - linux-x86_64-node-11-debug
       - linux-x86_64-node-11-release
       - linux-armv7l-node-11-release
+      - linux-arm64-node-11-release
       - darwin-x86_64-node-11-debug
       - darwin-x86_64-node-11-release
       - linux-x86_64-node-10-debug
       - linux-x86_64-node-10-release
       - linux-armv7l-node-10-release
+      - linux-arm64-node-10-release
       - darwin-x86_64-node-10-debug
       - darwin-x86_64-node-10-release
       - linux-x86_64-node-8-debug
       - linux-x86_64-node-8-release
       - linux-armv7l-node-8-release
+      - linux-arm64-node-8-release
       - darwin-x86_64-node-8-debug
       - darwin-x86_64-node-8-release
       - linux-x86_64-node-6-debug
       - linux-x86_64-node-6-release
       - linux-armv7l-node-6-release
+      - linux-arm64-node-6-release
       - darwin-x86_64-node-6-debug
       - darwin-x86_64-node-8-release

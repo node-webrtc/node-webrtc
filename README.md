@@ -9,9 +9,9 @@ node-webrtc provides Node.js bindings to [WebRTC M70](https://chromium.googlesou
 
 |         | x86 | x64 | armv6l | armv7l | arm64 |
 |:------- |:--- |:--- |:------ |:------ |:----- |
-| Linux   |     | ✔︎   |        |        |       |
-| macOS   |     | ✔︎   |        |        |       |
-| Windows |     | ✔︎   |        |        |       |
+| Linux   | -   | ✔︎   | ✘      | ✘      | ✔︎     |
+| macOS   | -   | ✔︎   | -      | -      | -     |
+| Windows | ✘   | ✔︎   | -      | -      | -     |
 
 # Getting Started
 
@@ -72,14 +72,32 @@ On Linux, we statically link libc++ and libc++abi. Also, although we compile
 WebRTC sources with Clang (downloaded as part of WebRTC's build process), we
 compile node-webrtc sources with GCC 5.4 or newer.
 
-##### ARM
+##### armv7l
 
-In order to cross-compile for ARM on Linux:
+In order to cross-compile for armv7l on Linux,
+
+1. Set `TARGET_ARCH` to "arm".
+2. Install the appropriate toolchain, and set `ARM_TOOLS_PATH`.
+3. On Ubuntu, you may also need g++-arm-linux-gnueabihf.
 
 ```
 wget https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabihf/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
 tar xf gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
 SKIP_DOWNLOAD=true TARGET_ARCH=arm ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf npm install
+```
+
+##### arm64
+
+In order to cross-compile for armv64 on Linux,
+
+1. Set `TARGET_ARCH` to "arm64".
+2. Install the appropriate toolchain, and set `ARM_TOOLS_PATH`.
+3. On Ubuntu, you may also need g++-aarch64-linux-gnu.
+
+```
+wget https://releases.linaro.org/components/toolchain/binaries/latest-7/aarch64-linux-gnu/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu.tar.xz
+tar xf gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu.tar.xz
+SKIP_DOWNLOAD=true TARGET_ARCH=arm64 ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu npm install
 ```
 
 #### macOS
