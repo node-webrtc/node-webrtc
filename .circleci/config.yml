@@ -234,6 +234,34 @@ aliases:
               exit -1
             fi
 
+      - run:
+          name: Install qemu (armv7l-, arm64-only)
+          command: |
+            if [[ "$TARGET_ARCH" != arm* ]]; then
+              echo "Skipping..."
+              exit 0
+            elif [ "$TARGET_ARCH" == "arm" ]; then
+              export TARGET=arm
+            else
+              export TARGET=aarch64
+            fi
+
+            cd ~
+
+            wget https://download.qemu.org/qemu-3.1.0.tar.xz
+            tar xf qemu-3.1.0.tar.xz
+
+            cd qemu-3.1.0
+
+            mkdir build
+            cd build
+            ../configure --disable-bsd-user --disable-guest-agent --disable-strip --disable-werror --disable-gcrypt --disable-debug-info --disable-debug-tcg --disable-tcg-interpreter --enable-attr --disable-brlapi --disable-linux-aio --disable-bzip2 --disable-bluez --disable-cap-ng --disable-curl --disable-fdt --disable-glusterfs --disable-gnutls --disable-nettle --disable-gtk --disable-rdma --disable-libiscsi --disable-vnc-jpeg --disable-kvm --disable-lzo --disable-curses --disable-libnfs --disable-numa --disable-opengl --disable-vnc-png --disable-rbd --disable-vnc-sasl --disable-sdl --disable-seccomp --disable-smartcard --disable-snappy --disable-spice --disable-libssh2 --disable-libusb --disable-usb-redir --disable-vde --disable-vhost-net --disable-virglrenderer --disable-virtfs --disable-vnc --disable-vte --disable-xen --disable-xen-pci-passthrough --disable-xfsctl --enable-linux-user --disable-system --disable-blobs --disable-tools --target-list=$TARGET-linux-user --static --disable-pie
+            make -j
+
+            export QEMU=$(find $(pwd) -name qemu-$TARGET)
+            echo $QEMU
+            echo >> $BASH_ENV export PATH=$(dirname $QEMU):\$PATH
+
       - <<: *test-javascript
 
       - <<: *prepare-for-web-platform-tests
