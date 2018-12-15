@@ -9,7 +9,7 @@ node-webrtc provides Node.js bindings to [WebRTC M70](https://chromium.googlesou
 
 |         | x86 | x64 | armv6l | armv7l | arm64 |
 |:------- |:--- |:--- |:------ |:------ |:----- |
-| Linux   | -   | ✔︎   | ✘      | ✘      | ✔︎     |
+| Linux   | -   | ✔︎   | ✘      | ✔︎      | ✔︎     |
 | macOS   | -   | ✔︎   | -      | -      | -     |
 | Windows | ✘   | ✔︎   | -      | -      | -     |
 
@@ -88,7 +88,7 @@ SKIP_DOWNLOAD=true TARGET_ARCH=arm ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.0
 
 ##### arm64
 
-In order to cross-compile for armv64 on Linux,
+In order to cross-compile for arm64 on Linux,
 
 1. Set `TARGET_ARCH` to "arm64".
 2. Install the appropriate toolchain, and set `ARM_TOOLS_PATH`.

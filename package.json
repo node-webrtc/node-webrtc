@@ -70,6 +70,7 @@
   "scripts": {
     "install": "node scripts/install.js",
     "lint": "eslint lib/*.js lib/**/*.js test/*.js test/**/*.js examples/*.js examples/**/*.js karma.conf.js scripts/*.js",
+    "publish-binary": "node scripts/publish.js",
     "test": "node --expose-gc test/all.js",
     "test:bridge": "cross-env BROWSER=chrome node scripts/karma.js && cross-env BROWSER=firefox node scripts/karma.js",
     "wpt:init": "git submodule update --init --recursive",

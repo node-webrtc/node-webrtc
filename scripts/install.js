@@ -20,7 +20,14 @@ if (process.platform === 'win32') {
 function download() {
   try {
     console.log('Searching for a pre-built wrtc binary');
-    var result = spawnSync('node-pre-gyp', ['install', '--fallback-to-build=false'], {
+    var installArgs = ['install', '--fallback-to-build=false'];
+    if (process.env.DEBUG === 'true') {
+      installArgs = installArgs.concat(['--debug']);
+    }
+    if (process.env.TARGET_ARCH) {
+      installArgs = installArgs.concat(['--target_arch', process.env.TARGET_ARCH]);
+    }
+    var result = spawnSync('node-pre-gyp', installArgs, {
       shell: true,
       stdio: 'inherit'
     });
