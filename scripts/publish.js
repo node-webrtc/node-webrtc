@@ -4,7 +4,7 @@
 
 var spawnSync = require('child_process').spawnSync;
 
-var args = ['publish'];
+var args = ['package', 'publish'];
 
 if (process.env.DEBUG === 'true') {
   args = args.concat(['--debug']);

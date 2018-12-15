@@ -5,10 +5,21 @@ New Features
 ------------
 
 - Experimental support for armv7l and arm64. Binaries built for these
-  architectures have been tested with QEMU, but not on real devices. Please test
+  architectures have been tested with QEMU but not on real devices. Please test
   them out. If you install node-webrtc directly on an ARM device, node-pre-gyp
   should pull the correct binaries automatically. Otherwise, you may need to set
-  the `TARGET_ARCH` environment variable to "arm" (armv7l) or "arm64".
+  the `TARGET_ARCH` environment variable to "arm" (armv7l) or "arm64". For
+  exmample,
+
+  ```
+  TARGET_ARCH=arm64 npm install
+  ```
+
+- Set `DEBUG=true` to install debug binaries. For example,
+
+  ```
+  DEBUG=true npm install
+  ```
 
 0.3.2
 =====
