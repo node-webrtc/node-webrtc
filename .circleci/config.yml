@@ -13,16 +13,16 @@ aliases:
 
   test-javascript: &test-javascript
     run:
-      name: Run Unit and Integration Tests (x86_64-only)
+      name: Run Unit and Integration Tests
       command: |
-        if [[ "$TARGET_ARCH" == arm* ]]; then
-          echo "Skipping..."
-          exit 0
-        fi
-
-        # NOTE(mroberts): https://github.com/feross/simple-peer/pull/355
-        # introduced syntax incompatible with Node 6.
-        if [[ ! $(node -v) =~ "v6" ]]; then
+        # NOTE(mroberts): We run a reduced set of tests for ARM since some of
+        # them fail (and I'm not sure all the reasons why, yet).
+        export NODE_VERSION=$(node -v | tr -d '\n')
+        if [[ "$TARGET_ARCH" == arm ]]; then
+          qemu-arm -L ~/node-webrtc/build/external/libwebrtc/download/src/build/linux/debian_sid_arm-sysroot ~/node-$NODE_VERSION-linux-armv7l/bin/node test/create-offer.js
+        elif [[ "$TARGET_ARCH" == arm64 ]]; then
+          qemu-aarch64 -L ~/node-webrtc/build/external/libwebrtc/download/src/build/linux/debian_sid_arm64-sysroot ~/node-$NODE_VERSION-linux-arm64/bin/node test/create-offer.js
+        else
           npm test
         fi
 
@@ -142,6 +142,19 @@ aliases:
             cd ~
             curl -sL https://deb.nodesource.com/setup_$NODE_VERSION.x | sudo -E bash -
             sudo apt-get install -y nodejs
+
+            if [[ "$TARGET_ARCH" == arm* ]]; then
+              export NODE_VERSION=$(node -v | tr -d '\n')
+
+              if [ "$TARGET_ARCH" == "arm" ]; then
+                export TARGET=armv7l
+              else
+                export TARGET=arm64
+              fi
+
+              wget https://nodejs.org/dist/$NODE_VERSION/node-$NODE_VERSION-linux-$TARGET.tar.xz
+              tar xf node-$NODE_VERSION-linux-$TARGET.tar.xz
+            fi
 
       - <<: *npm-version
 
