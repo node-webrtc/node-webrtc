@@ -11,7 +11,7 @@ if (process.env.DEBUG === 'true') {
 }
 
 if (process.env.TARGET_ARCH) {
-  args = args.concat(['--target_arch', process.env.TARGET_ARCH]);
+  args = args.concat(['--target_arch=' + process.env.TARGET_ARCH]);
 }
 
 var result = spawnSync('node-pre-gyp', args, {

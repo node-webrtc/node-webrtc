@@ -15,7 +15,8 @@ New Features
   TARGET_ARCH=arm64 npm install
   ```
 
-- Set `DEBUG=true` to install debug binaries. For example,
+- Set `DEBUG=true` to install debug binaries (Linux- and macOS-only). For
+  example,
 
   ```
   DEBUG=true npm install

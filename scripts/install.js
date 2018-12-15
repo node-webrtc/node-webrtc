@@ -25,7 +25,7 @@ function download() {
       installArgs = installArgs.concat(['--debug']);
     }
     if (process.env.TARGET_ARCH) {
-      installArgs = installArgs.concat(['--target_arch', process.env.TARGET_ARCH]);
+      installArgs = installArgs.concat(['--target_arch=' + process.env.TARGET_ARCH]);
     }
     var result = spawnSync('node-pre-gyp', installArgs, {
       shell: true,
