@@ -4,7 +4,11 @@
 New Features
 ------------
 
-- Support for arm64.
+- Experimental support for armv7l and arm64. Binaries built for these
+  architectures have been tested with QEMU, but not on real devices. Please test
+  them out. If you install node-webrtc directly on an ARM device, node-pre-gyp
+  should pull the correct binaries automatically. Otherwise, you may need to set
+  the `TARGET_ARCH` environment variable to "arm" (armv7l) or "arm64".
 
 0.3.2
 =====
