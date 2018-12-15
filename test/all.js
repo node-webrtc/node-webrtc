@@ -8,8 +8,12 @@ require('./connect');
 require('./iceservers');
 // require('./bwtest').tape();
 require('./mediastream');
-require('./multiconnect');
-require('./custom-settings');
+// NOTE(mroberts): https://github.com/feross/simple-peer/pull/355 introduced
+// syntax incompatible with Node 6.
+if (semver(process.version).major > 6) {
+  require('./multiconnect');
+  require('./custom-settings');
+}
 require('./closing-peer-connection');
 require('./closing-data-channel');
 require('./get-configuration');
