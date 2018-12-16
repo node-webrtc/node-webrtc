@@ -353,10 +353,14 @@ aliases:
             if ! [ -x "$(command -v nvm)" ]; then
               export NVM_DIR="$HOME/.nvm"
               [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+              echo >> $BASH_ENV 'export NVM_DIR="$HOME/.nvm"'
+              echo >> $BASH_ENV '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
             fi
 
             nvm install $NODE_VERSION
             nvm use $NODE_VERSION
+            echo >> $BASH_ENV "nvm use $NODE_VERSION"
 
       - <<: *npm-version
 
@@ -403,11 +407,25 @@ jobs:
     environment:
       NODE_VERSION: 11
 
+  linux-armv7l-node-11-debug:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 11
+      DEBUG: true
+      TARGET_ARCH: arm
+
   linux-armv7l-node-11-release:
     <<: *linux-x86_64
     environment:
       NODE_VERSION: 11
       TARGET_ARCH: arm
+
+  linux-arm64-node-11-debug:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 11
+      DEBUG: true
+      TARGET_ARCH: arm64
 
   linux-arm64-node-11-release:
     <<: *linux-x86_64
@@ -437,11 +455,25 @@ jobs:
     environment:
       NODE_VERSION: 10
 
+  linux-armv7l-node-10-debug:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 10
+      DEBUG: true
+      TARGET_ARCH: arm
+
   linux-armv7l-node-10-release:
     <<: *linux-x86_64
     environment:
       NODE_VERSION: 10
       TARGET_ARCH: arm
+
+  linux-arm64-node-10-debug:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 10
+      DEBUG: true
+      TARGET_ARCH: arm64
 
   linux-arm64-node-10-release:
     <<: *linux-x86_64
@@ -471,11 +503,25 @@ jobs:
     environment:
       NODE_VERSION: 8
 
+  linux-armv7l-node-8-debug:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 8
+      DEBUG: true
+      TARGET_ARCH: arm
+
   linux-armv7l-node-8-release:
     <<: *linux-x86_64
     environment:
       NODE_VERSION: 8
       TARGET_ARCH: arm
+
+  linux-arm64-node-8-debug:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 8
+      DEBUG: true
+      TARGET_ARCH: arm64
 
   linux-arm64-node-8-release:
     <<: *linux-x86_64
@@ -505,11 +551,25 @@ jobs:
     environment:
       NODE_VERSION: 6
 
+  linux-armv7l-node-6-debug:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 6
+      DEBUG: true
+      TARGET_ARCH: arm
+
   linux-armv7l-node-6-release:
     <<: *linux-x86_64
     environment:
       NODE_VERSION: 6
       TARGET_ARCH: arm
+
+  linux-arm64-node-6-debug:
+    <<: *linux-x86_64
+    environment:
+      NODE_VERSION: 6
+      DEBUG: true
+      TARGET_ARCH: arm64
 
   linux-arm64-node-6-release:
     <<: *linux-x86_64
@@ -534,25 +594,33 @@ workflows:
     jobs:
       - linux-x86_64-node-11-debug
       - linux-x86_64-node-11-release
+      - linux-armv7l-node-11-debug
       - linux-armv7l-node-11-release
+      - linux-arm64-node-11-debug
       - linux-arm64-node-11-release
       - darwin-x86_64-node-11-debug
       - darwin-x86_64-node-11-release
       - linux-x86_64-node-10-debug
       - linux-x86_64-node-10-release
+      - linux-armv7l-node-10-debug
       - linux-armv7l-node-10-release
+      - linux-arm64-node-10-debug
       - linux-arm64-node-10-release
       - darwin-x86_64-node-10-debug
       - darwin-x86_64-node-10-release
       - linux-x86_64-node-8-debug
       - linux-x86_64-node-8-release
+      - linux-armv7l-node-8-debug
       - linux-armv7l-node-8-release
+      - linux-arm64-node-8-debug
       - linux-arm64-node-8-release
       - darwin-x86_64-node-8-debug
       - darwin-x86_64-node-8-release
       - linux-x86_64-node-6-debug
       - linux-x86_64-node-6-release
+      - linux-armv7l-node-6-debug
       - linux-armv7l-node-6-release
+      - linux-arm64-node-6-debug
       - linux-arm64-node-6-release
       - darwin-x86_64-node-6-debug
-      - darwin-x86_64-node-8-release
+      - darwin-x86_64-node-6-release
