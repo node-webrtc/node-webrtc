@@ -623,4 +623,4 @@ workflows:
       - linux-arm64-node-6-debug
       - linux-arm64-node-6-release
       - darwin-x86_64-node-6-debug
-      - darwin-x86_64-node-8-release
+      - darwin-x86_64-node-6-release
