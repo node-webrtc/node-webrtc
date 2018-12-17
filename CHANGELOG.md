@@ -1,3 +1,11 @@
+0.3.4
+=====
+
+New Features
+------------
+
+- Updated to WebRTC M71.
+
 0.3.3
 =====
 
