@@ -14,16 +14,20 @@
 
 namespace node_webrtc {
 
-class ZeroCapturer: public node_webrtc::FakeAudioDevice::Capturer {
+class ZeroCapturer: public node_webrtc::TestAudioDeviceModule::Capturer {
  public:
   ZeroCapturer(int sampling_frequency_in_hz): _sampling_frequency_in_hz(sampling_frequency_in_hz) {}
 
-  virtual int SamplingFrequency() const {
+  int SamplingFrequency() const override {
     return _sampling_frequency_in_hz;
   }
 
-  virtual bool Capture(rtc::BufferT<int16_t>*) {
+  bool Capture(rtc::BufferT<int16_t>*) override {
     return false;
+  }
+
+  int NumChannels() const override {
+    return 1;
   }
 
   static std::unique_ptr<ZeroCapturer> Create(int sampling_frequency_in_hz) {

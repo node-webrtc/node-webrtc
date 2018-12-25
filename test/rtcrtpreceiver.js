@@ -222,7 +222,7 @@ tape('applying a remote offer and then applying a local answer causes .getParame
           payloadType: 121,
           mimeType: 'video/VP9',
           clockRate: 90000,
-          sdpFmtpLine: 'a=fmtp:121 x-google-profile-id=0'
+          sdpFmtpLine: 'a=fmtp:121 profile-id=0'
         }
       ],
       encodings: []

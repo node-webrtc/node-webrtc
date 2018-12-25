@@ -35,6 +35,7 @@ set(depot_tools_install_dir ${SOURCE_DIR})
 set(WEBRTC_REVISION branch-heads/71)
 
 list(APPEND GN_GEN_ARGS
+  rtc_enable_symbol_export=true
   rtc_build_examples=false
   rtc_use_x11=false
   rtc_enable_protobuf=false
@@ -117,6 +118,33 @@ if(WIN32)
   set_property(TARGET libwebrtc PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/webrtc.lib")
 else()
   set_property(TARGET libwebrtc PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/libwebrtc.a")
+endif()
+
+add_library(libcreate_pc_factory STATIC IMPORTED)
+add_dependencies(libcreate_pc_factory project_libwebrtc)
+
+if(WIN32)
+  set_property(TARGET libcreate_pc_factory PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/pc/create_pc_factory.lib")
+else()
+  set_property(TARGET libcreate_pc_factory PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/pc/libcreate_pc_factory.a")
+endif()
+
+add_library(libpeerconnection STATIC IMPORTED)
+add_dependencies(libpeerconnection project_libwebrtc)
+
+if(WIN32)
+  set_property(TARGET libpeerconnection PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/pc/peerconnection.lib")
+else()
+  set_property(TARGET libpeerconnection PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/pc/libpeerconnection.a")
+endif()
+
+add_library(libbbr STATIC IMPORTED)
+add_dependencies(libbbr project_libwebrtc)
+
+if(WIN32)
+  set_property(TARGET libbbr PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/modules/congestion_controller/bbr/bbr.lib")
+else()
+  set_property(TARGET libbbr PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/modules/congestion_controller/bbr/libbbr.a")
 endif()
 
 # NOTE(mroberts): I would like this to be INTERFACE.
@@ -250,6 +278,9 @@ target_include_directories(${MODULE} PRIVATE
 target_link_libraries(${MODULE} PRIVATE
   ${CMAKE_THREAD_LIBS_INIT}
   libwebrtc
+  libcreate_pc_factory
+  libpeerconnection
+  libbbr
 )
 
 target_compile_definitions(${MODULE} PRIVATE
@@ -279,6 +310,7 @@ if(WIN32)
 else()
   target_compile_options(${MODULE} PRIVATE
     -fno-rtti
+    -fvisibility=default
     -Wall
     -Wextra
     -Wno-missing-field-initializers

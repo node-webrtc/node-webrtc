@@ -67,9 +67,9 @@ PeerConnectionFactory::PeerConnectionFactory(Maybe<AudioDeviceModule::AudioLayer
     return audioLayer.Map([](const webrtc::AudioDeviceModule::AudioLayer audioLayer) {
       return webrtc::AudioDeviceModule::Create(0, audioLayer);
     }).Or([]() {
-      return node_webrtc::FakeAudioDevice::Create(
+      return node_webrtc::TestAudioDeviceModule::CreateTestAudioDeviceModule(
               node_webrtc::ZeroCapturer::Create(48000),
-              node_webrtc::FakeAudioDevice::CreateDiscardRenderer(48000));
+              node_webrtc::TestAudioDeviceModule::CreateDiscardRenderer(48000));
     });
 #endif
   });
@@ -81,6 +81,7 @@ PeerConnectionFactory::PeerConnectionFactory(Maybe<AudioDeviceModule::AudioLayer
   assert(result);
 
   _factory = webrtc::CreatePeerConnectionFactory(
+          _workerThread.get(),
           _workerThread.get(),
           _signalingThread.get(),
           _audioDeviceModule.get(),
