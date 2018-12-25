@@ -29,6 +29,11 @@ Nan::Persistent<Function>& RTCRtpReceiver::constructor() {
   return constructor;
 }
 
+Nan::Persistent<FunctionTemplate>& RTCRtpReceiver::tpl() {
+  static Nan::Persistent<FunctionTemplate> tpl;
+  return tpl;
+}
+
 RTCRtpReceiver::RTCRtpReceiver(
     std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
     rtc::scoped_refptr<webrtc::RtpReceiverInterface>&& receiver)
@@ -142,6 +147,7 @@ RTCRtpReceiver* RTCRtpReceiver::Create(
 
 void RTCRtpReceiver::Init(Handle<Object> exports) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
+  RTCRtpReceiver::tpl().Reset(tpl);
   tpl->SetClassName(Nan::New("RTCRtpReceiver").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("track").ToLocalChecked(), GetTrack, nullptr);

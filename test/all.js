@@ -2,6 +2,7 @@
 
 const semver = require('semver');
 
+require('./pass-interface-to-method');
 require('./create-offer');
 require('./sessiondesc');
 require('./connect');

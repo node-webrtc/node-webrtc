@@ -45,6 +45,8 @@ class MediaStreamTrack
   std::shared_ptr<PeerConnectionFactory>
   > * wrap();
 
+  static Nan::Persistent<v8::FunctionTemplate>& tpl();
+
  private:
   MediaStreamTrack(
       std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,

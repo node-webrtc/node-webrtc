@@ -25,7 +25,9 @@
 // FIXME(mroberts): This is not safe.
 #define CONVERT_INTERFACE_FROM_JS(IFACE, NAME, FROM_FN) \
   FROM_JS_IMPL(node_webrtc::IFACE*, value) { \
-    return value->IsObject() && !value->IsNull() && !value->IsArray() \
+    auto isolate = Nan::GetCurrentContext()->GetIsolate(); \
+    auto tpl = node_webrtc::IFACE::tpl().Get(isolate); \
+    return tpl->HasInstance(value) \
         ? node_webrtc::Pure(FROM_FN(value->ToObject())) \
         : node_webrtc::Validation<node_webrtc::IFACE*>::Invalid("This is not an instance of " NAME); \
   }
