@@ -41,6 +41,8 @@ class MediaStream
   std::shared_ptr<node_webrtc::PeerConnectionFactory>
   > * wrap();
 
+  static Nan::Persistent<v8::FunctionTemplate>& tpl();
+
   rtc::scoped_refptr<webrtc::MediaStreamInterface> stream() { return _stream; }
 
  private:

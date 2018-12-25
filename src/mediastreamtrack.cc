@@ -31,6 +31,11 @@ Nan::Persistent<Function>& MediaStreamTrack::constructor() {
   return constructor;
 }
 
+Nan::Persistent<FunctionTemplate>& MediaStreamTrack::tpl() {
+  static Nan::Persistent<FunctionTemplate> tpl;
+  return tpl;
+}
+
 MediaStreamTrack::MediaStreamTrack(
     std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
     rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>&& track)
@@ -169,6 +174,7 @@ MediaStreamTrack* MediaStreamTrack::Create(
 
 void MediaStreamTrack::Init(Handle<Object> exports) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
+  MediaStreamTrack::tpl().Reset(tpl);
   tpl->SetClassName(Nan::New("MediaStreamTrack").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("enabled").ToLocalChecked(), GetEnabled, nullptr);

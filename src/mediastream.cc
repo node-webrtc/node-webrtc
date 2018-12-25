@@ -43,6 +43,11 @@ Nan::Persistent<Function>& MediaStream::constructor() {
   return constructor;
 }
 
+Nan::Persistent<FunctionTemplate>& MediaStream::tpl() {
+  static Nan::Persistent<FunctionTemplate> tpl;
+  return tpl;
+}
+
 MediaStream::MediaStream(std::shared_ptr<PeerConnectionFactory>&& factory)
   : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault())
   , _stream(_factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid()))
@@ -269,6 +274,7 @@ MediaStream* MediaStream::Create(
 
 void MediaStream::Init(Handle<Object> exports) {
   Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
+  MediaStream::tpl().Reset(tpl);
   tpl->SetClassName(Nan::New("MediaStream").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("id").ToLocalChecked(), GetId, nullptr);
