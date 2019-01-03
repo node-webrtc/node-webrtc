@@ -277,9 +277,9 @@ target_include_directories(${MODULE} PRIVATE
 
 target_link_libraries(${MODULE} PRIVATE
   ${CMAKE_THREAD_LIBS_INIT}
-  libwebrtc
   libcreate_pc_factory
   libpeerconnection
+  libwebrtc
   libbbr
 )
 
