@@ -6,9 +6,9 @@ set -v
 
 export PATH=$DEPOT_TOOLS:$PATH
 
-export TARGETS=webrtc libjingle_peerconnection
+export TARGETS=webrtc libjingle_peerconnection pc:create_pc_factory
 if [[ "$TARGET_ARCH" == arm* ]]; then
-  export TARGETS="$TARGETS pc:peerconnection pc:create_pc_factory libc++ libc++abi"
+  export TARGETS="$TARGETS pc:peerconnection libc++ libc++abi"
 fi
 
 if [ -z "$PARALLELISM" ]; then
