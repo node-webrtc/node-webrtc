@@ -98,7 +98,7 @@ class TestAudioDeviceModuleImpl
     return 0;
   }
 
-  int32_t RegisterACallback(webrtc::AudioTransport* callback) {
+  int32_t RegisterAudioCallback(webrtc::AudioTransport* callback) {
     rtc::CritScope cs(&lock_);
     RTC_DCHECK(callback || audio_callback_);
     audio_callback_ = callback;
@@ -171,12 +171,10 @@ class TestAudioDeviceModuleImpl
           // Capture 10ms of audio. 2 bytes per sample.
           const bool keep_capturing = capturer_->Capture(&recording_buffer_);
           uint32_t new_mic_level = 0;
-          if (recording_buffer_.size() > 0) {
-            audio_callback_->RecordedDataIsAvailable(
-                recording_buffer_.data(), recording_buffer_.size(), 2,
-                capturer_->NumChannels(), capturer_->SamplingFrequency(), 0, 0,
-                0, false, new_mic_level);
-          }
+          audio_callback_->RecordedDataIsAvailable(
+              recording_buffer_.data(), recording_buffer_.size(), 2,
+              capturer_->NumChannels(), capturer_->SamplingFrequency(), 0, 0,
+              0, false, new_mic_level);
           if (!keep_capturing) {
             capturing_ = false;
             done_capturing_.Set();

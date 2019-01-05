@@ -22,7 +22,12 @@ class ZeroCapturer: public node_webrtc::TestAudioDeviceModule::Capturer {
     return _sampling_frequency_in_hz;
   }
 
-  bool Capture(rtc::BufferT<int16_t>*) override {
+  bool Capture(rtc::BufferT<int16_t>* buffer) override {
+    // NOTE(mroberts): If we don't fill this buffer once we trigger an assert.
+    if (!_produced_output) {
+      buffer->SetSize(TestAudioDeviceModule::SamplesPerFrame(_sampling_frequency_in_hz));
+      _produced_output = true;
+    }
     return false;
   }
 
@@ -36,6 +41,7 @@ class ZeroCapturer: public node_webrtc::TestAudioDeviceModule::Capturer {
 
  private:
   int _sampling_frequency_in_hz;
+  bool _produced_output = false;
 };
 
 }  // namespace node_webrtc
