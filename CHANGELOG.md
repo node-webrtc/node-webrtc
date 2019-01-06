@@ -7,6 +7,15 @@ New Features
 - Updated to WebRTC M71.
 - Relay remote audio MediaStreamTracks on Windows (0.1.5 initially introduced
   this feature for Linux and macOS; now, Windows supports it, too).
+- Added support for [pkg](https://github.com/zeit/pkg) (#404).
+
+Bug Fixes
+---------
+
+- Calling certain methods, like `addTrack`, `removeTrack`, etc., with objects
+  that were not instances of MediaStreamTrack, RTCRtpSender, etc., could lead to
+  segfaults. This was because we did not properly validate objects before
+  attempting to unwrap them. (#448)
 
 0.3.3
 =====
