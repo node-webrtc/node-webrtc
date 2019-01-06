@@ -60,10 +60,6 @@ PeerConnectionFactory::PeerConnectionFactory(Maybe<AudioDeviceModule::AudioLayer
   assert(result);
 
   _audioDeviceModule = _workerThread->Invoke<rtc::scoped_refptr<AudioDeviceModule>>(RTC_FROM_HERE, [audioLayer]() {
-#if defined(WEBRTC_WIN)
-    return webrtc::AudioDeviceModule::Create(0,
-            audioLayer.FromMaybe(webrtc::AudioDeviceModule::AudioLayer::kDummyAudio));
-#else
     return audioLayer.Map([](const webrtc::AudioDeviceModule::AudioLayer audioLayer) {
       return webrtc::AudioDeviceModule::Create(0, audioLayer);
     }).Or([]() {
@@ -71,7 +67,6 @@ PeerConnectionFactory::PeerConnectionFactory(Maybe<AudioDeviceModule::AudioLayer
               node_webrtc::ZeroCapturer::Create(48000),
               node_webrtc::TestAudioDeviceModule::CreateDiscardRenderer(48000));
     });
-#endif
   });
 
   _signalingThread = rtc::Thread::Create();
