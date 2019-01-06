@@ -35,7 +35,6 @@ set(depot_tools_install_dir ${SOURCE_DIR})
 set(WEBRTC_REVISION branch-heads/71)
 
 list(APPEND GN_GEN_ARGS
-  rtc_enable_symbol_export=true
   rtc_build_examples=false
   rtc_use_x11=false
   rtc_enable_protobuf=false
