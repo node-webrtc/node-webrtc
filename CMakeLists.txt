@@ -32,7 +32,7 @@ set(depot_tools_install_dir ${SOURCE_DIR})
 # libwebrtc
 # -----------------------------------------------------------------------------
 
-set(WEBRTC_REVISION branch-heads/70)
+set(WEBRTC_REVISION branch-heads/71)
 
 list(APPEND GN_GEN_ARGS
   rtc_build_examples=false
@@ -97,7 +97,6 @@ ExternalProject_Add(
   BINARY_DIR        ${CMAKE_BINARY_DIR}/external/libwebrtc/build/${CMAKE_BUILD_TYPE}
 
   DOWNLOAD_COMMAND  ${CMAKE_COMMAND} -E env DEPOT_TOOLS=${depot_tools_install_dir} PLATFORM=${PLATFORM} WEBRTC_REVISION=${WEBRTC_REVISION} ${CMAKE_SOURCE_DIR}/scripts/download-webrtc.${suffix}
-  PATCH_COMMAND     ${CMAKE_COMMAND} -E env CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/scripts/patch-webrtc.${suffix}
   CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env BINARY_DIR=<BINARY_DIR> DEPOT_TOOLS=${depot_tools_install_dir} GN_GEN_ARGS=${GN_GEN_ARGS} SOURCE_DIR=<SOURCE_DIR> ${CMAKE_SOURCE_DIR}/scripts/configure-webrtc.${suffix}
   BUILD_COMMAND     ${CMAKE_COMMAND} -E env CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} DEPOT_TOOLS=${depot_tools_install_dir} ${CMAKE_SOURCE_DIR}/scripts/build-webrtc.${suffix}
   INSTALL_COMMAND   ""
@@ -118,6 +117,33 @@ if(WIN32)
   set_property(TARGET libwebrtc PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/webrtc.lib")
 else()
   set_property(TARGET libwebrtc PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/libwebrtc.a")
+endif()
+
+add_library(libcreate_pc_factory STATIC IMPORTED)
+add_dependencies(libcreate_pc_factory project_libwebrtc)
+
+if(WIN32)
+  set_property(TARGET libcreate_pc_factory PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/pc/create_pc_factory.lib")
+else()
+  set_property(TARGET libcreate_pc_factory PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/pc/libcreate_pc_factory.a")
+endif()
+
+add_library(libpeerconnection STATIC IMPORTED)
+add_dependencies(libpeerconnection project_libwebrtc)
+
+if(WIN32)
+  set_property(TARGET libpeerconnection PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/pc/peerconnection.lib")
+else()
+  set_property(TARGET libpeerconnection PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/pc/libpeerconnection.a")
+endif()
+
+add_library(libbbr STATIC IMPORTED)
+add_dependencies(libbbr project_libwebrtc)
+
+if(WIN32)
+  set_property(TARGET libbbr PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/modules/congestion_controller/bbr/bbr.lib")
+else()
+  set_property(TARGET libbbr PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/modules/congestion_controller/bbr/libbbr.a")
 endif()
 
 # NOTE(mroberts): I would like this to be INTERFACE.
@@ -250,7 +276,10 @@ target_include_directories(${MODULE} PRIVATE
 
 target_link_libraries(${MODULE} PRIVATE
   ${CMAKE_THREAD_LIBS_INIT}
+  libcreate_pc_factory
+  libpeerconnection
   libwebrtc
+  libbbr
 )
 
 target_compile_definitions(${MODULE} PRIVATE
@@ -260,6 +289,7 @@ target_compile_definitions(${MODULE} PRIVATE
 if(WIN32)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /GR-")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd /GR-")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE:UNRESOLVED")
 
   target_link_libraries(${MODULE} PRIVATE
     dmoguids.lib
@@ -280,6 +310,7 @@ if(WIN32)
 else()
   target_compile_options(${MODULE} PRIVATE
     -fno-rtti
+    -fvisibility=default
     -Wall
     -Wextra
     -Wno-missing-field-initializers

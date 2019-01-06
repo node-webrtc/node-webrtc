@@ -1,3 +1,13 @@
+0.3.4
+=====
+
+New Features
+------------
+
+- Updated to WebRTC M71.
+- Relay remote audio MediaStreamTracks on Windows (0.1.5 initially introduced
+  this feature for Linux and macOS; now, Windows supports it, too).
+
 0.3.3
 =====
 
