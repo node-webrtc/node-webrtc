@@ -138,6 +138,13 @@ namespace node_webrtc {
   SUPPORTED(TRACKSTATE, kEnded, "ended") \
   SUPPORTED(TRACKSTATE, kLive, "live")
 
+#define SOURCESTATE webrtc::MediaSourceInterface::SourceState
+#define SOURCESTATE_LIST \
+  SUPPORTED(SOURCESTATE, kInitializing, "initializing") \
+  SUPPORTED(SOURCESTATE, kLive, "live") \
+  SUPPORTED(SOURCESTATE, kEnded, "ended") \
+  SUPPORTED(SOURCESTATE, kMuted, "muted")
+
 #define SUPPORTED(ENUM, VALUE, STRING) ENUM_IMPL_VALUE(VALUE)
 #define UNSUPPORTED(ENUM, VALUE, STRING, ERROR) ENUM_IMPL_VALUE(VALUE)
 ENUM_IMPL(BINARYTYPE)
@@ -164,6 +171,7 @@ DECLARE_TO_AND_FROM_JS_ENUM(webrtc::PeerConnectionInterface::RtcpMuxPolicy)
 DECLARE_TO_AND_FROM_JS_ENUM(webrtc::PeerConnectionInterface::SignalingState)
 DECLARE_TO_AND_FROM_JS_ENUM(webrtc::RtpTransceiverDirection)
 DECLARE_TO_AND_FROM_JS_ENUM(webrtc::SdpSemantics)
+DECLARE_TO_AND_FROM_JS_ENUM(webrtc::MediaSourceInterface::SourceState)
 
 }  // namespace node_webrtc
 

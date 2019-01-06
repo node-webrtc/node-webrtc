@@ -149,6 +149,16 @@ class Maybe {
   T _value;
 };
 
+template <typename T>
+static Maybe<T> MakeJust(const T& t) {
+  return Maybe<T>::Just(t);
+}
+
+template <typename T>
+static Maybe<T> MakeNothing() {
+  return Maybe<T>::Nothing();
+}
+
 }  // namespace node_webrtc
 
 #endif  // SRC_FUNCTIONAL_MAYBE_H_

@@ -88,6 +88,15 @@ struct Converter<v8::Local<v8::Value>, Maybe<T>> {
 };
 
 template <typename T>
+struct Converter<Maybe<T>, v8::Local<v8::Value>> {
+  static Validation<v8::Local<v8::Value>> Convert(const Maybe<T> value) {
+    return value.IsJust()
+        ? From<v8::Local<v8::Value>>(value.UnsafeFromJust())
+        : node_webrtc::Pure(Nan::Null().As<v8::Value>());
+  }
+};
+
+template <typename T>
 struct Converter<v8::Local<v8::Value>, std::vector<T>> {
   static Validation<std::vector<T>> Convert(const v8::Local<v8::Value> value) {
     if (!value->IsArray()) {
