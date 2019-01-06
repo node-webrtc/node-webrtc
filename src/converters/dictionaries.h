@@ -134,6 +134,11 @@ class SomeError;
   OPTIONAL(uint16_t, min, "min") \
   OPTIONAL(uint16_t, max, "max")
 
+#define RTCVIDEOSOURCESTATS webrtc::VideoTrackSourceInterface::Stats
+#define RTCVIDEOSOURCESTATS_LIST \
+  REQUIRED(int, width, "width") \
+  REQUIRED(int, height, "height")
+
 #define REQUIRED(TYPE, VAR, PROP) DECLARE_STRUCT_REQUIRED(TYPE, VAR)
 #define OPTIONAL(TYPE, VAR, PROP) DECLARE_STRUCT_OPTIONAL(TYPE, VAR)
 #define DEFAULT(TYPE, VAR, PROP, DEFAULT) EXPAND_DEFAULT_STRUCT(TYPE, VAR)
@@ -209,6 +214,7 @@ DECLARE_TO_AND_FROM_JS(RTCSessionDescriptionInit)
 DECLARE_CONVERTER(RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*)
 DECLARE_TO_JS(RTCStatsResponseInit)
 DECLARE_TO_AND_FROM_JS(UnsignedShortRange)
+DECLARE_TO_JS(webrtc::VideoTrackSourceInterface::Stats)
 
 }  // namespace node_webrtc
 
