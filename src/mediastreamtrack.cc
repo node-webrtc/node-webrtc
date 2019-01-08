@@ -124,22 +124,7 @@ NAN_GETTER(MediaStreamTrack::GetReadyState) {
 
 NAN_GETTER(MediaStreamTrack::GetMuted) {
   (void) property;
-  auto self = AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(info.Holder());
-  auto track = self->track();
-  webrtc::MediaSourceInterface* source = nullptr;
-  if (track->kind() == webrtc::MediaStreamTrackInterface::kAudioKind) {
-    auto audioTrack = static_cast<webrtc::AudioTrackInterface*>(track.get());
-    source = audioTrack->GetSource();
-  } else if (track->kind() == webrtc::MediaStreamTrackInterface::kVideoKind) {
-    auto videoTrack = static_cast<webrtc::AudioTrackInterface*>(track.get());
-    source = videoTrack->GetSource();
-  }
-  auto muted = source && self->factory()->_signalingThread->Invoke<bool>(RTC_FROM_HERE, [source]() {
-    // NOTE(mroberts): I got a EXC_I386_GPFLT here...
-    // return source->state() == webrtc::MediaSourceInterface::kMuted;
-    return false;
-  });
-  info.GetReturnValue().Set(muted);
+  info.GetReturnValue().Set(false);
 }
 
 NAN_METHOD(MediaStreamTrack::Clone) {

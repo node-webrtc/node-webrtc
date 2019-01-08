@@ -7,23 +7,33 @@
  *  in the file PATENTS.  All contributing project authors may
  *  be found in the AUTHORS file in the root of the source tree.
  */
+
 #include "src/webrtc/fakeframesource.h"
 
-#include <webrtc/api/video/i420_buffer.h>  // IWYU pragma: keep
+#include <webrtc/api/video/i420_buffer.h>
 #include <webrtc/rtc_base/checks.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
 
-// IWYU pragma: no_include <api/video/video_frame.h>
-// IWYU pragma: no_include <api/video/video_rotation.h>
+namespace node_webrtc {
 
-using node_webrtc::FakeFrameSource;
-
-FakeFrameSource::FakeFrameSource(int width, int height, int interval_us)
-  : width_(width), height_(height), interval_us_(interval_us) {
+FakeFrameSource::FakeFrameSource(int width,
+    int height,
+    int interval_us,
+    int64_t timestamp_offset_us)
+  : width_(width),
+    height_(height),
+    interval_us_(interval_us),
+    next_timestamp_us_(timestamp_offset_us) {
   RTC_CHECK_GT(width_, 0);
   RTC_CHECK_GT(height_, 0);
   RTC_CHECK_GT(interval_us_, 0);
+  RTC_CHECK_GE(next_timestamp_us_, 0);
 }
+
+FakeFrameSource::FakeFrameSource(int width, int height, int interval_us)
+  : FakeFrameSource(width,
+        height,
+        interval_us,
+        rtc::kNumMicrosecsPerMillisec) {}
 
 webrtc::VideoRotation FakeFrameSource::GetRotation() const {
   return rotation_;
@@ -70,3 +80,5 @@ webrtc::VideoFrame FakeFrameSource::GetFrame(int width,
   next_timestamp_us_ += interval_us;
   return frame;
 }
+
+}  // namespace node_webrtc

@@ -7,29 +7,27 @@
  *  in the file PATENTS.  All contributing project authors may
  *  be found in the AUTHORS file in the root of the source tree.
  */
-#ifndef SRC_WEBRTC_FAKEVIDEOCAPTURER_H_
-#define SRC_WEBRTC_FAKEVIDEOCAPTURER_H_
 
-#include <webrtc/api/video/i420_buffer.h>  // IWYU pragma: keep
-#include <webrtc/api/video/video_rotation.h>
+#ifndef SRC_FAKEVIDEOCAPTURER_H_
+#define SRC_FAKEVIDEOCAPTURER_H_
+
+#include <string.h>
+
+#include <memory>
+#include <vector>
+
+#include <webrtc/api/video/i420_buffer.h>
+#include <webrtc/api/video/video_frame.h>
+#include <webrtc/media/base/fakeframesource.h>
 #include <webrtc/media/base/videocapturer.h>
+#include <webrtc/media/base/videocommon.h>
 #include <webrtc/rtc_base/task_queue_for_test.h>
+#include <webrtc/rtc_base/timeutils.h>
 
-namespace cricket {
-
-struct VideoFormat;
-
-}  // namespace cricket
-
-namespace webrtc {
-
-class VideoFrame;
-
-}  // namespace webrtc
+#include "src/webrtc/fakeframesource.h"
+#include "src/webrtc/task_queue_for_test.h"
 
 namespace node_webrtc {
-
-class FakeFrameSource;  // IWYU pragma: keep
 
 // Fake video capturer that allows the test to manually pump in frames.
 class FakeVideoCapturer : public cricket::VideoCapturer {
@@ -63,9 +61,23 @@ class FakeVideoCapturer : public cricket::VideoCapturer {
   // Duplicates FakeFrameSource::rotation_, but needed to support
   // SetRotation before Start.
   webrtc::VideoRotation rotation_;
-  std::unique_ptr<node_webrtc::FakeFrameSource> frame_source_;
+  std::unique_ptr<FakeFrameSource> frame_source_;
+};
+
+// Inherits from FakeVideoCapturer but adds a TaskQueue so that frames can be
+// delivered on a TaskQueue as expected by VideoSinkInterface implementations.
+class FakeVideoCapturerWithTaskQueue : public FakeVideoCapturer {
+ public:
+  explicit FakeVideoCapturerWithTaskQueue(bool is_screencast);
+  FakeVideoCapturerWithTaskQueue();
+
+  bool CaptureFrame() override;
+  bool CaptureCustomFrame(int width, int height) override;
+
+ protected:
+  node_webrtc::TaskQueueForTest task_queue_{"FakeVideoCapturerWithTaskQueue"};
 };
 
 }  // namespace node_webrtc
 
-#endif  // SRC_WEBRTC_FAKEVIDEOCAPTURER_H_
+#endif  // SRC_FAKEVIDEOCAPTURER_H_
