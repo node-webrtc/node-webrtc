@@ -24,8 +24,8 @@
 #include "src/functional/validation.h"
 #include "src/functional/operators.h"  // IWYU pragma: keep
 #include "src/peerconnectionfactory.h"  // IWYU pragma: keep
+#include "src/rtcvideosource.h"
 #include "src/mediastream.h"  // IWYU pragma: keep
-#include "src/webrtc/fakevideocapturer.h"  // IWYU pragma: keep
 
 // TODO(mroberts): Expand support for other members.
 struct MediaTrackConstraintSet {
@@ -128,8 +128,7 @@ NAN_METHOD(node_webrtc::GetUserMedia::GetUserMediaImpl) {
   }
 
   if (video) {
-    std::unique_ptr<cricket::VideoCapturer> capturer(new node_webrtc::FakeVideoCapturer());
-    auto source = factory->factory()->CreateVideoSource(std::move(capturer));
+    auto source = new rtc::RefCountedObject<node_webrtc::RTCVideoTrackSource>();
     auto track = factory->factory()->CreateVideoTrack(rtc::CreateRandomUuid(), source);
     stream->AddTrack(track);
   }
