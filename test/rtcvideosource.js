@@ -1,3 +1,4 @@
+/* globals gc */
 'use strict';
 
 const test = require('tape');
