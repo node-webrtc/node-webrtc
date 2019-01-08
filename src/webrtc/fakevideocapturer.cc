@@ -7,21 +7,12 @@
  *  in the file PATENTS.  All contributing project authors may
  *  be found in the AUTHORS file in the root of the source tree.
  */
+
 #include "src/webrtc/fakevideocapturer.h"
 
-#include <webrtc/api/video/i420_buffer.h>
-#include <webrtc/media/base/videocommon.h>
 #include <webrtc/rtc_base/arraysize.h>
-#include <webrtc/rtc_base/checks.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
 
-#include "src/webrtc/fakeframesource.h"  // IWYU pragma: keep
-
-// IWYU pragma: no_include <api/video/video_rotation.h>
-// IWYU pragma: no_include <media/base/videocapturer.h>
-// IWYU pragma: no_forward_declare webrtc::I420Buffer
-
-using node_webrtc::FakeVideoCapturer;
+namespace node_webrtc {
 
 FakeVideoCapturer::FakeVideoCapturer(bool is_screencast)
   : running_(false),
@@ -31,9 +22,9 @@ FakeVideoCapturer::FakeVideoCapturer(bool is_screencast)
   using cricket::VideoFormat;
   static const VideoFormat formats[] = {
     {1280, 720, VideoFormat::FpsToInterval(30), cricket::FOURCC_I420},
-    {640,  480, VideoFormat::FpsToInterval(30), cricket::FOURCC_I420},
-    {320,  240, VideoFormat::FpsToInterval(30), cricket::FOURCC_I420},
-    {160,  120, VideoFormat::FpsToInterval(30), cricket::FOURCC_I420},
+    {640, 480, VideoFormat::FpsToInterval(30), cricket::FOURCC_I420},
+    {320, 240, VideoFormat::FpsToInterval(30), cricket::FOURCC_I420},
+    {160, 120, VideoFormat::FpsToInterval(30), cricket::FOURCC_I420},
     {1280, 720, VideoFormat::FpsToInterval(60), cricket::FOURCC_I420},
   };
   ResetSupportedFormats({&formats[0], &formats[arraysize(formats)]});
@@ -86,7 +77,7 @@ bool FakeVideoCapturer::CaptureFrame(const webrtc::VideoFrame& frame) {
   if (AdaptFrame(frame.width(), frame.height(), frame.timestamp_us(),
           frame.timestamp_us(), &adapted_width, &adapted_height,
           &crop_width, &crop_height, &crop_x, &crop_y, nullptr)) {
-    rtc::scoped_refptr <webrtc::I420Buffer> buffer(
+    rtc::scoped_refptr<webrtc::I420Buffer> buffer(
         webrtc::I420Buffer::Create(adapted_width, adapted_height));
     buffer->InitializeData();
 
@@ -102,7 +93,7 @@ cricket::CaptureState FakeVideoCapturer::Start(
   SetCaptureFormat(&format);
   running_ = true;
   SetCaptureState(cricket::CS_RUNNING);
-  frame_source_ = absl::make_unique<node_webrtc::FakeFrameSource>(
+  frame_source_ = absl::make_unique<FakeFrameSource>(
           format.width, format.height,
           format.interval / rtc::kNumNanosecsPerMicrosec);
   frame_source_->SetRotation(rotation_);
@@ -111,7 +102,7 @@ cricket::CaptureState FakeVideoCapturer::Start(
 
 void FakeVideoCapturer::Stop() {
   running_ = false;
-  SetCaptureFormat(nullptr);
+  SetCaptureFormat(NULL);
   SetCaptureState(cricket::CS_STOPPED);
 }
 
@@ -139,3 +130,32 @@ void FakeVideoCapturer::SetRotation(webrtc::VideoRotation rotation) {
 webrtc::VideoRotation FakeVideoCapturer::GetRotation() {
   return rotation_;
 }
+
+FakeVideoCapturerWithTaskQueue::FakeVideoCapturerWithTaskQueue(
+    bool is_screencast)
+  : FakeVideoCapturer(is_screencast) {}
+
+FakeVideoCapturerWithTaskQueue::FakeVideoCapturerWithTaskQueue() {}
+
+bool FakeVideoCapturerWithTaskQueue::CaptureFrame() {
+  if (task_queue_.IsCurrent()) {
+    return FakeVideoCapturer::CaptureFrame();
+  }
+  bool ret = false;
+  task_queue_.SendTask(
+  [this, &ret]() { ret = FakeVideoCapturer::CaptureFrame(); });
+  return ret;
+}
+
+bool FakeVideoCapturerWithTaskQueue::CaptureCustomFrame(int width, int height) {
+  if (task_queue_.IsCurrent()) {
+    return FakeVideoCapturer::CaptureCustomFrame(width, height);
+  }
+  bool ret = false;
+  task_queue_.SendTask([this, &ret, width, height]() {
+    ret = FakeVideoCapturer::CaptureCustomFrame(width, height);
+  });
+  return ret;
+}
+
+}  // namespace node_webrtc

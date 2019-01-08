@@ -25,3 +25,5 @@ require('./rtcdatachannel');
 if (semver(process.version).major >= 9 && typeof gc === 'function') {
   require('./destructor');
 }
+
+require('./rtcvideosource');

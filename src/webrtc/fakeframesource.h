@@ -7,17 +7,21 @@
  *  in the file PATENTS.  All contributing project authors may
  *  be found in the AUTHORS file in the root of the source tree.
  */
-#ifndef SRC_WEBRTC_FAKEFRAMESOURCE_H_
-#define SRC_WEBRTC_FAKEFRAMESOURCE_H_
+
+#ifndef SRC_FAKEFRAMESOURCE_H_
+#define SRC_FAKEFRAMESOURCE_H_
 
 #include <webrtc/api/video/video_frame.h>
-#include <webrtc/api/video/video_rotation.h>
 #include <webrtc/rtc_base/timeutils.h>
 
 namespace node_webrtc {
 
 class FakeFrameSource {
  public:
+  FakeFrameSource(int width,
+      int height,
+      int interval_us,
+      int64_t timestamp_offset_us);
   FakeFrameSource(int width, int height, int interval_us);
 
   webrtc::VideoRotation GetRotation() const;
@@ -38,9 +42,9 @@ class FakeFrameSource {
   const int interval_us_;
 
   webrtc::VideoRotation rotation_ = webrtc::kVideoRotation_0;
-  int64_t next_timestamp_us_ = rtc::kNumMicrosecsPerMillisec;
+  int64_t next_timestamp_us_;
 };
 
 }  // namespace node_webrtc
 
-#endif  // SRC_WEBRTC_FAKEFRAMESOURCE_H_
+#endif  // SRC_FAKEFRAMESOURCE_H_
