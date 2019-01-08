@@ -17,7 +17,6 @@
 #include "src/functional/validation.h"
 #include "src/mediastreamtrack.h"
 #include "src/peerconnectionfactory.h"
-#include "src/webrtc/fakevideocapturer.h"
 
 Nan::Persistent<v8::Function>& node_webrtc::RTCVideoSource::constructor() {
   static Nan::Persistent<v8::Function> constructor;

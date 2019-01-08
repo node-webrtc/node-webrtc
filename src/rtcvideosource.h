@@ -15,7 +15,6 @@
 
 #include "src/peerconnectionfactory.h"
 #include "src/webrtc/fakeframesource.h"
-#include "src/webrtc/fakevideocapturer.h"
 
 namespace node_webrtc {
 
