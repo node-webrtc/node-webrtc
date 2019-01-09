@@ -3,25 +3,16 @@
 
 const test = require('tape');
 
-const RTCPeerConnection = require('..').RTCPeerConnection;
 const RTCVideoSource = require('..').RTCVideoSource;
 
-const width = 640;
-const height = 480;
-const sizeOfLuminancePlane = width * height;
-const sizeOfChromaPlane = sizeOfLuminancePlane / 4;
-const byteLength
-  = sizeOfLuminancePlane  // Y
-  + sizeOfChromaPlane     // U
-  + sizeOfChromaPlane;    // V
+const {
+  confirmSentFrameDimensions,
+  Frame,
+  negotiateRTCPeerConnections
+} = require('./util');
 
-const data = new Uint8ClampedArray(byteLength);
-
-const frame = {
-  width,
-  height,
-  data
-};
+const frame = new Frame(640, 480);
+console.log(frame);
 
 function tick() {
   return new Promise(resolve => setTimeout(resolve));
@@ -78,40 +69,25 @@ test('simple usage', async t => {
 });
 
 test('getStats()', async t => {
-  const pc1 = new RTCPeerConnection();
-  const pc2 = new RTCPeerConnection();
-
-  [[pc1, pc2], [pc2, pc1]].forEach(([pcA, pcB]) => {
-    pcA.onicecandidate = ({ candidate }) => {
-      if (candidate) {
-        pcB.addIceCandidate(candidate);
-      }
-    };
-  });
-
   const source = new RTCVideoSource();
   const track = source.createTrack();
-  pc1.addTrack(track);
 
-  const offer = await pc1.createOffer();
-  await pc1.setLocalDescription(offer);
-  await pc2.setRemoteDescription(offer);
-  const answer = await pc2.createAnswer();
-  await pc2.setLocalDescription(answer);
-  await pc1.setRemoteDescription(answer);
+  const [pc1, pc2] = await negotiateRTCPeerConnections({
+    withPc1(pc1) {
+      pc1.addTrack(track);
+    }
+  });
 
-  let stats;
-  do {
-    source.onFrame(frame);
-    const report = await pc1.getStats();
-    stats = [...report.values()]
-      .find(stats => stats.trackIdentifier === track.id
-                  && stats.frameWidth > 0
-                  && stats.frameHeight > 0);
-  } while (!stats);
+  const frames = [
+    new Frame(640, 480),
+    new Frame(1280, 720),
+    new Frame(320, 240)
+  ];
 
-  t.equal(stats.frameWidth, frame.width);
-  t.equal(stats.frameHeight, frame.height);
+  for (const frame of frames) {
+    await confirmSentFrameDimensions(source, track, pc1, frame);
+    t.pass(`Sent a ${frame.width}x${frame.height} frame`);
+  }
 
   track.stop();
   pc1.close();
