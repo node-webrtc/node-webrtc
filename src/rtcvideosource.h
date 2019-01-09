@@ -40,13 +40,12 @@ class RTCVideoTrackSource : public rtc::AdaptedVideoTrackSource {
     return absl::optional<bool>();
   }
 
-  void TriggerOnFrame() {
-    this->OnFrame(_frame_source.GetFrame());
+  void PushFrame(const webrtc::VideoFrame& frame) {
+    this->OnFrame(frame);
   }
 
  private:
   std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory = node_webrtc::PeerConnectionFactory::GetOrCreateDefault();
-  node_webrtc::FakeFrameSource _frame_source = node_webrtc::FakeFrameSource(1280, 720, cricket::VideoFormat::FpsToInterval(30) / rtc::kNumNanosecsPerMicrosec);
 };
 
 class RTCVideoSource

@@ -6,6 +6,23 @@ const test = require('tape');
 const RTCPeerConnection = require('..').RTCPeerConnection;
 const RTCVideoSource = require('..').RTCVideoSource;
 
+const width = 640;
+const height = 480;
+const sizeOfLuminancePlane = width * height;
+const sizeOfChromaPlane = sizeOfLuminancePlane / 4;
+const byteLength
+  = sizeOfLuminancePlane  // Y
+  + sizeOfChromaPlane     // U
+  + sizeOfChromaPlane;    // V
+
+const data = new Uint8ClampedArray(byteLength);
+
+const frame = {
+  width,
+  height,
+  data
+};
+
 function tick() {
   return new Promise(resolve => setTimeout(resolve));
 }
@@ -24,7 +41,7 @@ test('simple usage', async t => {
     printSource(source);
     await tick();
 
-    source.onFrame();
+    source.onFrame(frame);
     await tick();
 
     const track = source.createTrack();
@@ -35,21 +52,21 @@ test('simple usage', async t => {
     printTrack(clonedTrack);
     await tick();
 
-    source.onFrame();
+    source.onFrame(frame);
     await tick();
 
     track.stop();
     printTrack(track);
     await tick();
 
-    source.onFrame();
+    source.onFrame(frame);
     await tick();
 
     clonedTrack.stop();
     printTrack(clonedTrack);
     await tick();
 
-    source.onFrame();
+    source.onFrame(frame);
     await tick();
   })();
 
@@ -85,7 +102,7 @@ test('getStats()', async t => {
 
   let stats;
   do {
-    source.onFrame();
+    source.onFrame(frame);
     const report = await pc1.getStats();
     stats = [...report.values()]
       .find(stats => stats.trackIdentifier === track.id
@@ -93,12 +110,25 @@ test('getStats()', async t => {
                   && stats.frameHeight > 0);
   } while (!stats);
 
-  t.equal(stats.frameWidth, 1280);
-  t.equal(stats.frameHeight, 720);
+  t.equal(stats.frameWidth, frame.width);
+  t.equal(stats.frameHeight, frame.height);
 
   track.stop();
   pc1.close();
   pc2.close();
 
   t.end();
+});
+
+test('RTCVideoFrame', t => {
+  const source = new RTCVideoSource();
+
+  try {
+    source.onFrame(frame);
+    t.pass();
+  } catch (error) {
+    t.fail(error);
+  } finally {
+    t.end();
+  }
 });

@@ -22,6 +22,7 @@
 #include <webrtc/api/mediastreaminterface.h>
 #include <webrtc/api/mediatypes.h>
 #include <webrtc/api/peerconnectioninterface.h>
+#include <webrtc/api/video/i420_buffer.h>
 #include <v8.h>  // IWYU pragma: keep
 
 #include "src/converters.h"
@@ -139,6 +140,12 @@ class SomeError;
   REQUIRED(int, width, "width") \
   REQUIRED(int, height, "height")
 
+#define I420_BUFFER rtc::scoped_refptr<webrtc::I420Buffer>
+#define I420_BUFFER_LIST \
+  REQUIRED(int, width, "width") \
+  REQUIRED(int, height, "height") \
+  REQUIRED(v8::ArrayBuffer::Contents, data, "data")
+
 #define REQUIRED(TYPE, VAR, PROP) DECLARE_STRUCT_REQUIRED(TYPE, VAR)
 #define OPTIONAL(TYPE, VAR, PROP) DECLARE_STRUCT_OPTIONAL(TYPE, VAR)
 #define DEFAULT(TYPE, VAR, PROP, DEFAULT) EXPAND_DEFAULT_STRUCT(TYPE, VAR)
@@ -215,6 +222,7 @@ DECLARE_CONVERTER(RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface
 DECLARE_TO_JS(RTCStatsResponseInit)
 DECLARE_TO_AND_FROM_JS(UnsignedShortRange)
 DECLARE_TO_JS(webrtc::VideoTrackSourceInterface::Stats)
+DECLARE_TO_AND_FROM_JS(rtc::scoped_refptr<webrtc::I420Buffer>)
 
 }  // namespace node_webrtc
 
