@@ -26,7 +26,7 @@ CALL python src\build\util\lastchange.py -o src\build\util\LASTCHANGE
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO download ciopfs
-CALL python src\third_party\depot_tools\download_from_google_storage.py --no_resume --no_auth --bucket chromium-browser-clang/ciopfs -s src\build\ciopfs.sha1
+CALL download_from_google_storage --no_resume --no_auth --bucket chromium-browser-clang/ciopfs -s src\build\ciopfs.sha1
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO update toolchain
@@ -37,8 +37,8 @@ ECHO download clang
 CALL python src\tools\clang\scripts\update.py
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-ECHO unlink webrtc
-unlink webrtc
+ECHO rmdir webrtc
+rmdir webrtc
 
 ECHO mklink /D webrtc src
 mklink /D webrtc src
