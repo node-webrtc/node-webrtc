@@ -145,6 +145,14 @@ namespace node_webrtc {
   SUPPORTED(SOURCESTATE, kEnded, "ended") \
   SUPPORTED(SOURCESTATE, kMuted, "muted")
 
+#define VIDEO_FRAME_BUFFER_TYPE webrtc::VideoFrameBuffer::Type
+#define VIDEO_FRAME_BUFFER_TYPE_LIST \
+  UNSUPPORTED(VIDEO_FRAME_BUFFER_TYPE, kNative, "native", "\"native\" is not a valid VideoFrameBufferType") \
+  SUPPORTED(VIDEO_FRAME_BUFFER_TYPE, kI420, "I420") \
+  SUPPORTED(VIDEO_FRAME_BUFFER_TYPE, kI420A, "I420A") \
+  SUPPORTED(VIDEO_FRAME_BUFFER_TYPE, kI444, "I444") \
+  SUPPORTED(VIDEO_FRAME_BUFFER_TYPE, kI010, "I010")
+
 #define SUPPORTED(ENUM, VALUE, STRING) ENUM_IMPL_VALUE(VALUE)
 #define UNSUPPORTED(ENUM, VALUE, STRING, ERROR) ENUM_IMPL_VALUE(VALUE)
 ENUM_IMPL(BINARYTYPE)
@@ -172,6 +180,7 @@ DECLARE_TO_AND_FROM_JS_ENUM(webrtc::PeerConnectionInterface::SignalingState)
 DECLARE_TO_AND_FROM_JS_ENUM(webrtc::RtpTransceiverDirection)
 DECLARE_TO_AND_FROM_JS_ENUM(webrtc::SdpSemantics)
 DECLARE_TO_AND_FROM_JS_ENUM(webrtc::MediaSourceInterface::SourceState)
+DECLARE_TO_AND_FROM_JS_ENUM(webrtc::VideoFrameBuffer::Type)
 
 }  // namespace node_webrtc
 

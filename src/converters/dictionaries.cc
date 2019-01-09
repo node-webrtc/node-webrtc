@@ -643,6 +643,34 @@ TO_JS_IMPL(rtc::scoped_refptr<webrtc::RTCStatsReport>, value) {
   return node_webrtc::Pure(scope.Escape(report).As<v8::Value>());
 }
 
+static node_webrtc::Validation<rtc::scoped_refptr<webrtc::I420Buffer>> CreateI420Buffer(
+        int width,
+        int height,
+        v8::ArrayBuffer::Contents contents
+) {
+  auto sizeOfLuminancePlane = width * height;
+  auto sizeOfChromaPlane = sizeOfLuminancePlane / 4;
+
+  auto actualByteLength = static_cast<int>(contents.ByteLength());
+  auto expectedByteLength = sizeOfLuminancePlane + sizeOfChromaPlane + sizeOfChromaPlane;
+  if (actualByteLength != expectedByteLength) {
+    return node_webrtc::Validation<rtc::scoped_refptr<webrtc::I420Buffer>>::Invalid(
+            "Expected a .byteLength of " + std::to_string(expectedByteLength) + ", not " +
+            std::to_string(actualByteLength));
+  }
+
+  uint8_t* sourceDataY = static_cast<uint8_t*>(contents.Data());
+  uint8_t* sourceDataU = sourceDataY + sizeOfLuminancePlane;
+  uint8_t* sourceDataV = sourceDataU + sizeOfChromaPlane;
+
+  auto buffer = webrtc::I420Buffer::Create(width, height);
+  memcpy(buffer->MutableDataY(), sourceDataY, sizeOfLuminancePlane);
+  memcpy(buffer->MutableDataU(), sourceDataU, sizeOfChromaPlane);
+  memcpy(buffer->MutableDataV(), sourceDataV, sizeOfChromaPlane);
+
+  return node_webrtc::Pure(buffer);
+}
+
 #define REQUIRED(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_REQUIRED(type, stringValue)
 #define OPTIONAL(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_OPTIONAL(type, stringValue)
 #define DEFAULT(type, memberName, stringValue, defaultValue) EXPAND_OBJ_FROM_JS_DEFAULT(type, stringValue, defaultValue)
@@ -656,6 +684,7 @@ OBJ_FROM_JS_IMPL1(RTCSESSIONDESCRIPTIONINIT, CreateRTCSessionDescriptionInit)
 OBJ_FROM_JS_IMPL2(ICECANDIDATEINTERFACE, CreateIceCandidateInterface)
 OBJ_FROM_JS_IMPL2(DATACHANNELINIT, CreateDataChannelInit)
 OBJ_FROM_JS_IMPL1(RTCRTPTRANSCEIVERINIT, CreateRtpTransceiverInit)
+OBJ_FROM_JS_IMPL2(I420_BUFFER, CreateI420Buffer)
 #undef REQUIRED
 #undef OPTIONAL
 #undef DEFAULT

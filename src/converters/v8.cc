@@ -205,3 +205,9 @@ TO_JS_IMPL(std::vector<bool>, values) {
   }
   return node_webrtc::Pure(scope.Escape(array).As<v8::Value>());
 }
+
+FROM_JS_IMPL(v8::ArrayBuffer::Contents, value) {
+  return value->IsArrayBufferView()
+      ? node_webrtc::Pure(value.As<v8::ArrayBufferView>()->Buffer()->GetContents())
+      : node_webrtc::Validation<v8::ArrayBuffer::Contents>::Invalid("Expected an ArrayBuffer");
+}

@@ -8,9 +8,11 @@
 #include "src/rtcvideosource.h"
 
 #include <webrtc/api/peerconnectioninterface.h>
+#include <webrtc/api/video/i420_buffer.h>
 #include <webrtc/media/base/videocapturer.h>
 
 #include "src/converters.h"
+#include "src/converters/arguments.h"
 #include "src/converters/v8.h"
 #include "src/converters/dictionaries.h"
 #include "src/functional/maybe.h"
@@ -51,7 +53,10 @@ NAN_METHOD(node_webrtc::RTCVideoSource::CreateTrack) {
 
 NAN_METHOD(node_webrtc::RTCVideoSource::OnFrame) {
   auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCVideoSource>(info.Holder());
-  self->_source->TriggerOnFrame();
+  CONVERT_ARGS_OR_THROW_AND_RETURN(buffer, rtc::scoped_refptr<webrtc::I420Buffer>);
+  webrtc::VideoFrame::Builder builder;
+  auto frame = builder.set_video_frame_buffer(buffer).build();
+  self->_source->PushFrame(frame);
 }
 
 NAN_GETTER(node_webrtc::RTCVideoSource::GetNeedsDenoising) {

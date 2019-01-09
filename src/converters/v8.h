@@ -76,6 +76,7 @@ DECLARE_FROM_JS(v8::Local<v8::External>)
 DECLARE_FROM_JS(v8::Local<v8::Function>)
 DECLARE_FROM_JS(v8::Local<v8::Object>)
 DECLARE_TO_JS(std::vector<bool>)
+DECLARE_FROM_JS(v8::ArrayBuffer::Contents)
 
 template <typename T>
 struct Converter<v8::Local<v8::Value>, Maybe<T>> {
