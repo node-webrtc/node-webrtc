@@ -359,6 +359,7 @@ function(nodejs_init)
                 ${TEMP}/${NODEJS_DEFAULT_NAME}-${VERSION}-headers
                 ${TEMP}/${NODEJS_DEFAULT_NAME}-${VERSION}
                 ${TEMP}/${NODEJS_DEFAULT_NAME}
+                ${TEMP}/${NODEJS_DEFAULT_NAME}_headers
                 ${TEMP}
             NO_DEFAULT_PATH
         )
