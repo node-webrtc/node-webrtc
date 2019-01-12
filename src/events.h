@@ -32,6 +32,7 @@ namespace node_webrtc {
 class DataChannel;
 class DataChannelObserver;
 class PeerConnection;
+class RTCVideoSink;
 
 /**
  * Event represents an event that can be dispatched to a target.
@@ -288,6 +289,20 @@ class OnAddTrackEvent: public Event<PeerConnection> {
       const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>& streams)
     : receiver(receiver)
     , streams(streams) {}
+};
+
+class OnFrameEvent: public Event<RTCVideoSink> {
+ public:
+  const webrtc::VideoFrame frame;
+
+  void Dispatch(RTCVideoSink& sink) override;
+
+  static std::unique_ptr<OnFrameEvent> Create(const webrtc::VideoFrame& frame) {
+    return std::unique_ptr<OnFrameEvent>(new OnFrameEvent(frame));
+  }
+
+ private:
+  explicit OnFrameEvent(const webrtc::VideoFrame& frame): frame(frame) {}
 };
 
 }  // namespace node_webrtc

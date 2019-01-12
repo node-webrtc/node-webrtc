@@ -19,6 +19,7 @@
 #include "src/legacyrtcstatsreport.h"  // IWYU pragma: keep
 #include "src/rtcstatsresponse.h"  // IWYU pragma: keep
 #include "src/rtcvideosource.h"
+#include "src/rtcvideosink.h"
 #include "src/peerconnection.h"  // IWYU pragma: keep
 #include "src/peerconnectionfactory.h"
 
@@ -42,6 +43,7 @@ static void init(Handle<Object> exports, Handle<Object> module) {
   node_webrtc::RTCRtpTransceiver::Init(exports);
   node_webrtc::LegacyStatsReport::Init(exports);
   node_webrtc::RTCStatsResponse::Init(exports);
+  node_webrtc::RTCVideoSink::Init(exports);
   node_webrtc::RTCVideoSource::Init(exports);
   node::AtExit(dispose);
 }
