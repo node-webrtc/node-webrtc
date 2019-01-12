@@ -3,12 +3,15 @@
 
 const express = require('express');
 const browserify = require('browserify-middleware');
+const { createCanvas } = require('canvas');
+const { hsv } = require('color-space');
 const { createServer } = require('http');
 const { join } = require('path');
 const { performance } = require('perf_hooks');
 const { Server } = require('ws');
 
 const { RTCPeerConnection, RTCVideoSource } = require('..');
+const { I420Frame } = require('../test/lib/frame');
 const { getOffer, onCandidate } = require('./loopback.common');
 
 const app = express();
@@ -42,24 +45,12 @@ new Server({ server }).on('connection', async ws => {
 
   const width = 640;
   const height = 480;
-  const sizeOfLuminancePlane = width * height;
-  const sizeOfChromaPlane = sizeOfLuminancePlane / 4;
-  const byteLength
-    = sizeOfLuminancePlane  // Y
-    + sizeOfChromaPlane     // U
-    + sizeOfChromaPlane;    // V
-  const data = new Uint8ClampedArray(byteLength);
-  for (let i = 0; i < sizeOfChromaPlane; i++) {
-    data[sizeOfLuminancePlane + i] = 127;
-    data[sizeOfLuminancePlane + sizeOfChromaPlane + i] = 127;
-  }
-  const frame = {
-    width,
-    height,
-    data
-  };
+  const canvas = createCanvas(width, height);
+  const context = canvas.getContext('2d');
+  context.fillStyle = 'white';
+  context.fillRect(0, 0, width, height);
 
-  const f1 = 0.00025;
+  let h = 0;
 
   const interval = setInterval(() => {
     if (pc.signalingState === 'closed') {
@@ -69,16 +60,26 @@ new Server({ server }).on('connection', async ws => {
 
     const thisTime = performance.now();
 
-    const f2 = 0.01 * Math.sin(f1 * 50 * thisTime) + 0.5;
-    for (let i = 0; i < width * height; i++) {
-      data[i] = (Math.sin(f1 * f2 * i) + 0.5) * 255;
-    }
-    const shade = (Math.sin(f1 * 10 * thisTime) + 0.5) * 255;
-    for (let i = 0; i < sizeOfChromaPlane; i++) {
-      data[sizeOfLuminancePlane + i] = shade;
-      data[sizeOfLuminancePlane + sizeOfChromaPlane + i] = f2 * shade;
-    }
+    context.fillStyle = 'rgba(255, 255, 255, 0.025)';
+    context.fillRect(0, 0, width, height);
 
+    h = (h + 1) % 360;
+    const [r, g, b] = hsv.rgb([h, 100, 100]);
+
+    context.font = '60px Sans-serif';
+    context.strokeStyle = 'black';
+    context.lineWidth = 1;
+    context.fillStyle = `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, 1)`;
+    context.textAlign = 'center';
+    context.save();
+    context.translate(width / 2, height / 2);
+    context.rotate(thisTime / 1000);
+    context.strokeText('node-webrtc', 0, 0);
+    context.fillText('node-webrtc', 0, 0);
+    context.restore();
+
+    const argb32 = canvas.toBuffer('raw');
+    const frame = I420Frame.fromArgb32(argb32, width, height);
     source.onFrame(frame);
   });
 

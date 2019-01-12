@@ -7,11 +7,12 @@ const RTCVideoSource = require('..').RTCVideoSource;
 
 const {
   confirmSentFrameDimensions,
-  Frame,
   negotiateRTCPeerConnections
-} = require('./util');
+} = require('./lib/pc');
 
-const frame = new Frame(640, 480);
+const { I420Frame } = require('./lib/frame');
+
+const frame = new I420Frame(640, 480);
 console.log(frame);
 
 function tick() {
@@ -79,9 +80,9 @@ test('getStats()', async t => {
   });
 
   const frames = [
-    new Frame(640, 480),
-    new Frame(1280, 720),
-    new Frame(320, 240)
+    new I420Frame(640, 480),
+    new I420Frame(1280, 720),
+    new I420Frame(320, 240)
   ];
 
   for (const frame of frames) {

@@ -1,29 +1,6 @@
 'use strict';
 
-const { RTCPeerConnection } = require('..');
-
-class Frame {
-  constructor(width = 640, height = 480) {
-    this.width = width;
-    this.height = height;
-    this.data = new Uint8ClampedArray(this.byteLength);
-    Object.freeze(this);
-  }
-
-  get byteLength() {
-    return this.sizeOfLuminancePlane  // Y
-         + this.sizeOfChromaPlane     // U
-         + this.sizeOfChromaPlane;    // V
-  }
-
-  get sizeOfLuminancePlane() {
-    return this.width * this.height;
-  }
-
-  get sizeOfChromaPlane() {
-    return this.sizeOfLuminancePlane / 4;
-  }
-}
+const { RTCPeerConnection } = require('../..');
 
 function createRTCPeerConnections(configuration1 = {}, configuration2 = {}) {
   const pc1 = new RTCPeerConnection(configuration1);
@@ -112,7 +89,6 @@ async function confirmSentFrameDimensions(source, track, pc, frame) {
 
 exports.confirmSentFrameDimensions = confirmSentFrameDimensions;
 exports.createRTCPeerConnections = createRTCPeerConnections;
-exports.Frame = Frame;
 exports.getLocalTrackStats = getLocalTrackStats;
 exports.doAnswer = doAnswer;
 exports.doOffer = doOffer;
