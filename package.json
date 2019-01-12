@@ -41,6 +41,8 @@
   "devDependencies": {
     "aws-sdk": "^2.2.10",
     "browserify-middleware": "^8.1.1",
+    "canvas": "^2.3.0",
+    "color-space": "^1.16.0",
     "cross-env": "^5.1.4",
     "eslint": "^4.14.0",
     "express": "^4.16.2",
