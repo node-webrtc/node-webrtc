@@ -223,6 +223,9 @@ DECLARE_TO_JS(RTCStatsResponseInit)
 DECLARE_TO_AND_FROM_JS(UnsignedShortRange)
 DECLARE_TO_JS(webrtc::VideoTrackSourceInterface::Stats)
 DECLARE_TO_AND_FROM_JS(rtc::scoped_refptr<webrtc::I420Buffer>)
+DECLARE_TO_JS(rtc::scoped_refptr<webrtc::VideoFrameBuffer>)
+DECLARE_TO_JS(rtc::scoped_refptr<webrtc::I420BufferInterface>)
+DECLARE_TO_JS(webrtc::VideoFrame)
 
 }  // namespace node_webrtc
 

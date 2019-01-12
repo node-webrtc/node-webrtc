@@ -9,6 +9,7 @@
 
 #include "src/datachannel.h"
 #include "src/peerconnection.h"
+#include "src/rtcvideosink.h"
 
 using node_webrtc::DataChannel;
 using node_webrtc::DataChannelEvent;
@@ -20,6 +21,7 @@ using node_webrtc::IceEvent;
 using node_webrtc::MessageEvent;
 using node_webrtc::NegotiationNeededEvent;
 using node_webrtc::OnAddTrackEvent;
+using node_webrtc::OnFrameEvent;
 using node_webrtc::PeerConnection;
 using node_webrtc::SignalingStateChangeEvent;
 
@@ -67,4 +69,8 @@ void IceGatheringStateChangeEvent::Dispatch(PeerConnection& peerConnection) {
 
 void SignalingStateChangeEvent::Dispatch(PeerConnection& peerConnection) {
   peerConnection.HandleSignalingStateChangeEvent(*this);
+}
+
+void OnFrameEvent::Dispatch(RTCVideoSink& sink) {
+  sink.HandleOnFrameEvent(*this);
 }
