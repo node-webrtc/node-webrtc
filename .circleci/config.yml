@@ -366,7 +366,13 @@ aliases:
 
       - run:
           name: Install CMake
-          command: brew install cmake
+          # NOTE(mroberts): Weird error that says
+          #
+          #   Error: HOMEBREW_LOGS was not exported!
+          #   Please don't worry, you likely hit a bug auto-updating from an old version.
+          #   Rerun your command, everything is up-to-date and fine now.
+          #
+          command: brew install cmake || brew install cmake
 
       - checkout
 
