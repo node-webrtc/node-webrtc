@@ -3,14 +3,14 @@
 
 const express = require('express');
 const browserify = require('browserify-middleware');
-const { createCanvas } = require('canvas');
+const { createCanvas, createImageData } = require('canvas');
 const { hsv } = require('color-space');
 const { createServer } = require('http');
 const { join } = require('path');
 const { performance } = require('perf_hooks');
 const { Server } = require('ws');
 
-const { RTCPeerConnection, RTCVideoSource } = require('..');
+const { RTCPeerConnection, RTCVideoSink, RTCVideoSource, i420ToArgb32 } = require('..');
 const { I420Frame } = require('../test/lib/frame');
 const { getOffer, onCandidate } = require('./loopback.common');
 
@@ -39,6 +39,7 @@ new Server({ server }).on('connection', async ws => {
     rtcpMuxPolicy: 'require'
   });
 
+  let sink = null;
   const source = new RTCVideoSource();
   const track = source.createTrack();
   pc.addTrack(track);
@@ -51,6 +52,7 @@ new Server({ server }).on('connection', async ws => {
   context.fillRect(0, 0, width, height);
 
   let h = 0;
+  let lastFrame = null;
 
   const interval = setInterval(() => {
     if (pc.signalingState === 'closed') {
@@ -59,9 +61,22 @@ new Server({ server }).on('connection', async ws => {
     }
 
     const thisTime = performance.now();
-
     context.fillStyle = 'rgba(255, 255, 255, 0.025)';
-    context.fillRect(0, 0, width, height);
+
+    if (lastFrame) {
+      const lastFrameCanvas = createCanvas(lastFrame.width, lastFrame.height);
+      const lastFrameContext = lastFrameCanvas.getContext('2d');
+
+      const argb32 = new Uint8ClampedArray(lastFrame.width * lastFrame.height * 4);
+      i420ToArgb32(lastFrame, argb32);
+
+      const lastFrameImageData = createImageData(argb32, lastFrame.width, lastFrame.height);
+      lastFrameContext.putImageData(lastFrameImageData, 0, 0);
+      console.log(lastFrame.width, lastFrame.height);
+      context.drawImage(lastFrameCanvas, 0, 0); // , lastFrame.width, lastFrame.height, 0, 0, width, height);
+    } else {
+      context.fillRect(0, 0, width, height);
+    }
 
     h = (h + 1) % 360;
     const [r, g, b] = hsv.rgb([h, 100, 100]);
@@ -107,6 +122,9 @@ new Server({ server }).on('connection', async ws => {
   ws.once('close', () => {
     console.log(`${n}: Closing RTCPeerConnection`);
     pc.close();
+    if (sink) {
+      sink.stop();
+    }
   });
 
   try {
@@ -115,6 +133,12 @@ new Server({ server }).on('connection', async ws => {
 
     console.log(`${n}: Received offer; setting remote description`);
     await pc.setRemoteDescription(offer);
+
+    const remoteVideoTrack = pc.getReceivers()
+      .map(receiver => receiver.track)
+      .find(track => track.kind === 'video');
+    sink = new RTCVideoSink(remoteVideoTrack);
+    sink.onframe = frame => { lastFrame = frame; };
 
     console.log(`${n}: Set remote description; creating answer`);
     const answer = await pc.createAnswer();

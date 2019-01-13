@@ -12,13 +12,20 @@ function onOpen(ws) {
 }
 
 async function main() {
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { width: 640, height: 480 }
+  });
+
   console.log('Creating RTCPeerConnection');
   const pc = new RTCPeerConnection({
     bundlePolicy: 'max-bundle',
     rtcpMuxPolicy: 'require'
   });
+  stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
   function cleanup() {
+    console.log('Stopping MediaStreamTracks');
+    stream.getTracks().forEach(track => track.stop());
     console.log('Closing RTCPeerConnection');
     pc.close();
   }

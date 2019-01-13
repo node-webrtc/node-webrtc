@@ -44,7 +44,7 @@ NAN_METHOD(node_webrtc::I420Helpers::I420ToARGB32) {
       i420Frame->DataV(),
       i420Frame->StrideV(),
       argb32Data,
-      i420Frame->width(),
+      i420Frame->width() * 4,
       i420Frame->width(),
       i420Frame->height()
   );
