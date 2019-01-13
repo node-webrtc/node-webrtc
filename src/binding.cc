@@ -11,6 +11,7 @@
 #include "src/datachannel.h"  // IWYU pragma: keep
 #include "src/errorfactory.h"  // IWYU pragma: keep
 #include "src/getusermedia.h"  // IWYU pragma: keep
+#include "src/i420helpers.h"
 #include "src/mediastream.h"  // IWYU pragma: keep
 #include "src/mediastreamtrack.h"  // IWYU pragma: keep
 #include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
@@ -33,6 +34,7 @@ static void dispose(void*) {
 static void init(Handle<Object> exports, Handle<Object> module) {
   node_webrtc::ErrorFactory::Init(module);
   node_webrtc::GetUserMedia::Init(exports);
+  node_webrtc::I420Helpers::Init(exports);
   node_webrtc::PeerConnectionFactory::Init(exports);
   node_webrtc::PeerConnection::Init(exports);
   node_webrtc::DataChannel::Init(exports);
