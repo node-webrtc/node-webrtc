@@ -154,6 +154,7 @@ endif()
 #   ${libwebrtc_source_dir}
 #   ${libwebrtc_source_dir}/webrtc
 #   ${libwebrtc_source_dir}/webrtc/third_party/abseil-cpp
+#   ${libwebrtc_source_dir}/webrtc/third_party/libyuv/include
 # )
 
 # libc++
@@ -283,6 +284,7 @@ target_include_directories(${MODULE} SYSTEM PRIVATE
   ${libwebrtc_source_dir}
   ${libwebrtc_source_dir}/webrtc
   ${libwebrtc_source_dir}/webrtc/third_party/abseil-cpp
+  ${libwebrtc_source_dir}/webrtc/third_party/libyuv/include
 )
 
 target_include_directories(${MODULE} PRIVATE

@@ -23,6 +23,7 @@ require('./send-arraybuffer');
 require('./rtcdatachannel');
 
 if (semver(process.version).major >= 9) {
+  require('./i420helpers');
   require('./rtcvideosink');
   require('./rtcvideosource');
   if (typeof gc === 'function') {
