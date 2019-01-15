@@ -14,7 +14,6 @@
 #include <webrtc/media/base/adaptedvideotracksource.h>
 
 #include "src/peerconnectionfactory.h"
-#include "src/webrtc/fakeframesource.h"
 
 namespace node_webrtc {
 
