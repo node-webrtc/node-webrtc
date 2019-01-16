@@ -80,6 +80,16 @@ NAN_GETTER(MediaStreamTrack::GetEnabled) {
   info.GetReturnValue().Set(Nan::New(self->_track->enabled()));
 }
 
+NAN_SETTER(MediaStreamTrack::SetEnabled) {
+  (void) property;
+
+  auto self = AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(info.Holder());
+
+  CONVERT_OR_THROW_AND_RETURN(value, enabled, boolean_t);
+
+  self->_track->set_enabled(enabled);
+}
+
 NAN_GETTER(MediaStreamTrack::GetId) {
   (void) property;
   auto self = AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(info.Holder());
@@ -177,7 +187,7 @@ void MediaStreamTrack::Init(Handle<Object> exports) {
   MediaStreamTrack::tpl().Reset(tpl);
   tpl->SetClassName(Nan::New("MediaStreamTrack").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("enabled").ToLocalChecked(), GetEnabled, nullptr);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("enabled").ToLocalChecked(), GetEnabled, SetEnabled);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("id").ToLocalChecked(), GetId, nullptr);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("kind").ToLocalChecked(), GetKind, nullptr);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("readyState").ToLocalChecked(), GetReadyState, nullptr);

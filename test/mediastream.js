@@ -159,6 +159,25 @@ tape('.removeTrack and .addTrack on remote MediaStream', function(t) {
   });
 });
 
+tape('.enabled on MediaStreamTrack', function(t) {
+  return getMediaStream().then(function(stream) {
+    var tracks = stream.getTracks();
+    tracks.forEach(function(track) {
+      track.enabled = false;
+    });
+    t.ok(tracks.every(function(track) {
+      return !track.enabled;
+    }), 'enabled is false on all MediaStreamTracks');
+    tracks.forEach(function(track) {
+      track.enabled = true;
+    });
+    t.ok(tracks.every(function(track) {
+      return track.enabled;
+    }), 'all MediaStreamTracks are enabled again');
+    t.end();
+  });
+});
+
 function getMediaStream() {
   var pc = new RTCPeerConnection();
   var offer = new RTCSessionDescription({ type: 'offer', sdp: sdp });

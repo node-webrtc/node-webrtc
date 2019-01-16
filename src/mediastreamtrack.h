@@ -61,6 +61,7 @@ class MediaStreamTrack
   static NAN_METHOD(New);
 
   static NAN_GETTER(GetEnabled);
+  static NAN_SETTER(SetEnabled);
   static NAN_GETTER(GetId);
   static NAN_GETTER(GetKind);
   static NAN_GETTER(GetReadyState);
