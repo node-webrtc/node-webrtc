@@ -85,7 +85,7 @@ NAN_SETTER(MediaStreamTrack::SetEnabled) {
 
   auto self = AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(info.Holder());
 
-  CONVERT_OR_THROW_AND_RETURN(value, enabled, boolean_t);
+  CONVERT_OR_THROW_AND_RETURN(value, enabled, bool);
 
   self->_track->set_enabled(enabled);
 }
