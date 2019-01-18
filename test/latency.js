@@ -105,9 +105,9 @@ async function measureTimeFromRTCVideoSourceToRemoteRTCVideoSink(width, height, 
 
 function testTimeFromRTCVideoSourceToLocalVideoSink(t, width, height) {
   t.test(`Average Time from RTCVideoSource to Local RTCVideoSink (${width} x ${height})`, async t => {
-    const averageLatency = await measureTimeFromRTCVideoSourceToLocalRTCVideoSink(width, height, 300);
+    const averageTime = await measureTimeFromRTCVideoSourceToLocalRTCVideoSink(width, height);
     console.log(`#
-#  ${averageLatency} ms
+#  ${averageTime} ms
 #
 `);
     t.end();
@@ -116,9 +116,69 @@ function testTimeFromRTCVideoSourceToLocalVideoSink(t, width, height) {
 
 function testTimeFromRTCVideoSourceToRemoteVideoSink(t, width, height) {
   t.test(`Average Time from RTCVideoSource to Remote RTCVideoSink (${width} x ${height})`, async t => {
-    const averageLatency = await measureTimeFromRTCVideoSourceToRemoteRTCVideoSink(width, height, 300);
+    const averageTime = await measureTimeFromRTCVideoSourceToRemoteRTCVideoSink(width, height);
     console.log(`#
-#  ${averageLatency} ms
+#  ${averageTime} ms
+#
+`);
+    t.end();
+  });
+}
+
+async function measureTimeThroughRTCDataChannel(localDataChannel, remoteDataChannel, n) {
+  n = typeof n === 'number' ? n : 300;
+
+  const times = [];
+
+  remoteDataChannel.addEventListener('message', ({ data }) => {
+    if (times.length < n) {
+      const timestamp = Number.parseFloat(data);
+      const time = performance.now() - timestamp;
+      times.push(time);
+    }
+  });
+
+  while (times.length < n) {
+    const timestamp = performance.now();
+    localDataChannel.send(`${timestamp}`);
+    await new Promise(resolve => setTimeout(resolve));
+  }
+
+  return average(times);
+}
+
+async function measureTimeThroughUnorderedUnreliableRTCDataChannel(t) {
+  let localDataChannel = null;
+  let remoteDataChannelPromise = null;
+  const [pc1, pc2] = await negotiateRTCPeerConnections({
+    withPc1(pc1) {
+      localDataChannel = pc1.createDataChannel('test', {
+        maxRetransmits: 0,
+        ordered: false
+      });
+    },
+    withPc2(pc2) {
+      remoteDataChannelPromise = new Promise((resolve, reject) => {
+        pc2.addEventListener('datachannel', ({ channel }) => resolve(channel));
+      });
+    }
+  });
+  try {
+    const remoteDataChannel = await remoteDataChannelPromise;
+    return await measureTimeThroughRTCDataChannel(localDataChannel, remoteDataChannel);
+  } catch (error) {
+    throw error;
+  } finally {
+    pc1.close();
+    pc2.close();
+  }
+}
+
+function testTimeThroughUnorderedUnreliableRTCDataChannel(t) {
+  t.test('Average Time through Unordered, Unreliable RTCDataChannel', async t => {
+    const averageTime = await measureTimeThroughUnorderedUnreliableRTCDataChannel(t);
+    console.log(`#
+#  ${averageTime} ms
 #
 `);
     t.end();
@@ -134,3 +194,5 @@ testTimeFromRTCVideoSourceToRemoteVideoSink(tape,  160, 120);
 testTimeFromRTCVideoSourceToRemoteVideoSink(tape,  320, 240);
 testTimeFromRTCVideoSourceToRemoteVideoSink(tape,  640, 480);
 testTimeFromRTCVideoSourceToRemoteVideoSink(tape, 1280, 720);
+
+testTimeThroughUnorderedUnreliableRTCDataChannel(tape);
