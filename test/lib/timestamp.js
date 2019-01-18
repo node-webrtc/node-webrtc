@@ -13,6 +13,8 @@ const {
   toBits
 } = require('./bits');
 
+const { I420Frame } = require('./frame');
+
 function logBits(bits) {
   const [hi, lo] = chunks(bits.map(bit => bit ? '1' : '0'), 32);
   const hiChunks = chunks(hi, 8).map(byte => byte.join('')).join(' ');
@@ -23,7 +25,57 @@ function logBits(bits) {
   console.log('');
 }
 
-function printBits(context, bits) {
+function printBitsI420(frame, bits) {
+  const { width, height, data } = frame;
+
+  const pixelWidth = width / 8;
+  const pixelHeight = height / 8;
+
+  for (let i = 0; i < width * height; i++) {
+    const row = Math.floor(i / (8 * pixelWidth * pixelHeight));
+    const column = Math.floor(i / pixelWidth) % 8;
+    const bit = (row * 8) + column;
+
+    const y = bits[bit] ? 0 : 255;
+
+    data[i] = y;
+  }
+
+  for (let i = width * height; i < data.byteLength; i++) {
+    data[i] = 128;
+  }
+}
+
+tape('printBitsI420(frame, bits)', t => {
+  t.test('it works', t => {
+    const width = 8;
+    const height = 8;
+    const frame = new I420Frame(width, height);
+    const bits = [
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 1, 1,
+    ];
+    printBitsI420(frame, bits);
+    t.deepEqual(
+      frame.data.slice(0, frame.sizeOfLuminancePlane),
+      bits.map(bit => bit ? 0 : 255)
+    );
+    t.ok(
+      frame.data
+        .slice(frame.sizeOfLuminancePlane)
+        .every(x => x === 128)
+    );
+    t.end();
+  });
+});
+
+function printBitsCanvas(context, bits) {
   const { canvas: { width, height } } = context;
   context.fillStyle = 'white';
   context.fillRect(0, 0, width, height);
@@ -42,17 +94,17 @@ function printBits(context, bits) {
   });
 }
 
-tape('printBits(context, bits)', t => {
+tape('printBitsCanvas(context, bits)', t => {
   t.test('it works', t => {
     const width = 8;
     const height = 8;
     const canvas = createCanvas(width, height);
     const context = canvas.getContext('2d');
 
-    printBits(context, toBits(3));
+    printBitsCanvas(context, toBits(3));
 
     const { data } = context.getImageData(0, 0, width, height);
-    const actualData = [...data];
+    const actualData = data.slice(0);
 
     // eslint-disable-next-line
     const I = [  0,   0,   0, 255];
@@ -74,7 +126,32 @@ tape('printBits(context, bits)', t => {
   });
 });
 
-function readBits(context) {
+function readBitsI420(frame) {
+  const { width, height, data } = frame;
+
+  const pixelWidth = width / 8;
+  const pixelHeight = height / 8;
+
+  const bits = toBits(0);
+
+  for (let i = 0; i < width * height; i++) {
+    const row = Math.floor(i / (8 * pixelWidth * pixelHeight));
+    const column = Math.floor(i / pixelWidth) % 8;
+    const bit = (row * 8) + column;
+
+    const y = data[i];
+
+    bits[bit] += y < 128;
+  }
+
+  for (let bit = 0; bit < bits.length; bit++) {
+    bits[bit] = bits[bit] >= (pixelWidth * pixelHeight) / 2;
+  }
+
+  return bits;
+}
+
+function readBitsCanvas(context) {
   const { canvas: { width, height } } = context;
   const { data } = context.getImageData(0, 0, width, height);
 
@@ -112,41 +189,65 @@ function readBits(context) {
   return bits;
 }
 
-tape('readBits(context)', t => {
+tape('readBitsCanvas(context)', t => {
   t.test('it works', t => {
     const canvas = createCanvas(320, 240);
     const context = canvas.getContext('2d');
     const input = performance.now();
-    printBits(context, toBinary64(input));
-    const output = fromBinary64(readBits(context));
+    printBitsCanvas(context, toBinary64(input));
+    const output = fromBinary64(readBitsCanvas(context));
     t.equal(output, input);
     t.end();
   });
 });
 
-function printTimestamp(context) {
+function printTimestampCanvas(context) {
   const timestamp = performance.now();
-  printBits(context, toBinary64(timestamp));
+  printBitsCanvas(context, toBinary64(timestamp));
   return timestamp;
 }
 
-function readTimestamp(context) {
-  return fromBinary64(readBits(context));
+function printTimestampI420(frame) {
+  const timestamp = performance.now();
+  printBitsI420(frame, toBinary64(timestamp));
+  return timestamp;
 }
 
-tape('readTimestamp(context) === printTimestamp(context)', t => {
+function readTimestampCanvas(context) {
+  return fromBinary64(readBitsCanvas(context));
+}
+
+function readTimestampI420(frame) {
+  return fromBinary64(readBitsI420(frame));
+}
+
+tape('readTimestampCanvas(context) === printTimestampCanvas(context)', t => {
   t.test('it works', t => {
     const canvas = createCanvas(640, 480);
     const context = canvas.getContext('2d');
-    const expectedTimestamp = printTimestamp(context);
-    const actualTimestamp = readTimestamp(context);
+    const expectedTimestamp = printTimestampCanvas(context);
+    const actualTimestamp = readTimestampCanvas(context);
     t.equal(actualTimestamp, expectedTimestamp);
     t.end();
   });
 });
 
-exports.printBits = printBits;
-exports.printTimestamp = printTimestamp;
+tape('readTimestampI420(frame) === printTimestampI420(frame)', t => {
+  t.test('it works', t => {
+    const frame = new I420Frame();
+    const expectedTimestamp = printTimestampI420(frame);
+    const actualTimestamp = readTimestampI420(frame);
+    t.equal(actualTimestamp, expectedTimestamp);
+    t.end();
+  });
+});
+
+exports.printBitsCanvas = printBitsCanvas;
+exports.printBitsI420 = printBitsI420;
+exports.printTimestampCanvas = printTimestampCanvas;
+exports.printTimestampI420 = printTimestampI420;
 exports.logBits = logBits;
-exports.readBits = readBits;
-exports.readTimestamp = readTimestamp;
+exports.readBitsCanvas = readBitsCanvas;
+exports.readBitsI420 = readBitsI420;
+exports.readTimestampCanvas = readTimestampCanvas;
+exports.readTimestampI420 = readTimestampI420;
