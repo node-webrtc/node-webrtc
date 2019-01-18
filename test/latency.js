@@ -5,56 +5,50 @@ const tape = require('tape');
 
 const { RTCVideoSink, RTCVideoSource } = require('..');
 
+const { fromBits, toBits } = require('./lib/bits');
 const { I420Frame } = require('./lib/frame');
 const { negotiateRTCPeerConnections } = require('./lib/pc');
-const { printTimestampI420, readTimestampI420 } = require('./lib/timestamp');
+const { printBitsI420, readBitsI420 } = require('./lib/timestamp');
 
 function average(xs) {
   return xs.reduce((y, x) => y + x, 0) / xs.length;
-}
-
-function measureTimeToPrintAndReadTimestamp(width, height, n) {
-  n = typeof n === 'number' ? n : 300;
-
-  const frame = new I420Frame(width, height);
-  const times = [];
-
-  for (let i = 0; i < n; i++) {
-    const before = performance.now();
-    printTimestampI420(frame);
-    readTimestampI420(frame);
-    const after = performance.now();
-    const time = after - before;
-    times.push(time);
-  }
-
-  return average(times);
 }
 
 async function measureTimeFromRTCVideoSourceToRTCVideoSink(source, sink, width, height, n) {
   n = typeof n === 'number' ? n : 300;
 
   const inputFrame = new I420Frame(width, height);
-
-  const averageTimeToPrintAndReadTimestamp = measureTimeToPrintAndReadTimestamp(width, height, n);
+  const timestamps = [];
 
   const times = [];
 
   sink.onframe = outputFrame => {
     if (times.length < n) {
-      const timestamp = readTimestampI420(outputFrame);
-      const time = performance.now() - timestamp;
+      const receivedAt = performance.now();
+
+      const outputBits = readBitsI420(outputFrame);
+      const i = fromBits(outputBits);
+      const sentAt = timestamps[i];
+
+      const time = receivedAt - sentAt;
       times.push(time);
     }
   };
 
   while (times.length < n) {
-    printTimestampI420(inputFrame);
+    const i = times.length;
+    const inputBits = toBits(i);
+    printBitsI420(inputFrame, inputBits);
+
+    const sentAt = performance.now();
+    timestamps[i] = sentAt;
+
     source.onFrame(inputFrame);
+
     await new Promise(resolve => setTimeout(resolve));
   }
 
-  return average(times) - averageTimeToPrintAndReadTimestamp;
+  return average(times);
 }
 
 async function measureTimeFromRTCVideoSourceToLocalRTCVideoSink(width, height, n) {
@@ -147,7 +141,7 @@ async function measureTimeThroughRTCDataChannel(localDataChannel, remoteDataChan
   return average(times);
 }
 
-async function measureTimeThroughUnorderedUnreliableRTCDataChannel(t) {
+async function measureTimeThroughUnorderedUnreliableRTCDataChannel() {
   let localDataChannel = null;
   let remoteDataChannelPromise = null;
   const [pc1, pc2] = await negotiateRTCPeerConnections({
@@ -158,7 +152,7 @@ async function measureTimeThroughUnorderedUnreliableRTCDataChannel(t) {
       });
     },
     withPc2(pc2) {
-      remoteDataChannelPromise = new Promise((resolve, reject) => {
+      remoteDataChannelPromise = new Promise(resolve => {
         pc2.addEventListener('datachannel', ({ channel }) => resolve(channel));
       });
     }
@@ -176,7 +170,7 @@ async function measureTimeThroughUnorderedUnreliableRTCDataChannel(t) {
 
 function testTimeThroughUnorderedUnreliableRTCDataChannel(t) {
   t.test('Average Time through Unordered, Unreliable RTCDataChannel', async t => {
-    const averageTime = await measureTimeThroughUnorderedUnreliableRTCDataChannel(t);
+    const averageTime = await measureTimeThroughUnorderedUnreliableRTCDataChannel();
     console.log(`#
 #  ${averageTime} ms
 #
