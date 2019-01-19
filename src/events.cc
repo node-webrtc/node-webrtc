@@ -23,6 +23,7 @@ using node_webrtc::NegotiationNeededEvent;
 using node_webrtc::OnAddTrackEvent;
 using node_webrtc::OnFrameEvent;
 using node_webrtc::PeerConnection;
+using node_webrtc::RTCVideoSink;
 using node_webrtc::SignalingStateChangeEvent;
 
 void DataChannelEvent::Dispatch(PeerConnection& peerConnection) {
