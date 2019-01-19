@@ -3,7 +3,7 @@
 
 const test = require('tape');
 
-const RTCVideoSource = require('..').RTCVideoSource;
+const RTCVideoSource = require('..').nonstandard.RTCVideoSource;
 
 const {
   confirmSentFrameDimensions,

@@ -3,7 +3,7 @@
 const { performance } = require('perf_hooks');
 const tape = require('tape');
 
-const { RTCVideoSink, RTCVideoSource } = require('..');
+const { RTCVideoSink, RTCVideoSource } = require('..').nonstandard;
 
 const { fromBits, toBits } = require('./lib/bits');
 const { I420Frame } = require('./lib/frame');

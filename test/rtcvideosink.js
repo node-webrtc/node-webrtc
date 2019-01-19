@@ -2,7 +2,7 @@
 
 const test = require('tape');
 
-const { RTCVideoSink, RTCVideoSource } = require('..');
+const { RTCVideoSink, RTCVideoSource } = require('..').nonstandard;
 const { I420Frame } = require('./lib/frame');
 
 test('RTCVideoSink', t => {
