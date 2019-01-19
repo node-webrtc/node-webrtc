@@ -2,7 +2,7 @@
 
 const tape = require('tape');
 
-const { i420ToArgb32 } = require('..');
+const { i420ToArgb32 } = require('..').nonstandard;
 const { I420Frame } = require('./lib/frame');
 
 tape('i420ToArgb32(i420Frame, argb32Buffer)', t => {
