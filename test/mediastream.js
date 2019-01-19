@@ -174,6 +174,9 @@ tape('.enabled on MediaStreamTrack', function(t) {
     t.ok(tracks.every(function(track) {
       return track.enabled;
     }), 'all MediaStreamTracks are enabled again');
+    tracks.forEach(function(track) {
+      track.stop();
+    });
     t.end();
   });
 });
