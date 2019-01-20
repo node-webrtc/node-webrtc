@@ -1,3 +1,11 @@
+0.3.5
+=====
+
+New Features
+------------
+
+- Added support for setting MediaStreamTrack's `enabled` property (#475).
+
 0.3.4
 =====
 
