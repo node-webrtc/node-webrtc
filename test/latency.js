@@ -22,11 +22,11 @@ async function measureTimeFromRTCVideoSourceToRTCVideoSink(source, sink, width, 
 
   const times = [];
 
-  sink.onframe = outputFrame => {
+  sink.onframe = ({ frame }) => {
     if (times.length < n) {
       const receivedAt = performance.now();
 
-      const outputBits = readBitsI420(outputFrame);
+      const outputBits = readBitsI420(frame);
       const i = fromBits(outputBits);
       const sentAt = timestamps[i];
 
