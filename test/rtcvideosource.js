@@ -13,7 +13,6 @@ const {
 const { I420Frame } = require('./lib/frame');
 
 const frame = new I420Frame(640, 480);
-console.log(frame);
 
 function tick() {
   return new Promise(resolve => setTimeout(resolve));
