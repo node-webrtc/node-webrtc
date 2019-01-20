@@ -4,6 +4,94 @@
 New Features
 ------------
 
+### Programmatic Video
+
+This release of node-webrtc adds non-standard, programmatic video APIs in the
+form of RTCVideoSource and RTCVideoSink. With these APIs, you can
+
+* Pass [I420](https://wiki.videolan.org/YUV/#I420) frames to RTCVideoSource via
+  the `onFrame` method. Then use RTCVideoSource's `createTrack` method to create
+  a local video MediaStreamTrack.
+* Construct an RTCVideoSink from a local or remote video MediaStreamTrack. The
+  RTCVideoSink will emit a "frame" event everytime an I420 frame is received.
+  When you're finished, stop the RTCVideoSink by calling `stop`.
+
+Because these APIs are non-standard, they are exposed via a `nonstandard`
+property on node-webrtc's exports object. For example,
+
+```js
+const { RTCVideoSource, RTCVideoSink } = require('wrtc').nonstandard;
+
+const source = new RTCVideoSource();
+const track = source.createTrack();
+const sink = new RTCVideoSink(track);
+
+const width = 320;
+const height = 240;
+const data = new Uint8ClampedArray(width * height * 1.5);
+const frame = { width, height, data };
+
+const interval = setInterval(() => {
+  // Update the frame in some way before sending.
+  source.onFrame(frame);
+});
+
+sink.onframe = ({ frame }) => {
+  // Do something with the received frame.
+};
+
+setTimeout(() => {
+  clearInterval(interval);
+  track.stop();
+  sink.stop();
+}, 10000);
+```
+
+This release also adds bindings to some [libyuv](https://chromium.googlesource.com/libyuv/libyuv/)
+functions for handling I420 frames. These can be useful when converting to and
+from RGBA.
+
+#### RTCVideoSource
+
+```webidl
+[constructor]
+interface RTCVideoSource {
+  MediaStreamTrack createTrack();
+  void onFrame(RTCVideoFrame frame);
+};
+
+dictionary RTCVideoFrame {
+  unsigned long width;
+  unsigned long height;
+  Uint8ClampedArray data;
+};
+```
+
+* Calling `createTrack` will return a local video MediaStreamTrack whose source
+  is the RTCVideoSource.
+* Calling `onFrame` with an RTCVideoFrame pushes a new video frame to every
+  non-stopped local video MediaStreamTrack created with `createTrack`.
+* An RTCVideoFrame represents an I420 frame.
+
+#### RTCVideoSink
+
+```webidl
+[constructor(MediaStreamTrack track)]
+interface RTCVideoSink {
+  void stop();
+  attribute EventHandler onframe;
+};
+```
+
+* RTCVideoSink's constructor accepts a local or remote video MediaStreamTrack.
+* As long as neither the RTCVideoSink nor the RTCVideoSink's MediaStreamTrack
+  are stopped, the RTCVideoSink will raise a "frame" event any time an
+  RTCVideoFrame is received.
+* The "frame" event has a property, `frame`, of type RTCVideoFrame.
+* RTCVideoSink must be stopped by calling `stop`.
+
+### MediaStreamTrack
+
 - Added support for setting MediaStreamTrack's `enabled` property (#475).
 
 0.3.4
