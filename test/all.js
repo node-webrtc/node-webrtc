@@ -14,9 +14,18 @@ require('./pass-interface-to-method');
 require('./rtcdatachannel');
 require('./rtcrtpreceiver');
 require('./rtcvideosink');
-require('./rtcvideosource');
 require('./send-arraybuffer');
 require('./sessiondesc');
+
+// TODO(mroberts): This, and other tests in this block, use syntax incompatible
+// with Node 6. Rewriting these tests to avoid async/await is not worth it, nor
+// is introducing Babel.
+//
+// Therefore, we skip them. Remove this if-statement once we drop support for
+// Node 6.
+if (semver(process.version).major > 6) {
+  require('./rtcvideosource');
+}
 
 // TODO(mroberts): These two tests use simple-peer, which introduced syntax
 // incompatible with Node 6 in
