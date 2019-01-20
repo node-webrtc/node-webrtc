@@ -138,7 +138,7 @@ new Server({ server }).on('connection', async ws => {
       .map(receiver => receiver.track)
       .find(track => track.kind === 'video');
     sink = new RTCVideoSink(remoteVideoTrack);
-    sink.onframe = frame => { lastFrame = frame; };
+    sink.onframe = ({ frame }) => { lastFrame = frame; };
 
     console.log(`${n}: Set remote description; creating answer`);
     const answer = await pc.createAnswer();

@@ -10,7 +10,7 @@ test('RTCVideoSink', t => {
   const track = source.createTrack();
   const sink = new RTCVideoSink(track);
   const inputFrame = new I420Frame(160, 120);
-  const outputFramePromise = new Promise(resolve => { sink.onframe = resolve; });
+  const outputFramePromise = new Promise(resolve => { sink.onframe = ({ frame }) => resolve(frame); });
   source.onFrame(inputFrame);
   return outputFramePromise.then(outputFrame => {
     t.equal(inputFrame.width, outputFrame.width);
