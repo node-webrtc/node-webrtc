@@ -10,7 +10,8 @@ const { join } = require('path');
 const { performance } = require('perf_hooks');
 const { Server } = require('ws');
 
-const { RTCPeerConnection, RTCVideoSink, RTCVideoSource, i420ToArgb32 } = require('..');
+const { RTCPeerConnection } = require('..');
+const { RTCVideoSink, RTCVideoSource, i420ToRgba } = require('..').nonstandard;
 const { I420Frame } = require('../test/lib/frame');
 const { getOffer, onCandidate } = require('./loopback.common');
 
@@ -47,7 +48,7 @@ new Server({ server }).on('connection', async ws => {
   const width = 640;
   const height = 480;
   const canvas = createCanvas(width, height);
-  const context = canvas.getContext('2d');
+  const context = canvas.getContext('2d', { pixelFormat: 'RGBA24' });
   context.fillStyle = 'white';
   context.fillRect(0, 0, width, height);
 
@@ -65,15 +66,14 @@ new Server({ server }).on('connection', async ws => {
 
     if (lastFrame) {
       const lastFrameCanvas = createCanvas(lastFrame.width, lastFrame.height);
-      const lastFrameContext = lastFrameCanvas.getContext('2d');
+      const lastFrameContext = lastFrameCanvas.getContext('2d', { pixelFormat: 'RGBA24' });
 
-      const argb32 = new Uint8ClampedArray(lastFrame.width * lastFrame.height * 4);
-      i420ToArgb32(lastFrame, argb32);
+      const rgba = new Uint8ClampedArray(lastFrame.width * lastFrame.height * 4);
+      const rgbaFrame = createImageData(rgba, lastFrame.width, lastFrame.height);
+      i420ToRgba(lastFrame, rgbaFrame);
 
-      const lastFrameImageData = createImageData(argb32, lastFrame.width, lastFrame.height);
-      lastFrameContext.putImageData(lastFrameImageData, 0, 0);
-      console.log(lastFrame.width, lastFrame.height);
-      context.drawImage(lastFrameCanvas, 0, 0); // , lastFrame.width, lastFrame.height, 0, 0, width, height);
+      lastFrameContext.putImageData(rgbaFrame, 0, 0);
+      context.drawImage(lastFrameCanvas, 0, 0);
     } else {
       context.fillRect(0, 0, width, height);
     }
@@ -93,9 +93,9 @@ new Server({ server }).on('connection', async ws => {
     context.fillText('node-webrtc', 0, 0);
     context.restore();
 
-    const argb32 = canvas.toBuffer('raw');
-    const frame = I420Frame.fromArgb32(argb32, width, height);
-    source.onFrame(frame);
+    const rgbaFrame = context.getImageData(0, 0, width, height);
+    const i420Frame = I420Frame.fromRgba(rgbaFrame);
+    source.onFrame(i420Frame);
   });
 
   pc.onicecandidate = ({ candidate }) => {
