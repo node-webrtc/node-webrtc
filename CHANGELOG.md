@@ -90,6 +90,27 @@ interface RTCVideoSink {
 * The "frame" event has a property, `frame`, of type RTCVideoFrame.
 * RTCVideoSink must be stopped by calling `stop`.
 
+#### `i420ToRgba` and `rgbaToI420`
+
+These two functions are bindings to libyuv that provide conversions between I420
+and RGBA frames. WebRTC expects I420, whereas APIs like the
+[Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) expect
+RGBA, so these functions are useful for converting between. For example,
+
+```js
+const { i420ToRgba, rgbaToI420 } = require('wrtc').nonstandard;
+
+const width = 640;
+const height = 480;
+const i420Data = new Uint8ClampedArray(width * height * 1.5);
+const rgbaData = new Uint8ClampedArray(width * height * 4);
+const i420Frame = { width, height, data: i420Data };
+const rgbaFrame = { width, height, data: rgbaData };
+
+i420ToRgba(i420Frame, rgbaFrame);
+rgbaToI420(rgbaFrame, i420Frame);
+```
+
 ### MediaStreamTrack
 
 - Added support for setting MediaStreamTrack's `enabled` property (#475).

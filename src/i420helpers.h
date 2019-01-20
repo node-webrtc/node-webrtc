@@ -18,8 +18,8 @@ class I420Helpers {
   static void Init(v8::Handle<v8::Object> exports);
 
  private:
-  static NAN_METHOD(ARGB32ToI420);
-  static NAN_METHOD(I420ToARGB32);
+  static NAN_METHOD(I420ToRgba);
+  static NAN_METHOD(RgbaToI420);
 };
 
 }  // namespace node_webrtc
