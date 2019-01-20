@@ -87,7 +87,7 @@ class EventLoop: private EventQueue<T> {
   /**
    * Stop the EventLoop.
    */
-  void Stop() {
+  virtual void Stop() {
     _should_stop = true;
     Dispatch(Event<T>::Create());
   }

@@ -47,6 +47,9 @@ class MediaStreamTrack
 
   static Nan::Persistent<v8::FunctionTemplate>& tpl();
 
+ protected:
+  void Stop() override;
+
  private:
   MediaStreamTrack(
       std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
@@ -71,6 +74,7 @@ class MediaStreamTrack
   static NAN_METHOD(JsStop);
 
   bool _ended;
+  bool _enabled;
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> _track;
 };
