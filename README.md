@@ -143,3 +143,17 @@ You should be prompted for your microphone and webcam. Once granted, the browser
 negotiates an RTCPeerConnection with the server, and the server relays the
 browser's MediaStreamTracks. Finally, these are displayed in a &lt;video&gt;
 element in the browser.
+
+## Programmatic Video Example
+
+This example demonstrates compositing an incoming video MediaStreamTrack with
+graphics drawn using [node-canvas](https://github.com/Automattic/node-canvas).
+
+```
+node examples/programmatic-video.server.js
+```
+
+Then navigate to [http://localhost:8080/programmatic-video.client.html](http://localhost:8080/programmatic-video.client.html).
+You should be prompted for your webcam. Once granted, the browser negotiates an
+RTCPeerConnection with the server, and the server relays the browser video track
+with the text "node-webrtc" composited over it.
