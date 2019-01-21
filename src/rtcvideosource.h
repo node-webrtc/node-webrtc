@@ -17,9 +17,15 @@
 
 namespace node_webrtc {
 
+struct RTCVideoSourceInit;
+
 class RTCVideoTrackSource : public rtc::AdaptedVideoTrackSource {
  public:
-  RTCVideoTrackSource(): rtc::AdaptedVideoTrackSource() {}
+  RTCVideoTrackSource()
+    : rtc::AdaptedVideoTrackSource(), _is_screencast(false) {}
+
+  RTCVideoTrackSource(const bool is_screencast, const absl::optional<bool> needs_denoising)
+    : rtc::AdaptedVideoTrackSource(), _is_screencast(is_screencast), _needs_denoising(needs_denoising) {}
 
   ~RTCVideoTrackSource() override = default;
 
@@ -32,11 +38,11 @@ class RTCVideoTrackSource : public rtc::AdaptedVideoTrackSource {
   }
 
   bool is_screencast() const override {
-    return false;
+    return _is_screencast;
   }
 
   absl::optional<bool> needs_denoising() const override {
-    return absl::optional<bool>();
+    return _needs_denoising;
   }
 
   void PushFrame(const webrtc::VideoFrame& frame) {
@@ -44,13 +50,17 @@ class RTCVideoTrackSource : public rtc::AdaptedVideoTrackSource {
   }
 
  private:
-  std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory = node_webrtc::PeerConnectionFactory::GetOrCreateDefault();
+  const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory = node_webrtc::PeerConnectionFactory::GetOrCreateDefault();
+  const bool _is_screencast;
+  const absl::optional<bool> _needs_denoising;
 };
 
 class RTCVideoSource
   : public Nan::ObjectWrap {
  public:
   RTCVideoSource();
+
+  explicit RTCVideoSource(const RTCVideoSourceInit init);
 
   ~RTCVideoSource() override = default;
 
@@ -66,7 +76,6 @@ class RTCVideoSource
 
   static NAN_GETTER(GetIsScreencast);
   static NAN_GETTER(GetNeedsDenoising);
-  static NAN_GETTER(GetRemote);
 
   static NAN_METHOD(CreateTrack);
   static NAN_METHOD(OnFrame);

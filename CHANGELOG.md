@@ -54,16 +54,23 @@ from RGBA.
 #### RTCVideoSource
 
 ```webidl
-[constructor]
+[constructor(optional RTCVideoSourceInit init)]
 interface RTCVideoSource {
+  readonly attribute boolean isScreencast;
+  readonly attribute boolean? needsDenoising;
   MediaStreamTrack createTrack();
   void onFrame(RTCVideoFrame frame);
 };
 
+dictionary RTCVideoSourceInit {
+  boolean isScreencast = false;
+  boolean needsDenoising;
+};
+
 dictionary RTCVideoFrame {
-  unsigned long width;
-  unsigned long height;
-  Uint8ClampedArray data;
+  required unsigned long width;
+  required unsigned long height;
+  required Uint8ClampedArray data;
 };
 ```
 
