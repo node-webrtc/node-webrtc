@@ -40,8 +40,11 @@ class RTCVideoSink
 
   static NAN_METHOD(New);
 
+  static NAN_GETTER(GetStopped);
+
   static NAN_METHOD(JsStop);
 
+  bool _stopped;
   rtc::scoped_refptr<webrtc::VideoTrackInterface> _track;
 };
 
