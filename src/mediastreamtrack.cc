@@ -64,6 +64,12 @@ NAN_METHOD(MediaStreamTrack::New) {
   info.GetReturnValue().Set(info.This());
 }
 
+void MediaStreamTrack::Stop() {
+  _ended = true;
+  _enabled = _track->enabled();
+  node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::MediaStreamTrack>::Stop();
+}
+
 void MediaStreamTrack::OnChanged() {
   if (this->_track->state() == webrtc::MediaStreamTrackInterface::TrackState::kEnded) {
     Stop();
@@ -77,7 +83,21 @@ void MediaStreamTrack::OnPeerConnectionClosed() {
 NAN_GETTER(MediaStreamTrack::GetEnabled) {
   (void) property;
   auto self = AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(info.Holder());
-  info.GetReturnValue().Set(Nan::New(self->_track->enabled()));
+  info.GetReturnValue().Set(Nan::New(self->_ended ? self->_enabled : self->_track->enabled()));
+}
+
+NAN_SETTER(MediaStreamTrack::SetEnabled) {
+  (void) property;
+
+  auto self = AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(info.Holder());
+
+  CONVERT_OR_THROW_AND_RETURN(value, enabled, bool);
+
+  if (self->_ended) {
+    self->_enabled = enabled;
+  } else {
+    self->_track->set_enabled(enabled);
+  }
 }
 
 NAN_GETTER(MediaStreamTrack::GetId) {
@@ -135,8 +155,6 @@ NAN_METHOD(MediaStreamTrack::Clone) {
   }
   auto clonedMediaStreamTrack = wrap()->GetOrCreate(self->_factory, clonedTrack);
   if (self->_ended) {
-    // NOTE(mroberts): There ought to be a more principled way of doing this; also, we aren't considering the source.
-    clonedMediaStreamTrack->_ended = true;
     clonedMediaStreamTrack->Stop();
   }
   info.GetReturnValue().Set(clonedMediaStreamTrack->ToObject());
@@ -144,7 +162,6 @@ NAN_METHOD(MediaStreamTrack::Clone) {
 
 NAN_METHOD(MediaStreamTrack::JsStop) {
   auto self = AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(info.Holder());
-  self->_ended = true;
   self->Stop();
 }
 
@@ -177,7 +194,7 @@ void MediaStreamTrack::Init(Handle<Object> exports) {
   MediaStreamTrack::tpl().Reset(tpl);
   tpl->SetClassName(Nan::New("MediaStreamTrack").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("enabled").ToLocalChecked(), GetEnabled, nullptr);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("enabled").ToLocalChecked(), GetEnabled, SetEnabled);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("id").ToLocalChecked(), GetId, nullptr);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("kind").ToLocalChecked(), GetKind, nullptr);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("readyState").ToLocalChecked(), GetReadyState, nullptr);

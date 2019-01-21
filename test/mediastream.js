@@ -50,7 +50,7 @@ tape('new MediaStream()', function(t) {
 });
 
 tape('new MediaStream(stream)', function(t) {
-  return getMediaStream().then(function(stream1) {
+  return getRemoteMediaStream().then(function(stream1) {
     var stream2 = new MediaStream(stream1);
     t.notEqual(stream2.id, stream1.id, 'the MediaStream .ids do not match');
     t.ok(stream2.getTracks().every(function(track, i) {
@@ -63,7 +63,7 @@ tape('new MediaStream(stream)', function(t) {
 });
 
 tape('new MediaStream(tracks)', function(t) {
-  return getMediaStream().then(function(stream1) {
+  return getRemoteMediaStream().then(function(stream1) {
     var tracks = stream1.getTracks();
     var stream2 = new MediaStream(tracks);
     t.ok(stream2.getTracks().every(function(track, i) {
@@ -76,7 +76,7 @@ tape('new MediaStream(tracks)', function(t) {
 });
 
 tape('.clone', function(t) {
-  return getMediaStream().then(function(stream1) {
+  return getRemoteMediaStream().then(function(stream1) {
     var stream2 = stream1.clone();
     var stream3 = stream2.clone();
     // NOTE(mroberts): Weirdly, cloned video MediaStreamTracks have .readyState
@@ -142,7 +142,7 @@ tape.skip('.clone and .stop', function(t) {
 });
 
 tape('.removeTrack and .addTrack on remote MediaStream', function(t) {
-  return getMediaStream().then(function(stream) {
+  return getRemoteMediaStream().then(function(stream) {
     var tracks = stream.getTracks();
     tracks.forEach(function(track) {
       stream.removeTrack(track);
@@ -159,7 +159,37 @@ tape('.removeTrack and .addTrack on remote MediaStream', function(t) {
   });
 });
 
-function getMediaStream() {
+function testSettingEnabled(t, stream) {
+  const tracks = stream.getTracks();
+
+  tracks.forEach(track => { track.enabled = false; });
+  t.ok(tracks.every(track => !track.enabled),
+    'enabled can initially be set to false on all MediaStreamTracks');
+
+  tracks.forEach(track => { track.enabled = true; });
+  t.ok(tracks.every(track => track.enabled),
+    'enabled can then be set to true on all MediaStreamTracks');
+
+  tracks.forEach(track => track.stop());
+  t.ok(tracks.every(track => track.enabled),
+    'enabled remains true for all MediaStreamTracks after stopping');
+
+  tracks.forEach(track => { track.enabled = false; });
+  t.ok(tracks.every(track => !track.enabled),
+    'enabled can still be set on stopped MediaStreamTracks');
+
+  t.end();
+}
+
+tape('.enabled on local MediaStreamTrack', t => {
+  getLocalMediaStream().then(stream => testSettingEnabled(t, stream));
+});
+
+tape('.enabled on remote MediaStreamTrack', t => {
+  getRemoteMediaStream().then(stream => testSettingEnabled(t, stream));
+});
+
+function getRemoteMediaStream() {
   var pc = new RTCPeerConnection();
   var offer = new RTCSessionDescription({ type: 'offer', sdp: sdp });
   var trackEventPromise = new Promise(function(resolve) {
@@ -171,4 +201,8 @@ function getMediaStream() {
     pc.close();
     return trackEvent.streams[0];
   });
+}
+
+function getLocalMediaStream() {
+  return getUserMedia({ audio: true, video: true });
 }
