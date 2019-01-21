@@ -57,8 +57,10 @@ class SessionDescriptionInterface;
 
 namespace node_webrtc {
 
+class I420ImageData;
 class MediaStream;
 class MediaStreamTrack;
+class RgbaImageData;
 class RTCRtpReceiver;
 class RTCRtpSender;
 class RTCRtpTransceiver;
@@ -140,12 +142,6 @@ class SomeError;
   OPTIONAL(uint16_t, min, "min") \
   OPTIONAL(uint16_t, max, "max")
 
-#define I420_BUFFER rtc::scoped_refptr<webrtc::I420Buffer>
-#define I420_BUFFER_LIST \
-  REQUIRED(int, width, "width") \
-  REQUIRED(int, height, "height") \
-  REQUIRED(v8::ArrayBuffer::Contents, data, "data")
-
 #define REQUIRED(TYPE, VAR, PROP) DECLARE_STRUCT_REQUIRED(TYPE, VAR)
 #define OPTIONAL(TYPE, VAR, PROP) DECLARE_STRUCT_OPTIONAL(TYPE, VAR)
 #define DEFAULT(TYPE, VAR, PROP, DEFAULT) EXPAND_DEFAULT_STRUCT(TYPE, VAR)
@@ -224,10 +220,12 @@ DECLARE_TO_JS(RTCStatsResponseInit)
 DECLARE_FROM_JS(RTCVideoSourceInit)
 DECLARE_TO_AND_FROM_JS(UnsignedShortRange)
 DECLARE_TO_JS(webrtc::VideoTrackSourceInterface::Stats)
-DECLARE_TO_AND_FROM_JS(rtc::scoped_refptr<webrtc::I420Buffer>)
+DECLARE_FROM_JS(rtc::scoped_refptr<webrtc::I420Buffer>)
 DECLARE_TO_JS(rtc::scoped_refptr<webrtc::VideoFrameBuffer>)
 DECLARE_TO_JS(rtc::scoped_refptr<webrtc::I420BufferInterface>)
 DECLARE_TO_JS(webrtc::VideoFrame)
+DECLARE_FROM_JS(node_webrtc::I420ImageData)
+DECLARE_FROM_JS(node_webrtc::RgbaImageData)
 
 }  // namespace node_webrtc
 
