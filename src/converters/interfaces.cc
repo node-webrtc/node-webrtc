@@ -42,8 +42,8 @@
 CONVERT_INTERFACE_TO_AND_FROM_JS(MediaStream, "MediaStream", handle, Nan::ObjectWrap::Unwrap<node_webrtc::MediaStream>)
 CONVERT_INTERFACE_TO_AND_FROM_JS(MediaStreamTrack, "MediaStreamTrack", ToObject, node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::MediaStreamTrack>::Unwrap)
 CONVERT_INTERFACE_TO_AND_FROM_JS(RTCRtpSender, "RTCRtpSender", ToObject, node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCRtpSender>::Unwrap)
-CONVERT_INTERFACE_TO_JS(RTCRtpReceiver, "RTCRtpReceiver", ToObject);
-CONVERT_INTERFACE_TO_JS(RTCRtpTransceiver, "RTCRtpTransceiver", ToObject);
+CONVERT_INTERFACE_TO_JS(RTCRtpReceiver, "RTCRtpReceiver", ToObject)
+CONVERT_INTERFACE_TO_JS(RTCRtpTransceiver, "RTCRtpTransceiver", ToObject)
 
 CONVERTER_IMPL(node_webrtc::MediaStreamTrack*, rtc::scoped_refptr<webrtc::AudioTrackInterface>, mediaStreamTrack) {
   auto track = mediaStreamTrack->track();
