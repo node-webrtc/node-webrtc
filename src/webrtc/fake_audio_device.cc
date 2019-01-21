@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2019 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -9,27 +9,26 @@
  */
 #include "src/webrtc/fake_audio_device.h"
 
-#include <algorithm>
-#include <memory>
-#include <string>
-#include <utility>
-#include <vector>
+#include <iosfwd>
 
-#include "webrtc/api/array_view.h"
-#include "webrtc/common_audio/wav_file.h"
-#include "webrtc/modules/audio_device/include/audio_device_default.h"
-#include "webrtc/rtc_base/buffer.h"
-#include "webrtc/rtc_base/checks.h"
-#include "webrtc/rtc_base/criticalsection.h"
-#include "webrtc/rtc_base/event.h"
-#include "webrtc/rtc_base/logging.h"
-#include "webrtc/rtc_base/numerics/safe_conversions.h"
-#include "webrtc/rtc_base/platform_thread.h"
-#include "webrtc/rtc_base/random.h"
-#include "webrtc/rtc_base/refcountedobject.h"
-#include "webrtc/rtc_base/thread.h"
-#include "webrtc/rtc_base/timeutils.h"
-#include "webrtc/third_party/abseil-cpp/absl/memory/memory.h"
+#include <webrtc/common_audio/wav_file.h>
+#include <webrtc/modules/audio_device/include/audio_device_default.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/checks.h>
+#include <webrtc/rtc_base/criticalsection.h>
+#include <webrtc/rtc_base/event.h>
+#include <webrtc/rtc_base/logging.h>
+#include <webrtc/rtc_base/numerics/safe_conversions.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/platform_thread.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/random.h>
+#include <webrtc/rtc_base/refcountedobject.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/thread.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/timeutils.h>  // IWYU pragma: keep
+
+// IWYU pragma: no_include <rtc_base/platform_file.h>
+// IWYU pragma: no_include <rtc_base/scoped_ref_ptr.h>
+// IWYU pragma: no_include <rtc_base/thread_annotations.h>
+
+namespace webrtc { class AudioTransport; }
 
 namespace node_webrtc {
 
@@ -478,7 +477,7 @@ class DiscardRenderer final : public TestAudioDeviceModule::Renderer {
 
   int NumChannels() const override { return num_channels_; }
 
-  bool Render(rtc::ArrayView<const int16_t> data) override { return true; }
+  bool Render(rtc::ArrayView<const int16_t>) override { return true; }
 
  private:
   int sampling_frequency_in_hz_;

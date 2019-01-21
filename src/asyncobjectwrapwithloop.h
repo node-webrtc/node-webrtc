@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -10,8 +10,8 @@
 
 #include <atomic>
 
-#include "nan.h"
-#include "uv.h"
+#include <nan.h>
+#include <uv.h>
 
 #include "src/asyncobjectwrap.h"
 #include "src/promisefulfillingeventloop.h"

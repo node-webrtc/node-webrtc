@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -18,11 +18,8 @@
 
 #include <absl/types/optional.h>
 #include <nan.h>  // IWYU pragma: keep
-#include <webrtc/api/datachannelinterface.h>
 #include <webrtc/api/mediastreaminterface.h>
-#include <webrtc/api/mediatypes.h>
 #include <webrtc/api/peerconnectioninterface.h>
-#include <webrtc/api/video/i420_buffer.h>
 #include <v8.h>  // IWYU pragma: keep
 
 #include "src/converters.h"
@@ -38,7 +35,10 @@ template <class T> class scoped_refptr;
 
 namespace webrtc {
 
+class I420Buffer;
+class I420BufferInterface;
 class IceCandidateInterface;
+struct DataChannelInit;
 class RTCError;
 class RTCStats;
 class RTCStatsMemberInterface;
@@ -52,18 +52,16 @@ enum class RtpTransceiverDirection;
 struct RtpTransceiverInit;
 enum class SdpSemantics;
 class SessionDescriptionInterface;
+class VideoFrame;
+class VideoFrameBuffer;
 
 }  // namespace webrtc;
 
 namespace node_webrtc {
 
 class I420ImageData;
-class MediaStream;
-class MediaStreamTrack;
+class MediaStream;  // IWYU pragma: keep
 class RgbaImageData;
-class RTCRtpReceiver;
-class RTCRtpSender;
-class RTCRtpTransceiver;
 class SomeError;
 
 #define DECLARE_STRUCT(TYPE) \

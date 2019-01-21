@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -8,11 +8,13 @@
 #ifndef SRC_CONVERTERS_INTERFACES_H_
 #define SRC_CONVERTERS_INTERFACES_H_
 
-#include <nan.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
-#include <webrtc/api/mediastreaminterface.h>
+#include <v8.h>  // IWYU pragma: keep
 
 #include "src/converters.h"
+
+namespace rtc { template <class T> class scoped_refptr; }
+namespace webrtc { class AudioTrackInterface; }
+namespace webrtc { class VideoTrackInterface; }
 
 namespace node_webrtc {
 

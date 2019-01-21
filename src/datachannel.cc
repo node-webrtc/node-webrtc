@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -13,7 +13,6 @@
 #include <v8.h>
 
 #include "src/common.h"
-#include "src/converters/dictionaries.h"
 #include "src/error.h"
 #include "src/errorfactory.h"  // IWYU pragma: keep
 #include "src/events.h"
