@@ -86,6 +86,7 @@ dictionary RTCVideoFrame {
 [constructor(MediaStreamTrack track)]
 interface RTCVideoSink {
   void stop();
+  readonly attribute boolean stopped;
   attribute EventHandler onframe;
 };
 ```

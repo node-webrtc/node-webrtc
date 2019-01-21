@@ -35,8 +35,15 @@ NAN_METHOD(node_webrtc::RTCVideoSink::New) {
   info.GetReturnValue().Set(info.This());
 }
 
+NAN_GETTER(node_webrtc::RTCVideoSink::GetStopped) {
+  (void) property;
+  auto self = AsyncObjectWrapWithLoop<node_webrtc::RTCVideoSink>::Unwrap(info.Holder());
+  info.GetReturnValue().Set(self->_stopped);
+}
+
 void node_webrtc::RTCVideoSink::Stop() {
   if (_track) {
+    _stopped = true;
     _track->RemoveSink(this);
     _track = nullptr;
   }
@@ -70,6 +77,7 @@ void node_webrtc::RTCVideoSink::Init(v8::Handle<v8::Object> exports) {
   node_webrtc::RTCVideoSink::tpl().Reset(tpl);
   tpl->SetClassName(Nan::New("RTCVideoSink").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("stopped").ToLocalChecked(), GetStopped, nullptr);
   Nan::SetPrototypeMethod(tpl, "stop", JsStop);
   exports->Set(Nan::New("RTCVideoSink").ToLocalChecked(), tpl->GetFunction());
 }
