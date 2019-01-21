@@ -13,7 +13,7 @@ form of RTCVideoSource and RTCVideoSink. With these APIs, you can
   the `onFrame` method. Then use RTCVideoSource's `createTrack` method to create
   a local video MediaStreamTrack.
 * Construct an RTCVideoSink from a local or remote video MediaStreamTrack. The
-  RTCVideoSink will emit a "frame" event everytime an I420 frame is received.
+  RTCVideoSink will emit a "frame" event every time an I420 frame is received.
   When you're finished, stop the RTCVideoSink by calling `stop`.
 
 Because these APIs are non-standard, they are exposed via a `nonstandard`

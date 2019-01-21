@@ -138,13 +138,6 @@ namespace node_webrtc {
   SUPPORTED(TRACKSTATE, kEnded, "ended") \
   SUPPORTED(TRACKSTATE, kLive, "live")
 
-#define SOURCESTATE webrtc::MediaSourceInterface::SourceState
-#define SOURCESTATE_LIST \
-  SUPPORTED(SOURCESTATE, kInitializing, "initializing") \
-  SUPPORTED(SOURCESTATE, kLive, "live") \
-  SUPPORTED(SOURCESTATE, kEnded, "ended") \
-  SUPPORTED(SOURCESTATE, kMuted, "muted")
-
 #define VIDEO_FRAME_BUFFER_TYPE webrtc::VideoFrameBuffer::Type
 #define VIDEO_FRAME_BUFFER_TYPE_LIST \
   UNSUPPORTED(VIDEO_FRAME_BUFFER_TYPE, kNative, "native", "\"native\" is not a valid VideoFrameBufferType") \

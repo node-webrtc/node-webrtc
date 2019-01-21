@@ -95,7 +95,7 @@ class AsyncObjectWrapWithLoop
   /**
    * Stop the event loop.
    */
-  virtual void Stop() {
+  void Stop() override {
     PromiseFulfillingEventLoop<T>::Stop();
   }
 };

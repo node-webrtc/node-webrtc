@@ -689,15 +689,6 @@ OBJ_FROM_JS_IMPL2(I420_BUFFER, CreateI420Buffer)
 #undef OPTIONAL
 #undef DEFAULT
 
-// TODO(mroberts): We should have OBJ_TO_JS_IMPL for such simple cases.
-TO_JS_IMPL(webrtc::VideoTrackSourceInterface::Stats, value) {
-  Nan::EscapableHandleScope scope;
-  auto stats = Nan::New<v8::Object>();
-  stats->Set(Nan::New("width").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(value.input_width).UnsafeFromValid());
-  stats->Set(Nan::New("height").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(value.input_height).UnsafeFromValid());
-  return node_webrtc::Pure(scope.Escape(stats).As<v8::Value>());
-}
-
 TO_JS_IMPL(rtc::scoped_refptr<webrtc::VideoFrameBuffer>, value) {
   return value->type() == webrtc::VideoFrameBuffer::Type::kI420
       ? node_webrtc::From<v8::Local<v8::Value>>(value->GetI420())

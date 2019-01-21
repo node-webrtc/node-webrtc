@@ -11,7 +11,7 @@
 #include "src/converters/arguments.h"
 #include "src/converters/dictionaries.h"
 #include "src/converters/interfaces.h"
-#include "peerconnectionfactory.h"
+#include "src/peerconnectionfactory.h"
 
 Nan::Persistent<v8::FunctionTemplate>& node_webrtc::RTCVideoSink::tpl() {
   static Nan::Persistent<v8::FunctionTemplate> tpl;
@@ -23,26 +23,29 @@ node_webrtc::RTCVideoSink::RTCVideoSink(rtc::scoped_refptr<webrtc::VideoTrackInt
   , _track(std::move(track)) {
   rtc::VideoSinkWants wants;
   _track->AddOrUpdateSink(this, wants);
-  // node_webrtc::PeerConnectionFactory::GetOrCreateDefault()->_signalingThread->Invoke<void>(RTC_FROM_HERE, [this]() {
-  //   rtc::VideoSinkWants wants;
-  //   this->_track->AddOrUpdateSink(this, wants);
-  // });
 }
 
 NAN_METHOD(node_webrtc::RTCVideoSink::New) {
+  if (!info.IsConstructCall()) {
+    return Nan::ThrowTypeError("Use the new operator to construct an RTCVideoSink.");
+  }
   CONVERT_ARGS_OR_THROW_AND_RETURN(track, rtc::scoped_refptr<webrtc::VideoTrackInterface>);
   auto sink = new RTCVideoSink(track);
   sink->Wrap(info.This());
   info.GetReturnValue().Set(info.This());
 }
 
+void node_webrtc::RTCVideoSink::Stop() {
+  if (_track) {
+    _track->RemoveSink(this);
+    _track = nullptr;
+  }
+  node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCVideoSink>::Stop();
+}
+
 NAN_METHOD(node_webrtc::RTCVideoSink::JsStop) {
   auto self = AsyncObjectWrapWithLoop<node_webrtc::RTCVideoSink>::Unwrap(info.Holder());
   self->Stop();
-  if (self->_track) {
-    self->_track->RemoveSink(self);
-    self->_track = nullptr;
-  }
 }
 
 void node_webrtc::RTCVideoSink::OnFrame(const webrtc::VideoFrame& frame) {
