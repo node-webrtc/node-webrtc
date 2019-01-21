@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -13,11 +13,16 @@
 #ifndef SRC_CONVERTERS_V8_H_
 #define SRC_CONVERTERS_V8_H_
 
-#include <nan.h>
+#include <iosfwd>
+#include <string>
+
+#include <nan.h>  // IWYU pragma: keep
+#include <v8.h>
 
 #include "src/converters.h"
 #include "src/errorfactory.h"
 #include "src/functional/either.h"
+#include "src/functional/maybe.h"
 #include "src/functional/validation.h"
 
 namespace node_webrtc {

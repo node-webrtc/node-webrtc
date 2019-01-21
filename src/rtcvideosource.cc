@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -7,18 +7,15 @@
  */
 #include "src/rtcvideosource.h"
 
-#include <webrtc/api/peerconnectioninterface.h>
-#include <webrtc/api/video/i420_buffer.h>
-#include <webrtc/media/base/videocapturer.h>
+#include <webrtc/api/video/i420_buffer.h>  // IWYU pragma: keep
+#include <webrtc/api/video/video_frame.h>
 
-#include "src/converters.h"
-#include "src/converters/arguments.h"
-#include "src/converters/dictionaries.h"
-#include "src/functional/maybe.h"
-#include "src/functional/validation.h"
-#include "src/converters/v8.h"
-#include "src/mediastreamtrack.h"
-#include "src/peerconnectionfactory.h"
+#include "src/converters.h"  // IWYU pragma: keep
+#include "src/converters/arguments.h"  // IWYU pragma: keep
+#include "src/converters/dictionaries.h"  // IWYU pragma: keep
+#include "src/error.h"
+#include "src/functional/maybe.h"  // IWYU pragma: keep
+#include "src/mediastreamtrack.h"  // IWYU pragma: keep
 
 Nan::Persistent<v8::Function>& node_webrtc::RTCVideoSource::constructor() {
   static Nan::Persistent<v8::Function> constructor;

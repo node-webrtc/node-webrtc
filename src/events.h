@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -14,6 +14,7 @@
 #include <webrtc/api/datachannelinterface.h>
 #include <webrtc/api/jsep.h>
 #include <webrtc/api/peerconnectioninterface.h>
+#include <webrtc/api/video/video_frame.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
 #include "src/converters/v8.h"

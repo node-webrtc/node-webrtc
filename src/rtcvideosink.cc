@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -7,11 +7,14 @@
  */
 #include "src/rtcvideosink.h"
 
-#include "src/converters.h"
-#include "src/converters/arguments.h"
-#include "src/converters/dictionaries.h"
-#include "src/converters/interfaces.h"
-#include "src/peerconnectionfactory.h"
+#include <webrtc/api/video/video_source_interface.h>
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+
+#include "src/converters.h"  // IWYU pragma: keep
+#include "src/converters/arguments.h"  // IWYU pragma: keep
+#include "src/converters/dictionaries.h"  // IWYU pragma: keep
+#include "src/converters/interfaces.h"  // IWYU pragma: keep
+#include "src/error.h"
 
 Nan::Persistent<v8::FunctionTemplate>& node_webrtc::RTCVideoSink::tpl() {
   static Nan::Persistent<v8::FunctionTemplate> tpl;

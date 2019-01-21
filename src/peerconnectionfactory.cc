@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -19,8 +19,8 @@
 #include <webrtc/rtc_base/thread.h>  // IWYU pragma: keep
 
 #include "src/common.h"
-#include "src/zerocapturer.h"  // IWYU pragma: keep
 #include "src/webrtc/fake_audio_device.h"  // IWYU pragma: keep
+#include "src/zerocapturer.h"  // IWYU pragma: keep
 
 using node_webrtc::Maybe;
 using node_webrtc::PeerConnectionFactory;

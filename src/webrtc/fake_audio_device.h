@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2018 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2019 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -10,14 +10,11 @@
 #ifndef SRC_WEBRTC_FAKE_AUDIO_DEVICE_H_
 #define SRC_WEBRTC_FAKE_AUDIO_DEVICE_H_
 
-#include <memory>
-#include <string>
-#include <vector>
-
-#include "webrtc/modules/audio_device/include/audio_device.h"
-#include "webrtc/rtc_base/buffer.h"
-#include "webrtc/rtc_base/event.h"
-#include "webrtc/rtc_base/platform_file.h"
+#include <webrtc/modules/audio_device/include/audio_device.h>
+#include <webrtc/rtc_base/buffer.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/event.h>
+#include <webrtc/rtc_base/platform_file.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
 
 namespace node_webrtc {
 

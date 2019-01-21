@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -8,14 +8,18 @@
 #ifndef SRC_CONVERTERS_ENUMS_H_
 #define SRC_CONVERTERS_ENUMS_H_
 
-#include <nan.h>
+#include <iosfwd>
+
 #include <webrtc/api/datachannelinterface.h>
 #include <webrtc/api/mediastreaminterface.h>
 #include <webrtc/api/mediatypes.h>
 #include <webrtc/api/peerconnectioninterface.h>
+#include <webrtc/api/rtptransceiverinterface.h>
+#include <webrtc/api/video/video_frame_buffer.h>
+#include <v8.h>  // IWYU pragma: keep
 
 #include "src/converters.h"
-#include "src/functional/validation.h"
+#include "src/functional/validation.h"  // IWYU pragma: keep
 
 #define ENUM_IMPL(ENUM) \
   enum ENUM { \

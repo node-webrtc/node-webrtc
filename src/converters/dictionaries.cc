@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -10,22 +10,22 @@
 #include <nan.h>
 #include <webrtc/api/datachannelinterface.h>
 #include <webrtc/api/jsep.h>
-#include <webrtc/api/mediastreaminterface.h>
 #include <webrtc/api/peerconnectioninterface.h>
 #include <webrtc/api/rtcerror.h>
 #include <webrtc/api/rtpparameters.h>
 #include <webrtc/api/rtpreceiverinterface.h>
 #include <webrtc/api/rtptransceiverinterface.h>
 #include <webrtc/api/stats/rtcstats.h>
+#include <webrtc/api/video/i420_buffer.h>  // IWYU pragma: keep
 #include <v8.h>
-#include <src/i420helpers.h>
 
 #include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
 #include "src/converters.h"
-#include "src/converters/interfaces.h"
-#include "src/converters/object.h"
+#include "src/converters/interfaces.h"  // IWYU pragma: keep
+#include "src/converters/object.h"  // IWYU pragma: keep
 #include "src/converters/v8.h"  // IWYU pragma: keep
 #include "src/functional/either.h"  // IWYU pragma: keep
+#include "src/i420helpers.h"  // IWYU pragma: keep
 #include "src/errorfactory.h"  // IWYU pragma: keep
 #include "src/mediastream.h"  // IWYU pragma: keep
 #include "src/mediastreamtrack.h"  // IWYU pragma: keep
@@ -33,8 +33,6 @@
 #include "src/rtcrtpsender.h"  // IWYU pragma: keep
 #include "src/rtcrtptransceiver.h"  // IWYU pragma: keep
 #include "src/rtcstatsresponse.h"  // IWYU pragma: keep
-
-// IWYU pragma: no_include <api/mediatypes.h>
 
 using node_webrtc::BinaryType;  // *
 using node_webrtc::RTCAnswerOptions;  // *

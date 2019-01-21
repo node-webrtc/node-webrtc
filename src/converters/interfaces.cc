@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -7,11 +7,14 @@
  */
 #include "src/converters/interfaces.h"
 
-#include "src/mediastream.h"
-#include "src/mediastreamtrack.h"
-#include "src/rtcrtpreceiver.h"
-#include "src/rtcrtpsender.h"
-#include "src/rtcrtptransceiver.h"
+#include <nan.h>
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
+
+#include "src/mediastream.h"  // IWYU pragma: keep
+#include "src/mediastreamtrack.h"  // IWYU pragma: keep
+#include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
+#include "src/rtcrtpsender.h"  // IWYU pragma: keep
+#include "src/rtcrtptransceiver.h"  // IWYU pragma: keep
 
 #define CONVERT_INTERFACE_TO_JS(IFACE, NAME, TO_FN) \
   TO_JS_IMPL(node_webrtc::IFACE*, value) { \

@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -7,7 +7,7 @@
  */
 #include "src/converters/enums.h"
 
-#include "src/converters/v8.h"
+#include "src/converters/v8.h"  // IWYU pragma: keep
 
 using node_webrtc::BinaryType;
 using node_webrtc::RTCIceCredentialType;

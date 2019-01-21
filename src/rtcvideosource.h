@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -8,12 +8,18 @@
 #ifndef SRC_RTCVIDEOSOURCE_H_
 #define SRC_RTCVIDEOSOURCE_H_
 
+#include <memory>
+
+#include <absl/types/optional.h>
 #include <nan.h>
+#include <webrtc/api/mediastreaminterface.h>
+#include <webrtc/media/base/adaptedvideotracksource.h>
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
 #include <v8.h>  // IWYU pragma: keep
 
-#include <webrtc/media/base/adaptedvideotracksource.h>
+#include "src/peerconnectionfactory.h"  // IWYU pragma: keep
 
-#include "src/peerconnectionfactory.h"
+namespace webrtc { class VideoFrame; }
 
 namespace node_webrtc {
 

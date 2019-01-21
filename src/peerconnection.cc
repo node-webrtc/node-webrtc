@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -9,9 +9,9 @@
 
 #include <iosfwd>
 
+#include <webrtc/api/mediatypes.h>
 #include <webrtc/api/peerconnectioninterface.h>
 #include <webrtc/api/rtcerror.h>
-#include <webrtc/api/mediatypes.h>
 #include <webrtc/api/rtptransceiverinterface.h>  // IWYU pragma: keep
 #include <webrtc/p2p/client/basicportallocator.h>  // IWYU pragma: keep
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
@@ -21,12 +21,12 @@
 #include "src/converters.h"
 #include "src/converters/arguments.h"  // IWYU pragma: keep
 #include "src/converters/dictionaries.h"
-#include "src/converters/interfaces.h"
+#include "src/converters/interfaces.h"  // IWYU pragma: keep
 #include "src/createsessiondescriptionobserver.h"  // IWYU pragma: keep
 #include "src/datachannel.h"  // IWYU pragma: keep
 #include "src/error.h"
-#include "src/events.h"
 #include "src/errorfactory.h"  // IWYU pragma: keep
+#include "src/events.h"
 #include "src/functional/either.h"
 #include "src/functional/maybe.h"
 #include "src/mediastream.h"  // IWYU pragma: keep

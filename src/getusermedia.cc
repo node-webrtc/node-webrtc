@@ -1,4 +1,4 @@
-/* Copyright (c) 2018 The node-webrtc project authors. All rights reserved.
+/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
  *
  * Use of this source code is governed by a BSD-style license that can be found
  * in the LICENSE.md file in the root of the source tree. All contributing
@@ -21,11 +21,11 @@
 #include "src/functional/curry.h"  // IWYU pragma: keep
 #include "src/functional/either.h"  // IWYU pragma: keep
 #include "src/functional/maybe.h"
-#include "src/functional/validation.h"
 #include "src/functional/operators.h"  // IWYU pragma: keep
-#include "src/peerconnectionfactory.h"  // IWYU pragma: keep
-#include "src/rtcvideosource.h"
+#include "src/functional/validation.h"
 #include "src/mediastream.h"  // IWYU pragma: keep
+#include "src/peerconnectionfactory.h"  // IWYU pragma: keep
+#include "src/rtcvideosource.h"  // IWYU pragma: keep
 
 // TODO(mroberts): Expand support for other members.
 struct MediaTrackConstraintSet {
