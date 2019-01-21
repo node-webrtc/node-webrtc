@@ -30,6 +30,9 @@ class RTCVideoSink
 
   void HandleOnFrameEvent(const OnFrameEvent& event);
 
+ protected:
+  void Stop() override;
+
  private:
   explicit RTCVideoSink(rtc::scoped_refptr<webrtc::VideoTrackInterface>);
 

@@ -81,7 +81,7 @@ namespace node_webrtc {
 DECLARE_CONVERTER(v8::Local<v8::Value>, ImageData)
 CONVERTER_IMPL(v8::Local<v8::Value>, ImageData, value) {
   return node_webrtc::From<v8::Local<v8::Object>>(value).FlatMap<ImageData>(
-  [&value](const v8::Local<v8::Object> object) {
+  [](const v8::Local<v8::Object> object) {
     return curry(ImageData::Create)
         % node_webrtc::GetRequired<int>(object, "width")
         * node_webrtc::GetRequired<int>(object, "height")

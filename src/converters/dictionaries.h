@@ -135,11 +135,6 @@ class SomeError;
   OPTIONAL(uint16_t, min, "min") \
   OPTIONAL(uint16_t, max, "max")
 
-#define RTCVIDEOSOURCESTATS webrtc::VideoTrackSourceInterface::Stats
-#define RTCVIDEOSOURCESTATS_LIST \
-  REQUIRED(int, width, "width") \
-  REQUIRED(int, height, "height")
-
 #define I420_BUFFER rtc::scoped_refptr<webrtc::I420Buffer>
 #define I420_BUFFER_LIST \
   REQUIRED(int, width, "width") \

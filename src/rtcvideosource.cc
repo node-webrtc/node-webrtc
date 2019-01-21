@@ -13,10 +13,10 @@
 
 #include "src/converters.h"
 #include "src/converters/arguments.h"
-#include "src/converters/v8.h"
 #include "src/converters/dictionaries.h"
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
+#include "src/converters/v8.h"
 #include "src/mediastreamtrack.h"
 #include "src/peerconnectionfactory.h"
 
@@ -75,12 +75,6 @@ NAN_GETTER(node_webrtc::RTCVideoSource::GetRemote) {
   info.GetReturnValue().Set(self->_source->remote());
 }
 
-NAN_GETTER(node_webrtc::RTCVideoSource::GetState) {
-  auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCVideoSource>(info.Holder());
-  auto state = node_webrtc::From<v8::Local<v8::Value>>(self->_source->state());
-  info.GetReturnValue().Set(state.UnsafeFromValid());
-}
-
 void node_webrtc::RTCVideoSource::Init(v8::Handle<v8::Object> exports) {
   auto tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("RTCVideoSource").ToLocalChecked());
@@ -92,7 +86,6 @@ void node_webrtc::RTCVideoSource::Init(v8::Handle<v8::Object> exports) {
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("needsDenoising").ToLocalChecked(), GetNeedsDenoising, nullptr);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("isScreencast").ToLocalChecked(), GetIsScreencast, nullptr);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("remote").ToLocalChecked(), GetRemote, nullptr);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("state").ToLocalChecked(), GetState, nullptr);
 
   constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("RTCVideoSource").ToLocalChecked(), tpl->GetFunction());

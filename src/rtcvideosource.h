@@ -66,7 +66,6 @@ class RTCVideoSource
 
   static NAN_GETTER(GetIsScreencast);
   static NAN_GETTER(GetNeedsDenoising);
-  static NAN_GETTER(GetState);
   static NAN_GETTER(GetRemote);
 
   static NAN_METHOD(CreateTrack);

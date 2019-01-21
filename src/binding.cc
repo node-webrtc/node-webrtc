@@ -12,17 +12,17 @@
 #include "src/errorfactory.h"  // IWYU pragma: keep
 #include "src/getusermedia.h"  // IWYU pragma: keep
 #include "src/i420helpers.h"
+#include "src/legacyrtcstatsreport.h"  // IWYU pragma: keep
 #include "src/mediastream.h"  // IWYU pragma: keep
 #include "src/mediastreamtrack.h"  // IWYU pragma: keep
+#include "src/peerconnection.h"  // IWYU pragma: keep
+#include "src/peerconnectionfactory.h"
 #include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
 #include "src/rtcrtpsender.h"  // IWYU pragma: keep
 #include "src/rtcrtptransceiver.h"  // IWYU pragma: keep
-#include "src/legacyrtcstatsreport.h"  // IWYU pragma: keep
 #include "src/rtcstatsresponse.h"  // IWYU pragma: keep
-#include "src/rtcvideosource.h"
 #include "src/rtcvideosink.h"
-#include "src/peerconnection.h"  // IWYU pragma: keep
-#include "src/peerconnectionfactory.h"
+#include "src/rtcvideosource.h"
 
 using v8::Handle;
 using v8::Object;
