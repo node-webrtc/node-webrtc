@@ -18,6 +18,7 @@
 #include <webrtc/api/rtptransceiverinterface.h>
 #include <webrtc/api/stats/rtcstats.h>
 #include <v8.h>
+#include <src/i420helpers.h>
 
 #include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
 #include "src/converters.h"
@@ -651,32 +652,50 @@ TO_JS_IMPL(rtc::scoped_refptr<webrtc::RTCStatsReport>, value) {
   return node_webrtc::Pure(scope.Escape(report).As<v8::Value>());
 }
 
-static node_webrtc::Validation<rtc::scoped_refptr<webrtc::I420Buffer>> CreateI420Buffer(
-        int width,
-        int height,
-        v8::ArrayBuffer::Contents contents
+namespace node_webrtc {
+
+DECLARE_CONVERTER(v8::Local<v8::Value>, node_webrtc::ImageData)
+CONVERTER_IMPL(v8::Local<v8::Value>, node_webrtc::ImageData, value) {
+  return node_webrtc::From<v8::Local<v8::Object>>(value).FlatMap<node_webrtc::ImageData>(
+  [](const v8::Local<v8::Object> object) {
+    return curry(node_webrtc::ImageData::Create)
+        % node_webrtc::GetRequired<int>(object, "width")
+        * node_webrtc::GetRequired<int>(object, "height")
+        * node_webrtc::GetRequired<v8::ArrayBuffer::Contents>(object, "data");
+  });
+}
+
+DECLARE_CONVERTER(node_webrtc::ImageData, I420ImageData)
+CONVERTER_IMPL(node_webrtc::ImageData, I420ImageData, imageData) {
+  return imageData.toI420();
+}
+
+CONVERT_VIA(v8::Local<v8::Value>, node_webrtc::ImageData, I420ImageData)
+
+DECLARE_CONVERTER(node_webrtc::ImageData, RgbaImageData)
+CONVERTER_IMPL(node_webrtc::ImageData, RgbaImageData, imageData) {
+  return imageData.toRgba();
+}
+
+CONVERT_VIA(v8::Local<v8::Value>, node_webrtc::ImageData, RgbaImageData)
+
+DECLARE_CONVERTER(node_webrtc::I420ImageData, rtc::scoped_refptr<webrtc::I420Buffer>)
+CONVERT_VIA(v8::Local<v8::Value>, node_webrtc::I420ImageData, rtc::scoped_refptr<webrtc::I420Buffer>)
+
+}  // namespace node_webrtc
+
+static rtc::scoped_refptr<webrtc::I420Buffer> CreateI420Buffer(
+    node_webrtc::I420ImageData i420Frame
 ) {
-  auto sizeOfLuminancePlane = width * height;
-  auto sizeOfChromaPlane = sizeOfLuminancePlane / 4;
+  auto buffer = webrtc::I420Buffer::Create(i420Frame.width(), i420Frame.height());
+  memcpy(buffer->MutableDataY(), i420Frame.dataY(), i420Frame.sizeOfLuminancePlane());
+  memcpy(buffer->MutableDataU(), i420Frame.dataU(), i420Frame.sizeOfChromaPlane());
+  memcpy(buffer->MutableDataV(), i420Frame.dataV(), i420Frame.sizeOfChromaPlane());
+  return buffer;
+}
 
-  auto actualByteLength = static_cast<int>(contents.ByteLength());
-  auto expectedByteLength = sizeOfLuminancePlane + sizeOfChromaPlane + sizeOfChromaPlane;
-  if (actualByteLength != expectedByteLength) {
-    return node_webrtc::Validation<rtc::scoped_refptr<webrtc::I420Buffer>>::Invalid(
-            "Expected a .byteLength of " + std::to_string(expectedByteLength) + ", not " +
-            std::to_string(actualByteLength));
-  }
-
-  uint8_t* sourceDataY = static_cast<uint8_t*>(contents.Data());
-  uint8_t* sourceDataU = sourceDataY + sizeOfLuminancePlane;
-  uint8_t* sourceDataV = sourceDataU + sizeOfChromaPlane;
-
-  auto buffer = webrtc::I420Buffer::Create(width, height);
-  memcpy(buffer->MutableDataY(), sourceDataY, sizeOfLuminancePlane);
-  memcpy(buffer->MutableDataU(), sourceDataU, sizeOfChromaPlane);
-  memcpy(buffer->MutableDataV(), sourceDataV, sizeOfChromaPlane);
-
-  return node_webrtc::Pure(buffer);
+CONVERTER_IMPL(node_webrtc::I420ImageData, rtc::scoped_refptr<webrtc::I420Buffer>, value) {
+  return node_webrtc::Pure(CreateI420Buffer(value));
 }
 
 #define REQUIRED(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_REQUIRED(type, stringValue)
@@ -693,7 +712,6 @@ OBJ_FROM_JS_IMPL1(RTCVIDEOSOURCEINIT, CreateRTCVideoSourceInit)
 OBJ_FROM_JS_IMPL2(ICECANDIDATEINTERFACE, CreateIceCandidateInterface)
 OBJ_FROM_JS_IMPL2(DATACHANNELINIT, CreateDataChannelInit)
 OBJ_FROM_JS_IMPL1(RTCRTPTRANSCEIVERINIT, CreateRtpTransceiverInit)
-OBJ_FROM_JS_IMPL2(I420_BUFFER, CreateI420Buffer)
 #undef REQUIRED
 #undef OPTIONAL
 #undef DEFAULT
