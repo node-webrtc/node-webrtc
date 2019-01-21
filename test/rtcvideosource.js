@@ -96,15 +96,22 @@ test('getStats()', async t => {
   t.end();
 });
 
-test('RTCVideoFrame', t => {
-  const source = new RTCVideoSource();
+test('constructor', t => {
+  const source1 = new RTCVideoSource();
+  t.equal(source1.needsDenoising, null);
+  t.equal(source1.isScreencast, false);
 
-  try {
-    source.onFrame(frame);
-    t.pass();
-  } catch (error) {
-    t.fail(error);
-  } finally {
-    t.end();
-  }
+  const source2 = new RTCVideoSource({ needsDenoising: true });
+  t.equal(source2.needsDenoising, true);
+  t.equal(source2.isScreencast, false);
+
+  const source3 = new RTCVideoSource({ needsDenoising: false });
+  t.equal(source3.needsDenoising, false);
+  t.equal(source3.isScreencast, false);
+
+  const source4 = new RTCVideoSource({ isScreencast: true });
+  t.equal(source4.needsDenoising, null);
+  t.equal(source4.isScreencast, true);
+
+  t.end();
 });

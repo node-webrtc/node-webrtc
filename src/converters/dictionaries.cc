@@ -45,6 +45,7 @@ using node_webrtc::RTCPeerConnectionState;  // *
 using node_webrtc::RTCPriorityType;  // *
 using node_webrtc::RTCSdpType;  // *
 using node_webrtc::RTCSessionDescriptionInit;  // *
+using node_webrtc::RTCVideoSourceInit;  // *
 using node_webrtc::UnsignedShortRange;  // *
 
 typedef node_webrtc::Either<std::vector<std::string>, std::string> stringOrStrings;
@@ -267,6 +268,13 @@ static node_webrtc::RTCSessionDescriptionInit CreateRTCSessionDescriptionInit(
     const node_webrtc::RTCSdpType type,
     const std::string sdp) {
   return {type, sdp};
+}
+
+static node_webrtc::RTCVideoSourceInit CreateRTCVideoSourceInit(
+    const bool isScreencast,
+    const node_webrtc::Maybe<bool> needsDenoising
+) {
+  return {isScreencast, needsDenoising};
 }
 
 node_webrtc::Validation<webrtc::SessionDescriptionInterface*> node_webrtc::Converter<node_webrtc::RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*>::Convert(
@@ -681,6 +689,7 @@ OBJ_FROM_JS_IMPL2(UNSIGNEDSHORTRANGE, CreateUnsignedShortRange)
 OBJ_FROM_JS_IMPL1(RTCOFFEROPTIONS, CreateRTCOfferOptions)
 OBJ_FROM_JS_IMPL1(RTCANSWEROPTIONS, CreateRTCAnswerOptions)
 OBJ_FROM_JS_IMPL1(RTCSESSIONDESCRIPTIONINIT, CreateRTCSessionDescriptionInit)
+OBJ_FROM_JS_IMPL1(RTCVIDEOSOURCEINIT, CreateRTCVideoSourceInit)
 OBJ_FROM_JS_IMPL2(ICECANDIDATEINTERFACE, CreateIceCandidateInterface)
 OBJ_FROM_JS_IMPL2(DATACHANNELINIT, CreateDataChannelInit)
 OBJ_FROM_JS_IMPL1(RTCRTPTRANSCEIVERINIT, CreateRtpTransceiverInit)

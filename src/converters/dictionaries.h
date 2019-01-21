@@ -130,6 +130,11 @@ class SomeError;
   REQUIRED(node_webrtc::RTCSdpType, type, "type") \
   DEFAULT(std::string, sdp, "sdp", "")
 
+#define RTCVIDEOSOURCEINIT RTCVideoSourceInit
+#define RTCVIDEOSOURCEINIT_LIST \
+  DEFAULT(bool, isScreencast, "isScreencast", false) \
+  OPTIONAL(bool, needsDenoising, "needsDenoising")
+
 #define UNSIGNEDSHORTRANGE UnsignedShortRange
 #define UNSIGNEDSHORTRANGE_LIST \
   OPTIONAL(uint16_t, min, "min") \
@@ -147,6 +152,7 @@ class SomeError;
 DECLARE_STRUCT(RTCDTLSFINGERPRINT)
 DECLARE_STRUCT(RTCOAUTHCREDENTIAL)
 DECLARE_STRUCT(RTCSESSIONDESCRIPTIONINIT)
+DECLARE_STRUCT(RTCVIDEOSOURCEINIT)
 DECLARE_STRUCT(UNSIGNEDSHORTRANGE)
 #undef REQUIRED
 #undef OPTIONAL
@@ -215,6 +221,7 @@ DECLARE_FROM_JS(RTCOfferOptions)
 DECLARE_TO_AND_FROM_JS(RTCSessionDescriptionInit)
 DECLARE_CONVERTER(RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*)
 DECLARE_TO_JS(RTCStatsResponseInit)
+DECLARE_FROM_JS(RTCVideoSourceInit)
 DECLARE_TO_AND_FROM_JS(UnsignedShortRange)
 DECLARE_TO_JS(webrtc::VideoTrackSourceInterface::Stats)
 DECLARE_TO_AND_FROM_JS(rtc::scoped_refptr<webrtc::I420Buffer>)

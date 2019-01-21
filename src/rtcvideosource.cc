@@ -29,12 +29,22 @@ node_webrtc::RTCVideoSource::RTCVideoSource() {
   _source = new rtc::RefCountedObject<RTCVideoTrackSource>();
 }
 
+node_webrtc::RTCVideoSource::RTCVideoSource(const node_webrtc::RTCVideoSourceInit init) {
+  auto needsDenoising = init.needsDenoising
+  .Map([](const bool needsDenoising) { return absl::optional<bool>(needsDenoising); })
+  .FromMaybe(absl::optional<bool>());
+  _source = new rtc::RefCountedObject<RTCVideoTrackSource>(init.isScreencast, needsDenoising);
+}
+
 NAN_METHOD(node_webrtc::RTCVideoSource::New) {
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct an RTCVideoSource.");
   }
 
-  auto instance = new RTCVideoSource();
+  CONVERT_ARGS_OR_THROW_AND_RETURN(maybeInit, node_webrtc::Maybe<node_webrtc::RTCVideoSourceInit>);
+  auto init = maybeInit.FromMaybe(node_webrtc::RTCVideoSourceInit());
+
+  auto instance = new RTCVideoSource(init);
   instance->Wrap(info.This());
 
   info.GetReturnValue().Set(info.This());
@@ -60,19 +70,16 @@ NAN_METHOD(node_webrtc::RTCVideoSource::OnFrame) {
 }
 
 NAN_GETTER(node_webrtc::RTCVideoSource::GetNeedsDenoising) {
+  (void) property;
   auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCVideoSource>(info.Holder());
   auto needsDenoising = node_webrtc::From<v8::Local<v8::Value>>(self->_source->needs_denoising());
   info.GetReturnValue().Set(needsDenoising.UnsafeFromValid());
 }
 
 NAN_GETTER(node_webrtc::RTCVideoSource::GetIsScreencast) {
+  (void) property;
   auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCVideoSource>(info.Holder());
   info.GetReturnValue().Set(self->_source->is_screencast());
-}
-
-NAN_GETTER(node_webrtc::RTCVideoSource::GetRemote) {
-  auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCVideoSource>(info.Holder());
-  info.GetReturnValue().Set(self->_source->remote());
 }
 
 void node_webrtc::RTCVideoSource::Init(v8::Handle<v8::Object> exports) {
@@ -85,7 +92,6 @@ void node_webrtc::RTCVideoSource::Init(v8::Handle<v8::Object> exports) {
 
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("needsDenoising").ToLocalChecked(), GetNeedsDenoising, nullptr);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("isScreencast").ToLocalChecked(), GetIsScreencast, nullptr);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("remote").ToLocalChecked(), GetRemote, nullptr);
 
   constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("RTCVideoSource").ToLocalChecked(), tpl->GetFunction());
