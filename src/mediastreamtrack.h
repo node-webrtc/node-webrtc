@@ -73,7 +73,7 @@ class MediaStreamTrack
   static NAN_METHOD(Clone);
   static NAN_METHOD(JsStop);
 
-  bool _ended;
+  bool _ended = false;
   bool _enabled;
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> _track;

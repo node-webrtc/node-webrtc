@@ -627,7 +627,6 @@ TO_JS_IMPL(const webrtc::RTCStatsMemberInterface*, value) {
 
 TO_JS_IMPL(const webrtc::RTCStats*, value) {
   Nan::EscapableHandleScope scope;
-  auto context = Nan::GetCurrentContext();
   auto stats = Nan::New<v8::Object>();
   stats->Set(Nan::New("id").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(value->id()).UnsafeFromValid());
   stats->Set(Nan::New("timestamp").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(value->timestamp_us() / 1000.0).UnsafeFromValid());

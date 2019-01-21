@@ -182,7 +182,7 @@ struct Converter<absl::optional<T>, v8::Local<v8::Value>> {
   }
 };
 
-DECLARE_TO_JS(rtc::scoped_refptr<webrtc::RTCStatsReport>);
+DECLARE_TO_JS(rtc::scoped_refptr<webrtc::RTCStatsReport>)
 DECLARE_FROM_JS(webrtc::DataChannelInit)
 DECLARE_CONVERTER(webrtc::RTCError*, SomeError)
 DECLARE_FROM_JS(webrtc::IceCandidateInterface*)
@@ -198,7 +198,7 @@ DECLARE_TO_JS(webrtc::RtcpParameters)
 DECLARE_TO_JS(webrtc::RtpParameters)
 DECLARE_TO_JS(webrtc::RtpExtension)
 DECLARE_TO_JS(webrtc::RtpSource)
-DECLARE_TO_JS(const webrtc::RTCStats*);
+DECLARE_TO_JS(const webrtc::RTCStats*)
 DECLARE_TO_JS(const webrtc::RTCStatsMemberInterface*)
 DECLARE_FROM_JS(webrtc::RtpTransceiverInit)
 DECLARE_FROM_JS(webrtc::SessionDescriptionInterface*)
