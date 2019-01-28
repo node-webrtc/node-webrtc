@@ -115,6 +115,13 @@ class SomeError;
   OPTIONAL(bool, offerToReceiveAudio, "offerToReceiveAudio") \
   OPTIONAL(bool, offerToReceiveVideo, "offerToReceiveVideo")
 
+#define RTCONDATAEVENTDICT RTCOnDataEventDict
+#define RTCONDATAEVENTDICT_LIST \
+  REQUIRED(int, bitsPerSample, "bitsPerSample") \
+  REQUIRED(int, sampleRate, "sampleRate") \
+  REQUIRED(size_t, numberOfChannels, "numberOfChannels") \
+  REQUIRED(size_t, numberOfFrames, "numberOfFrames")
+
 #define RTCDTLSFINGERPRINT RTCDtlsFingerprint
 #define RTCDTLSFINGERPRINT_LIST \
   OPTIONAL(std::string, algorithm, "algorithm") \
@@ -145,6 +152,7 @@ class SomeError;
 #define DEFAULT(TYPE, VAR, PROP, DEFAULT) EXPAND_DEFAULT_STRUCT(TYPE, VAR)
 DECLARE_STRUCT(RTCDTLSFINGERPRINT)
 DECLARE_STRUCT(RTCOAUTHCREDENTIAL)
+DECLARE_STRUCT(RTCONDATAEVENTDICT)
 DECLARE_STRUCT(RTCSESSIONDESCRIPTIONINIT)
 DECLARE_STRUCT(RTCVIDEOSOURCEINIT)
 DECLARE_STRUCT(UNSIGNEDSHORTRANGE)
@@ -212,6 +220,7 @@ DECLARE_FROM_JS(RTCAnswerOptions)
 DECLARE_FROM_JS(RTCDtlsFingerprint)
 DECLARE_FROM_JS(RTCOAuthCredential)
 DECLARE_FROM_JS(RTCOfferOptions)
+DECLARE_TO_JS(RTCOnDataEventDict)
 DECLARE_TO_AND_FROM_JS(RTCSessionDescriptionInit)
 DECLARE_CONVERTER(RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*)
 DECLARE_TO_JS(RTCStatsResponseInit)
