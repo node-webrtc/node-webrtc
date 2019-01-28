@@ -11,6 +11,7 @@ require('./i420helpers');
 require('./iceservers');
 require('./mediastream');
 require('./pass-interface-to-method');
+require('./rtcaudiosink');
 require('./rtcdatachannel');
 require('./rtcrtpreceiver');
 require('./rtcvideosink');

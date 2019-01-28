@@ -17,6 +17,7 @@
 #include <webrtc/api/video/video_frame.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
+#include "src/converters/dictionaries.h"
 #include "src/converters/v8.h"
 #include "src/error.h"
 #include "src/functional/either.h"
@@ -33,6 +34,7 @@ namespace node_webrtc {
 class DataChannel;
 class DataChannelObserver;
 class PeerConnection;
+class RTCAudioSink;
 class RTCVideoSink;
 
 /**
@@ -304,6 +306,20 @@ class OnFrameEvent: public Event<RTCVideoSink> {
 
  private:
   explicit OnFrameEvent(const webrtc::VideoFrame& frame): frame(frame) {}
+};
+
+class OnDataEvent: public Event<RTCAudioSink> {
+ public:
+  const RTCOnDataEventDict dict;
+
+  void Dispatch(RTCAudioSink& sink) override;
+
+  static std::unique_ptr<OnDataEvent> Create(const RTCOnDataEventDict& dict) {
+    return std::unique_ptr<OnDataEvent>(new OnDataEvent(std::move(dict)));
+  }
+
+ private:
+  OnDataEvent(const RTCOnDataEventDict& dict): dict(std::move(dict)) {}
 };
 
 }  // namespace node_webrtc
