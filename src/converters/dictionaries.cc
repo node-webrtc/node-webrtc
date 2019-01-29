@@ -763,7 +763,15 @@ TO_JS_IMPL(webrtc::VideoFrame, value) {
 
 TO_JS_IMPL(node_webrtc::RTCOnDataEventDict, dict) {
   Nan::EscapableHandleScope scope;
+
+  auto isolate = Nan::GetCurrentContext()->GetIsolate();
+  auto byteLength = dict.numberOfChannels * dict.numberOfFrames * dict.bitsPerSample / 8;
+  auto arrayBuffer = v8::ArrayBuffer::New(isolate, dict.audioData.get(), byteLength, v8::ArrayBufferCreationMode::kInternalized);
+  auto uint8Array = v8::Uint8ClampedArray::New(arrayBuffer, 0, byteLength);
+  dict.audioData.reset();
+
   auto object = Nan::New<v8::Object>();
+  object->Set(Nan::New("audioData").ToLocalChecked(), uint8Array);
   object->Set(Nan::New("bitsPerSample").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(dict.bitsPerSample).UnsafeFromValid());
   object->Set(Nan::New("sampleRate").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(dict.sampleRate).UnsafeFromValid());
   object->Set(Nan::New("numberOfChannels").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(static_cast<double>(dict.numberOfChannels)).UnsafeFromValid());
