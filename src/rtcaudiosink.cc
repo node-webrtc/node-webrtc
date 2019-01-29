@@ -12,7 +12,7 @@
 #include "src/converters/dictionaries.h"  // IWYU pragma: keep
 #include "src/converters/interfaces.h"  // IWYU pragma: keep
 #include "src/error.h"
-#include "src/events.h"
+#include "src/events.h"  // IWYU pragma: keep
 
 // IWYU pragma: no_include <api/mediastreaminterface.h>
 // IWYU pragma: no_include <rtc_base/scoped_ref_ptr.h>
@@ -60,12 +60,21 @@ NAN_METHOD(node_webrtc::RTCAudioSink::JsStop) {
 }
 
 void node_webrtc::RTCAudioSink::OnData(
-    const void*,
+    const void* audio_data,
     int bits_per_sample,
     int sample_rate,
     size_t number_of_channels,
     size_t number_of_frames) {
+  auto byte_length = number_of_channels * number_of_frames * bits_per_sample / 8;
+  std::shared_ptr<uint8_t> audio_data_copy(new uint8_t[byte_length]);
+  if (!audio_data_copy) {
+    // TODO(mroberts): Throw an error somehow?
+    return;
+  }
+  memcpy(audio_data_copy.get(), audio_data, byte_length);
+
   Dispatch(node_webrtc::OnDataEvent::Create({
+    std::move(audio_data_copy),
     bits_per_sample,
     sample_rate,
     number_of_channels,

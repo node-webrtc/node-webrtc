@@ -310,16 +310,16 @@ class OnFrameEvent: public Event<RTCVideoSink> {
 
 class OnDataEvent: public Event<RTCAudioSink> {
  public:
-  const RTCOnDataEventDict dict;
+  RTCOnDataEventDict dict;
 
   void Dispatch(RTCAudioSink& sink) override;
 
   static std::unique_ptr<OnDataEvent> Create(const RTCOnDataEventDict& dict) {
-    return std::unique_ptr<OnDataEvent>(new OnDataEvent(std::move(dict)));
+    return std::unique_ptr<OnDataEvent>(new OnDataEvent(dict));
   }
 
  private:
-  OnDataEvent(const RTCOnDataEventDict& dict): dict(std::move(dict)) {}
+  OnDataEvent(const RTCOnDataEventDict& dict): dict(dict) {}
 };
 
 }  // namespace node_webrtc
