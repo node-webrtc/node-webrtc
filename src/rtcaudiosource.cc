@@ -10,6 +10,7 @@
 #include "src/converters.h"  // IWYU pragma: keep
 #include "src/converters/arguments.h"  // IWYU pragma: keep
 #include "src/converters/dictionaries.h"  // IWYU pragma: keep
+#include "src/error.h"
 #include "src/functional/maybe.h"  // IWYU pragma: keep
 #include "src/mediastreamtrack.h"  // IWYU pragma: keep
 
@@ -46,7 +47,8 @@ NAN_METHOD(node_webrtc::RTCAudioSource::CreateTrack) {
 
 NAN_METHOD(node_webrtc::RTCAudioSource::OnData) {
   auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCAudioSource>(info.Holder());
-  self->_source->PushData();
+  CONVERT_ARGS_OR_THROW_AND_RETURN(dict, node_webrtc::RTCOnDataEventDict)
+  self->_source->PushData(std::move(dict));
 }
 
 void node_webrtc::RTCAudioSource::Init(v8::Handle<v8::Object> exports) {

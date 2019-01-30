@@ -8,6 +8,7 @@
 #ifndef SRC_RTCAUDIOSOURCE_H_
 #define SRC_RTCAUDIOSOURCE_H_
 
+#include <atomic>
 #include <memory>
 
 #include <nan.h>
@@ -16,11 +17,10 @@
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 #include <v8.h>  // IWYU pragma: keep
 
+#include "src/converters/dictionaries.h"
 #include "src/peerconnectionfactory.h"  // IWYU pragma: keep
 
 namespace node_webrtc {
-
-struct RTCAudioSourceInit;
 
 class RTCAudioTrackSource : public webrtc::LocalAudioSource {
  public:
@@ -36,18 +36,37 @@ class RTCAudioTrackSource : public webrtc::LocalAudioSource {
     return false;
   }
 
-  void PushData() {}
+  void PushData(RTCOnDataEventDict dict) {
+    webrtc::AudioTrackSinkInterface* sink = _sink;
+    if (sink) {
+      sink->OnData(
+          dict.audioData.get(),
+          dict.bitsPerSample,
+          dict.sampleRate,
+          dict.numberOfChannels,
+          dict.numberOfFrames
+      );
+    }
+  }
+
+  void AddSink(webrtc::AudioTrackSinkInterface* sink) override {
+    _sink = sink;
+  }
+
+  void RemoveSink(webrtc::AudioTrackSinkInterface*) override {
+    _sink = nullptr;
+  }
 
  private:
   const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory = node_webrtc::PeerConnectionFactory::GetOrCreateDefault();
+
+  std::atomic<webrtc::AudioTrackSinkInterface*> _sink = {nullptr};
 };
 
 class RTCAudioSource
   : public Nan::ObjectWrap {
  public:
   RTCAudioSource();
-
-  explicit RTCAudioSource(const RTCAudioSourceInit init);
 
   ~RTCAudioSource() override = default;
 
