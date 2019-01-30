@@ -18,6 +18,7 @@
 #include "src/peerconnection.h"  // IWYU pragma: keep
 #include "src/peerconnectionfactory.h"
 #include "src/rtcaudiosink.h"  // IWYU pragma: keep
+#include "src/rtcaudiosource.h"  // IWYU pragma: keep
 #include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
 #include "src/rtcrtpsender.h"  // IWYU pragma: keep
 #include "src/rtcrtptransceiver.h"  // IWYU pragma: keep
@@ -39,6 +40,7 @@ static void init(v8::Handle<v8::Object> exports, v8::Handle<v8::Object> module) 
   node_webrtc::MediaStream::Init(exports);
   node_webrtc::MediaStreamTrack::Init(exports);
   node_webrtc::RTCAudioSink::Init(exports);
+  node_webrtc::RTCAudioSource::Init(exports);
   node_webrtc::RTCRtpReceiver::Init(exports);
   node_webrtc::RTCRtpSender::Init(exports);
   node_webrtc::RTCRtpTransceiver::Init(exports);
