@@ -695,6 +695,53 @@ CONVERTER_IMPL(node_webrtc::I420ImageData, rtc::scoped_refptr<webrtc::I420Buffer
   return node_webrtc::Pure(CreateI420Buffer(value));
 }
 
+static node_webrtc::Validation<node_webrtc::RTCOnDataEventDict> CreateRTCOnDataEventDict(
+    v8::ArrayBuffer::Contents audioData,
+    int bitsPerSample,
+    int sampleRate,
+    int numberOfChannels,
+    int numberOfFrames
+) {
+  auto actualByteLength = audioData.ByteLength();
+  auto expectedByteLength = static_cast<size_t>(numberOfChannels * numberOfFrames * bitsPerSample / 8);
+  if (actualByteLength != expectedByteLength) {
+    auto error = "Expected a .byteLength of " + std::to_string(expectedByteLength) + ", not " +
+        std::to_string(actualByteLength);
+    return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Invalid(error);
+  }
+
+  std::shared_ptr<uint8_t> audioDataCopy(new uint8_t[actualByteLength]);
+  if (!audioDataCopy) {
+    auto error = "Failed to copy audio data";
+    return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Invalid(error);
+  }
+  memcpy(audioDataCopy.get(), audioData.Data(), actualByteLength);
+
+  node_webrtc::RTCOnDataEventDict dict = {
+    std::move(audioDataCopy),
+    bitsPerSample,
+    sampleRate,
+    static_cast<size_t>(numberOfChannels),
+    static_cast<size_t>(numberOfFrames)
+  };
+
+  return node_webrtc::Pure(dict);
+}
+
+FROM_JS_IMPL(node_webrtc::RTCOnDataEventDict, value) {
+  return node_webrtc::From<v8::Local<v8::Object>>(value).FlatMap<node_webrtc::RTCOnDataEventDict>(
+  [](const v8::Local<v8::Object> object) {
+    return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Join(
+            curry(CreateRTCOnDataEventDict)
+            % node_webrtc::GetRequired<v8::ArrayBuffer::Contents>(object, "audioData")
+            * node_webrtc::GetRequired<int>(object, "bitsPerSample")
+            * node_webrtc::GetRequired<int>(object, "sampleRate")
+            * node_webrtc::GetRequired<int>(object, "numberOfChannels")
+            * node_webrtc::GetRequired<int>(object, "numberOfFrames")
+        );
+  });
+}
+
 #define REQUIRED(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_REQUIRED(type, stringValue)
 #define OPTIONAL(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_OPTIONAL(type, stringValue)
 #define DEFAULT(type, memberName, stringValue, defaultValue) EXPAND_OBJ_FROM_JS_DEFAULT(type, stringValue, defaultValue)
