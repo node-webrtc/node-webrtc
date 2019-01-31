@@ -40,13 +40,16 @@ class RTCAudioTrackSource : public webrtc::LocalAudioSource {
     webrtc::AudioTrackSinkInterface* sink = _sink;
     if (sink) {
       sink->OnData(
-          dict.audioData.get(),
+          dict.audioData,
           dict.bitsPerSample,
           dict.sampleRate,
           dict.numberOfChannels,
           dict.numberOfFrames
       );
     }
+    // HACK(mroberts): I'd rather we use a smart pointer.
+    delete[] dict.audioData;
+    dict.audioData = nullptr;
   }
 
   void AddSink(webrtc::AudioTrackSinkInterface* sink) override {

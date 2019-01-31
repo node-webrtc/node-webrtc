@@ -117,7 +117,7 @@ class SomeError;
 
 #define RTCONDATAEVENTDICT RTCOnDataEventDict
 #define RTCONDATAEVENTDICT_LIST \
-  REQUIRED(std::shared_ptr<uint8_t>, audioData, "audioData") \
+  REQUIRED(uint8_t*, audioData, "audioData") \
   REQUIRED(int, bitsPerSample, "bitsPerSample") \
   REQUIRED(int, sampleRate, "sampleRate") \
   REQUIRED(size_t, numberOfChannels, "numberOfChannels") \

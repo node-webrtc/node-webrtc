@@ -48,7 +48,7 @@ NAN_METHOD(node_webrtc::RTCAudioSource::CreateTrack) {
 NAN_METHOD(node_webrtc::RTCAudioSource::OnData) {
   auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCAudioSource>(info.Holder());
   CONVERT_ARGS_OR_THROW_AND_RETURN(dict, node_webrtc::RTCOnDataEventDict)
-  self->_source->PushData(std::move(dict));
+  self->_source->PushData(dict);
 }
 
 void node_webrtc::RTCAudioSource::Init(v8::Handle<v8::Object> exports) {
