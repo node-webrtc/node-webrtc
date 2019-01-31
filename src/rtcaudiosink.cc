@@ -66,7 +66,7 @@ void node_webrtc::RTCAudioSink::OnData(
     size_t number_of_channels,
     size_t number_of_frames) {
   auto byte_length = number_of_channels * number_of_frames * bits_per_sample / 8;
-  std::shared_ptr<uint8_t> audio_data_copy(new uint8_t[byte_length]);
+  std::unique_ptr<uint8_t[]> audio_data_copy(new uint8_t[byte_length]);
   if (!audio_data_copy) {
     // TODO(mroberts): Throw an error somehow?
     return;
@@ -74,7 +74,7 @@ void node_webrtc::RTCAudioSink::OnData(
   memcpy(audio_data_copy.get(), audio_data, byte_length);
 
   Dispatch(node_webrtc::OnDataEvent::Create({
-    std::move(audio_data_copy),
+    audio_data_copy.release(),
     bits_per_sample,
     sample_rate,
     number_of_channels,
@@ -83,9 +83,12 @@ void node_webrtc::RTCAudioSink::OnData(
 }
 
 void node_webrtc::RTCAudioSink::HandleOnDataEvent(const node_webrtc::OnDataEvent& event) {
+  Nan::HandleScope scope;
   auto maybeValue = node_webrtc::From<v8::Local<v8::Value>>(event.dict);
   if (maybeValue.IsInvalid()) {
     // TODO(mroberts): Should raise an error; although this really shouldn't happen.
+    // HACK(mroberts): I'd rather we use a smart pointer.
+    delete[] event.dict.audioData;
     return;
   }
   auto value = maybeValue.UnsafeFromValid();

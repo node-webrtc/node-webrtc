@@ -710,7 +710,7 @@ static node_webrtc::Validation<node_webrtc::RTCOnDataEventDict> CreateRTCOnDataE
     return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Invalid(error);
   }
 
-  std::shared_ptr<uint8_t> audioDataCopy(new uint8_t[actualByteLength]);
+  std::unique_ptr<uint8_t[]> audioDataCopy(new uint8_t[actualByteLength]);
   if (!audioDataCopy) {
     auto error = "Failed to copy audio data";
     return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Invalid(error);
@@ -718,7 +718,7 @@ static node_webrtc::Validation<node_webrtc::RTCOnDataEventDict> CreateRTCOnDataE
   memcpy(audioDataCopy.get(), audioData.Data(), actualByteLength);
 
   node_webrtc::RTCOnDataEventDict dict = {
-    std::move(audioDataCopy),
+    audioDataCopy.release(),
     bitsPerSample,
     sampleRate,
     static_cast<size_t>(numberOfChannels),
@@ -813,9 +813,8 @@ TO_JS_IMPL(node_webrtc::RTCOnDataEventDict, dict) {
 
   auto isolate = Nan::GetCurrentContext()->GetIsolate();
   auto byteLength = dict.numberOfChannels * dict.numberOfFrames * dict.bitsPerSample / 8;
-  auto arrayBuffer = v8::ArrayBuffer::New(isolate, dict.audioData.get(), byteLength, v8::ArrayBufferCreationMode::kInternalized);
+  auto arrayBuffer = v8::ArrayBuffer::New(isolate, dict.audioData, byteLength, v8::ArrayBufferCreationMode::kInternalized);
   auto uint8Array = v8::Uint8ClampedArray::New(arrayBuffer, 0, byteLength);
-  dict.audioData.reset();
 
   auto object = Nan::New<v8::Object>();
   object->Set(Nan::New("audioData").ToLocalChecked(), uint8Array);
