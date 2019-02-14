@@ -32,7 +32,7 @@ set(depot_tools_install_dir ${SOURCE_DIR})
 # libwebrtc
 # -----------------------------------------------------------------------------
 
-set(WEBRTC_REVISION branch-heads/71)
+set(WEBRTC_REVISION branch-heads/72)
 
 list(APPEND GN_GEN_ARGS
   rtc_build_examples=false
