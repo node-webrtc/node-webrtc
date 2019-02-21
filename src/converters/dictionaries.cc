@@ -752,6 +752,7 @@ TO_JS_IMPL(webrtc::VideoFrame, value) {
   auto frame = Nan::New<v8::Object>();
   frame->Set(Nan::New("width").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(value.width()).UnsafeFromValid());
   frame->Set(Nan::New("height").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(value.height()).UnsafeFromValid());
+  frame->Set(Nan::New("rotation").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(static_cast<int>(value.rotation())).UnsafeFromValid());
   auto maybeData = node_webrtc::From<v8::Local<v8::Value>>(value.video_frame_buffer());
   if (maybeData.IsInvalid()) {
     return node_webrtc::Validation<v8::Local<v8::Value>>::Invalid(maybeData.ToErrors()[0]);
