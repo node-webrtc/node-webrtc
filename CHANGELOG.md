@@ -1,3 +1,104 @@
+0.3.6
+=====
+
+New Features
+------------
+
+### Programmatic Audio
+
+This release of node-webrtc adds non-standard, programmatic audio APIs in the
+form of RTCAudioSource and RTCAudioSink. These APIs are similar to the
+previously added RTCVideoSource and RTCVideoSink APIs. With these APIs, you can
+
+* Pass audio samples to RTCAudioSource via the `onData` method. Then use the
+  RTCAudioSource's `createTrack` method to create a local audio
+  MediaStreamTrack.
+* Construct an RTCAudioSink from a local or remote audio MediaStreamTrack. The
+  RTCAudioSink will emit a "data" event every time audio samples are received.
+  When you're finished, stop the RTCAudioSink by calling `stop`.
+
+Because these APIs are non-standard, they are exposed via a `nonstandard`
+property on node-webrtc's exports object. For example,
+
+```js
+const { RTCAudioSource, RTCAudioSink } = require('wrtc').nonstandard;
+
+const source = new RTCAudioSource();
+const track = source.createTrack();
+const sink = new RTCAudioSink(track);
+
+const bitsPerSample = 16;
+const sampleRate = 8000;
+const numberOfChannels = 1;  // mono
+const numberOfFrames = sampleRate / 100;  // 10 ms worth of samples
+const audioData = new Int16Array(numberOfChannels * numberOfFrames);
+
+const data = {
+  audioData,
+  sampleRate,
+  bitsPerSample,
+  numberOfChannels,
+  numberOfFrames
+};
+
+const interval = setInterval(() => {
+  // Update audioData in some way before sending.
+  source.onData(data);
+});
+
+sink.ondata = data => {
+  // Do something with the received audio samples.
+};
+
+setTimeout(() => {
+  clearInterval(interval);
+  track.stop();
+  sink.stop();
+}, 10000);
+```
+
+#### RTCAudioSource
+
+```webidl
+[constructor]
+interface RTCAudioSource {
+  MediaStreamTrack createTrack();
+  void onData(RTCAudioData data);
+};
+
+dictionary RTCAudioData {
+  required Int16Array audioData;
+  required unsigned short sampleRate;
+  required octet bitsPerSample;
+  required octet numberOfChannels;
+  required octet numberOfFrames;
+};
+```
+
+* Calling `createTrack` will return a local audio MediaStreamTrack whose source
+  is the RTCAudioSource.
+* Calling `onData` with RTCAudioData pushes a new audio samples to every
+  non-stopped local audio MediaStreamTrack created with `createTrack`.
+* RTCAudioData should represent 10 ms worth of 16-bit audio samples.
+
+#### RTCAudioSink
+
+```webidl
+[constructor(MediaStreamTrack track)]
+interface RTCAudioSink {
+  void stop();
+  readonly attribute boolean stopped;
+  attribute EventHandler ondata;
+};
+```
+
+* RTCAudioSink's constructor accepts a local or remote audio MediaStreamTrack.
+* As long as neither the RTCAudioSink nor the RTCAudioSink's MediaStreamTrack
+  are stopped, the RTCAudioSink will raise a "data" event any time RTCAudioData
+  is received.
+* The "data" event has all the properties of RTCAudioData.
+* RTCAudioSink must be stopped by calling `stop`.
+
 0.3.5
 =====
 
