@@ -12,8 +12,6 @@ function beforeOffer(peerConnection) {
   const dataChannel = peerConnection.createDataChannel('frequency');
 
   function onData(data) {
-    // FIXME(mroberts):
-    data.audioData = new Int16Array(data.audioData.buffer);
     const frequency = pitchDetector.onData(data);
     if (frequency && dataChannel.readyState === 'open') {
       dataChannel.send(JSON.stringify(frequency));

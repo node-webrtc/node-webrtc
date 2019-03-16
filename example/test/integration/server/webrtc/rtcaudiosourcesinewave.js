@@ -14,8 +14,6 @@ tape('RTCAudioSinkFrequencyDetector', t => {
     const pitchDetector = new PitchDetector(track);
     const e = 1;
     sink.ondata = data => {
-      // FIXME(mroberts):
-      data.audioData = new Int16Array(data.audioData.buffer);
       const frequency = pitchDetector.onData(data);
       if (source.frequency - e <= frequency && frequency <= source.frequency + e) {
         sink.stop();
