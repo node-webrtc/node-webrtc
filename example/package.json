@@ -1,0 +1,33 @@
+{
+  "name": "node-webrtc-examples",
+  "version": "0.1.0",
+  "description": "This project presents a few example applications using node-webrtc.",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint index.js examples lib test",
+    "start": "node index.js",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "tape 'test/unit/**/*.js'",
+    "test:integration": "tape 'test/integration/**/*.js'"
+  },
+  "keywords": [
+    "Web",
+    "Audio"
+  ],
+  "author": "Mark Andrus Roberts <markandrusroberts@gmail.com>",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "browserify-middleware": "^8.1.1",
+    "color-space": "^1.16.0",
+    "express": "^4.16.4",
+    "node-fetch": "^2.3.0",
+    "Scope": "github:kevincennis/Scope",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^5.15.1",
+    "tape": "^4.10.0"
+  }
+}
