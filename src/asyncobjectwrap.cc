@@ -51,6 +51,7 @@ void AsyncObjectWrap::MakeCallback(const char* name, const int argc, v8::Local<v
 }
 
 void AsyncObjectWrap::DestroyAsyncResource() {
+  Nan::HandleScope scope;
   uv_mutex_lock(&_async_resource_lock);
   if (_async_resource) {
 #if NODE_MAJOR_VERSION >= 9
