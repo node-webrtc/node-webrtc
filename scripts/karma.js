@@ -7,7 +7,7 @@ var spawn = require('child_process').spawn;
 var join = require('path').join;
 
 console.log('Starting server');
-var server = fork(join(__dirname, '..', 'examples', 'bridge.js'));
+var server = fork(join(__dirname, '..', 'karma', 'server.js'));
 console.log('Server PID is ' + server.pid);
 
 server.once('error', function(error) {
@@ -22,10 +22,12 @@ server.once('exit', function(code) {
   }
 });
 
+var configFile = join(__dirname, '..', 'karma', 'karma.conf.js');
+
 console.log('Starting Karma');
-var karma = spawn(join(__dirname, '..', 'node_modules', '.bin', 'karma'), ['start'], {
+var karma = spawn(join(__dirname, '..', 'node_modules', '.bin', 'karma'), ['start', configFile], {
   env: Object.assign({
-    FILE: join(__dirname, '..', 'examples', 'peer.js'),
+    FILE: join(__dirname, '..', 'karma', 'client.js'),
   }, process.env),
   shell: true,
   stdio: 'inherit'

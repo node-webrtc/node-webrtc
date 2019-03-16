@@ -63,16 +63,16 @@ aliases:
           npm run wpt:test
         fi
 
-  bridge-test: &bridge-test
+  test-browsers: &test-browsers
     run:
-      name: Run Bridge Test (x86_64-only)
+      name: Test Browsers (x86_64-only)
       command: |
         if [[ "$TARGET_ARCH" == arm* ]]; then
           echo "Skipping..."
           exit 0
         fi
 
-        npm run test:bridge
+        npm run test:browsers
 
   publish-binary: &publish-binary
     run:
@@ -331,7 +331,7 @@ aliases:
             echo >> $BASH_ENV export CHROME_BIN=$(pwd)/browsers/bin/chrome-$BVER
             echo >> $BASH_ENV export FIREFOX_BIN=$(pwd)/browsers/bin/firefox-$BVER
 
-      - <<: *bridge-test
+      - <<: *test-browsers
 
       - <<: *publish-binary
 

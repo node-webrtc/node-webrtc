@@ -73,10 +73,10 @@
   },
   "scripts": {
     "install": "node scripts/install.js",
-    "lint": "eslint lib/*.js lib/**/*.js test/*.js test/**/*.js examples/*.js examples/**/*.js karma.conf.js scripts/*.js",
+    "lint": "eslint lib/*.js lib/**/*.js test/*.js test/**/*.js karma/*.js scripts/*.js",
     "publish-binary": "node scripts/publish.js",
     "test": "node --expose-gc test/all.js",
-    "test:bridge": "cross-env BROWSER=chrome node scripts/karma.js && cross-env BROWSER=firefox node scripts/karma.js",
+    "test:browsers": "cross-env BROWSER=chrome node scripts/karma.js && cross-env BROWSER=firefox node scripts/karma.js",
     "wpt:init": "git submodule update --init --recursive",
     "wpt:reset": "rimraf ./test/web-platform-tests/tests && npm run wpt:init",
     "wpt:test": "SDP_SEMANTICS=unified-plan mocha test/web-platform-tests/run-wpts.js --exit",
