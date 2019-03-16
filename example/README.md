@@ -3,13 +3,16 @@ node-webrtc Examples
 
 This project presents a few example applications using node-webrtc.
 
-- [audio](audio): generates a sine wave using RTCAudioSource.
-- [bridge](bridge): simple RTCDataChannel ping/pong example.
-- [frequency-detector](frequency-detector): frequency detector implemented using
-  RTCAudioSink and communicated via RTCDataChannel.
-- [loopback](loopback): relays incoming audio and video.
-- [video](video): uses RTCVideoSink, [node-canvas](node-canvas), and
-  RTCVideoSource to draw spinning text on top of an incoming video.
+- [sine-wave](examples/sine-wave): generates a sine wave using RTCAudioSource;
+  frequency control implemented using RTCDataChannel.
+- [ping-pong](examples/ping-pong): simple RTCDataChannel ping/pong example.
+- [pitch-detector](examples/pitch-detector): pitch detector implemented using
+  RTCAudioSink and RTCDataChannel.
+- [audio-video-loopback](examples/audio-video-loopback): relays incoming audio
+  and video using RTCRtpTransceivers.
+- [video-compositing](examples/video-compositing): uses RTCVideoSink,
+  [node-canvas](https://github.com/Automattic/node-canvas), and RTCVideoSource
+  to draw spinning text on top of an incoming video.
 
 Usage
 -----
@@ -23,7 +26,7 @@ npm test
 npm start
 ```
 
-Then, navigate to [http://localhost:3000/index.html](http://localhost:3000/index.html).
+Then, navigate to [http://localhost:3000](http://localhost:3000).
 
 Architecture
 ------------
@@ -43,7 +46,9 @@ answer to the RTCPeerConnection's URL.
 
 ```
 Client                                               Server
+  |                                                     |
   |  POST /connections                                  |
+  |                                                     |
   |---------------------------------------------------->|
   |                                                     |
   |                                             200 OK  |
@@ -70,7 +75,9 @@ within the `timeToReconnect` window, will also trigger teardown. The default
 
 ```
 Client                                               Server
+  |                                                     |
   |  DELETE /connections/$ID                            |
+  |                                                     |
   |---------------------------------------------------->|
   |                                                     |
   |                                             200 OK  |

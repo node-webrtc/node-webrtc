@@ -9,7 +9,13 @@ aliases:
   lint-javascript: &lint-javascript
     run:
       name: Lint JavaScript
-      command: npm run lint
+      command: |
+        npm run lint
+
+        if [[ "$TARGET_ARCH" != arm* ]]; then
+          cd example
+          npm install
+        fi
 
   test-javascript: &test-javascript
     run:
@@ -23,6 +29,9 @@ aliases:
         elif [[ "$TARGET_ARCH" == arm64 ]]; then
           qemu-aarch64 -L ~/node-webrtc/build/external/libwebrtc/download/src/build/linux/debian_sid_arm64-sysroot ~/node-$NODE_VERSION-linux-arm64/bin/node test/create-offer.js
         else
+          npm test
+
+          cd example
           npm test
         fi
 
@@ -221,6 +230,11 @@ aliases:
             # NOTE(mroberts): We need `--unsafe-perm` to run the install script
             # as root.
             npm install --unsafe-perm
+
+            if [[ "$TARGET_ARCH" != arm* ]]; then
+              cd example
+              npm install
+            fi
 
       - <<: *save-cache
 
