@@ -32,7 +32,7 @@ var app = express();
 
 var server = http.createServer(app);
 
-app.get('/peer.js', browserify(join(__dirname, 'peer.js')));
+app.get('/index.js', browserify(join(__dirname, 'client.js')));
 
 app.use(express.static(__dirname));
 

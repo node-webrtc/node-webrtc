@@ -19,8 +19,8 @@ ECHO npm test
 CALL npm test
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-ECHO npm run test:bridge
-CALL npm run test:bridge
+ECHO npm run test:browsers
+CALL npm run test:browsers
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO node-pre-gyp package

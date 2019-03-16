@@ -129,31 +129,16 @@ npm test
 npm run wpt:test
 ```
 
-## MediaStream Loopback Example
+## Browser Tests
 
-This example demonstrates relaying MediaStreamTracks through node-webrtc. Run
-the example with
-
-```
-node examples/loopback.server.js
-```
-
-Then navigate to [http://localhost:8080/loopback.client.html](http://localhost:8080/loopback.client.html).
-You should be prompted for your microphone and webcam. Once granted, the browser
-negotiates an RTCPeerConnection with the server, and the server relays the
-browser's MediaStreamTracks. Finally, these are displayed in a &lt;video&gt;
-element in the browser.
-
-## Programmatic Video Example
-
-This example demonstrates compositing an incoming video MediaStreamTrack with
-graphics drawn using [node-canvas](https://github.com/Automattic/node-canvas).
+These tests are run by Circle CI to ensure node-webrtc remains compatible with
+the latest versions of Chrome and Firefox.
 
 ```
-node examples/programmatic-video.server.js
+npm run test:browsers
 ```
 
-Then navigate to [http://localhost:8080/programmatic-video.client.html](http://localhost:8080/programmatic-video.client.html).
-You should be prompted for your webcam. Once granted, the browser negotiates an
-RTCPeerConnection with the server, and the server relays the browser video track
-with the text "node-webrtc" composited over it.
+## node-webrtc Examples
+
+See [example/](example) for a node-webrtc example application demonstrating
+RTCDataChannels, RTCRtpTransceivers, and more.
