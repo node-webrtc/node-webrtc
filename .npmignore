@@ -19,8 +19,8 @@ third_party
 AUTHORS
 appveyor.yml
 CHANGELOG.md
-karma.conf.js
-examples
+karma
+example
 README.md
 scripts/build-appveyor.bat
 scripts/karma.js
