@@ -5,40 +5,56 @@ const test = require('tape');
 
 const { RTCAudioSink, RTCAudioSource } = require('..').nonstandard;
 
-const bitsPerSample = 8;
-const sampleRate = 8000;
-const numberOfFrames = 1;
-const numberOfChannels = 1;
+function createData(bitsPerSample) {
+  const sampleRate = 8000;
+  const numberOfFrames = 1;
+  const numberOfChannels = 1;
 
-const byteLength = numberOfChannels * numberOfFrames * bitsPerSample / 8;
+  const length = numberOfFrames * numberOfChannels;
+  const byteLength = length * bitsPerSample / 8;
 
-const audioData = new Uint8ClampedArray(byteLength);
+  const audioData = {
+    8: new Int8Array(length),
+    16: new Int16Array(length),
+    32: new Int32Array(length)
+  }[bitsPerSample] || new Uint8Array(byteLength);
 
-const data = {
-  audioData,
-  sampleRate,
-  bitsPerSample,
-  numberOfChannels,
-  numberOfFrames
-};
+  audioData[0] = -1 * 2 ** bitsPerSample / 2;
 
-test('RTCAudioSource', t => {
-  const source = new RTCAudioSource();
-  const track = source.createTrack();
-  t.ok(!track.stopped, 'createTrack() returns a non-stopped MediaStreamTrack');
+  return {
+    audioData,
+    sampleRate,
+    bitsPerSample,
+    numberOfChannels,
+    numberOfFrames
+  };
+}
 
-  const sink = new RTCAudioSink(track);
-  const receivedDataPromise = new Promise(resolve => { sink.ondata = resolve; });
+function createTest(bitsPerSample) {
+  test(`RTCAudioSource (${bitsPerSample}-bit)`, t => {
+    const source = new RTCAudioSource();
+    const track = source.createTrack();
+    t.ok(!track.stopped, 'createTrack() returns a non-stopped MediaStreamTrack');
 
-  t.equal(source.onData(data), undefined, 'onData() returns undefined');
+    const sink = new RTCAudioSink(track);
+    const receivedDataPromise = new Promise(resolve => { sink.ondata = resolve; });
 
-  receivedDataPromise.then(receivedData => {
-    t.deepEqual(receivedData, Object.assign({ type: 'data' }, data));
+    const data = createData(bitsPerSample);
+    t.equal(source.onData(data), undefined, 'onData() returns undefined');
 
-    track.stop();
+    receivedDataPromise.then(receivedData => {
+      t.deepEqual(receivedData, Object.assign({ type: 'data' }, data));
 
-    sink.stop();
+      track.stop();
 
-    t.end();
+      sink.stop();
+
+      t.end();
+    });
   });
-});
+}
+
+// createTest(8);
+createTest(16);
+// createTest(32);
+// createTest(64);

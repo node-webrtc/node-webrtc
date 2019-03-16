@@ -702,6 +702,11 @@ static node_webrtc::Validation<node_webrtc::RTCOnDataEventDict> CreateRTCOnDataE
     int numberOfChannels,
     int numberOfFrames
 ) {
+  if (bitsPerSample != 16) {
+    auto error = "Expected a .bitsPerSample of 16, not " + std::to_string(bitsPerSample);
+    return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Invalid(error);
+  }
+
   auto actualByteLength = audioData.ByteLength();
   auto expectedByteLength = static_cast<size_t>(numberOfChannels * numberOfFrames * bitsPerSample / 8);
   if (actualByteLength != expectedByteLength) {
@@ -813,12 +818,27 @@ TO_JS_IMPL(node_webrtc::RTCOnDataEventDict, dict) {
   Nan::EscapableHandleScope scope;
 
   auto isolate = Nan::GetCurrentContext()->GetIsolate();
-  auto byteLength = dict.numberOfChannels * dict.numberOfFrames * dict.bitsPerSample / 8;
+  auto length = dict.numberOfChannels * dict.numberOfFrames;
+  auto byteLength = length * dict.bitsPerSample / 8;
   auto arrayBuffer = v8::ArrayBuffer::New(isolate, dict.audioData, byteLength, v8::ArrayBufferCreationMode::kInternalized);
-  auto uint8Array = v8::Uint8ClampedArray::New(arrayBuffer, 0, byteLength);
+
+  v8::Local<v8::Value> audioData;
+  switch (dict.bitsPerSample) {
+    case 8:
+      audioData = v8::Int8Array::New(arrayBuffer, 0, length);
+      break;
+    case 16:
+      audioData = v8::Int16Array::New(arrayBuffer, 0, length);
+      break;
+    case 32:
+      audioData = v8::Int32Array::New(arrayBuffer, 0, length);
+      break;
+    default:
+      audioData = v8::Uint8Array::New(arrayBuffer, 0, byteLength);
+  }
 
   auto object = Nan::New<v8::Object>();
-  object->Set(Nan::New("audioData").ToLocalChecked(), uint8Array);
+  object->Set(Nan::New("audioData").ToLocalChecked(), audioData);
   object->Set(Nan::New("bitsPerSample").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(dict.bitsPerSample).UnsafeFromValid());
   object->Set(Nan::New("sampleRate").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(dict.sampleRate).UnsafeFromValid());
   object->Set(Nan::New("numberOfChannels").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(static_cast<double>(dict.numberOfChannels)).UnsafeFromValid());
