@@ -120,6 +120,11 @@ FROM_JS_IMPL(uint8_t, value) {
   return node_webrtc::Validation<uint8_t>(uint8);
 }
 
+TO_JS_IMPL(uint8_t, value) {
+  Nan::EscapableHandleScope scope;
+  return node_webrtc::Pure(scope.Escape(Nan::New(value)).As<v8::Value>());
+}
+
 FROM_JS_IMPL(uint16_t, value) {
   auto maybeInt32 = Nan::To<v8::Int32>(value);
   if (maybeInt32.IsEmpty()) {
@@ -131,6 +136,11 @@ FROM_JS_IMPL(uint16_t, value) {
   }
   auto uint16 = static_cast<uint16_t>(int32);
   return node_webrtc::Validation<uint16_t>(uint16);
+}
+
+TO_JS_IMPL(uint16_t, value) {
+  Nan::EscapableHandleScope scope;
+  return node_webrtc::Pure(scope.Escape(Nan::New(value)).As<v8::Value>());
 }
 
 FROM_JS_IMPL(uint32_t, value) {

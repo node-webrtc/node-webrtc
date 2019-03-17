@@ -75,10 +75,10 @@ void node_webrtc::RTCAudioSink::OnData(
 
   Dispatch(node_webrtc::OnDataEvent::Create({
     audio_data_copy.release(),
-    bits_per_sample,
-    sample_rate,
-    number_of_channels,
-    number_of_frames
+    static_cast<uint8_t>(bits_per_sample),
+    static_cast<uint16_t>(sample_rate),
+    static_cast<uint8_t>(number_of_channels),
+    static_cast<uint16_t>(number_of_frames)
   }));
 }
 
