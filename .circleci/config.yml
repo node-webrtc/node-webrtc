@@ -12,7 +12,7 @@ aliases:
       command: |
         npm run lint
 
-        if [[ "$TARGET_ARCH" != arm* ]]; then
+        if [[ "$TARGET_ARCH" != arm* && "$NODE_VERSION" != 6 ]]; then
           cd example
           npm install
         fi
