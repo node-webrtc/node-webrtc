@@ -14,7 +14,7 @@ aliases:
 
         if [[ "$TARGET_ARCH" != arm* && "$NODE_VERSION" != 6 ]]; then
           cd example
-          npm install
+          npm run lint
         fi
 
   test-javascript: &test-javascript
@@ -31,8 +31,10 @@ aliases:
         else
           npm test
 
-          cd example
-          npm test
+          if [[ "$NODE_VERSION" != v6* ]]; then
+            cd example
+            npm test
+          fi
         fi
 
   prepare-for-web-platform-tests: &prepare-for-web-platform-tests
@@ -231,7 +233,7 @@ aliases:
             # as root.
             npm install --unsafe-perm
 
-            if [[ "$TARGET_ARCH" != arm* ]]; then
+            if [[ "$TARGET_ARCH" != arm* && "$NODE_VERSION" != 6 ]]; then
               cd example
               npm install
             fi
