@@ -697,10 +697,10 @@ CONVERTER_IMPL(node_webrtc::I420ImageData, rtc::scoped_refptr<webrtc::I420Buffer
 
 static node_webrtc::Validation<node_webrtc::RTCOnDataEventDict> CreateRTCOnDataEventDict(
     v8::ArrayBuffer::Contents audioData,
-    int bitsPerSample,
-    int sampleRate,
-    int numberOfChannels,
-    int numberOfFrames
+    uint8_t bitsPerSample,
+    uint16_t sampleRate,
+    uint8_t numberOfChannels,
+    uint16_t numberOfFrames
 ) {
   if (bitsPerSample != 16) {
     auto error = "Expected a .bitsPerSample of 16, not " + std::to_string(bitsPerSample);
@@ -726,8 +726,8 @@ static node_webrtc::Validation<node_webrtc::RTCOnDataEventDict> CreateRTCOnDataE
     audioDataCopy.release(),
     bitsPerSample,
     sampleRate,
-    static_cast<size_t>(numberOfChannels),
-    static_cast<size_t>(numberOfFrames)
+    numberOfChannels,
+    numberOfFrames
   };
 
   return node_webrtc::Pure(dict);
@@ -739,10 +739,10 @@ FROM_JS_IMPL(node_webrtc::RTCOnDataEventDict, value) {
     return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Join(
             curry(CreateRTCOnDataEventDict)
             % node_webrtc::GetRequired<v8::ArrayBuffer::Contents>(object, "audioData")
-            * node_webrtc::GetRequired<int>(object, "bitsPerSample")
-            * node_webrtc::GetRequired<int>(object, "sampleRate")
-            * node_webrtc::GetRequired<int>(object, "numberOfChannels")
-            * node_webrtc::GetRequired<int>(object, "numberOfFrames")
+            * node_webrtc::GetRequired<uint8_t>(object, "bitsPerSample")
+            * node_webrtc::GetRequired<uint16_t>(object, "sampleRate")
+            * node_webrtc::GetRequired<uint8_t>(object, "numberOfChannels")
+            * node_webrtc::GetRequired<uint16_t>(object, "numberOfFrames")
         );
   });
 }

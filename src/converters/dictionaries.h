@@ -118,10 +118,10 @@ class SomeError;
 #define RTCONDATAEVENTDICT RTCOnDataEventDict
 #define RTCONDATAEVENTDICT_LIST \
   REQUIRED(uint8_t*, audioData, "audioData") \
-  REQUIRED(int, bitsPerSample, "bitsPerSample") \
-  REQUIRED(int, sampleRate, "sampleRate") \
-  REQUIRED(size_t, numberOfChannels, "numberOfChannels") \
-  REQUIRED(size_t, numberOfFrames, "numberOfFrames")
+  REQUIRED(uint8_t, bitsPerSample, "bitsPerSample") \
+  REQUIRED(uint16_t, sampleRate, "sampleRate") \
+  REQUIRED(uint8_t, numberOfChannels, "numberOfChannels") \
+  REQUIRED(uint16_t, numberOfFrames, "numberOfFrames")
 
 #define RTCDTLSFINGERPRINT RTCDtlsFingerprint
 #define RTCDTLSFINGERPRINT_LIST \
