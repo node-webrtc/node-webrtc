@@ -398,12 +398,17 @@ aliases:
 
       - run:
           name: npm install
-          command:
+          command: |
             # NOTE(mroberts): We aren't interested in downloading pre-built
             # binaries on the CI server.
             export SKIP_DOWNLOAD=true
 
             npm install
+
+            if [[ "$NODE_VERSION" != 6 ]]; then
+              cd example
+              npm install
+            fi
 
       - <<: *save-cache
 
