@@ -44,7 +44,7 @@ async function beforeAnswer(peerConnection) {
 createExample('video-compositing', description, { beforeAnswer });
 
 const videos = document.createElement('div');
-videos.className = 'videos';
+videos.className = 'grid';
 videos.appendChild(localVideo);
 videos.appendChild(remoteVideo);
 document.body.appendChild(videos);

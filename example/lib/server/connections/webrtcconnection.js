@@ -69,12 +69,7 @@ class WebRtcConnection extends Connection {
 
     this.doOffer = async () => {
       const offer = await peerConnection.createOffer();
-      // await peerConnection.setLocalDescription(offer);
-      const fixedOffer = {
-        type: 'offer',
-        sdp: offer.sdp.replace('UDP/TLS/RTP/SAVPF 111 103 104 9 102 0 8 106 105 13 110 112 113 126', 'UDP/TLS/RTP/SAVPF 0 103 104 9 102 111 8 106 105 13 110 112 113 126')
-      };
-      await peerConnection.setLocalDescription(fixedOffer);
+      await peerConnection.setLocalDescription(offer);
       try {
         await waitUntilIceGatheringStateComplete(peerConnection, options);
       } catch (error) {

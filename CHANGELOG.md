@@ -71,7 +71,7 @@ dictionary RTCAudioData {
   required unsigned short sampleRate;
   required octet bitsPerSample;
   required octet numberOfChannels;
-  required octet numberOfFrames;
+  required unsigned short numberOfFrames;
 };
 ```
 
