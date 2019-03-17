@@ -8,7 +8,7 @@ class RTCAudioSourceSineWave {
   constructor(options = {}) {
     options = {
       frequency: 440,
-      numberOfChannels: 1,
+      channelCount: 1,
       panning: null,
       sampleRate: 48000,
       schedule: setTimeout,
@@ -17,12 +17,12 @@ class RTCAudioSourceSineWave {
     };
 
     const {
-      numberOfChannels,
+      channelCount,
       sampleRate
     } = options;
 
-    if (numberOfChannels !== 1 && numberOfChannels !== 2) {
-      throw new Error('numberOfChannels must be 1 or 2');
+    if (channelCount !== 1 && channelCount !== 2) {
+      throw new Error('channelCount must be 1 or 2');
     }
 
     const bitsPerSample = 16;
@@ -30,13 +30,13 @@ class RTCAudioSourceSineWave {
     const numberOfFrames = sampleRate / 100;
     const secondsPerSample = 1 / sampleRate;
     const source = new RTCAudioSource();
-    const audioData = new Int16Array(numberOfFrames * numberOfChannels);
+    const samples = new Int16Array(channelCount * numberOfFrames);
 
     const data = {
-      audioData,
+      samples,
       sampleRate,
       bitsPerSample,
-      numberOfChannels,
+      channelCount,
       numberOfFrames
     };
 
@@ -51,8 +51,8 @@ class RTCAudioSourceSineWave {
 
     function next() {
       for (let i = 0; i < numberOfFrames; i++, time += secondsPerSample) {
-        for (let j = 0; j < numberOfChannels; j++) {
-          audioData[i * numberOfChannels + j] = a[j] * Math.sin(twoPi * frequency * time) * maxValue;
+        for (let j = 0; j < channelCount; j++) {
+          samples[i * channelCount + j] = a[j] * Math.sin(twoPi * frequency * time) * maxValue;
         }
       }
       source.onData(data);
@@ -76,7 +76,7 @@ class RTCAudioSourceSineWave {
     };
 
     this.setPanning = newPanning => {
-      if (numberOfChannels === 1) {
+      if (channelCount === 1) {
         return;
       }
       panning = newPanning;

@@ -27,18 +27,12 @@ const source = new RTCAudioSource();
 const track = source.createTrack();
 const sink = new RTCAudioSink(track);
 
-const bitsPerSample = 16;
 const sampleRate = 8000;
-const numberOfChannels = 1;  // mono
-const numberOfFrames = sampleRate / 100;  // 10 ms worth of samples
-const audioData = new Int16Array(numberOfChannels * numberOfFrames);
+const samples = new Int16Array(sampleRate / 100);  // 10 ms of 16-bit mono audio
 
 const data = {
-  audioData,
-  sampleRate,
-  bitsPerSample,
-  numberOfChannels,
-  numberOfFrames
+  samples,
+  sampleRate
 };
 
 const interval = setInterval(() => {
@@ -67,11 +61,11 @@ interface RTCAudioSource {
 };
 
 dictionary RTCAudioData {
-  required Int16Array audioData;
+  required Int16Array samples;
   required unsigned short sampleRate;
-  required octet bitsPerSample;
-  required octet numberOfChannels;
-  required unsigned short numberOfFrames;
+  octet bitsPerSample = 16;
+  octet channelCount = 1;
+  unsigned short numberOfFrames;
 };
 ```
 

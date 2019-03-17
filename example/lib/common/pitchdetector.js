@@ -24,7 +24,7 @@ class PitchDetector {
       sampleRate = data.sampleRate;
       const timePerSample = 1 / sampleRate;
       const zero = data.unsigned ? (2 ** data.bitsPerSample) / 2 : 0;
-      data.audioData.forEach((sample, i) => {
+      data.samples.forEach((sample, i) => {
         if (isPositive && sample < zero) {
           changed = true;
           isPositive = false;
@@ -34,7 +34,7 @@ class PitchDetector {
           isPositive = true;
         }
       });
-      lastTime += data.audioData.length * timePerSample;
+      lastTime += data.samples.length * timePerSample;
       if (changed && crossings.length >= 2) {
         changed = false;
         const averagePeriod = averageDifference(crossings);

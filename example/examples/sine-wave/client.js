@@ -47,7 +47,7 @@ async function beforeAnswer(peerConnection) {
 
   const interval = setInterval(() => {
     const data = {
-      audioData: bytes,
+      samples: bytes,
       bitsPerSample: 8,
       sampleRate: audioContext.sampleRate,
       unsigned: true

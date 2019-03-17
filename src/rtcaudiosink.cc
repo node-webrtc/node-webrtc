@@ -78,7 +78,7 @@ void node_webrtc::RTCAudioSink::OnData(
     static_cast<uint8_t>(bits_per_sample),
     static_cast<uint16_t>(sample_rate),
     static_cast<uint8_t>(number_of_channels),
-    static_cast<uint16_t>(number_of_frames)
+    node_webrtc::MakeJust<uint16_t>(static_cast<uint16_t>(number_of_frames))
   }));
 }
 
@@ -88,7 +88,7 @@ void node_webrtc::RTCAudioSink::HandleOnDataEvent(const node_webrtc::OnDataEvent
   if (maybeValue.IsInvalid()) {
     // TODO(mroberts): Should raise an error; although this really shouldn't happen.
     // HACK(mroberts): I'd rather we use a smart pointer.
-    delete[] event.dict.audioData;
+    delete[] event.dict.samples;
     return;
   }
   auto value = maybeValue.UnsafeFromValid();

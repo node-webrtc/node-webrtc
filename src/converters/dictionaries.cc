@@ -696,38 +696,45 @@ CONVERTER_IMPL(node_webrtc::I420ImageData, rtc::scoped_refptr<webrtc::I420Buffer
 }
 
 static node_webrtc::Validation<node_webrtc::RTCOnDataEventDict> CreateRTCOnDataEventDict(
-    v8::ArrayBuffer::Contents audioData,
+    v8::ArrayBuffer::Contents samples,
     uint8_t bitsPerSample,
     uint16_t sampleRate,
-    uint8_t numberOfChannels,
-    uint16_t numberOfFrames
+    uint8_t channelCount,
+    node_webrtc::Maybe<uint16_t> maybeNumberOfFrames
 ) {
   if (bitsPerSample != 16) {
     auto error = "Expected a .bitsPerSample of 16, not " + std::to_string(bitsPerSample);
     return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Invalid(error);
   }
 
-  auto actualByteLength = audioData.ByteLength();
-  auto expectedByteLength = static_cast<size_t>(numberOfChannels * numberOfFrames * bitsPerSample / 8);
+  uint16_t numberOfFrames = sampleRate / 100;  // 10 ms
+  auto actualNumberOfFrames = maybeNumberOfFrames.FromMaybe(numberOfFrames);
+  if (actualNumberOfFrames != numberOfFrames) {
+    auto error = "Expected a .numberOfFrames of " + std::to_string(numberOfFrames) + ", not " + std::to_string(actualNumberOfFrames);
+    return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Invalid(error);
+  }
+
+  auto actualByteLength = samples.ByteLength();
+  auto expectedByteLength = static_cast<size_t>(channelCount * numberOfFrames * bitsPerSample / 8);
   if (actualByteLength != expectedByteLength) {
     auto error = "Expected a .byteLength of " + std::to_string(expectedByteLength) + ", not " +
         std::to_string(actualByteLength);
     return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Invalid(error);
   }
 
-  std::unique_ptr<uint8_t[]> audioDataCopy(new uint8_t[actualByteLength]);
-  if (!audioDataCopy) {
-    auto error = "Failed to copy audio data";
+  std::unique_ptr<uint8_t[]> samplesCopy(new uint8_t[actualByteLength]);
+  if (!samplesCopy) {
+    auto error = "Failed to copy samples";
     return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Invalid(error);
   }
-  memcpy(audioDataCopy.get(), audioData.Data(), actualByteLength);
+  memcpy(samplesCopy.get(), samples.Data(), actualByteLength);
 
   node_webrtc::RTCOnDataEventDict dict = {
-    audioDataCopy.release(),
+    samplesCopy.release(),
     bitsPerSample,
     sampleRate,
-    numberOfChannels,
-    numberOfFrames
+    channelCount,
+    node_webrtc::MakeJust<uint16_t>(numberOfFrames)
   };
 
   return node_webrtc::Pure(dict);
@@ -738,11 +745,11 @@ FROM_JS_IMPL(node_webrtc::RTCOnDataEventDict, value) {
   [](const v8::Local<v8::Object> object) {
     return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Join(
             curry(CreateRTCOnDataEventDict)
-            % node_webrtc::GetRequired<v8::ArrayBuffer::Contents>(object, "audioData")
-            * node_webrtc::GetRequired<uint8_t>(object, "bitsPerSample")
+            % node_webrtc::GetRequired<v8::ArrayBuffer::Contents>(object, "samples")
+            * node_webrtc::GetOptional<uint8_t>(object, "bitsPerSample", 16)
             * node_webrtc::GetRequired<uint16_t>(object, "sampleRate")
-            * node_webrtc::GetRequired<uint8_t>(object, "numberOfChannels")
-            * node_webrtc::GetRequired<uint16_t>(object, "numberOfFrames")
+            * node_webrtc::GetOptional<uint8_t>(object, "channelCount", 1)
+            * node_webrtc::GetOptional<uint16_t>(object, "numberOfFrames")
         );
   });
 }
@@ -817,31 +824,36 @@ TO_JS_IMPL(webrtc::VideoFrame, value) {
 TO_JS_IMPL(node_webrtc::RTCOnDataEventDict, dict) {
   Nan::EscapableHandleScope scope;
 
-  auto isolate = Nan::GetCurrentContext()->GetIsolate();
-  auto length = dict.numberOfChannels * dict.numberOfFrames;
-  auto byteLength = length * dict.bitsPerSample / 8;
-  auto arrayBuffer = v8::ArrayBuffer::New(isolate, dict.audioData, byteLength, v8::ArrayBufferCreationMode::kInternalized);
+  if (dict.numberOfFrames.IsNothing()) {
+    return node_webrtc::Validation<v8::Local<v8::Value>>::Invalid("numberOfFrames not provided");
+  }
+  auto numberOfFrames = dict.numberOfFrames.UnsafeFromJust();
 
-  v8::Local<v8::Value> audioData;
+  auto isolate = Nan::GetCurrentContext()->GetIsolate();
+  auto length = dict.channelCount * numberOfFrames;
+  auto byteLength = length * dict.bitsPerSample / 8;
+  auto arrayBuffer = v8::ArrayBuffer::New(isolate, dict.samples, byteLength, v8::ArrayBufferCreationMode::kInternalized);
+
+  v8::Local<v8::Value> samples;
   switch (dict.bitsPerSample) {
     case 8:
-      audioData = v8::Int8Array::New(arrayBuffer, 0, length);
+      samples = v8::Int8Array::New(arrayBuffer, 0, length);
       break;
     case 16:
-      audioData = v8::Int16Array::New(arrayBuffer, 0, length);
+      samples = v8::Int16Array::New(arrayBuffer, 0, length);
       break;
     case 32:
-      audioData = v8::Int32Array::New(arrayBuffer, 0, length);
+      samples = v8::Int32Array::New(arrayBuffer, 0, length);
       break;
     default:
-      audioData = v8::Uint8Array::New(arrayBuffer, 0, byteLength);
+      samples = v8::Uint8Array::New(arrayBuffer, 0, byteLength);
   }
 
   auto object = Nan::New<v8::Object>();
-  object->Set(Nan::New("audioData").ToLocalChecked(), audioData);
+  object->Set(Nan::New("samples").ToLocalChecked(), samples);
   object->Set(Nan::New("bitsPerSample").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(dict.bitsPerSample).UnsafeFromValid());
   object->Set(Nan::New("sampleRate").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(dict.sampleRate).UnsafeFromValid());
-  object->Set(Nan::New("numberOfChannels").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(static_cast<double>(dict.numberOfChannels)).UnsafeFromValid());
-  object->Set(Nan::New("numberOfFrames").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(static_cast<double>(dict.numberOfFrames)).UnsafeFromValid());
+  object->Set(Nan::New("channelCount").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(dict.channelCount).UnsafeFromValid());
+  object->Set(Nan::New("numberOfFrames").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(numberOfFrames).UnsafeFromValid());
   return node_webrtc::Pure(scope.Escape(object).As<v8::Value>());
 }

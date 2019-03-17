@@ -7,25 +7,25 @@ const { RTCAudioSink, RTCAudioSource } = require('..').nonstandard;
 
 function createData(bitsPerSample) {
   const sampleRate = 8000;
-  const numberOfFrames = 1;
-  const numberOfChannels = 1;
+  const channelCount = 1;
+  const numberOfFrames = sampleRate / 100;  // 10 ms
 
-  const length = numberOfFrames * numberOfChannels;
+  const length = channelCount * numberOfFrames;
   const byteLength = length * bitsPerSample / 8;
 
-  const audioData = {
+  const samples = {
     8: new Int8Array(length),
     16: new Int16Array(length),
     32: new Int32Array(length)
   }[bitsPerSample] || new Uint8Array(byteLength);
 
-  audioData[0] = -1 * Math.pow(2, bitsPerSample) / 2;
+  samples[0] = -1 * Math.pow(2, bitsPerSample) / 2;
 
   return {
-    audioData,
+    samples,
     sampleRate,
     bitsPerSample,
-    numberOfChannels,
+    channelCount,
     numberOfFrames
   };
 }
