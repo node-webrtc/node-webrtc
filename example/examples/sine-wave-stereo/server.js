@@ -4,7 +4,7 @@ const RTCAudioSourceSineWave = require('../../lib/server/webrtc/rtcaudiosourcesi
 
 function beforeOffer(peerConnection) {
   const source = new RTCAudioSourceSineWave({
-    numberOfChannels: 2,
+    channelCount: 2,
     panning: 50
   });
   const track = source.createTrack();
