@@ -19,7 +19,7 @@ function createData(bitsPerSample) {
     32: new Int32Array(length)
   }[bitsPerSample] || new Uint8Array(byteLength);
 
-  audioData[0] = -1 * 2 ** bitsPerSample / 2;
+  audioData[0] = -1 * Math.pow(2, bitsPerSample) / 2;
 
   return {
     audioData,
