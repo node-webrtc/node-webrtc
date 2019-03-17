@@ -2,6 +2,7 @@
 
 const fetch = require('node-fetch');
 const DefaultRTCPeerConnection = require('../../..').RTCPeerConnection;
+const { RTCSessionDescription } = require('../../..');
 
 const TIME_TO_HOST_CANDIDATES = 3000;  // NOTE(mroberts): Too long.
 
@@ -26,11 +27,13 @@ class ConnectionClient {
     this.createConnection = async (options = {}) => {
       options = {
         beforeAnswer() {},
+        stereo: false,
         ...options
       };
 
       const {
-        beforeAnswer
+        beforeAnswer,
+        stereo
       } = options;
 
       const response1 = await fetch(`${host}${prefix}/connections`, {
@@ -57,10 +60,12 @@ class ConnectionClient {
 
         await beforeAnswer(localPeerConnection);
 
-        const answer = await localPeerConnection.createAnswer();
-        await localPeerConnection.setLocalDescription(answer);
-
-        // await waitUntilIceGatheringStateComplete(peerConnection, options);
+        const originalAnswer = await localPeerConnection.createAnswer();
+        const updatedAnswer = new RTCSessionDescription({
+          type: 'answer',
+          sdp: stereo ? enableStereoOpus(originalAnswer.sdp) : originalAnswer.sdp
+        });
+        await localPeerConnection.setLocalDescription(updatedAnswer);
 
         await fetch(`${host}${prefix}/connections/${id}/remote-description`, {
           method: 'POST',
@@ -77,6 +82,10 @@ class ConnectionClient {
       }
     };
   }
+}
+
+function enableStereoOpus(sdp) {
+  return sdp.replace(/a=fmtp:111/, 'a=fmtp:111 stereo=1\r\na=fmtp:111');
 }
 
 module.exports = ConnectionClient;
