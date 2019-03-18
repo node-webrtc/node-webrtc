@@ -166,6 +166,16 @@ class TestAudioDeviceModuleImpl
         if (stop_thread_) {
           return;
         }
+        // NOTE(mroberts): I've disabled this, as it was causing the following
+        // error (and it's not really used by node-webrtc).
+        //
+        //   #
+        //   # Fatal error in: ../../download/src/audio/audio_send_stream.cc, line 330
+        //   # last system error: 1
+        //   # Check failed: !race_checker.RaceDetected()
+        //   # Aborted (core dumped)
+        //
+        /*
         if (capturing_) {
           // Capture 10ms of audio. 2 bytes per sample.
           const bool keep_capturing = capturer_->Capture(&recording_buffer_);
@@ -179,6 +189,7 @@ class TestAudioDeviceModuleImpl
             done_capturing_.Set();
           }
         }
+        */
         if (rendering_) {
           size_t samples_out = 0;
           int64_t elapsed_time_ms = -1;
