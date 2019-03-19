@@ -8,9 +8,14 @@
 #include "src/peerconnectionfactory.h"
 
 #include <uv.h>
+#include <webrtc/api/create_peerconnection_factory.h>
 #include <webrtc/api/peerconnectioninterface.h>  // IWYU pragma: keep
 #include <webrtc/api/audio_codecs/builtin_audio_decoder_factory.h>  // IWYU pragma: keep
 #include <webrtc/api/audio_codecs/builtin_audio_encoder_factory.h>  // IWYU pragma: keep
+#include <webrtc/api/video_codecs/builtin_video_decoder_factory.h>
+#include <webrtc/api/video_codecs/builtin_video_encoder_factory.h>
+#include <webrtc/api/video_codecs/video_decoder_factory.h>
+#include <webrtc/api/video_codecs/video_encoder_factory.h>
 #include <webrtc/modules/audio_device/include/audio_device.h>
 #include <webrtc/modules/audio_device/include/fake_audio_device.h>  // IWYU pragma: keep
 #include <webrtc/p2p/base/basicpacketsocketfactory.h>  // IWYU pragma: keep
@@ -82,6 +87,8 @@ PeerConnectionFactory::PeerConnectionFactory(Maybe<AudioDeviceModule::AudioLayer
           _audioDeviceModule.get(),
           webrtc::CreateBuiltinAudioEncoderFactory(),
           webrtc::CreateBuiltinAudioDecoderFactory(),
+          webrtc::CreateBuiltinVideoEncoderFactory(),
+          webrtc::CreateBuiltinVideoDecoderFactory(),
           nullptr,
           nullptr);
   assert(_factory);
