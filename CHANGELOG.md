@@ -93,6 +93,16 @@ interface RTCAudioSink {
 * The "data" event has all the properties of RTCAudioData.
 * RTCAudioSink must be stopped by calling `stop`.
 
+### RTCVideoFrame `rotation`
+
+The RTCVideoFrame raised in RTCVideoSink's "frame" event now includes a
+property, `rotation`, which indicates rotation of the RTCVideoFrame. Possible
+values are 0, 90, 180, and 270.
+
+### EventListener `handleEvent`
+
+EventListener instances now support [`handleEvent`](https://developer.mozilla.org/en-US/docs/Web/API/EventListener/handleEvent).
+
 0.3.5
 =====
 
