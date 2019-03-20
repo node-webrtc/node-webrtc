@@ -194,11 +194,10 @@ FROM_JS_IMPL(v8::Local<v8::Function>, value) {
 
 FROM_JS_IMPL(v8::Local<v8::Object>, value) {
   Nan::EscapableHandleScope scope;
-  auto maybeObject = Nan::To<v8::Object>(value);
-  if (maybeObject.IsEmpty()) {
+  if (!value->IsObject() || value->IsNullOrUndefined()) {
     return node_webrtc::Validation<v8::Local<v8::Object>>::Invalid("Expected an object");
   }
-  auto object = maybeObject.ToLocalChecked();
+  auto object = value.As<v8::Object>();
   return node_webrtc::Pure(scope.Escape(object));
 }
 
