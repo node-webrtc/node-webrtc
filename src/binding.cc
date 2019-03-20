@@ -26,6 +26,10 @@
 #include "src/rtcvideosink.h"  // IWYU pragma: keep
 #include "src/rtcvideosource.h"  // IWYU pragma: keep
 
+#ifdef DEBUG
+#include "src/test.h"
+#endif
+
 static void dispose(void*) {
   node_webrtc::PeerConnectionFactory::Dispose();
 }
@@ -48,6 +52,9 @@ static void init(v8::Handle<v8::Object> exports, v8::Handle<v8::Object> module) 
   node_webrtc::RTCStatsResponse::Init(exports);
   node_webrtc::RTCVideoSink::Init(exports);
   node_webrtc::RTCVideoSource::Init(exports);
+#ifdef DEBUG
+  node_webrtc::Test::Init(exports);
+#endif
   node::AtExit(dispose);
 }
 

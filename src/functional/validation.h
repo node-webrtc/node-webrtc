@@ -44,6 +44,15 @@ class Validation {
    */
   explicit Validation(const T& value): _is_valid(true), _value(value) {}
 
+  bool operator == (const Validation<T>& that) const {
+    if (!_is_valid && !that._is_valid) {
+      return true;
+    } else if (_is_valid && that._is_valid) {
+      return _value == that._value;
+    }
+    return false;
+  }
+
   /**
    * Validation forms an applicative. Apply a validation.
    * @tparam F the type of a function from T to S

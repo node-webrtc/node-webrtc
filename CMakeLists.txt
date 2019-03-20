@@ -228,6 +228,30 @@ set(libc++abi_include_dir "${libwebrtc_source_dir}/src/buildtools/third_party/li
 #
 # target_include_directories(libc++abi SYSTEM INTERFACE "${libc++abi_include_dir}")
 
+# catch2
+# -----------------------------------------------------------------------------
+
+ExternalProject_Add(
+  project_catch2
+
+  GIT_REPOSITORY    https://github.com/catchorg/Catch2.git
+  GIT_TAG           a1cdff4f188170c5b0aa3d5d217b60d821f237df
+
+  PREFIX            ${CMAKE_BINARY_DIR}/external/catch2/prefix
+  TMP_DIR           ${CMAKE_BINARY_DIR}/external/catch2/tmp
+  STAMP_DIR         ${CMAKE_BINARY_DIR}/external/catch2/stamp
+  DOWNLOAD_DIR      ${CMAKE_BINARY_DIR}/external/catch2/download
+  SOURCE_DIR        ${CMAKE_BINARY_DIR}/external/catch2/src
+  BINARY_DIR        ${CMAKE_BINARY_DIR}/external/catch2/build
+
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND     ""
+  INSTALL_COMMAND   ""
+)
+
+ExternalProject_Get_Property(project_catch2 SOURCE_DIR)
+set(catch2_install_dir ${SOURCE_DIR})
+
 # node-webrtc
 # -----------------------------------------------------------------------------
 
@@ -268,6 +292,13 @@ target_include_directories(${MODULE} SYSTEM PRIVATE
   ${libwebrtc_source_dir}/webrtc/third_party/abseil-cpp
   ${libwebrtc_source_dir}/webrtc/third_party/libyuv/include
 )
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_dependencies(${MODULE} project_catch2)
+  target_include_directories(${MODULE} SYSTEM PRIVATE
+    ${catch2_install_dir}/single_include
+  )
+endif()
 
 target_include_directories(${MODULE} PRIVATE
   ${CMAKE_SOURCE_DIR}

@@ -102,18 +102,30 @@ struct Converter<Maybe<T>, v8::Local<v8::Value>> {
   }
 };
 
+template <>
+struct Converter<v8::Local<v8::Value>, v8::Local<v8::Array>> {
+  static Validation<v8::Local<v8::Array>> Convert(const v8::Local<v8::Value> value) {
+    return value->IsArray()
+        ? Validation<v8::Local<v8::Array>>::Valid(value.As<v8::Array>())
+        : Validation<v8::Local<v8::Array>>::Invalid("Expected an array");
+  }
+};
+
 template <typename T>
-struct Converter<v8::Local<v8::Value>, std::vector<T>> {
-  static Validation<std::vector<T>> Convert(const v8::Local<v8::Value> value) {
-    if (!value->IsArray()) {
-      return Validation<std::vector<T>>::Invalid("Expected an array");
-    }
-    auto array = v8::Local<v8::Array>::Cast(value);
+struct Converter<v8::Local<v8::Array>, std::vector<T>> {
+  static Validation<std::vector<T>> Convert(const v8::Local<v8::Array> array) {
     auto validated = std::vector<Validation<T>>();
     for (uint32_t i = 0; i < array->Length(); i++) {
       validated.push_back(From<T>(array->Get(i)));
     }
     return Validation<T>::Sequence(validated);
+  }
+};
+
+template <typename T>
+struct Converter<v8::Local<v8::Value>, std::vector<T>> {
+  static Validation<std::vector<T>> Convert(const v8::Local<v8::Value> value) {
+    return node_webrtc::Converter<v8::Local<v8::Value>, v8::Local<v8::Array>>::Convert(value).FlatMap<std::vector<T>>(node_webrtc::Converter<v8::Local<v8::Array>, std::vector<T>>::Convert);
   }
 };
 
