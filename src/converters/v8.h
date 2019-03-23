@@ -104,7 +104,7 @@ struct Converter<Maybe<T>, v8::Local<v8::Value>> {
 
 template <>
 struct Converter<v8::Local<v8::Value>, v8::Local<v8::Array>> {
-  static Validation<v8::Local<v8::Array>> Convert(const v8::Local<v8::Value> value) {
+  static Validation<v8::Local<v8::Array>> Convert(v8::Local<v8::Value> value) {
     return value->IsArray()
         ? Validation<v8::Local<v8::Array>>::Valid(value.As<v8::Array>())
         : Validation<v8::Local<v8::Array>>::Invalid("Expected an array");
