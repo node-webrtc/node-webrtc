@@ -194,7 +194,7 @@ FROM_JS_IMPL(v8::Local<v8::Function>, value) {
 
 FROM_JS_IMPL(v8::Local<v8::Object>, value) {
   Nan::EscapableHandleScope scope;
-  if (!value->IsObject() || value->IsNullOrUndefined()) {
+  if (!value->IsObject() || value->IsNull() || value->IsUndefined()) {
     return node_webrtc::Validation<v8::Local<v8::Object>>::Invalid("Expected an object");
   }
   auto object = value.As<v8::Object>();
