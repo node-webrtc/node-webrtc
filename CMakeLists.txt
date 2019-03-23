@@ -411,6 +411,7 @@ else()
     )
 
     target_compile_definitions(${MODULE} PRIVATE
+      -D_LIBCPP_ABI_UNSTABLE
       -DWEBRTC_LINUX
     )
 
