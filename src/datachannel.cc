@@ -87,16 +87,24 @@ DataChannel::~DataChannel() {
   wrap()->Release(this);
 }
 
+void DataChannel::CleanupInternals() {
+  if (_jingleDataChannel == nullptr) {
+    return;
+  }
+  _jingleDataChannel->UnregisterObserver();
+  _cached_id = _jingleDataChannel->id();
+  _cached_label = _jingleDataChannel->label();
+  _cached_max_packet_life_time = _jingleDataChannel->maxRetransmitTime();
+  _cached_max_retransmits = _jingleDataChannel->maxRetransmits();
+  _cached_ordered = _jingleDataChannel->ordered();
+  _cached_protocol = _jingleDataChannel->protocol();
+  _cached_buffered_amount = _jingleDataChannel->buffered_amount();
+  _jingleDataChannel = nullptr;
+}
+
 void DataChannel::OnPeerConnectionClosed() {
   if (_jingleDataChannel != nullptr) {
-    _jingleDataChannel->UnregisterObserver();
-    _cached_id = _jingleDataChannel->id();
-    _cached_label = _jingleDataChannel->label();
-    _cached_max_retransmits = _jingleDataChannel->maxRetransmits();
-    _cached_ordered = _jingleDataChannel->ordered();
-    _cached_protocol = _jingleDataChannel->protocol();
-    _cached_buffered_amount = _jingleDataChannel->buffered_amount();
-    _jingleDataChannel = nullptr;
+    CleanupInternals();
     Stop();
   }
 }
@@ -169,14 +177,7 @@ void DataChannel::OnStateChange() {
   auto state = _jingleDataChannel->state();
   Dispatch(DataChannelStateChangeEvent::Create(state));
   if (state == webrtc::DataChannelInterface::kClosed) {
-    _jingleDataChannel->UnregisterObserver();
-    _cached_id = _jingleDataChannel->id();
-    _cached_label = _jingleDataChannel->label();
-    _cached_max_retransmits = _jingleDataChannel->maxRetransmits();
-    _cached_ordered = _jingleDataChannel->ordered();
-    _cached_protocol = _jingleDataChannel->protocol();
-    _cached_buffered_amount = _jingleDataChannel->buffered_amount();
-    _jingleDataChannel = nullptr;
+    CleanupInternals();
   }
   TRACE_END;
 }
@@ -289,6 +290,20 @@ NAN_GETTER(DataChannel::GetLabel) {
 
   TRACE_END;
   info.GetReturnValue().Set(Nan::New(label).ToLocalChecked());
+}
+
+NAN_GETTER(DataChannel::GetMaxPacketLifeTime) {
+  TRACE_CALL;
+  (void) property;
+
+  auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.Holder());
+
+  auto max_packet_life_time = self->_jingleDataChannel
+      ? self->_jingleDataChannel->maxRetransmitTime()
+      : self->_cached_max_packet_life_time;
+
+  TRACE_END;
+  info.GetReturnValue().Set(Nan::New(max_packet_life_time));
 }
 
 NAN_GETTER(DataChannel::GetMaxRetransmits) {
@@ -422,6 +437,7 @@ void DataChannel::Init(Handle<Object> exports) {
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("bufferedAmount").ToLocalChecked(), GetBufferedAmount, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("id").ToLocalChecked(), GetId, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("label").ToLocalChecked(), GetLabel, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("maxPacketLifeTime").ToLocalChecked(), GetMaxPacketLifeTime, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("maxRetransmits").ToLocalChecked(), GetMaxRetransmits, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("ordered").ToLocalChecked(), GetOrdered, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("priority").ToLocalChecked(), GetPriority, ReadOnly);
