@@ -5,6 +5,8 @@ New Features
 ------------
 
 - Updated to WebRTC M73.
+- Added `maxPacketLifeTime` getter to RTCDataChannel (#492).
+- Added `negotiated` getter to RTCDataChannel.
 
 0.3.6
 =====
