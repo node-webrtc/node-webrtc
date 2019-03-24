@@ -81,6 +81,7 @@ class DataChannel
   static NAN_GETTER(GetLabel);
   static NAN_GETTER(GetMaxPacketLifeTime);
   static NAN_GETTER(GetMaxRetransmits);
+  static NAN_GETTER(GetNegotiated);
   static NAN_GETTER(GetOrdered);
   static NAN_GETTER(GetPriority);
   static NAN_GETTER(GetProtocol);
@@ -96,6 +97,7 @@ class DataChannel
   std::string _cached_label;
   uint16_t _cached_max_packet_life_time;
   uint16_t _cached_max_retransmits;
+  bool _cached_negotiated;
   bool _cached_ordered;
   std::string _cached_protocol;
   uint64_t _cached_buffered_amount;

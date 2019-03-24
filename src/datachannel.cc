@@ -96,6 +96,7 @@ void DataChannel::CleanupInternals() {
   _cached_label = _jingleDataChannel->label();
   _cached_max_packet_life_time = _jingleDataChannel->maxRetransmitTime();
   _cached_max_retransmits = _jingleDataChannel->maxRetransmits();
+  _cached_negotiated = _jingleDataChannel->negotiated();
   _cached_ordered = _jingleDataChannel->ordered();
   _cached_protocol = _jingleDataChannel->protocol();
   _cached_buffered_amount = _jingleDataChannel->buffered_amount();
@@ -320,6 +321,20 @@ NAN_GETTER(DataChannel::GetMaxRetransmits) {
   info.GetReturnValue().Set(Nan::New(max_retransmits));
 }
 
+NAN_GETTER(DataChannel::GetNegotiated) {
+  TRACE_CALL;
+  (void) property;
+
+  auto self = AsyncObjectWrapWithLoop<DataChannel>::Unwrap(info.Holder());
+
+  auto negotiated = self->_jingleDataChannel
+      ? self->_jingleDataChannel->negotiated()
+      : self->_cached_negotiated;
+
+  TRACE_END;
+  info.GetReturnValue().Set(negotiated);
+}
+
 NAN_GETTER(DataChannel::GetOrdered) {
   TRACE_CALL;
   (void) property;
@@ -439,6 +454,7 @@ void DataChannel::Init(Handle<Object> exports) {
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("label").ToLocalChecked(), GetLabel, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("maxPacketLifeTime").ToLocalChecked(), GetMaxPacketLifeTime, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("maxRetransmits").ToLocalChecked(), GetMaxRetransmits, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("negotiated").ToLocalChecked(), GetNegotiated, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("ordered").ToLocalChecked(), GetOrdered, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("priority").ToLocalChecked(), GetPriority, ReadOnly);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("protocol").ToLocalChecked(), GetProtocol, ReadOnly);

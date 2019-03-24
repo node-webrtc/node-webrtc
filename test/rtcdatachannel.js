@@ -20,3 +20,13 @@ tape('.maxPacketLifeTime', t => {
   pc.close();
   t.end();
 });
+
+tape('.negotiated', t => {
+  const pc = new RTCPeerConnection();
+  const dc1 = pc.createDataChannel('dc1');
+  const dc2 = pc.createDataChannel('dc2', { negotiated: true });
+  t.equal(dc1.negotiated, false);
+  t.equal(dc2.negotiated, true);
+  pc.close();
+  t.end();
+});
