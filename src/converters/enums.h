@@ -11,6 +11,7 @@
 #include <iosfwd>
 
 #include <webrtc/api/datachannelinterface.h>
+#include <webrtc/api/dtls_transport_interface.h>
 #include <webrtc/api/mediastreaminterface.h>
 #include <webrtc/api/mediatypes.h>
 #include <webrtc/api/peerconnectioninterface.h>
@@ -82,6 +83,15 @@ namespace node_webrtc {
   SUPPORTED(MEDIATYPE, MEDIA_TYPE_AUDIO, "audio") \
   SUPPORTED(MEDIATYPE, MEDIA_TYPE_VIDEO, "video") \
   SUPPORTED(MEDIATYPE, MEDIA_TYPE_DATA, "data")
+
+#define RTCDTLSTRANSPORTSTATE webrtc::DtlsTransportState
+#define RTCDTLSTRANSPORTSTATE_LIST \
+  SUPPORTED(RTCDTLSTRANSPORTSTATE, kNew, "new") \
+  SUPPORTED(RTCDTLSTRANSPORTSTATE, kConnecting, "connecting") \
+  SUPPORTED(RTCDTLSTRANSPORTSTATE, kConnected, "connected") \
+  SUPPORTED(RTCDTLSTRANSPORTSTATE, kClosed, "closed") \
+  SUPPORTED(RTCDTLSTRANSPORTSTATE, kFailed, "failed") \
+  UNSUPPORTED(RTCDTLSTRANSPORTSTATE, kNumValues, "num-values", "\"num-values\" is not a valid RTCDtlsTransportState")
 
 #define RTCICECREDENTIALTYPE RTCIceCredentialType
 #define RTCICECREDENTIALTYPE_LIST \
@@ -169,6 +179,7 @@ DECLARE_TO_AND_FROM_JS_ENUM(RTCSdpType)
 DECLARE_TO_AND_FROM_JS_ENUM(webrtc::MediaStreamTrackInterface::TrackState)
 DECLARE_TO_AND_FROM_JS_ENUM(webrtc::PeerConnectionInterface::BundlePolicy)
 DECLARE_TO_AND_FROM_JS_ENUM(webrtc::DataChannelInterface::DataState)
+DECLARE_TO_AND_FROM_JS_ENUM(webrtc::DtlsTransportState)
 DECLARE_TO_AND_FROM_JS_ENUM(webrtc::PeerConnectionInterface::IceConnectionState)
 DECLARE_TO_AND_FROM_JS_ENUM(webrtc::PeerConnectionInterface::IceGatheringState)
 DECLARE_TO_AND_FROM_JS_ENUM(webrtc::PeerConnectionInterface::IceTransportsType)
