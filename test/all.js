@@ -14,6 +14,7 @@ require('./mediastream');
 require('./pass-interface-to-method');
 require('./rtcaudiosink');
 require('./rtcaudiosource');
+require('./rtcdtlstransport');
 require('./rtcdatachannel');
 require('./rtcrtpreceiver');
 require('./rtcvideosink');

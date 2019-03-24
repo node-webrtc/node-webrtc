@@ -75,6 +75,7 @@ class PeerConnectionFactory
   static void Dispose();
 
   std::unique_ptr<rtc::Thread> _signalingThread;
+  std::unique_ptr<rtc::Thread> _workerThread;
 
  private:
   static Nan::Persistent<v8::Function>& constructor();
@@ -85,7 +86,6 @@ class PeerConnectionFactory
   static uv_mutex_t _lock;
   static int _references;
 
-  std::unique_ptr<rtc::Thread> _workerThread;
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _factory;
   rtc::scoped_refptr<webrtc::AudioDeviceModule> _audioDeviceModule;
 

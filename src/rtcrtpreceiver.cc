@@ -13,6 +13,7 @@
 #include "src/error.h"
 #include "src/converters/dictionaries.h"  // IWYU pragma: keep
 #include "src/mediastreamtrack.h"  // IWYU pragma: keep
+#include "src/rtcdtlstransport.h"  // IWYU pragma: keep
 
 using node_webrtc::AsyncObjectWrap;
 using node_webrtc::RTCRtpReceiver;
@@ -69,7 +70,13 @@ NAN_GETTER(RTCRtpReceiver::GetTrack) {
 
 NAN_GETTER(RTCRtpReceiver::GetTransport) {
   (void) property;
-  info.GetReturnValue().Set(Nan::Null());
+  auto self = AsyncObjectWrap::Unwrap<RTCRtpReceiver>(info.Holder());
+  v8::Local<v8::Value> result = Nan::Null();
+  auto transport = self->_receiver->dtls_transport();
+  if (transport) {
+    result = node_webrtc::RTCDtlsTransport::wrap()->GetOrCreate(self->_factory, transport)->ToObject();
+  }
+  info.GetReturnValue().Set(result);
 }
 
 NAN_GETTER(RTCRtpReceiver::GetRtcpTransport) {
