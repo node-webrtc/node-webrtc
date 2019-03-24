@@ -10,3 +10,13 @@ tape('Calling .send(message) when .readyState is "closed" throws InvalidStateErr
   t.throws(() => dc.send('world'), /RTCDataChannel.readyState is not 'open'/);
   t.end();
 });
+
+tape('.maxPacketLifeTime', t => {
+  const pc = new RTCPeerConnection();
+  const dc1 = pc.createDataChannel('dc1');
+  const dc2 = pc.createDataChannel('dc2', { maxPacketLifeTime: 0 });
+  t.equal(dc1.maxPacketLifeTime, 65535);
+  t.equal(dc2.maxPacketLifeTime, 0);
+  pc.close();
+  t.end();
+});

@@ -79,6 +79,7 @@ class DataChannel
   static NAN_GETTER(GetBufferedAmount);
   static NAN_GETTER(GetId);
   static NAN_GETTER(GetLabel);
+  static NAN_GETTER(GetMaxPacketLifeTime);
   static NAN_GETTER(GetMaxRetransmits);
   static NAN_GETTER(GetOrdered);
   static NAN_GETTER(GetPriority);
@@ -88,9 +89,12 @@ class DataChannel
   static NAN_SETTER(SetBinaryType);
   static NAN_SETTER(ReadOnly);
 
+  void CleanupInternals();
+
   node_webrtc::BinaryType _binaryType;
   int _cached_id;
   std::string _cached_label;
+  uint16_t _cached_max_packet_life_time;
   uint16_t _cached_max_retransmits;
   bool _cached_ordered;
   std::string _cached_protocol;
