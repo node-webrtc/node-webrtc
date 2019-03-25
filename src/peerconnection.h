@@ -30,6 +30,7 @@ class RtpTransceiverInterface;
 
 namespace node_webrtc {
 
+class AddIceCandidateEvent;
 class IceConnectionStateChangeEvent;
 class IceEvent;
 class IceGatheringStateChangeEvent;
@@ -68,6 +69,7 @@ class PeerConnection
   //
   static void Init(v8::Handle<v8::Object> exports);
 
+  void HandleAddIceCandidateEvent(AddIceCandidateEvent& event);
   void HandleIceConnectionStateChangeEvent(const IceConnectionStateChangeEvent& event);
   void HandleIceGatheringStateChangeEvent(const IceGatheringStateChangeEvent& event);
   void HandleIceCandidateEvent(const IceEvent& event);
