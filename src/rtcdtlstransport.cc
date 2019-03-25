@@ -46,6 +46,14 @@ void node_webrtc::RTCDtlsTransport::OnStateChange(webrtc::DtlsTransportInformati
     std::lock_guard<std::mutex> lock(_mutex);
     _state = information.state();
   }
+
+  Dispatch(node_webrtc::Callback<node_webrtc::RTCDtlsTransport>::Create([](node_webrtc::RTCDtlsTransport & self) {
+    Nan::HandleScope scope;
+    auto event = Nan::New<v8::Object>();
+    Nan::Set(event, Nan::New("type").ToLocalChecked(), Nan::New("statechange").ToLocalChecked());
+    self.MakeCallback("dispatchEvent", 1, reinterpret_cast<v8::Local<v8::Value>*>(&event));
+  }));
+
   if (information.state() == webrtc::DtlsTransportState::kClosed) {
     Stop();
   }
