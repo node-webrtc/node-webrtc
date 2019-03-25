@@ -62,17 +62,17 @@ class Event {
 template <typename T>
 class Callback: public Event<T> {
  public:
-  void Dispatch(T& target) override {
-    _callback(target);
+  void Dispatch(T&) override {
+    _callback();
   }
 
-  static std::unique_ptr<Callback<T>> Create(void (*const callback)(T&)) {
-    return std::unique_ptr<Callback<T>>(new Callback(callback));
+  static std::unique_ptr<Callback<T>> Create(std::function<void()> callback) {
+    return std::unique_ptr<Callback<T>>(new Callback(std::move(callback)));
   }
 
  private:
-  explicit Callback(void (*const callback)(T&)): _callback(callback) {}
-  void (*const _callback)(T&);
+  explicit Callback(std::function<void()> callback): _callback(std::move(callback)) {}
+  const std::function<void()> _callback;
 };
 
 /**
