@@ -2,6 +2,7 @@
 
 const semver = require('semver');
 
+require('./addicecandidate');
 require('./closing-data-channel');
 require('./closing-peer-connection');
 require('./connect');

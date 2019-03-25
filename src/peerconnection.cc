@@ -52,6 +52,7 @@ class AsyncObjectWrap;
 
 }  // namesapce node_webrtc
 
+using node_webrtc::AddIceCandidateEvent;
 using node_webrtc::Arguments;
 using node_webrtc::AsyncObjectWrap;
 using node_webrtc::AsyncObjectWrapWithLoop;
@@ -166,6 +167,25 @@ void PeerConnection::HandleIceCandidateEvent(const IceEvent& event) {
       argv[0] = maybeCandidate.UnsafeFromValid();
       MakeCallback("onicecandidate", 1, argv);
     }
+  }
+  TRACE_END;
+}
+
+void PeerConnection::HandleAddIceCandidateEvent(AddIceCandidateEvent& event) {
+  TRACE_CALL;
+  Nan::HandleScope scope;
+  if (_jinglePeerConnection
+      && _jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed
+      && _jinglePeerConnection->AddIceCandidate(event.candidate.get())) {
+    event.Resolve(Undefined());
+  } else {
+    std::string error = std::string("Failed to set ICE candidate");
+    if (!_jinglePeerConnection
+        || _jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
+      error += "; RTCPeerConnection is closed";
+    }
+    error += ".";
+    event.Reject(SomeError(error));
   }
   TRACE_END;
 }
@@ -501,27 +521,11 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
   auto self = AsyncObjectWrapWithLoop<PeerConnection>::Unwrap(info.This());
 
   SETUP_PROMISE(PeerConnection);
-
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, candidate, IceCandidateInterface*);
 
-  if (self->_jinglePeerConnection
-      && self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed
-      && self->_jinglePeerConnection->AddIceCandidate(candidate)) {
-    promise->Resolve(Undefined());
-    self->Dispatch(std::move(promise));
-  } else {
-    std::string error = std::string("Failed to set ICE candidate");
-    if (!self->_jinglePeerConnection
-        || self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed) {
-      error += "; RTCPeerConnection is closed";
-    }
-    error += ".";
-    promise->Reject(SomeError(error));
-    self->Dispatch(std::move(promise));
-  }
-
-  delete candidate;
-  TRACE_END;
+  auto pair = AddIceCandidateEvent::Create(candidate);
+  info.GetReturnValue().Set(pair.first->GetPromise());
+  self->Dispatch(std::move(pair.second));
 }
 
 NAN_METHOD(PeerConnection::CreateDataChannel) {

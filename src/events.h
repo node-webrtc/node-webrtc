@@ -184,6 +184,32 @@ class IceEvent: public Event<PeerConnection> {
   }
 };
 
+class AddIceCandidateEvent: public PromiseEvent<PeerConnection> {
+ public:
+  std::unique_ptr<const webrtc::IceCandidateInterface> candidate;
+
+  void Dispatch(PeerConnection&) override;
+
+  static std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<AddIceCandidateEvent>> Create(const webrtc::IceCandidateInterface* ice_candidate) {
+    Nan::EscapableHandleScope scope;
+    auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
+    auto event = std::unique_ptr<AddIceCandidateEvent>(new AddIceCandidateEvent(
+                std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>>(
+                    new Nan::Persistent<v8::Promise::Resolver>(resolver)),
+                ice_candidate));
+    return std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<AddIceCandidateEvent>>(
+            scope.Escape(resolver),
+            std::move(event));
+  }
+
+ private:
+  AddIceCandidateEvent(
+      std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver
+      , const webrtc::IceCandidateInterface* ice_candidate)
+    : PromiseEvent(std::move(resolver))
+    , candidate(ice_candidate) {}
+};
+
 template <typename T, typename S>
 class StateEvent: public Event<T> {
  public:
