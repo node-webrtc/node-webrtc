@@ -59,6 +59,22 @@ class Event {
   }
 };
 
+template <typename T>
+class Callback: public Event<T> {
+ public:
+  void Dispatch(T& target) override {
+    _callback(target);
+  }
+
+  static std::unique_ptr<Callback<T>> Create(void (*const callback)(T&)) {
+    return std::unique_ptr<Callback<T>>(new Callback(callback));
+  }
+
+ private:
+  explicit Callback(void (*const callback)(T&)): _callback(callback) {}
+  void (*const _callback)(T&);
+};
+
 /**
  * A PromiseEvent can be dispatched to a PromiseFulfillingEventLoop in order to
  * resolve or reject a Promise.
