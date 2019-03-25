@@ -4,6 +4,14 @@
 New Features
 ------------
 
+### RTCDtlsTransport
+
+RTCRtpSender and RTCRtpReceiver now provide access to RTCDtlsTransport via the
+`transport` property (initially `null`). Currently, RTCDtlsTransport only
+supports the `state` property, the "statechange" event, and the "error" event.
+
+### Miscellaneous
+
 - Updated to WebRTC M73.
 - Added `maxPacketLifeTime` getter to RTCDataChannel (#492).
 - Added `negotiated` getter to RTCDataChannel.
