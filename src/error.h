@@ -61,13 +61,13 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
     Nan::TryCatch tc; \
     NODE_WEBRTC_UNIQUE_NAME(validation) = node_webrtc::From<argument_type<void(T)>::type>(node_webrtc::Arguments(info)); \
     if (tc.HasCaught()) { \
-      resolver->Resolve(Nan::GetCurrentContext(), tc.Exception()).IsNothing(); \
+      R->Resolve(Nan::GetCurrentContext(), tc.Exception()).IsNothing(); \
       return; \
     } \
   } \
   if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
     auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
-    resolver->Reject(Nan::GetCurrentContext(), Nan::TypeError(Nan::New(error).ToLocalChecked())).IsNothing(); \
+    R->Reject(Nan::GetCurrentContext(), Nan::TypeError(Nan::New(error).ToLocalChecked())).IsNothing(); \
     return; \
   } \
   auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
@@ -78,13 +78,13 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
     Nan::TryCatch tc; \
     NODE_WEBRTC_UNIQUE_NAME(validation) = node_webrtc::From<argument_type<void(T)>::type>(I); \
     if (tc.HasCaught()) { \
-      resolver->Resolve(Nan::GetCurrentContext(), tc.Exception()).IsNothing(); \
+      R->Resolve(Nan::GetCurrentContext(), tc.Exception()).IsNothing(); \
       return; \
     } \
   } \
   if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
     auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
-    resolver->Reject(Nan::GetCurrentContext(), Nan::TypeError(Nan::New(error).ToLocalChecked())).IsNothing(); \
+    R->Reject(Nan::GetCurrentContext(), Nan::TypeError(Nan::New(error).ToLocalChecked())).IsNothing(); \
     return; \
   } \
   auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();

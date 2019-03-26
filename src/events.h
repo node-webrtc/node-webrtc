@@ -32,8 +32,6 @@ class RtpTransceiverInterface;
 namespace node_webrtc {
 
 class DataChannel;
-class DataChannelObserver;
-class PeerConnection;
 class RTCAudioSink;
 class RTCVideoSink;
 
@@ -127,18 +125,6 @@ class PromiseEvent: public Event<T> {
   node_webrtc::Either<L, R> _result;
 };
 
-class NegotiationNeededEvent: public Event<PeerConnection> {
- public:
-  void Dispatch(PeerConnection&) override;
-
-  static std::unique_ptr<NegotiationNeededEvent> Create() {
-    return std::unique_ptr<NegotiationNeededEvent>(new NegotiationNeededEvent());
-  }
-
- private:
-  NegotiationNeededEvent() = default;
-};
-
 template <typename T>
 class ErrorEvent: public Event<T> {
  public:
@@ -171,61 +157,6 @@ class MessageEvent: public Event<DataChannel> {
   }
 };
 
-class IceEvent: public Event<PeerConnection> {
- public:
-  std::string error;
-  std::unique_ptr<const webrtc::IceCandidateInterface> candidate;
-
-  void Dispatch(PeerConnection& peerConnection) override;
-
-  static std::unique_ptr<IceEvent> Create(const webrtc::IceCandidateInterface* ice_candidate) {
-    return std::unique_ptr<IceEvent>(new IceEvent(ice_candidate));
-  }
-
- private:
-  explicit IceEvent(const webrtc::IceCandidateInterface* ice_candidate) {
-    std::string sdp;
-    if (!ice_candidate->ToString(&sdp)) {
-      error = "Failed to print the candidate string. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc";
-      return;
-    }
-    webrtc::SdpParseError parseError;
-    candidate = std::unique_ptr<const webrtc::IceCandidateInterface>(
-            webrtc::CreateIceCandidate(ice_candidate->sdp_mid(), ice_candidate->sdp_mline_index(), sdp, &parseError));
-    if (!parseError.description.empty()) {
-      error = parseError.description;
-    } else if (!candidate) {
-      error = "Failed to copy RTCIceCandidate";
-    }
-  }
-};
-
-class AddIceCandidateEvent: public PromiseEvent<PeerConnection> {
- public:
-  std::unique_ptr<const webrtc::IceCandidateInterface> candidate;
-
-  void Dispatch(PeerConnection&) override;
-
-  static std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<AddIceCandidateEvent>> Create(const webrtc::IceCandidateInterface* ice_candidate) {
-    Nan::EscapableHandleScope scope;
-    auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
-    auto event = std::unique_ptr<AddIceCandidateEvent>(new AddIceCandidateEvent(
-                std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>>(
-                    new Nan::Persistent<v8::Promise::Resolver>(resolver)),
-                ice_candidate));
-    return std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<AddIceCandidateEvent>>(
-            scope.Escape(resolver),
-            std::move(event));
-  }
-
- private:
-  AddIceCandidateEvent(
-      std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver
-      , const webrtc::IceCandidateInterface* ice_candidate)
-    : PromiseEvent(std::move(resolver))
-    , candidate(ice_candidate) {}
-};
-
 template <typename T, typename S>
 class StateEvent: public Event<T> {
  public:
@@ -245,95 +176,6 @@ class DataChannelStateChangeEvent: public StateEvent<DataChannel, webrtc::DataCh
 
  protected:
   explicit DataChannelStateChangeEvent(const webrtc::DataChannelInterface::DataState state): StateEvent(state) {}
-};
-
-class IceConnectionStateChangeEvent
-  : public StateEvent<PeerConnection, webrtc::PeerConnectionInterface::IceConnectionState> {
- public:
-  void Dispatch(PeerConnection& peerConnection) override;
-
-  static std::unique_ptr<IceConnectionStateChangeEvent> Create(
-      const webrtc::PeerConnectionInterface::IceConnectionState state) {
-    return std::unique_ptr<IceConnectionStateChangeEvent>(new IceConnectionStateChangeEvent(state));
-  }
-
- private:
-  explicit IceConnectionStateChangeEvent(const webrtc::PeerConnectionInterface::IceConnectionState state)
-    : StateEvent(state) {}
-};
-
-class IceGatheringStateChangeEvent
-  : public StateEvent<PeerConnection, webrtc::PeerConnectionInterface::IceGatheringState> {
- public:
-  void Dispatch(PeerConnection& peerConnection) override;
-
-  static std::unique_ptr<IceGatheringStateChangeEvent> Create(
-      const webrtc::PeerConnectionInterface::IceGatheringState state) {
-    return std::unique_ptr<IceGatheringStateChangeEvent>(new IceGatheringStateChangeEvent(state));
-  }
-
- private:
-  explicit IceGatheringStateChangeEvent(const webrtc::PeerConnectionInterface::IceGatheringState state)
-    : StateEvent(state) {}
-};
-
-class SignalingStateChangeEvent: public StateEvent<PeerConnection, webrtc::PeerConnectionInterface::SignalingState> {
- public:
-  void Dispatch(PeerConnection& peerConnection) override;
-
-  static std::unique_ptr<SignalingStateChangeEvent> Create(
-      const webrtc::PeerConnectionInterface::SignalingState state) {
-    return std::unique_ptr<SignalingStateChangeEvent>(new SignalingStateChangeEvent(state));
-  }
-
- private:
-  explicit SignalingStateChangeEvent(const webrtc::PeerConnectionInterface::SignalingState state): StateEvent(state) {}
-};
-
-class DataChannelEvent: public Event<PeerConnection> {
- public:
-  DataChannelObserver* observer;
-
-  void Dispatch(PeerConnection& peerConnection) override;
-
-  static std::unique_ptr<DataChannelEvent> Create(DataChannelObserver* observer) {
-    return std::unique_ptr<DataChannelEvent>(new DataChannelEvent(observer));
-  }
-
- private:
-  explicit DataChannelEvent(DataChannelObserver* observer): observer(observer) {}
-};
-
-class OnAddTrackEvent: public Event<PeerConnection> {
- public:
-  rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver;
-  rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver;
-  const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>> streams;
-
-  void Dispatch(PeerConnection& peerConnection) override;
-
-  static std::unique_ptr<OnAddTrackEvent> Create(
-      rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
-    return std::unique_ptr<OnAddTrackEvent>(new OnAddTrackEvent(transceiver));
-  }
-
-  static std::unique_ptr<OnAddTrackEvent> Create(
-      rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
-      const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>& streams) {
-    return std::unique_ptr<OnAddTrackEvent>(new OnAddTrackEvent(receiver, streams));
-  }
-
- private:
-  explicit OnAddTrackEvent(rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver)
-    : transceiver(transceiver)
-    , receiver(transceiver->receiver())
-    , streams(transceiver->receiver()->streams()) {}
-
-  OnAddTrackEvent(
-      rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
-      const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>& streams)
-    : receiver(receiver)
-    , streams(streams) {}
 };
 
 class OnFrameEvent: public Event<RTCVideoSink> {

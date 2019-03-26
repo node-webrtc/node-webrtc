@@ -30,15 +30,7 @@ class RtpTransceiverInterface;
 
 namespace node_webrtc {
 
-class AddIceCandidateEvent;
-class IceConnectionStateChangeEvent;
-class IceEvent;
-class IceGatheringStateChangeEvent;
-class DataChannelEvent;
-class NegotiationNeededEvent;
-class OnAddTrackEvent;
 class PeerConnectionFactory;
-class SignalingStateChangeEvent;
 
 class PeerConnection
   : public node_webrtc::AsyncObjectWrapWithLoop<PeerConnection>
@@ -68,15 +60,6 @@ class PeerConnection
   // Nodejs wrapping.
   //
   static void Init(v8::Handle<v8::Object> exports);
-
-  void HandleAddIceCandidateEvent(AddIceCandidateEvent& event);
-  void HandleIceConnectionStateChangeEvent(const IceConnectionStateChangeEvent& event);
-  void HandleIceGatheringStateChangeEvent(const IceGatheringStateChangeEvent& event);
-  void HandleIceCandidateEvent(const IceEvent& event);
-  void HandleDataChannelEvent(const DataChannelEvent& event);
-  void HandleNegotiationNeededEvent(const NegotiationNeededEvent& event);
-  void HandleOnAddTrackEvent(const OnAddTrackEvent& event);
-  void HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event);
 
   void SaveLastSdp(const RTCSessionDescriptionInit& lastSdp);
 

@@ -12,28 +12,15 @@
 #include "src/rtcaudiosink.h"
 #include "src/rtcvideosink.h"
 
-using node_webrtc::AddIceCandidateEvent;
 using node_webrtc::DataChannel;
-using node_webrtc::DataChannelEvent;
 using node_webrtc::DataChannelStateChangeEvent;
 using node_webrtc::ErrorEvent;
-using node_webrtc::IceConnectionStateChangeEvent;
-using node_webrtc::IceGatheringStateChangeEvent;
-using node_webrtc::IceEvent;
 using node_webrtc::MessageEvent;
-using node_webrtc::NegotiationNeededEvent;
-using node_webrtc::OnAddTrackEvent;
 using node_webrtc::OnDataEvent;
 using node_webrtc::OnFrameEvent;
-using node_webrtc::PeerConnection;
 using node_webrtc::PromiseEvent;
 using node_webrtc::RTCAudioSink;
 using node_webrtc::RTCVideoSink;
-using node_webrtc::SignalingStateChangeEvent;
-
-void DataChannelEvent::Dispatch(PeerConnection& peerConnection) {
-  peerConnection.HandleDataChannelEvent(*this);
-}
 
 void DataChannelStateChangeEvent::Dispatch(DataChannel& dataChannel) {
   dataChannel.HandleStateEvent(*this);
@@ -51,35 +38,6 @@ void ErrorEvent<DataChannel>::Dispatch(DataChannel& dataChannel) {
 
 void MessageEvent::Dispatch(DataChannel& dataChannel) {
   dataChannel.HandleMessageEvent(*this);
-}
-
-void NegotiationNeededEvent::Dispatch(PeerConnection& peerConnection) {
-  peerConnection.HandleNegotiationNeededEvent(*this);
-}
-
-void OnAddTrackEvent::Dispatch(PeerConnection& peerConnection) {
-  peerConnection.HandleOnAddTrackEvent(*this);
-}
-
-void IceEvent::Dispatch(PeerConnection& peerConnection) {
-  peerConnection.HandleIceCandidateEvent(*this);
-}
-
-void AddIceCandidateEvent::Dispatch(PeerConnection& peerConnection) {
-  peerConnection.HandleAddIceCandidateEvent(*this);
-  PromiseEvent<PeerConnection>::Dispatch(peerConnection);
-}
-
-void IceConnectionStateChangeEvent::Dispatch(PeerConnection& peerConnection) {
-  peerConnection.HandleIceConnectionStateChangeEvent(*this);
-}
-
-void IceGatheringStateChangeEvent::Dispatch(PeerConnection& peerConnection) {
-  peerConnection.HandleIceGatheringStateChangeEvent(*this);
-}
-
-void SignalingStateChangeEvent::Dispatch(PeerConnection& peerConnection) {
-  peerConnection.HandleSignalingStateChangeEvent(*this);
 }
 
 void OnFrameEvent::Dispatch(RTCVideoSink& sink) {
