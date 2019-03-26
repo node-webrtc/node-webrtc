@@ -22,16 +22,8 @@
 #include "src/error.h"
 #include "src/functional/either.h"
 
-namespace webrtc {
-
-class RtpReceiverInterface;
-class RtpTransceiverInterface;
-
-}  // namespace webrtc
-
 namespace node_webrtc {
 
-class DataChannel;
 class RTCAudioSink;
 class RTCVideoSink;
 
@@ -71,6 +63,22 @@ class Callback: public Event<T> {
  private:
   explicit Callback(std::function<void()> callback): _callback(std::move(callback)) {}
   const std::function<void()> _callback;
+};
+
+template <typename T>
+class Callback1: public Event<T> {
+ public:
+  void Dispatch(T& target) override {
+    _callback(target);
+  }
+
+  static std::unique_ptr<Callback1<T>> Create(std::function<void(T&)> callback) {
+    return std::unique_ptr<Callback1<T>>(new Callback1(std::move(callback)));
+  }
+
+ private:
+  explicit Callback1(std::function<void(T&)> callback): _callback(std::move(callback)) {}
+  const std::function<void(T&)> _callback;
 };
 
 /**
@@ -123,59 +131,6 @@ class PromiseEvent: public Event<T> {
  private:
   std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
   node_webrtc::Either<L, R> _result;
-};
-
-template <typename T>
-class ErrorEvent: public Event<T> {
- public:
-  const std::string msg;
-
-  void Dispatch(T&) override {}
-
- protected:
-  explicit ErrorEvent(const std::string&& msg): msg(msg) {}
-};
-
-class MessageEvent: public Event<DataChannel> {
- public:
-  bool binary;
-  std::unique_ptr<char[]> message;
-  size_t size;
-
-  void Dispatch(DataChannel& dataChannel) override;
-
-  static std::unique_ptr<MessageEvent> Create(const webrtc::DataBuffer* buffer) {
-    return std::unique_ptr<MessageEvent>(new MessageEvent(buffer));
-  }
-
- private:
-  explicit MessageEvent(const webrtc::DataBuffer* buffer) {
-    binary = buffer->binary;
-    size = buffer->size();
-    message = std::unique_ptr<char[]>(new char[size]);
-    memcpy(reinterpret_cast<void*>(message.get()), reinterpret_cast<const void*>(buffer->data.data()), size);
-  }
-};
-
-template <typename T, typename S>
-class StateEvent: public Event<T> {
- public:
-  const S state;
-
- protected:
-  explicit StateEvent(const S state): state(state) {}
-};
-
-class DataChannelStateChangeEvent: public StateEvent<DataChannel, webrtc::DataChannelInterface::DataState> {
- public:
-  void Dispatch(DataChannel& dataChannel) override;
-
-  static std::unique_ptr<DataChannelStateChangeEvent> Create(const webrtc::DataChannelInterface::DataState state) {
-    return std::unique_ptr<DataChannelStateChangeEvent>(new DataChannelStateChangeEvent(state));
-  }
-
- protected:
-  explicit DataChannelStateChangeEvent(const webrtc::DataChannelInterface::DataState state): StateEvent(state) {}
 };
 
 class OnFrameEvent: public Event<RTCVideoSink> {

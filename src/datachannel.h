@@ -23,11 +23,7 @@
 namespace node_webrtc {
 
 class DataChannelObserver;
-class DataChannelStateChangeEvent;
-class MessageEvent;
 class PeerConnectionFactory;
-
-template <typename T> class ErrorEvent;
 
 class DataChannel
   : public node_webrtc::AsyncObjectWrapWithLoop<DataChannel>
@@ -50,10 +46,6 @@ class DataChannel
   void OnStateChange() override;
   void OnMessage(const webrtc::DataBuffer& buffer) override;
 
-  void HandleErrorEvent(const ErrorEvent<DataChannel>& event);
-  void HandleStateEvent(const DataChannelStateChangeEvent& event);
-  void HandleMessageEvent(MessageEvent& event);
-
   void OnPeerConnectionClosed();
 
   static ::node_webrtc::Wrap <
@@ -70,6 +62,9 @@ class DataChannel
       rtc::scoped_refptr<webrtc::DataChannelInterface>);
 
   static Nan::Persistent<v8::Function>& constructor();
+
+  static void HandleStateChange(DataChannel&, webrtc::DataChannelInterface::DataState);
+  static void HandleMessage(DataChannel&, const webrtc::DataBuffer& buffer);
 
   static NAN_METHOD(New);
 

@@ -20,12 +20,7 @@
 using node_webrtc::AsyncObjectWrapWithLoop;
 using node_webrtc::DataChannel;
 using node_webrtc::DataChannelObserver;
-using node_webrtc::DataChannelStateChangeEvent;
-using node_webrtc::ErrorEvent;
 using node_webrtc::ErrorFactory;
-using node_webrtc::Event;
-using node_webrtc::MessageEvent;
-using node_webrtc::StateEvent;
 using v8::External;
 using v8::Function;
 using v8::FunctionTemplate;
@@ -53,15 +48,16 @@ DataChannelObserver::DataChannelObserver(std::shared_ptr<node_webrtc::PeerConnec
 }
 
 void DataChannelObserver::OnStateChange() {
-  TRACE_CALL;
-  Enqueue(DataChannelStateChangeEvent::Create(_jingleDataChannel->state()));
-  TRACE_END;
+  auto state = _jingleDataChannel->state();
+  Enqueue(node_webrtc::Callback1<node_webrtc::DataChannel>::Create([state](node_webrtc::DataChannel & channel) {
+    node_webrtc::DataChannel::HandleStateChange(channel, state);
+  }));
 }
 
 void DataChannelObserver::OnMessage(const webrtc::DataBuffer& buffer) {
-  TRACE_CALL;
-  Enqueue(MessageEvent::Create(&buffer));
-  TRACE_END;
+  Enqueue(node_webrtc::Callback1<node_webrtc::DataChannel>::Create([buffer](node_webrtc::DataChannel & channel) {
+    node_webrtc::DataChannel::HandleMessage(channel, buffer);
+  }));
 }
 
 static void requeue(DataChannelObserver& observer, DataChannel& channel) {
@@ -127,66 +123,57 @@ NAN_METHOD(DataChannel::New) {
   info.GetReturnValue().Set(info.This());
 }
 
-void DataChannel::HandleErrorEvent(const ErrorEvent<DataChannel>& event) {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-  Local<Value> argv[1];
-  argv[0] = Nan::Error(Nan::New(event.msg).ToLocalChecked());
-  MakeCallback("onerror", 1, argv);
-  TRACE_END;
-}
-
-void DataChannel::HandleStateEvent(const DataChannelStateChangeEvent& event) {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-  Local<Value> argv[1];
-  if (event.state == webrtc::DataChannelInterface::kClosed) {
-    argv[0] = Nan::New("closed").ToLocalChecked();
-    MakeCallback("onstatechange", 1, argv);
-  } else if (event.state == webrtc::DataChannelInterface::kOpen) {
-    argv[0] = Nan::New("open").ToLocalChecked();
-    MakeCallback("onstatechange", 1, argv);
-  }
-
-  if (event.state == webrtc::DataChannelInterface::kClosed) {
-    Stop();
-  }
-  TRACE_END;
-}
-
-void DataChannel::HandleMessageEvent(MessageEvent& event) {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-  Local<Value> argv[1];
-  if (event.binary) {
-    Local<v8::ArrayBuffer> array = v8::ArrayBuffer::New(
-            v8::Isolate::GetCurrent(),
-            event.message.release(),
-            event.size,
-            v8::ArrayBufferCreationMode::kInternalized);
-    argv[0] = array;
-  } else {
-    Local<String> str = Nan::New(event.message.get(), event.size).ToLocalChecked();
-    argv[0] = str;
-  }
-  MakeCallback("onmessage", 1, argv);
-  TRACE_END;
-}
-
 void DataChannel::OnStateChange() {
-  TRACE_CALL;
   auto state = _jingleDataChannel->state();
-  Dispatch(DataChannelStateChangeEvent::Create(state));
   if (state == webrtc::DataChannelInterface::kClosed) {
     CleanupInternals();
   }
-  TRACE_END;
+  Dispatch(node_webrtc::Callback<node_webrtc::DataChannel>::Create([this, state]() {
+    DataChannel::HandleStateChange(*this, state);
+  }));
+}
+
+void DataChannel::HandleStateChange(DataChannel& channel, webrtc::DataChannelInterface::DataState state) {
+  Nan::HandleScope scope;
+  v8::Local<v8::Value> argv[1];
+  if (state == webrtc::DataChannelInterface::kClosed) {
+    argv[0] = Nan::New("closed").ToLocalChecked();
+    channel.MakeCallback("onstatechange", 1, argv);
+  } else if (state == webrtc::DataChannelInterface::kOpen) {
+    argv[0] = Nan::New("open").ToLocalChecked();
+    channel.MakeCallback("onstatechange", 1, argv);
+  }
+  if (state == webrtc::DataChannelInterface::kClosed) {
+    channel.Stop();
+  }
 }
 
 void DataChannel::OnMessage(const webrtc::DataBuffer& buffer) {
-  TRACE_CALL;
-  Dispatch(MessageEvent::Create(&buffer));
-  TRACE_END;
+  Dispatch(node_webrtc::Callback<node_webrtc::DataChannel>::Create([this, buffer]() {
+    DataChannel::HandleMessage(*this, buffer);
+  }));
+}
+
+void DataChannel::HandleMessage(node_webrtc::DataChannel& channel, const webrtc::DataBuffer& buffer) {
+  bool binary = buffer.binary;
+  size_t size = buffer.size();
+  std::unique_ptr<char[]> message = std::unique_ptr<char[]>(new char[size]);
+  memcpy(reinterpret_cast<void*>(message.get()), reinterpret_cast<const void*>(buffer.data.data()), size);
+
+  Nan::HandleScope scope;
+  v8::Local<Value> argv[1];
+  if (binary) {
+    v8::Local<v8::ArrayBuffer> array = v8::ArrayBuffer::New(
+            v8::Isolate::GetCurrent(),
+            message.release(),
+            size,
+            v8::ArrayBufferCreationMode::kInternalized);
+    argv[0] = array;
+  } else {
+    v8::Local<v8::String> str = Nan::New(message.get(), size).ToLocalChecked();
+    argv[0] = str;
+  }
+  channel.MakeCallback("onmessage", 1, argv);
 }
 
 NAN_METHOD(DataChannel::Send) {
