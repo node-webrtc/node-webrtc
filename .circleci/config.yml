@@ -237,8 +237,7 @@ aliases:
             npm install --unsafe-perm
 
             if [[ "$TARGET_ARCH" != arm* && "$NODE_VERSION" != 6 ]]; then
-              cd example
-              npm install
+              npm run install-example
             fi
 
       - <<: *save-cache
@@ -409,8 +408,7 @@ aliases:
             npm install
 
             if [[ "$NODE_VERSION" != 6 ]]; then
-              cd example
-              npm install
+              npm run install-example
             fi
 
       - <<: *save-cache
