@@ -73,28 +73,36 @@ void node_webrtc::RTCAudioSink::OnData(
   }
   memcpy(audio_data_copy.get(), audio_data, byte_length);
 
-  Dispatch(node_webrtc::OnDataEvent::Create({
-    audio_data_copy.release(),
-    static_cast<uint8_t>(bits_per_sample),
-    static_cast<uint16_t>(sample_rate),
-    static_cast<uint8_t>(number_of_channels),
-    node_webrtc::MakeJust<uint16_t>(static_cast<uint16_t>(number_of_frames))
-  }));
-}
+  // Dispatch(node_webrtc::Callback<node_webrtc::RTCAudioSink>::Create([
+  Dispatch(node_webrtc::CreateOtherCallback<node_webrtc::RTCAudioSink>([
+             this,
+             audio_data_copy = std::move(audio_data_copy),
+             bits_per_sample,
+             sample_rate,
+             number_of_channels,
+             number_of_frames
+  ]() mutable {
+    node_webrtc::RTCOnDataEventDict dict({
+      audio_data_copy.release(),
+      static_cast<uint8_t>(bits_per_sample),
+      static_cast<uint16_t>(sample_rate),
+      static_cast<uint8_t>(number_of_channels),
+      node_webrtc::MakeJust<uint16_t>(static_cast<uint16_t>(number_of_frames))
+    });
 
-void node_webrtc::RTCAudioSink::HandleOnDataEvent(const node_webrtc::OnDataEvent& event) {
-  Nan::HandleScope scope;
-  auto maybeValue = node_webrtc::From<v8::Local<v8::Value>>(event.dict);
-  if (maybeValue.IsInvalid()) {
-    // TODO(mroberts): Should raise an error; although this really shouldn't happen.
-    // HACK(mroberts): I'd rather we use a smart pointer.
-    delete[] event.dict.samples;
-    return;
-  }
-  auto value = maybeValue.UnsafeFromValid();
-  v8::Local<v8::Value> argv[1];
-  argv[0] = value;
-  MakeCallback("ondata", 1, argv);
+    Nan::HandleScope scope;
+    auto maybeValue = node_webrtc::From<v8::Local<v8::Value>>(dict);
+    if (maybeValue.IsInvalid()) {
+      // TODO(mroberts): Should raise an error; although this really shouldn't happen.
+      // HACK(mroberts): I'd rather we use a smart pointer.
+      delete[] dict.samples;
+      return;
+    }
+    auto value = maybeValue.UnsafeFromValid();
+    v8::Local<v8::Value> argv[1];
+    argv[0] = value;
+    MakeCallback("ondata", 1, argv);
+  }));
 }
 
 void node_webrtc::RTCAudioSink::Init(v8::Handle<v8::Object> exports) {

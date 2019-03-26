@@ -24,7 +24,6 @@
 
 namespace node_webrtc {
 
-class RTCAudioSink;
 class RTCVideoSink;
 
 /**
@@ -80,6 +79,27 @@ class Callback1: public Event<T> {
   explicit Callback1(std::function<void(T&)> callback): _callback(std::move(callback)) {}
   const std::function<void(T&)> _callback;
 };
+
+template <typename F, typename T>
+class OtherCallback: public Event<T> {
+ public:
+  void Dispatch(T&) override {
+    _callback();
+  }
+
+  static std::unique_ptr<OtherCallback<F, T>> Create(F callback) {
+    return std::unique_ptr<OtherCallback<F, T>>(new OtherCallback(std::move(callback)));
+  }
+
+ private:
+  explicit OtherCallback(F callback): _callback(std::move(callback)) {}
+  F _callback;
+};
+
+template <typename T, typename F>
+static std::unique_ptr<OtherCallback<F, T>> CreateOtherCallback(F callback) {
+  return OtherCallback<F, T>::Create(std::move(callback));
+}
 
 /**
  * A PromiseEvent can be dispatched to a PromiseFulfillingEventLoop in order to
@@ -145,20 +165,6 @@ class OnFrameEvent: public Event<RTCVideoSink> {
 
  private:
   explicit OnFrameEvent(const webrtc::VideoFrame& frame): frame(frame) {}
-};
-
-class OnDataEvent: public Event<RTCAudioSink> {
- public:
-  RTCOnDataEventDict dict;
-
-  void Dispatch(RTCAudioSink& sink) override;
-
-  static std::unique_ptr<OnDataEvent> Create(const RTCOnDataEventDict& dict) {
-    return std::unique_ptr<OnDataEvent>(new OnDataEvent(dict));
-  }
-
- private:
-  OnDataEvent(const RTCOnDataEventDict& dict): dict(dict) {}
 };
 
 }  // namespace node_webrtc
