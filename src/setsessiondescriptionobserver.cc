@@ -12,13 +12,11 @@
 #include "src/common.h"
 #include "src/converters.h"
 #include "src/converters/v8.h"
-#include "src/error.h"  // IWYU pragma: keep
-#include "src/errorfactory.h"  // IWYU pragma: keep
-#include "src/functional/either.h"  // IWYU pragma: keep
+#include "src/error.h"
+#include "src/errorfactory.h"
+#include "src/functional/either.h"
 #include "src/functional/validation.h"
-#include "src/peerconnection.h"  // IWYU pragma: keep
-
-// IWYU pragma: no_forward_declare node_webrtc::SomeError
+#include "src/peerconnection.h"
 
 using node_webrtc::Either;
 using node_webrtc::ErrorFactory;

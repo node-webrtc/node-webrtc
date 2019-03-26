@@ -9,12 +9,12 @@
 
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
-#include "src/converters/arguments.h"  // IWYU pragma: keep
-#include "src/converters/dictionaries.h"  // IWYU pragma: keep
-#include "src/converters/interfaces.h"  // IWYU pragma: keep
+#include "src/converters/arguments.h"
+#include "src/converters/dictionaries.h"
+#include "src/converters/interfaces.h"
 #include "src/error.h"
-#include "src/mediastreamtrack.h"  // IWYU pragma: keep
-#include "src/rtcdtlstransport.h"  // IWYU pragma: keep
+#include "src/mediastreamtrack.h"
+#include "src/rtcdtlstransport.h"
 
 namespace node_webrtc {
 

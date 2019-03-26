@@ -9,10 +9,10 @@
 #define SRC_RTCSTATSCOLLECTOR_H_
 
 #include <webrtc/api/stats/rtcstatscollectorcallback.h>
-#include <webrtc/api/stats/rtcstatsreport.h>  // IWYU pragma: keep
-#include <webrtc/rtc_base/scoped_ref_ptr.h>  // IWYU pragma: keep
+#include <webrtc/api/stats/rtcstatsreport.h>
+#include <webrtc/rtc_base/scoped_ref_ptr.h>
 
-#include "src/events.h"  // IWYU pragma: keep
+#include "src/events.h"
 
 namespace node_webrtc {
 

@@ -16,7 +16,7 @@
 #include <iosfwd>
 #include <string>
 
-#include <nan.h>  // IWYU pragma: keep
+#include <nan.h>
 #include <v8.h>
 
 #include "src/converters.h"

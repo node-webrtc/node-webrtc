@@ -8,15 +8,20 @@
 #ifndef SRC_RTCDTLSTRANSPORT_H_
 #define SRC_RTCDTLSTRANSPORT_H_
 
-#include <mutex>
+#include <memory>
+#include <mutex>  // IWYU pragma: keep
 
 #include <nan.h>
 #include <webrtc/api/dtls_transport_interface.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <webrtc/api/scoped_refptr.h>
 #include <v8.h>  // IWYU pragma: keep
 
-#include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
+#include "src/asyncobjectwrapwithloop.h"
 #include "src/wrap.h"
+
+// IWYU pragma: no_include <__mutex_base>
+
+namespace webrtc { class RTCError; }
 
 namespace node_webrtc {
 

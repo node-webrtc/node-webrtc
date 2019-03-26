@@ -13,11 +13,9 @@
 #include "src/common.h"
 #include "src/converters.h"
 #include "src/converters/v8.h"
-#include "src/error.h"  // IWYU pragma: keep
+#include "src/error.h"
 #include "src/functional/validation.h"
-#include "src/peerconnection.h"  // IWYU pragma: keep
-
-// IWYU pragma: no_forward_declare node_webrtc::SomeError
+#include "src/peerconnection.h"
 
 using node_webrtc::CreateSessionDescriptionObserver;
 using node_webrtc::Errors;

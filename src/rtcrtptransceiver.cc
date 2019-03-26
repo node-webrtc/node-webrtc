@@ -7,14 +7,14 @@
  */
 #include "src/rtcrtptransceiver.h"
 
-#include <webrtc/api/rtptransceiverinterface.h>  // IWYU pragma: keep
+#include <webrtc/api/rtptransceiverinterface.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
 #include "src/error.h"
-#include "src/converters/dictionaries.h"  // IWYU pragma: keep
-#include "src/converters/v8.h"  // IWYU pragma: keep
-#include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
-#include "src/rtcrtpsender.h"  // IWYU pragma: keep
+#include "src/converters/dictionaries.h"
+#include "src/converters/v8.h"
+#include "src/rtcrtpreceiver.h"
+#include "src/rtcrtpsender.h"
 
 using node_webrtc::AsyncObjectWrap;
 using node_webrtc::RTCRtpTransceiver;

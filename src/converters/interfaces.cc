@@ -10,11 +10,11 @@
 #include <nan.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
-#include "src/mediastream.h"  // IWYU pragma: keep
-#include "src/mediastreamtrack.h"  // IWYU pragma: keep
-#include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
-#include "src/rtcrtpsender.h"  // IWYU pragma: keep
-#include "src/rtcrtptransceiver.h"  // IWYU pragma: keep
+#include "src/mediastream.h"
+#include "src/mediastreamtrack.h"
+#include "src/rtcrtpreceiver.h"
+#include "src/rtcrtpsender.h"
+#include "src/rtcrtptransceiver.h"
 
 #define CONVERT_INTERFACE_TO_JS(IFACE, NAME, TO_FN) \
   TO_JS_IMPL(node_webrtc::IFACE*, value) { \

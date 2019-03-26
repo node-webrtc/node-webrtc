@@ -16,23 +16,23 @@
 #include <webrtc/api/rtpreceiverinterface.h>
 #include <webrtc/api/rtptransceiverinterface.h>
 #include <webrtc/api/stats/rtcstats.h>
-#include <webrtc/api/video/i420_buffer.h>  // IWYU pragma: keep
+#include <webrtc/api/video/i420_buffer.h>
 #include <v8.h>
 
-#include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
+#include "src/asyncobjectwrapwithloop.h"
 #include "src/converters.h"
-#include "src/converters/interfaces.h"  // IWYU pragma: keep
-#include "src/converters/object.h"  // IWYU pragma: keep
-#include "src/converters/v8.h"  // IWYU pragma: keep
-#include "src/functional/either.h"  // IWYU pragma: keep
-#include "src/i420helpers.h"  // IWYU pragma: keep
-#include "src/errorfactory.h"  // IWYU pragma: keep
-#include "src/mediastream.h"  // IWYU pragma: keep
-#include "src/mediastreamtrack.h"  // IWYU pragma: keep
-#include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
-#include "src/rtcrtpsender.h"  // IWYU pragma: keep
-#include "src/rtcrtptransceiver.h"  // IWYU pragma: keep
-#include "src/rtcstatsresponse.h"  // IWYU pragma: keep
+#include "src/converters/interfaces.h"
+#include "src/converters/object.h"
+#include "src/converters/v8.h"
+#include "src/functional/either.h"
+#include "src/i420helpers.h"
+#include "src/errorfactory.h"
+#include "src/mediastream.h"
+#include "src/mediastreamtrack.h"
+#include "src/rtcrtpreceiver.h"
+#include "src/rtcrtpsender.h"
+#include "src/rtcrtptransceiver.h"
+#include "src/rtcstatsresponse.h"
 
 using node_webrtc::BinaryType;  // *
 using node_webrtc::RTCAnswerOptions;  // *

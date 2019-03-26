@@ -8,7 +8,7 @@
 #ifndef SRC_CONVERTERS_INTERFACES_H_
 #define SRC_CONVERTERS_INTERFACES_H_
 
-#include <v8.h>  // IWYU pragma: keep
+#include <v8.h>
 
 #include "src/converters.h"
 

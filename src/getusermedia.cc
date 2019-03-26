@@ -8,24 +8,24 @@
 #include "src/getusermedia.h"
 
 #include <webrtc/api/audio_options.h>
-#include <webrtc/rtc_base/helpers.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/helpers.h>
 
-#include "src/converters.h"  // IWYU pragma: keep
-#include "src/converters/arguments.h"  // IWYU pragma: keep
-#include "src/converters/dictionaries.h"  // IWYU pragma: keep
-#include "src/converters/interfaces.h"  // IWYU pragma: keep
-#include "src/converters/object.h"  // IWYU pragma: keep
-#include "src/converters/v8.h"  // IWYU pragma: keep
+#include "src/converters.h"
+#include "src/converters/arguments.h"
+#include "src/converters/dictionaries.h"
+#include "src/converters/interfaces.h"
+#include "src/converters/object.h"
+#include "src/converters/v8.h"
 #include "src/error.h"
-#include "src/events.h"  // IWYU pragma: keep
-#include "src/functional/curry.h"  // IWYU pragma: keep
-#include "src/functional/either.h"  // IWYU pragma: keep
+#include "src/events.h"
+#include "src/functional/curry.h"
+#include "src/functional/either.h"
 #include "src/functional/maybe.h"
-#include "src/functional/operators.h"  // IWYU pragma: keep
+#include "src/functional/operators.h"
 #include "src/functional/validation.h"
-#include "src/mediastream.h"  // IWYU pragma: keep
-#include "src/peerconnectionfactory.h"  // IWYU pragma: keep
-#include "src/rtcvideosource.h"  // IWYU pragma: keep
+#include "src/mediastream.h"
+#include "src/peerconnectionfactory.h"
+#include "src/rtcvideosource.h"
 
 // TODO(mroberts): Expand support for other members.
 struct MediaTrackConstraintSet {

@@ -17,10 +17,10 @@
 #include <iosfwd>
 
 #include <absl/types/optional.h>
-#include <nan.h>  // IWYU pragma: keep
+#include <nan.h>
 #include <webrtc/api/mediastreaminterface.h>
 #include <webrtc/api/peerconnectioninterface.h>
-#include <v8.h>  // IWYU pragma: keep
+#include <v8.h>
 
 #include "src/converters.h"
 #include "src/converters/enums.h"
@@ -60,7 +60,7 @@ class VideoFrameBuffer;
 namespace node_webrtc {
 
 class I420ImageData;
-class MediaStream;  // IWYU pragma: keep
+class MediaStream;
 class RgbaImageData;
 class SomeError;
 

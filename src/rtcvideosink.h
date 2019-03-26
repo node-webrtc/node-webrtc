@@ -9,13 +9,14 @@
 #define SRC_RTCVIDEOSINK_H_
 
 #include <nan.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <webrtc/api/media_stream_interface.h>
+#include <webrtc/api/scoped_refptr.h>
+#include <webrtc/api/video/video_sink_interface.h>
 #include <v8.h>  // IWYU pragma: keep
 
-#include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
+#include "src/asyncobjectwrapwithloop.h"
 
 namespace webrtc { class VideoFrame; }
-namespace webrtc { class VideoTrackInterface; }
 
 namespace node_webrtc {
 

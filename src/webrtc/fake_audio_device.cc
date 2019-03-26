@@ -9,26 +9,33 @@
  */
 #include "src/webrtc/fake_audio_device.h"
 
+#include <algorithm>
+#include <cstdlib>
 #include <iosfwd>
+#include <type_traits>
+#include <vector>
 
+#include <absl/memory/memory.h>
 #include <webrtc/common_audio/wav_file.h>
-#include <webrtc/modules/audio_device/include/audio_device_default.h>  // IWYU pragma: keep
+#include <webrtc/modules/audio_device/include/audio_device_default.h>
+#include <webrtc/modules/audio_device/include/audio_device_defines.h>
+#include <webrtc/rtc_base/buffer.h>
 #include <webrtc/rtc_base/checks.h>
-#include <webrtc/rtc_base/criticalsection.h>
+#include <webrtc/rtc_base/critical_section.h>
 #include <webrtc/rtc_base/event.h>
 #include <webrtc/rtc_base/logging.h>
-#include <webrtc/rtc_base/numerics/safe_conversions.h>  // IWYU pragma: keep
-#include <webrtc/rtc_base/platform_thread.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/numerics/safe_conversions.h>
+#include <webrtc/rtc_base/platform_file.h>
+#include <webrtc/rtc_base/platform_thread.h>
 #include <webrtc/rtc_base/random.h>
-#include <webrtc/rtc_base/refcountedobject.h>  // IWYU pragma: keep
-#include <webrtc/rtc_base/thread.h>  // IWYU pragma: keep
-#include <webrtc/rtc_base/timeutils.h>  // IWYU pragma: keep
+#include <webrtc/rtc_base/ref_counted_object.h>
+#include <webrtc/rtc_base/thread.h>
+#include <webrtc/rtc_base/thread_annotations.h>
+#include <webrtc/rtc_base/time_utils.h>
 
-// IWYU pragma: no_include <rtc_base/platform_file.h>
-// IWYU pragma: no_include <rtc_base/scoped_ref_ptr.h>
-// IWYU pragma: no_include <rtc_base/thread_annotations.h>
-
-namespace webrtc { class AudioTransport; }
+// IWYU pragma: no_include <_types/_int64_t.h>
+// IWYU pragma: no_include <api/array_view.h>
+// IWYU pragma: no_include <api/scoped_refptr.h>
 
 namespace node_webrtc {
 

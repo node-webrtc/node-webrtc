@@ -10,7 +10,7 @@
 
 #include <webrtc/api/jsep.h>
 
-#include "src/events.h"  // IWYU pragma: keep
+#include "src/events.h"
 
 namespace webrtc {
 

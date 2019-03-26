@@ -9,7 +9,7 @@
 #define SRC_GETUSERMEDIA_H_
 
 #include <nan.h>
-#include <v8.h>  // IWYU pragma: keep
+#include <v8.h>
 
 namespace node_webrtc {
 

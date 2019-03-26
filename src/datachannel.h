@@ -15,9 +15,9 @@
 #include <webrtc/api/datachannelinterface.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
-#include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
+#include "src/asyncobjectwrapwithloop.h"
 #include "src/converters/enums.h"
-#include "src/eventqueue.h"  // IWYU pragma: keep
+#include "src/eventqueue.h"
 #include "src/wrap.h"
 
 namespace node_webrtc {

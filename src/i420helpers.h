@@ -9,7 +9,7 @@
 #define SRC_I420HELPERS_H_
 
 #include <nan.h>
-#include <v8.h>  // IWYU pragma: keep
+#include <v8.h>
 
 #include "src/functional/validation.h"
 

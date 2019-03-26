@@ -8,12 +8,14 @@
 #ifndef SRC_RTCAUDIOSINK_H_
 #define SRC_RTCAUDIOSINK_H_
 
+#include <stddef.h>
+
 #include <nan.h>
-#include <webrtc/api/mediastreaminterface.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <webrtc/api/media_stream_interface.h>
+#include <webrtc/api/scoped_refptr.h>
 #include <v8.h>  // IWYU pragma: keep
 
-#include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
+#include "src/asyncobjectwrapwithloop.h"
 
 namespace node_webrtc {
 
