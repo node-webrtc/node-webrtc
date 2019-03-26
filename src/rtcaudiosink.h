@@ -15,8 +15,6 @@
 
 #include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
 
-namespace node_webrtc { class OnDataEvent; }
-
 namespace node_webrtc {
 
 class RTCAudioSink
@@ -33,8 +31,6 @@ class RTCAudioSink
       int sample_rate,
       size_t number_of_channels,
       size_t number_of_frames) override;
-
-  void HandleOnDataEvent(const OnDataEvent& event);
 
  protected:
   void Stop() override;
