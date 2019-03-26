@@ -7,11 +7,17 @@
  */
 #include "src/rtcstatsresponse.h"
 
+#include <cstdint>  // IWYU pragma: keep
+
 #include <nan.h>
-#include <v8.h>  // IWYU pragma: keep
+#include <v8.h>
 
 #include "src/common.h"
-#include "src/legacyrtcstatsreport.h"  // IWYU pragma: keep
+#include "src/legacyrtcstatsreport.h"
+
+// IWYU pragma: no_include <_types/_uint32_t.h>
+// IWYU pragma: no_include <nan_callbacks_12_inl.h>
+// IWYU pragma: no_include <nan_implementation_12_inl.h>
 
 using node_webrtc::RTCStatsResponse;
 using v8::Array;

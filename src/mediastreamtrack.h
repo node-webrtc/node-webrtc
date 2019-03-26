@@ -13,9 +13,9 @@
 #include <nan.h>
 #include <webrtc/api/mediastreaminterface.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
-#include <v8.h>  // IWYU pragma: keep
+#include <v8.h>
 
-#include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
+#include "src/asyncobjectwrapwithloop.h"
 #include "src/wrap.h"
 
 namespace node_webrtc {

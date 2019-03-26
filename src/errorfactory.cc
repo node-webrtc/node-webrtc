@@ -12,11 +12,13 @@
 #include "src/converters.h"
 #include "src/converters/object.h"
 #include "src/converters/v8.h"  // IWYU pragma: keep
+#include "src/functional/validation.h"
+
+// IWYU pragma: no_include <nan_implementation_12_inl.h>
 
 namespace node_webrtc {
 
 template <typename T> class Maybe;
-template <typename T> class Validation;
 
 }  // namespace node_webrtc
 

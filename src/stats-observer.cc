@@ -10,7 +10,7 @@
 #include <webrtc/api/statstypes.h>
 
 #include "src/common.h"
-#include "src/peerconnection.h"  // IWYU pragma: keep
+#include "src/peerconnection.h"
 
 using node_webrtc::PeerConnection;
 using node_webrtc::StatsObserver;

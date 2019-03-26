@@ -6,26 +6,26 @@
  * tree.
  */
 #include <node.h>
-#include <v8.h>  // IWYU pragma: keep
+#include <v8.h>
 
-#include "src/datachannel.h"  // IWYU pragma: keep
-#include "src/errorfactory.h"  // IWYU pragma: keep
-#include "src/getusermedia.h"  // IWYU pragma: keep
-#include "src/i420helpers.h"  // IWYU pragma: keep
-#include "src/legacyrtcstatsreport.h"  // IWYU pragma: keep
-#include "src/mediastream.h"  // IWYU pragma: keep
-#include "src/mediastreamtrack.h"  // IWYU pragma: keep
-#include "src/peerconnection.h"  // IWYU pragma: keep
+#include "src/datachannel.h"
+#include "src/errorfactory.h"
+#include "src/getusermedia.h"
+#include "src/i420helpers.h"
+#include "src/legacyrtcstatsreport.h"
+#include "src/mediastream.h"
+#include "src/mediastreamtrack.h"
+#include "src/peerconnection.h"
 #include "src/peerconnectionfactory.h"
-#include "src/rtcaudiosink.h"  // IWYU pragma: keep
-#include "src/rtcaudiosource.h"  // IWYU pragma: keep
-#include "src/rtcdtlstransport.h"  // IWYU pragma: keep
-#include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
-#include "src/rtcrtpsender.h"  // IWYU pragma: keep
-#include "src/rtcrtptransceiver.h"  // IWYU pragma: keep
-#include "src/rtcstatsresponse.h"  // IWYU pragma: keep
-#include "src/rtcvideosink.h"  // IWYU pragma: keep
-#include "src/rtcvideosource.h"  // IWYU pragma: keep
+#include "src/rtcaudiosink.h"
+#include "src/rtcaudiosource.h"
+#include "src/rtcdtlstransport.h"
+#include "src/rtcrtpreceiver.h"
+#include "src/rtcrtpsender.h"
+#include "src/rtcrtptransceiver.h"
+#include "src/rtcstatsresponse.h"
+#include "src/rtcvideosink.h"
+#include "src/rtcvideosource.h"
 
 #ifdef DEBUG
 #include "src/test.h"

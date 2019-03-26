@@ -17,10 +17,10 @@
 #include <webrtc/api/peerconnectioninterface.h>
 #include <webrtc/api/rtptransceiverinterface.h>
 #include <webrtc/api/video/video_frame_buffer.h>
-#include <v8.h>  // IWYU pragma: keep
+#include <v8.h>
 
 #include "src/converters.h"
-#include "src/functional/validation.h"  // IWYU pragma: keep
+#include "src/functional/validation.h"
 
 #define ENUM_IMPL(ENUM) \
   enum ENUM { \

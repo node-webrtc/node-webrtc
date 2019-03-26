@@ -10,7 +10,7 @@
 
 #include <iosfwd>
 
-#include <nan.h>  // IWYU pragma: keep
+#include <nan.h>
 #include <v8.h>
 
 namespace node_webrtc {

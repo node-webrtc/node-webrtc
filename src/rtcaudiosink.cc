@@ -7,16 +7,25 @@
  */
 #include "src/rtcaudiosink.h"
 
-#include "src/converters.h"  // IWYU pragma: keep
+#include <cstdint>
+#include <memory>
+#include <string.h>
+#include <type_traits>
+
+#include "src/functional/maybe.h"
+#include "src/functional/validation.h"
+#include "src/converters.h"
 #include "src/converters/arguments.h"  // IWYU pragma: keep
-#include "src/converters/dictionaries.h"  // IWYU pragma: keep
+#include "src/converters/dictionaries.h"
 #include "src/converters/interfaces.h"  // IWYU pragma: keep
 #include "src/error.h"
-#include "src/events.h"  // IWYU pragma: keep
+#include "src/events.h"
 
-// IWYU pragma: no_include <api/mediastreaminterface.h>
-// IWYU pragma: no_include <rtc_base/scoped_ref_ptr.h>
-// IWYU pragma: no_forward_declare webrtc::AudioTrackInterface
+// IWYU pragma: no_include <_types/_uint16_t.h>
+// IWYU pragma: no_include <_types/_uint8_t.h>
+// IWYU pragma: no_include <api/media_stream_interface.h>
+// IWYU pragma: no_include <api/scoped_refptr.h>
+// IWYU pragma: no_include <nan_callbacks_12_inl.h>
 
 Nan::Persistent<v8::FunctionTemplate>& node_webrtc::RTCAudioSink::tpl() {
   static Nan::Persistent<v8::FunctionTemplate> tpl;

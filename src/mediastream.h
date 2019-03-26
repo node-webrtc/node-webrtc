@@ -12,20 +12,20 @@
 
 #include <nan.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
-#include <v8.h>  // IWYU pragma: keep
+#include <v8.h>
 
 #include "src/wrap.h"
 
 namespace webrtc {
 
 class MediaStreamInterface;
-class MediaStreamTrackInterface;  // IWYU pragma: keep
+class MediaStreamTrackInterface;
 
 }  // namespace webrc
 
 namespace node_webrtc {
 
-class MediaStreamTrack;  // IWYU pragma: keep
+class MediaStreamTrack;
 class PeerConnectionFactory;
 
 class MediaStream

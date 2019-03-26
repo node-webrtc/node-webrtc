@@ -14,7 +14,7 @@
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 #include <v8.h>
 
-#include "src/asyncobjectwrap.h"  // IWYU pragma: keep
+#include "src/asyncobjectwrap.h"
 #include "src/wrap.h"
 
 namespace webrtc {

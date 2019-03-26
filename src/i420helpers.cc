@@ -7,11 +7,11 @@
  */
 #include "src/i420helpers.h"
 
-#include <libyuv.h>  // IWYU pragma: keep
+#include <libyuv.h>
 
-#include "src/converters.h"  // IWYU pragma: keep
-#include "src/converters/arguments.h"  // IWYU pragma: keep
-#include "src/converters/dictionaries.h"  // IWYU pragma: keep
+#include "src/converters.h"
+#include "src/converters/arguments.h"
+#include "src/converters/dictionaries.h"
 #include "src/error.h"
 
 node_webrtc::Validation<node_webrtc::I420ImageData> node_webrtc::ImageData::toI420() const {

@@ -15,9 +15,9 @@
 #include <webrtc/api/mediastreaminterface.h>
 #include <webrtc/media/base/adaptedvideotracksource.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
-#include <v8.h>  // IWYU pragma: keep
+#include <v8.h>
 
-#include "src/peerconnectionfactory.h"  // IWYU pragma: keep
+#include "src/peerconnectionfactory.h"
 
 namespace webrtc { class VideoFrame; }
 

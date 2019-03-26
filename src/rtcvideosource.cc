@@ -7,15 +7,15 @@
  */
 #include "src/rtcvideosource.h"
 
-#include <webrtc/api/video/i420_buffer.h>  // IWYU pragma: keep
+#include <webrtc/api/video/i420_buffer.h>
 #include <webrtc/api/video/video_frame.h>
 
-#include "src/converters.h"  // IWYU pragma: keep
-#include "src/converters/arguments.h"  // IWYU pragma: keep
-#include "src/converters/dictionaries.h"  // IWYU pragma: keep
+#include "src/converters.h"
+#include "src/converters/arguments.h"
+#include "src/converters/dictionaries.h"
 #include "src/error.h"
-#include "src/functional/maybe.h"  // IWYU pragma: keep
-#include "src/mediastreamtrack.h"  // IWYU pragma: keep
+#include "src/functional/maybe.h"
+#include "src/mediastreamtrack.h"
 
 Nan::Persistent<v8::Function>& node_webrtc::RTCVideoSource::constructor() {
   static Nan::Persistent<v8::Function> constructor;

@@ -7,10 +7,14 @@
  */
 #include "src/legacyrtcstatsreport.h"
 
-#include <nan.h>
-#include <v8.h>
+#include <cstdint>  // IWYU pragma: keep
+#include <utility>
 
 #include "src/common.h"
+
+// IWYU pragma: no_include <_types/_uint32_t.h>
+// IWYU pragma: no_include <nan_callbacks_12_inl.h>
+// IWYU pragma: no_include <nan_implementation_12_inl.h>
 
 using node_webrtc::LegacyStatsReport;
 using v8::Array;

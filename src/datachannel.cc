@@ -14,7 +14,7 @@
 
 #include "src/common.h"
 #include "src/error.h"
-#include "src/errorfactory.h"  // IWYU pragma: keep
+#include "src/errorfactory.h"
 #include "src/events.h"
 
 using node_webrtc::AsyncObjectWrapWithLoop;

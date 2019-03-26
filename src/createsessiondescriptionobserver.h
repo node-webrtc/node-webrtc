@@ -10,7 +10,7 @@
 
 #include <webrtc/api/jsep.h>
 
-#include "src/events.h"  // IWYU pragma: keep
+#include "src/events.h"
 
 namespace webrtc {
 
@@ -20,7 +20,7 @@ class RTCError;
 
 namespace node_webrtc {
 
-struct RTCSessionDescriptionInit;  // IWYU pragma: keep
+struct RTCSessionDescriptionInit;
 class PeerConnection;
 
 class CreateSessionDescriptionObserver

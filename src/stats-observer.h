@@ -11,7 +11,7 @@
 #include <webrtc/api/peerconnectioninterface.h>
 #include <webrtc/api/statstypes.h>
 
-#include "src/events.h"  // IWYU pragma: keep
+#include "src/events.h"
 
 namespace node_webrtc {
 

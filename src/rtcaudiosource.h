@@ -15,10 +15,10 @@
 #include <webrtc/api/mediastreaminterface.h>
 #include <webrtc/pc/localaudiosource.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
-#include <v8.h>  // IWYU pragma: keep
+#include <v8.h>
 
 #include "src/converters/dictionaries.h"
-#include "src/peerconnectionfactory.h"  // IWYU pragma: keep
+#include "src/peerconnectionfactory.h"
 
 namespace node_webrtc {
 

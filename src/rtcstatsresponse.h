@@ -8,7 +8,10 @@
 #ifndef SRC_RTCSTATSRESPONSE_H_
 #define SRC_RTCSTATSRESPONSE_H_
 
-#include <map>  // IWYU pragma: keep
+#include <iosfwd>
+#include <map>
+#include <string>
+#include <vector>
 
 #include <nan.h>
 #include <v8.h>  // IWYU pragma: keep

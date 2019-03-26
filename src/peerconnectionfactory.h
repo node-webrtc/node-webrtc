@@ -11,20 +11,18 @@
 #include <memory>
 
 #include <nan.h>
-#include <uv.h>  // IWYU pragma: keep
+#include <uv.h>
 #include <webrtc/modules/audio_device/include/audio_device.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
-#include <v8.h>  // IWYU pragma: keep
+#include <v8.h>
 
-#include "src/functional/maybe.h"  // IWYU pragma: keep
-
-// IWYU pragma: no_include <uv/unix.h>
+#include "src/functional/maybe.h"
 
 namespace rtc {
 
 class NetworkManager;
 class PacketSocketFactory;
-class Thread;  // IWYU pragma: keep
+class Thread;
 
 }  // namespace rtc
 

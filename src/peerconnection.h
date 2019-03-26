@@ -13,9 +13,9 @@
 #include <nan.h>
 #include <webrtc/api/peerconnectioninterface.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
-#include <v8.h>  // IWYU pragma: keep
+#include <v8.h>
 
-#include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
+#include "src/asyncobjectwrapwithloop.h"
 #include "src/converters/dictionaries.h"
 
 namespace webrtc {

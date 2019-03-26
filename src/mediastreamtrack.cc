@@ -7,12 +7,12 @@
  */
 #include "src/mediastreamtrack.h"
 
-#include <webrtc/api/mediastreaminterface.h>  // IWYU pragma: keep
+#include <webrtc/api/mediastreaminterface.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
 #include "src/error.h"
-#include "src/converters/dictionaries.h"  // IWYU pragma: keep
-#include "src/peerconnectionfactory.h"  // IWYU pragma: keep
+#include "src/converters/dictionaries.h"
+#include "src/peerconnectionfactory.h"
 
 using node_webrtc::AsyncObjectWrapWithLoop;
 using node_webrtc::MediaStreamTrack;

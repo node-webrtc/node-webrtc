@@ -12,32 +12,32 @@
 #include <webrtc/api/mediatypes.h>
 #include <webrtc/api/peerconnectioninterface.h>
 #include <webrtc/api/rtcerror.h>
-#include <webrtc/api/rtptransceiverinterface.h>  // IWYU pragma: keep
-#include <webrtc/p2p/client/basicportallocator.h>  // IWYU pragma: keep
+#include <webrtc/api/rtptransceiverinterface.h>
+#include <webrtc/p2p/client/basicportallocator.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
 
-#include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
+#include "src/asyncobjectwrapwithloop.h"
 #include "src/common.h"
 #include "src/converters.h"
-#include "src/converters/arguments.h"  // IWYU pragma: keep
+#include "src/converters/arguments.h"
 #include "src/converters/dictionaries.h"
-#include "src/converters/interfaces.h"  // IWYU pragma: keep
-#include "src/createsessiondescriptionobserver.h"  // IWYU pragma: keep
-#include "src/datachannel.h"  // IWYU pragma: keep
+#include "src/converters/interfaces.h"
+#include "src/createsessiondescriptionobserver.h"
+#include "src/datachannel.h"
 #include "src/error.h"
-#include "src/errorfactory.h"  // IWYU pragma: keep
+#include "src/errorfactory.h"
 #include "src/events.h"
 #include "src/functional/either.h"
 #include "src/functional/maybe.h"
-#include "src/mediastream.h"  // IWYU pragma: keep
-#include "src/mediastreamtrack.h"  // IWYU pragma: keep
+#include "src/mediastream.h"
+#include "src/mediastreamtrack.h"
 #include "src/peerconnectionfactory.h"
-#include "src/rtcrtpreceiver.h"  // IWYU pragma: keep
-#include "src/rtcrtpsender.h"  // IWYU pragma: keep
-#include "src/rtcrtptransceiver.h"  // IWYU pragma: keep
-#include "src/rtcstatscollector.h"  // IWYU pragma: keep
-#include "src/setsessiondescriptionobserver.h"  // IWYU pragma: keep
-#include "src/stats-observer.h"  // IWYU pragma: keep
+#include "src/rtcrtpreceiver.h"
+#include "src/rtcrtpsender.h"
+#include "src/rtcrtptransceiver.h"
+#include "src/rtcstatscollector.h"
+#include "src/setsessiondescriptionobserver.h"
+#include "src/stats-observer.h"
 
 namespace webrtc {
 
