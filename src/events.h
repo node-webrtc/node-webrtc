@@ -11,11 +11,6 @@
 #include <iosfwd>
 
 #include <nan.h>
-#include <webrtc/api/datachannelinterface.h>
-#include <webrtc/api/jsep.h>
-#include <webrtc/api/peerconnectioninterface.h>
-#include <webrtc/api/video/video_frame.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
 
 #include "src/converters/dictionaries.h"
 #include "src/converters/v8.h"
@@ -23,8 +18,6 @@
 #include "src/functional/either.h"
 
 namespace node_webrtc {
-
-class RTCVideoSink;
 
 /**
  * Event represents an event that can be dispatched to a target.
@@ -151,20 +144,6 @@ class PromiseEvent: public Event<T> {
  private:
   std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
   node_webrtc::Either<L, R> _result;
-};
-
-class OnFrameEvent: public Event<RTCVideoSink> {
- public:
-  const webrtc::VideoFrame frame;
-
-  void Dispatch(RTCVideoSink& sink) override;
-
-  static std::unique_ptr<OnFrameEvent> Create(const webrtc::VideoFrame& frame) {
-    return std::unique_ptr<OnFrameEvent>(new OnFrameEvent(frame));
-  }
-
- private:
-  explicit OnFrameEvent(const webrtc::VideoFrame& frame): frame(frame) {}
 };
 
 }  // namespace node_webrtc

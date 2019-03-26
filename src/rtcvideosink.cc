@@ -59,20 +59,18 @@ NAN_METHOD(node_webrtc::RTCVideoSink::JsStop) {
 }
 
 void node_webrtc::RTCVideoSink::OnFrame(const webrtc::VideoFrame& frame) {
-  Dispatch(node_webrtc::OnFrameEvent::Create(frame));
-}
-
-void node_webrtc::RTCVideoSink::HandleOnFrameEvent(const node_webrtc::OnFrameEvent& event) {
-  Nan::HandleScope scope;
-  auto maybeValue = node_webrtc::From<v8::Local<v8::Value>>(event.frame);
-  if (maybeValue.IsInvalid()) {
-    // TODO(mroberts): Should raise an error; although this really shouldn't happen.
-    return;
-  }
-  auto value = maybeValue.UnsafeFromValid();
-  v8::Local<v8::Value> argv[1];
-  argv[0] = value;
-  MakeCallback("onframe", 1, argv);
+  Dispatch(node_webrtc::Callback<node_webrtc::RTCVideoSink>::Create([this, frame]() {
+    Nan::HandleScope scope;
+    auto maybeValue = node_webrtc::From<v8::Local<v8::Value>>(frame);
+    if (maybeValue.IsInvalid()) {
+      // TODO(mroberts): Should raise an error; although this really shouldn't happen.
+      return;
+    }
+    auto value = maybeValue.UnsafeFromValid();
+    v8::Local<v8::Value> argv[1];
+    argv[0] = value;
+    MakeCallback("onframe", 1, argv);
+  }));
 }
 
 void node_webrtc::RTCVideoSink::Init(v8::Handle<v8::Object> exports) {

@@ -14,7 +14,6 @@
 
 #include "src/asyncobjectwrapwithloop.h"  // IWYU pragma: keep
 
-namespace node_webrtc { class OnFrameEvent; }
 namespace webrtc { class VideoFrame; }
 namespace webrtc { class VideoTrackInterface; }
 
@@ -29,8 +28,6 @@ class RTCVideoSink
   static void Init(v8::Handle<v8::Object> exports);
 
   virtual void OnFrame(const webrtc::VideoFrame& frame) override;
-
-  void HandleOnFrameEvent(const OnFrameEvent& event);
 
  protected:
   void Stop() override;
