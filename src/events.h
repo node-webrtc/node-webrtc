@@ -41,21 +41,26 @@ class Event {
   }
 };
 
-template <typename T>
+template <typename F, typename T>
 class Callback: public Event<T> {
  public:
   void Dispatch(T&) override {
     _callback();
   }
 
-  static std::unique_ptr<Callback<T>> Create(std::function<void()> callback) {
-    return std::unique_ptr<Callback<T>>(new Callback(std::move(callback)));
+  static std::unique_ptr<Callback<F, T>> Create(F callback) {
+    return std::unique_ptr<Callback<F, T>>(new Callback(std::move(callback)));
   }
 
  private:
-  explicit Callback(std::function<void()> callback): _callback(std::move(callback)) {}
-  const std::function<void()> _callback;
+  explicit Callback(F callback): _callback(std::move(callback)) {}
+  F _callback;
 };
+
+template <typename T, typename F>
+static std::unique_ptr<Callback<F, T>> CreateCallback(F callback) {
+  return Callback<F, T>::Create(std::move(callback));
+}
 
 template <typename T>
 class Callback1: public Event<T> {
@@ -72,27 +77,6 @@ class Callback1: public Event<T> {
   explicit Callback1(std::function<void(T&)> callback): _callback(std::move(callback)) {}
   const std::function<void(T&)> _callback;
 };
-
-template <typename F, typename T>
-class OtherCallback: public Event<T> {
- public:
-  void Dispatch(T&) override {
-    _callback();
-  }
-
-  static std::unique_ptr<OtherCallback<F, T>> Create(F callback) {
-    return std::unique_ptr<OtherCallback<F, T>>(new OtherCallback(std::move(callback)));
-  }
-
- private:
-  explicit OtherCallback(F callback): _callback(std::move(callback)) {}
-  F _callback;
-};
-
-template <typename T, typename F>
-static std::unique_ptr<OtherCallback<F, T>> CreateOtherCallback(F callback) {
-  return OtherCallback<F, T>::Create(std::move(callback));
-}
 
 /**
  * A PromiseEvent can be dispatched to a PromiseFulfillingEventLoop in order to

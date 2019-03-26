@@ -128,7 +128,7 @@ void DataChannel::OnStateChange() {
   if (state == webrtc::DataChannelInterface::kClosed) {
     CleanupInternals();
   }
-  Dispatch(node_webrtc::Callback<node_webrtc::DataChannel>::Create([this, state]() {
+  Dispatch(node_webrtc::CreateCallback<node_webrtc::DataChannel>([this, state]() {
     DataChannel::HandleStateChange(*this, state);
   }));
 }
@@ -149,7 +149,7 @@ void DataChannel::HandleStateChange(DataChannel& channel, webrtc::DataChannelInt
 }
 
 void DataChannel::OnMessage(const webrtc::DataBuffer& buffer) {
-  Dispatch(node_webrtc::Callback<node_webrtc::DataChannel>::Create([this, buffer]() {
+  Dispatch(node_webrtc::CreateCallback<node_webrtc::DataChannel>([this, buffer]() {
     DataChannel::HandleMessage(*this, buffer);
   }));
 }

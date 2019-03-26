@@ -47,7 +47,7 @@ void node_webrtc::RTCDtlsTransport::OnStateChange(webrtc::DtlsTransportInformati
     _state = information.state();
   }
 
-  Dispatch(node_webrtc::Callback<node_webrtc::RTCDtlsTransport>::Create([this]() {
+  Dispatch(node_webrtc::CreateCallback<node_webrtc::RTCDtlsTransport>([this]() {
     Nan::HandleScope scope;
     auto event = Nan::New<v8::Object>();
     Nan::Set(event, Nan::New("type").ToLocalChecked(), Nan::New("statechange").ToLocalChecked());
@@ -63,7 +63,7 @@ void node_webrtc::RTCDtlsTransport::OnError(webrtc::RTCError rtcError) {
   auto maybeError = node_webrtc::From<node_webrtc::SomeError>(&rtcError);
   if (maybeError.IsValid()) {
     auto error = maybeError.UnsafeFromValid();
-    Dispatch(node_webrtc::Callback<node_webrtc::RTCDtlsTransport>::Create([this, error]() {
+    Dispatch(node_webrtc::CreateCallback<node_webrtc::RTCDtlsTransport>([this, error]() {
       Nan::HandleScope scope;
       auto maybeValue = node_webrtc::From<v8::Local<v8::Value>>(error);
       if (maybeValue.IsValid()) {
