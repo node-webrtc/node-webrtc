@@ -339,8 +339,10 @@ else()
   target_compile_options(${MODULE} PRIVATE
     -fno-rtti
     -fvisibility=default
+    -std=c++14
     -Wall
     -Wextra
+    -Wno-c++14-extensions
     -Wno-missing-field-initializers
     -Wno-uninitialized
     -Wno-unused-local-typedefs
@@ -537,7 +539,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
   list(APPEND CPPCHECK_ARGS
     --enable=warning,style,performance,portability,unusedFunction
-    --std=c++11
+    --std=c++14
     --verbose
     --error-exitcode=1
     --language=c++
