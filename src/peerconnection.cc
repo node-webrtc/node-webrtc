@@ -52,31 +52,21 @@ class AsyncObjectWrap;
 
 }  // namesapce node_webrtc
 
-using node_webrtc::AddIceCandidateEvent;
 using node_webrtc::Arguments;
 using node_webrtc::AsyncObjectWrap;
 using node_webrtc::AsyncObjectWrapWithLoop;
-using node_webrtc::DataChannelEvent;
 using node_webrtc::Either;
 using node_webrtc::ErrorFactory;
-using node_webrtc::Event;
 using node_webrtc::ExtendedRTCConfiguration;
 using node_webrtc::From;
-using node_webrtc::IceConnectionStateChangeEvent;
-using node_webrtc::IceEvent;
-using node_webrtc::IceGatheringStateChangeEvent;
 using node_webrtc::Maybe;
 using node_webrtc::MediaStreamTrack;
-using node_webrtc::NegotiationNeededEvent;
-using node_webrtc::OnAddTrackEvent;
 using node_webrtc::PeerConnection;
 using node_webrtc::PeerConnectionFactory;
-using node_webrtc::PromiseEvent;
 using node_webrtc::RTCRtpReceiver;
 using node_webrtc::RTCRtpSender;
 using node_webrtc::RTCRtpTransceiver;
 using node_webrtc::RTCSessionDescriptionInit;
-using node_webrtc::SignalingStateChangeEvent;
 using v8::External;
 using v8::Function;
 using v8::FunctionTemplate;
@@ -142,154 +132,120 @@ PeerConnection::~PeerConnection() {
   TRACE_END;
 }
 
-void PeerConnection::HandleIceConnectionStateChangeEvent(const IceConnectionStateChangeEvent&) {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-  MakeCallback("oniceconnectionstatechange", 0, nullptr);
-  MakeCallback("onconnectionstatechange", 0, nullptr);
-  TRACE_END;
-}
-
-void PeerConnection::HandleIceGatheringStateChangeEvent(const IceGatheringStateChangeEvent&) {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-  MakeCallback("onicegatheringstatechange", 0, nullptr);
-  TRACE_END;
-}
-
-void PeerConnection::HandleIceCandidateEvent(const IceEvent& event) {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-  if (event.error.empty()) {
-    auto maybeCandidate = From<Local<Value>>(event.candidate.get());
-    if (maybeCandidate.IsValid()) {
-      Local<Value> argv[1];
-      argv[0] = maybeCandidate.UnsafeFromValid();
-      MakeCallback("onicecandidate", 1, argv);
+void PeerConnection::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState state) {
+  Dispatch(Callback<PeerConnection>::Create([this, state]() {
+    Nan::HandleScope scope;
+    MakeCallback("onsignalingstatechange", 0, nullptr);
+    if (state == webrtc::PeerConnectionInterface::kClosed) {
+      Stop();
     }
-  }
-  TRACE_END;
+  }));
 }
 
-void PeerConnection::HandleAddIceCandidateEvent(AddIceCandidateEvent& event) {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-  if (_jinglePeerConnection
-      && _jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed
-      && _jinglePeerConnection->AddIceCandidate(event.candidate.get())) {
-    event.Resolve(Undefined());
-  } else {
-    std::string error = std::string("Failed to set ICE candidate");
-    if (!_jinglePeerConnection
-        || _jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
-      error += "; RTCPeerConnection is closed";
+void PeerConnection::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState) {
+  Dispatch(Callback<PeerConnection>::Create([this]() {
+    Nan::HandleScope scope;
+    MakeCallback("oniceconnectionstatechange", 0, nullptr);
+    MakeCallback("onconnectionstatechange", 0, nullptr);
+  }));
+}
+
+void PeerConnection::OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState) {
+  Dispatch(Callback<PeerConnection>::Create([this]() {
+    Nan::HandleScope scope;
+    MakeCallback("onicegatheringstatechange", 0, nullptr);
+  }));
+}
+
+void PeerConnection::OnIceCandidate(const webrtc::IceCandidateInterface* ice_candidate) {
+  std::string error;
+
+  std::string sdp;
+  if (!ice_candidate->ToString(&sdp)) {
+    error = "Failed to print the candidate string. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc";
+    return;
+  }
+
+  webrtc::SdpParseError parseError;
+  auto candidate = std::shared_ptr<webrtc::IceCandidateInterface>(webrtc::CreateIceCandidate(
+              ice_candidate->sdp_mid(),
+              ice_candidate->sdp_mline_index(),
+              sdp,
+              &parseError));
+  if (!parseError.description.empty()) {
+    error = parseError.description;
+  } else if (!candidate) {
+    error = "Failed to copy RTCIceCandidate";
+  }
+
+  Dispatch(Callback<PeerConnection>::Create([this, candidate, error]() {
+    Nan::HandleScope scope;
+    if (error.empty()) {
+      auto maybeCandidate = node_webrtc::From<v8::Local<v8::Value>>(candidate.get());
+      if (maybeCandidate.IsValid()) {
+        v8::Local<v8::Value> argv[1];
+        argv[0] = maybeCandidate.UnsafeFromValid();
+        MakeCallback("onicecandidate", 1, argv);
+      }
     }
-    error += ".";
-    event.Reject(SomeError(error));
-  }
-  TRACE_END;
+  }));
 }
 
-void PeerConnection::HandleDataChannelEvent(const DataChannelEvent& event) {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-  auto channel = DataChannel::wrap()->GetOrCreate(event.observer, event.observer->channel());
-  Local<Value> argv = channel->ToObject();
-  MakeCallback("ondatachannel", 1, &argv);
-  TRACE_END;
-}
-
-void PeerConnection::HandleNegotiationNeededEvent(const NegotiationNeededEvent&) {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-  MakeCallback("onnegotiationneeded", 0, nullptr);
-  TRACE_END;
-}
-
-void PeerConnection::HandleOnAddTrackEvent(const OnAddTrackEvent& event) {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-
-  auto transceiver = event.transceiver
-      ? RTCRtpTransceiver::wrap()->GetOrCreate(_factory, event.transceiver)
-      : nullptr;
-
-  auto receiver = RTCRtpReceiver::wrap()->GetOrCreate(_factory, event.receiver);
-
-  auto mediaStreams = std::vector<MediaStream*>();
-  for (auto const& stream : event.streams) {
-    auto mediaStream = MediaStream::wrap()->GetOrCreate(_factory, stream);
-    mediaStreams.push_back(mediaStream);
-  }
-  CONVERT_OR_THROW_AND_RETURN(mediaStreams, streams, Local<Value>);
-
-  Local<Value> argv[3];
-  argv[0] = receiver->ToObject();
-  argv[1] = streams;
-  argv[2] = transceiver ? Local<Value>::Cast(transceiver->ToObject()) : Local<Value>::Cast(Nan::Null());
-  MakeCallback("ontrack", 3, argv);
-
-  TRACE_END;
-}
-
-void PeerConnection::HandleSignalingStateChangeEvent(const SignalingStateChangeEvent& event) {
-  TRACE_CALL;
-  Nan::HandleScope scope;
-  MakeCallback("onsignalingstatechange", 0, nullptr);
-  if (event.state == webrtc::PeerConnectionInterface::kClosed) {
-    Stop();
-  }
-  TRACE_END;
-}
-
-void PeerConnection::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state) {
-  TRACE_CALL;
-  Dispatch(SignalingStateChangeEvent::Create(new_state));
-  TRACE_END;
-}
-
-void PeerConnection::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState new_state) {
-  TRACE_CALL;
-  Dispatch(IceConnectionStateChangeEvent::Create(new_state));
-  TRACE_END;
-}
-
-void PeerConnection::OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState new_state) {
-  TRACE_CALL;
-  Dispatch(IceGatheringStateChangeEvent::Create(new_state));
-  TRACE_END;
-}
-
-void PeerConnection::OnIceCandidate(const webrtc::IceCandidateInterface* candidate) {
-  TRACE_CALL;
-  Dispatch(IceEvent::Create(candidate));
-  TRACE_END;
-}
-
-void PeerConnection::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> jingle_data_channel) {
-  TRACE_CALL;
-  Dispatch(DataChannelEvent::Create(new DataChannelObserver(_factory, jingle_data_channel)));
-  TRACE_END;
+void PeerConnection::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> channel) {
+  auto observer = new DataChannelObserver(_factory, channel);
+  Dispatch(Callback<PeerConnection>::Create([this, observer]() {
+    Nan::HandleScope scope;
+    auto channel = DataChannel::wrap()->GetOrCreate(observer, observer->channel());
+    Local<Value> argv = channel->ToObject();
+    MakeCallback("ondatachannel", 1, &argv);
+  }));
 }
 
 void PeerConnection::OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface>) {
-  TRACE_CALL;
-  TRACE_END;
 }
 
 void PeerConnection::OnAddTrack(rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
     const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>& streams) {
-  TRACE_CALL;
-  if (_jinglePeerConnection->GetConfiguration().sdp_semantics == webrtc::SdpSemantics::kPlanB) {
-    Dispatch(OnAddTrackEvent::Create(receiver, streams));
+  if (_jinglePeerConnection->GetConfiguration().sdp_semantics != webrtc::SdpSemantics::kPlanB) {
+    return;
   }
-  TRACE_END;
+  Dispatch(Callback<PeerConnection>::Create([this, receiver, streams]() {
+    Nan::HandleScope scope;
+
+    auto mediaStreams = std::vector<MediaStream*>();
+    for (auto const& stream : streams) {
+      auto mediaStream = MediaStream::wrap()->GetOrCreate(_factory, stream);
+      mediaStreams.push_back(mediaStream);
+    }
+    CONVERT_OR_THROW_AND_RETURN(mediaStreams, streamArray, Local<Value>);
+
+    Local<Value> argv[3];
+    argv[0] = RTCRtpReceiver::wrap()->GetOrCreate(_factory, receiver)->ToObject();
+    argv[1] = streamArray;
+    argv[2] = Nan::Null();
+    MakeCallback("ontrack", 3, argv);
+  }));
 }
 
 void PeerConnection::OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
-  TRACE_CALL;
-  Dispatch(OnAddTrackEvent::Create(transceiver));
-  TRACE_END;
+  auto receiver = transceiver->receiver();
+  auto streams = receiver->streams();
+  Dispatch(Callback<PeerConnection>::Create([this, transceiver, receiver, streams]() {
+    Nan::HandleScope scope;
+
+    auto mediaStreams = std::vector<MediaStream*>();
+    for (auto const& stream : streams) {
+      auto mediaStream = MediaStream::wrap()->GetOrCreate(_factory, stream);
+      mediaStreams.push_back(mediaStream);
+    }
+    CONVERT_OR_THROW_AND_RETURN(mediaStreams, streamArray, Local<Value>);
+
+    Local<Value> argv[3];
+    argv[0] = RTCRtpReceiver::wrap()->GetOrCreate(_factory, receiver)->ToObject();
+    argv[1] = streamArray;
+    argv[2] = RTCRtpTransceiver::wrap()->GetOrCreate(_factory, transceiver)->ToObject();
+    MakeCallback("ontrack", 3, argv);
+  }));
 }
 
 void PeerConnection::OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterface>) {
@@ -298,9 +254,10 @@ void PeerConnection::OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterf
 }
 
 void PeerConnection::OnRenegotiationNeeded() {
-  TRACE_CALL;
-  Dispatch(NegotiationNeededEvent::Create());
-  TRACE_END;
+  Dispatch(Callback<PeerConnection>::Create([this]() {
+    Nan::HandleScope scope;
+    MakeCallback("onnegotiationneeded", 0, nullptr);
+  }));
 }
 
 NAN_METHOD(PeerConnection::New) {
@@ -516,16 +473,32 @@ NAN_METHOD(PeerConnection::SetRemoteDescription) {
 }
 
 NAN_METHOD(PeerConnection::AddIceCandidate) {
-  TRACE_CALL;
-
   auto self = AsyncObjectWrapWithLoop<PeerConnection>::Unwrap(info.This());
 
   SETUP_PROMISE(PeerConnection);
-  CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, candidate, IceCandidateInterface*);
+  CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, rawCandidate, IceCandidateInterface*);
 
-  auto pair = AddIceCandidateEvent::Create(candidate);
-  info.GetReturnValue().Set(pair.first->GetPromise());
-  self->Dispatch(std::move(pair.second));
+  auto persistentResolver = std::shared_ptr<Nan::Persistent<v8::Promise::Resolver>>(new Nan::Persistent<v8::Promise::Resolver>(resolver));
+  auto candidate = std::shared_ptr<webrtc::IceCandidateInterface>(rawCandidate);
+  self->Dispatch(node_webrtc::Callback<node_webrtc::PeerConnection>::Create([self, persistentResolver, candidate]() {
+    Nan::HandleScope scope;
+    auto newResolver = Nan::New(*persistentResolver);
+    if (self->_jinglePeerConnection
+        && self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed
+        && self->_jinglePeerConnection->AddIceCandidate(candidate.get())) {
+      newResolver->Resolve(Nan::GetCurrentContext(), Nan::Undefined()).IsNothing();
+    } else {
+      std::string error = std::string("Failed to set ICE candidate");
+      if (!self->_jinglePeerConnection
+          || self->_jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
+        error += "; RTCPeerConnection is closed";
+      }
+      error += ".";
+      SomeError someError(error);
+      CONVERT_OR_REJECT_AND_RETURN(newResolver, someError, reason, v8::Local<v8::Value>);
+      newResolver->Reject(Nan::GetCurrentContext(), reason).IsNothing();
+    }
+  }));
 }
 
 NAN_METHOD(PeerConnection::CreateDataChannel) {

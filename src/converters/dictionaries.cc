@@ -363,7 +363,7 @@ static node_webrtc::Validation<webrtc::IceCandidateInterface*> CreateIceCandidat
   return node_webrtc::Pure(candidate_);
 }
 
-TO_JS_IMPL(const webrtc::IceCandidateInterface*, value) {
+TO_JS_IMPL(webrtc::IceCandidateInterface*, value) {
   Nan::EscapableHandleScope scope;
 
   if (!value) {
