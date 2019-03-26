@@ -133,7 +133,7 @@ PeerConnection::~PeerConnection() {
 }
 
 void PeerConnection::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState state) {
-  Dispatch(Callback<PeerConnection>::Create([this, state]() {
+  Dispatch(node_webrtc::CreateCallback<PeerConnection>([this, state]() {
     Nan::HandleScope scope;
     MakeCallback("onsignalingstatechange", 0, nullptr);
     if (state == webrtc::PeerConnectionInterface::kClosed) {
@@ -143,7 +143,7 @@ void PeerConnection::OnSignalingChange(webrtc::PeerConnectionInterface::Signalin
 }
 
 void PeerConnection::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState) {
-  Dispatch(Callback<PeerConnection>::Create([this]() {
+  Dispatch(node_webrtc::CreateCallback<PeerConnection>([this]() {
     Nan::HandleScope scope;
     MakeCallback("oniceconnectionstatechange", 0, nullptr);
     MakeCallback("onconnectionstatechange", 0, nullptr);
@@ -151,7 +151,7 @@ void PeerConnection::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceC
 }
 
 void PeerConnection::OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState) {
-  Dispatch(Callback<PeerConnection>::Create([this]() {
+  Dispatch(node_webrtc::CreateCallback<PeerConnection>([this]() {
     Nan::HandleScope scope;
     MakeCallback("onicegatheringstatechange", 0, nullptr);
   }));
@@ -178,7 +178,7 @@ void PeerConnection::OnIceCandidate(const webrtc::IceCandidateInterface* ice_can
     error = "Failed to copy RTCIceCandidate";
   }
 
-  Dispatch(Callback<PeerConnection>::Create([this, candidate, error]() {
+  Dispatch(node_webrtc::CreateCallback<PeerConnection>([this, candidate, error]() {
     Nan::HandleScope scope;
     if (error.empty()) {
       auto maybeCandidate = node_webrtc::From<v8::Local<v8::Value>>(candidate.get());
@@ -193,7 +193,7 @@ void PeerConnection::OnIceCandidate(const webrtc::IceCandidateInterface* ice_can
 
 void PeerConnection::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> channel) {
   auto observer = new DataChannelObserver(_factory, channel);
-  Dispatch(Callback<PeerConnection>::Create([this, observer]() {
+  Dispatch(node_webrtc::CreateCallback<PeerConnection>([this, observer]() {
     Nan::HandleScope scope;
     auto channel = DataChannel::wrap()->GetOrCreate(observer, observer->channel());
     Local<Value> argv = channel->ToObject();
@@ -209,7 +209,7 @@ void PeerConnection::OnAddTrack(rtc::scoped_refptr<webrtc::RtpReceiverInterface>
   if (_jinglePeerConnection->GetConfiguration().sdp_semantics != webrtc::SdpSemantics::kPlanB) {
     return;
   }
-  Dispatch(Callback<PeerConnection>::Create([this, receiver, streams]() {
+  Dispatch(node_webrtc::CreateCallback<PeerConnection>([this, receiver, streams]() {
     Nan::HandleScope scope;
 
     auto mediaStreams = std::vector<MediaStream*>();
@@ -230,7 +230,7 @@ void PeerConnection::OnAddTrack(rtc::scoped_refptr<webrtc::RtpReceiverInterface>
 void PeerConnection::OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
   auto receiver = transceiver->receiver();
   auto streams = receiver->streams();
-  Dispatch(Callback<PeerConnection>::Create([this, transceiver, receiver, streams]() {
+  Dispatch(node_webrtc::CreateCallback<PeerConnection>([this, transceiver, receiver, streams]() {
     Nan::HandleScope scope;
 
     auto mediaStreams = std::vector<MediaStream*>();
@@ -254,7 +254,7 @@ void PeerConnection::OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterf
 }
 
 void PeerConnection::OnRenegotiationNeeded() {
-  Dispatch(Callback<PeerConnection>::Create([this]() {
+  Dispatch(node_webrtc::CreateCallback<PeerConnection>([this]() {
     Nan::HandleScope scope;
     MakeCallback("onnegotiationneeded", 0, nullptr);
   }));
@@ -480,7 +480,7 @@ NAN_METHOD(PeerConnection::AddIceCandidate) {
 
   auto persistentResolver = std::shared_ptr<Nan::Persistent<v8::Promise::Resolver>>(new Nan::Persistent<v8::Promise::Resolver>(resolver));
   auto candidate = std::shared_ptr<webrtc::IceCandidateInterface>(rawCandidate);
-  self->Dispatch(node_webrtc::Callback<node_webrtc::PeerConnection>::Create([self, persistentResolver, candidate]() {
+  self->Dispatch(node_webrtc::CreateCallback<node_webrtc::PeerConnection>([self, persistentResolver, candidate]() {
     Nan::HandleScope scope;
     auto newResolver = Nan::New(*persistentResolver);
     if (self->_jinglePeerConnection

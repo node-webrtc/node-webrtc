@@ -73,8 +73,7 @@ void node_webrtc::RTCAudioSink::OnData(
   }
   memcpy(audio_data_copy.get(), audio_data, byte_length);
 
-  // Dispatch(node_webrtc::Callback<node_webrtc::RTCAudioSink>::Create([
-  Dispatch(node_webrtc::CreateOtherCallback<node_webrtc::RTCAudioSink>([
+  Dispatch(node_webrtc::CreateCallback<node_webrtc::RTCAudioSink>([
              this,
              audio_data_copy = std::move(audio_data_copy),
              bits_per_sample,

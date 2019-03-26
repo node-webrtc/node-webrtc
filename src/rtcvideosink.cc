@@ -59,7 +59,7 @@ NAN_METHOD(node_webrtc::RTCVideoSink::JsStop) {
 }
 
 void node_webrtc::RTCVideoSink::OnFrame(const webrtc::VideoFrame& frame) {
-  Dispatch(node_webrtc::Callback<node_webrtc::RTCVideoSink>::Create([this, frame]() {
+  Dispatch(node_webrtc::CreateCallback<node_webrtc::RTCVideoSink>([this, frame]() {
     Nan::HandleScope scope;
     auto maybeValue = node_webrtc::From<v8::Local<v8::Value>>(frame);
     if (maybeValue.IsInvalid()) {
