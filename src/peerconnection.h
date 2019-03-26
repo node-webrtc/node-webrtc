@@ -30,6 +30,7 @@ class RtpTransceiverInterface;
 
 namespace node_webrtc {
 
+class DataChannel;
 class PeerConnectionFactory;
 
 class PeerConnection
