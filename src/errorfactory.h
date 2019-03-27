@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_ERRORFACTORY_H_
-#define SRC_ERRORFACTORY_H_
+#pragma once
 
 #include <iosfwd>
 
@@ -51,5 +50,3 @@ class ErrorFactory {
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_ERRORFACTORY_H_

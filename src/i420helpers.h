@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_I420HELPERS_H_
-#define SRC_I420HELPERS_H_
+#pragma once
 
 #include <nan.h>
 #include <v8.h>
@@ -36,7 +35,7 @@ class I420ImageData {
  public:
   I420ImageData() = default;
 
-  static node_webrtc::Validation<I420ImageData> Create(ImageData imageData);
+  static Validation<I420ImageData> Create(ImageData imageData);
 
   size_t sizeOfLuminancePlane() const {
     return static_cast<size_t>(width() * height());
@@ -88,7 +87,7 @@ class RgbaImageData {
  public:
   RgbaImageData() = default;
 
-  static node_webrtc::Validation<RgbaImageData> Create(ImageData imageData);
+  static Validation<RgbaImageData> Create(ImageData imageData);
 
   uint8_t* dataRgba() const {
     return static_cast<uint8_t*>(data.contents.Data());
@@ -122,5 +121,3 @@ class I420Helpers {
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_I420HELPERS_H_

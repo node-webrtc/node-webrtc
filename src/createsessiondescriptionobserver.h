@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_CREATE_SESSION_DESCRIPTION_OBSERVER_H_
-#define SRC_CREATE_SESSION_DESCRIPTION_OBSERVER_H_
+#pragma once
 
 #include <webrtc/api/jsep.h>
 
@@ -27,12 +26,12 @@ class CreateSessionDescriptionObserver
   : public webrtc::CreateSessionDescriptionObserver {
  private:
   PeerConnection* parent;
-  std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, node_webrtc::RTCSessionDescriptionInit>> _promise;
+  std::unique_ptr<PromiseEvent<PeerConnection, RTCSessionDescriptionInit>> _promise;
 
  public:
   CreateSessionDescriptionObserver(
       PeerConnection* parent,
-      std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, node_webrtc::RTCSessionDescriptionInit>> promise)
+      std::unique_ptr<PromiseEvent<PeerConnection, RTCSessionDescriptionInit>> promise)
     : parent(parent), _promise(std::move(promise)) {}
 
   virtual void OnSuccess(webrtc::SessionDescriptionInterface* sdp);
@@ -40,5 +39,3 @@ class CreateSessionDescriptionObserver
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_CREATE_SESSION_DESCRIPTION_OBSERVER_H_

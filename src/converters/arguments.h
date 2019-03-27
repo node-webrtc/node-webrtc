@@ -10,15 +10,16 @@
  * This file defines functions for decomposing method arguments.
  */
 
-#ifndef SRC_CONVERTERS_ARGUMENTS_H_
-#define SRC_CONVERTERS_ARGUMENTS_H_
+#pragma once
 
 #include <tuple>
 
-#include "nan.h"
+#include <nan.h>
 
 #include "src/converters.h"
 #include "src/functional/curry.h"
+#include "src/functional/either.h"
+#include "src/functional/operators.h"
 #include "src/functional/validation.h"
 
 namespace node_webrtc {
@@ -73,5 +74,3 @@ struct Converter<Arguments, std::tuple<A, B, C>> {
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_CONVERTERS_ARGUMENTS_H_

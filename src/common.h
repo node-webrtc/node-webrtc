@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_COMMON_H_
-#define SRC_COMMON_H_
+#pragma once
 
 #include <stdio.h>
 #include <string>
@@ -44,5 +43,3 @@
 #define TRACE_END
 
 #endif
-
-#endif  // SRC_COMMON_H_

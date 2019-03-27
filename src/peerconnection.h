@@ -5,14 +5,14 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_PEERCONNECTION_H_
-#define SRC_PEERCONNECTION_H_
+#pragma once
 
 #include <memory>
+#include <vector>
 
 #include <nan.h>
-#include <webrtc/api/peerconnectioninterface.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <webrtc/api/peer_connection_interface.h>
+#include <webrtc/api/scoped_refptr.h>
 #include <v8.h>
 
 #include "src/asyncobjectwrapwithloop.h"
@@ -34,7 +34,7 @@ class DataChannel;
 class PeerConnectionFactory;
 
 class PeerConnection
-  : public node_webrtc::AsyncObjectWrapWithLoop<PeerConnection>
+  : public AsyncObjectWrapWithLoop<PeerConnection>
   , public webrtc::PeerConnectionObserver {
  public:
   ~PeerConnection() override;
@@ -116,12 +116,10 @@ class PeerConnection
   ExtendedRTCConfiguration _cached_configuration;
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
 
-  std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
+  std::shared_ptr<PeerConnectionFactory> _factory;
   bool _shouldReleaseFactory;
 
-  std::vector<node_webrtc::DataChannel*> _channels;
+  std::vector<DataChannel*> _channels;
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_PEERCONNECTION_H_

@@ -12,8 +12,9 @@
  * https://github.com/beark/ftl
  */
 
-#ifndef SRC_FUNCTIONAL_OPERATORS_H_
-#define SRC_FUNCTIONAL_OPERATORS_H_
+#pragma once
+
+#include <type_traits>
 
 namespace node_webrtc {
 
@@ -59,5 +60,3 @@ static T<typename std::result_of<F(A)>::type> operator%(const F f, const T<A> a)
 }
 
 }  // namespace node_webrtc
-
-#endif  // SRC_FUNCTIONAL_OPERATORS_H_

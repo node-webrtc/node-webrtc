@@ -10,11 +10,12 @@
  * This file defines conversion functions between native and v8 data types.
  */
 
-#ifndef SRC_CONVERTERS_V8_H_
-#define SRC_CONVERTERS_V8_H_
+#pragma once
 
+#include <cstdint>
 #include <iosfwd>
 #include <string>
+#include <vector>
 
 #include <nan.h>
 #include <v8.h>
@@ -98,7 +99,7 @@ struct Converter<Maybe<T>, v8::Local<v8::Value>> {
   static Validation<v8::Local<v8::Value>> Convert(const Maybe<T> value) {
     return value.IsJust()
         ? From<v8::Local<v8::Value>>(value.UnsafeFromJust())
-        : node_webrtc::Pure(Nan::Null().As<v8::Value>());
+        : Pure(Nan::Null().As<v8::Value>());
   }
 };
 
@@ -125,7 +126,7 @@ struct Converter<v8::Local<v8::Array>, std::vector<T>> {
 template <typename T>
 struct Converter<v8::Local<v8::Value>, std::vector<T>> {
   static Validation<std::vector<T>> Convert(const v8::Local<v8::Value> value) {
-    return node_webrtc::Converter<v8::Local<v8::Value>, v8::Local<v8::Array>>::Convert(value).FlatMap<std::vector<T>>(node_webrtc::Converter<v8::Local<v8::Array>, std::vector<T>>::Convert);
+    return Converter<v8::Local<v8::Value>, v8::Local<v8::Array>>::Convert(value).FlatMap<std::vector<T>>(Converter<v8::Local<v8::Array>, std::vector<T>>::Convert);
   }
 };
 
@@ -147,5 +148,3 @@ struct Converter<std::vector<T>, v8::Local<v8::Value>> {
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_CONVERTERS_V8_H_

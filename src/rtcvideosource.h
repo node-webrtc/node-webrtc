@@ -5,16 +5,15 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_RTCVIDEOSOURCE_H_
-#define SRC_RTCVIDEOSOURCE_H_
+#pragma once
 
 #include <memory>
 
 #include <absl/types/optional.h>
 #include <nan.h>
-#include <webrtc/api/mediastreaminterface.h>
-#include <webrtc/media/base/adaptedvideotracksource.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <webrtc/api/media_stream_interface.h>
+#include <webrtc/api/scoped_refptr.h>
+#include <webrtc/media/base/adapted_video_track_source.h>
 #include <v8.h>
 
 #include "src/peerconnectionfactory.h"
@@ -56,7 +55,7 @@ class RTCVideoTrackSource : public rtc::AdaptedVideoTrackSource {
   }
 
  private:
-  const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory = node_webrtc::PeerConnectionFactory::GetOrCreateDefault();
+  const std::shared_ptr<PeerConnectionFactory> _factory = PeerConnectionFactory::GetOrCreateDefault();
   const bool _is_screencast;
   const absl::optional<bool> _needs_denoising;
 };
@@ -90,5 +89,3 @@ class RTCVideoSource
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_RTCVIDEOSOURCE_H_

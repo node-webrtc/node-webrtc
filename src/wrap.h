@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_WRAP_H_
-#define SRC_WRAP_H_
+#pragma once
 
 #include <nan.h>
 
@@ -41,5 +40,3 @@ class Wrap {
 };
 
 }  // namespace webrtc
-
-#endif  // SRC_WRAP_H_

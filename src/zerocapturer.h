@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_ZERO_CAPTURER_H_
-#define SRC_ZERO_CAPTURER_H_
+#pragma once
 
 #include <memory>
 
@@ -14,7 +13,7 @@
 
 namespace node_webrtc {
 
-class ZeroCapturer: public node_webrtc::TestAudioDeviceModule::Capturer {
+class ZeroCapturer: public TestAudioDeviceModule::Capturer {
  public:
   ZeroCapturer(int sampling_frequency_in_hz): _sampling_frequency_in_hz(sampling_frequency_in_hz) {}
 
@@ -45,5 +44,3 @@ class ZeroCapturer: public node_webrtc::TestAudioDeviceModule::Capturer {
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_ZERO_CAPTURER_H_

@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_BIDIMAP_H_
-#define SRC_BIDIMAP_H_
+#pragma once
 
 #include <functional>
 #include <map>
@@ -198,5 +197,3 @@ class BidiMap {
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_BIDIMAP_H_

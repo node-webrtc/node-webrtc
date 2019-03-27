@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_GETUSERMEDIA_H_
-#define SRC_GETUSERMEDIA_H_
+#pragma once
 
 #include <nan.h>
 #include <v8.h>
@@ -22,5 +21,3 @@ class GetUserMedia {
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_GETUSERMEDIA_H_

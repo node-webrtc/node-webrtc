@@ -7,8 +7,7 @@
  *  in the file PATENTS.  All contributing project authors may
  *  be found in the AUTHORS file in the root of the source tree.
  */
-#ifndef SRC_WEBRTC_FAKE_AUDIO_DEVICE_H_
-#define SRC_WEBRTC_FAKE_AUDIO_DEVICE_H_
+#pragma once
 
 #include <cstdint>  // IWYU pragma: keep
 #include <iosfwd>
@@ -174,5 +173,3 @@ class TestAudioDeviceModule : public webrtc::AudioDeviceModule {
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_WEBRTC_FAKE_AUDIO_DEVICE_H_

@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_DATACHANNEL_H_
-#define SRC_DATACHANNEL_H_
+#pragma once
 
 #include <iosfwd>
 #include <memory>
@@ -14,6 +13,7 @@
 #include <nan.h>
 #include <webrtc/api/datachannelinterface.h>
 #include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <v8.h>
 
 #include "src/asyncobjectwrapwithloop.h"
 #include "src/converters/enums.h"
@@ -26,7 +26,7 @@ class DataChannelObserver;
 class PeerConnectionFactory;
 
 class DataChannel
-  : public node_webrtc::AsyncObjectWrapWithLoop<DataChannel>
+  : public AsyncObjectWrapWithLoop<DataChannel>
   , public webrtc::DataChannelObserver {
   friend class node_webrtc::DataChannelObserver;
  public:
@@ -87,7 +87,7 @@ class DataChannel
 
   void CleanupInternals();
 
-  node_webrtc::BinaryType _binaryType;
+  BinaryType _binaryType;
   int _cached_id;
   std::string _cached_label;
   uint16_t _cached_max_packet_life_time;
@@ -96,16 +96,16 @@ class DataChannel
   bool _cached_ordered;
   std::string _cached_protocol;
   uint64_t _cached_buffered_amount;
-  std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
+  std::shared_ptr<PeerConnectionFactory> _factory;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
 };
 
 class DataChannelObserver
-  : public node_webrtc::EventQueue<DataChannel>
+  : public EventQueue<DataChannel>
   , public webrtc::DataChannelObserver {
-  friend class node_webrtc::DataChannel;
+  friend class DataChannel;
  public:
-  explicit DataChannelObserver(std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,
+  explicit DataChannelObserver(std::shared_ptr<PeerConnectionFactory> factory,
       rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel);
 
   void OnStateChange() override;
@@ -114,10 +114,8 @@ class DataChannelObserver
   rtc::scoped_refptr<webrtc::DataChannelInterface> channel() { return _jingleDataChannel; }
 
  private:
-  std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
+  std::shared_ptr<PeerConnectionFactory> _factory;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_DATACHANNEL_H_

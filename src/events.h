@@ -5,12 +5,12 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_EVENTS_H_
-#define SRC_EVENTS_H_
+#pragma once
 
 #include <iosfwd>
 
 #include <nan.h>
+#include <v8.h>
 
 #include "src/converters/dictionaries.h"
 #include "src/converters/v8.h"
@@ -85,7 +85,7 @@ class Callback1: public Event<T> {
  * @tparam L the type of values representing failure
  * @tparam R the type of values representing success
  */
-template <typename T, typename R = node_webrtc::Undefined, typename L = node_webrtc::SomeError>
+template <typename T, typename R = Undefined, typename L = SomeError>
 class PromiseEvent: public Event<T> {
  public:
   void Dispatch(T&) override {
@@ -103,11 +103,11 @@ class PromiseEvent: public Event<T> {
   }
 
   void Reject(L error) {
-    _result = node_webrtc::Either<L, R>::Left(error);
+    _result = Either<L, R>::Left(error);
   }
 
   void Resolve(R result) {
-    _result = node_webrtc::Either<L, R>::Right(result);
+    _result = Either<L, R>::Right(result);
   }
 
   static std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<PromiseEvent<T, R, L>>> Create() {
@@ -127,9 +127,7 @@ class PromiseEvent: public Event<T> {
 
  private:
   std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
-  node_webrtc::Either<L, R> _result;
+  Either<L, R> _result;
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_EVENTS_H_

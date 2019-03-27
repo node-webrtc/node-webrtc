@@ -7,15 +7,10 @@
  */
 #include "src/stats-observer.h"
 
-#include <webrtc/api/statstypes.h>
-
 #include "src/common.h"
 #include "src/peerconnection.h"
 
-using node_webrtc::PeerConnection;
-using node_webrtc::StatsObserver;
-
-void StatsObserver::OnComplete(const webrtc::StatsReports& statsReports) {
+void node_webrtc::StatsObserver::OnComplete(const webrtc::StatsReports& statsReports) {
   TRACE_CALL;
   if (_promise) {
     double timestamp = 0;

@@ -11,12 +11,11 @@
  * different types. Conversions can fail, hence we use Validation.
  */
 
-#ifndef SRC_CONVERTERS_H_
-#define SRC_CONVERTERS_H_
+#pragma once
 
-#include "src/functional/curry.h"
+#include <v8.h>
+
 #include "src/functional/either.h"
-#include "src/functional/maybe.h"
 #include "src/functional/operators.h"
 #include "src/functional/validation.h"
 
@@ -148,5 +147,3 @@ struct Converter<S, Either<L, R>> {
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_CONVERTERS_H_

@@ -10,12 +10,13 @@
  * This file defines functions for decomposing v8::Objects.
  */
 
-#ifndef SRC_CONVERTERS_OBJECT_H_
-#define SRC_CONVERTERS_OBJECT_H_
+#pragma once
 
-#include "nan.h"
+#include <nan.h>
+#include <v8.h>
 
 #include "src/converters.h"
+#include "src/functional/maybe.h"
 #include "src/functional/validation.h"
 
 namespace node_webrtc {
@@ -44,5 +45,3 @@ static Validation<T> GetOptional(
 }
 
 }  // namespace node_webrtc
-
-#endif  // SRC_CONVERTERS_OBJECT_H_

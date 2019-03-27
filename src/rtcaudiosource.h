@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_RTCAUDIOSOURCE_H_
-#define SRC_RTCAUDIOSOURCE_H_
+#pragma once
 
 #include <atomic>
 #include <memory>
@@ -49,7 +48,6 @@ class RTCAudioTrackSource : public webrtc::LocalAudioSource {
     }
     // HACK(mroberts): I'd rather we use a smart pointer.
     delete[] dict.samples;
-    dict.samples = nullptr;
   }
 
   void AddSink(webrtc::AudioTrackSinkInterface* sink) override {
@@ -61,7 +59,7 @@ class RTCAudioTrackSource : public webrtc::LocalAudioSource {
   }
 
  private:
-  const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory = node_webrtc::PeerConnectionFactory::GetOrCreateDefault();
+  const std::shared_ptr<PeerConnectionFactory> _factory = PeerConnectionFactory::GetOrCreateDefault();
 
   std::atomic<webrtc::AudioTrackSinkInterface*> _sink = {nullptr};
 };
@@ -90,5 +88,3 @@ class RTCAudioSource
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_RTCAUDIOSOURCE_H_

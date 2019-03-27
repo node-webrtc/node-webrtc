@@ -11,11 +11,11 @@
  * https://hackage.haskell.org/package/base/docs/Data-Either.html
  */
 
-#ifndef SRC_FUNCTIONAL_EITHER_H_
-#define SRC_FUNCTIONAL_EITHER_H_
+#pragma once
 
 #include <cassert>
 #include <functional>
+#include <type_traits>
 
 namespace node_webrtc {
 
@@ -171,5 +171,3 @@ static Either<L, R> MakeLeft(const L left) {
 }
 
 }  // namespace node_webrtc
-
-#endif  // SRC_FUNCTIONAL_EITHER_H_

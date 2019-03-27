@@ -5,16 +5,25 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_CONVERTERS_INTERFACES_H_
-#define SRC_CONVERTERS_INTERFACES_H_
+#pragma once
 
 #include <v8.h>
 
 #include "src/converters.h"
+#include "src/functional/validation.h"
 
-namespace rtc { template <class T> class scoped_refptr; }
-namespace webrtc { class AudioTrackInterface; }
-namespace webrtc { class VideoTrackInterface; }
+namespace rtc {
+
+template <class T> class scoped_refptr;
+
+}  // namespace rtc
+
+namespace webrtc {
+
+class AudioTrackInterface;
+class VideoTrackInterface;
+
+}  // namespace webrtc
 
 namespace node_webrtc {
 
@@ -36,5 +45,3 @@ DECLARE_FROM_JS(rtc::scoped_refptr<webrtc::AudioTrackInterface>)
 DECLARE_FROM_JS(rtc::scoped_refptr<webrtc::VideoTrackInterface>)
 
 }  // namespace node_webrtc
-
-#endif  // SRC_CONVERTERS_INTERFACES_H_

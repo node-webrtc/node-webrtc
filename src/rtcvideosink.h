@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_RTCVIDEOSINK_H_
-#define SRC_RTCVIDEOSINK_H_
+#pragma once
 
 #include <nan.h>
 #include <webrtc/api/media_stream_interface.h>
@@ -49,5 +48,3 @@ class RTCVideoSink
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_RTCVIDEOSINK_H_
