@@ -6,7 +6,7 @@
     "p2p",
     "peer"
   ],
-  "version": "0.3.7-dev",
+  "version": "0.3.7",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "http://js-platform.github.io/node-webrtc/",
   "bugs": "https://github.com/js-platform/node-webrtc/issues",
@@ -32,7 +32,7 @@
     "node-cmake": "2.3.2",
     "node-pre-gyp": "0.11.x"
   },
-  "peerDependencies": {
+  "optionalDependencies": {
     "domexception": "^1.0.1"
   },
   "bundledDependencies": [
@@ -44,9 +44,9 @@
     "cross-env": "^5.1.4",
     "eslint": "^4.14.0",
     "express": "^4.16.2",
-    "js-yaml": "^3.11.0",
+    "js-yaml": "^3.13.0",
     "jsdom": "^11.6.2",
-    "karma": "^3.0.0",
+    "karma": "^4.0.1",
     "karma-browserify": "^5.1.2",
     "karma-chrome-launcher": "^2.2.0",
     "karma-firefox-launcher": "^1.1.0",

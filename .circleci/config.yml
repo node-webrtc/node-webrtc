@@ -86,7 +86,9 @@ aliases:
           exit 0
         fi
 
-        npm run test:browsers
+        if [[ ! $(node -v) =~ "v6" ]]; then
+          npm run test:browsers
+        fi
 
   publish-binary: &publish-binary
     run:
