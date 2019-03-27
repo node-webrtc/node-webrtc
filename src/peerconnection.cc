@@ -364,57 +364,45 @@ NAN_METHOD(node_webrtc::PeerConnection::CreateAnswer) {
 }
 
 NAN_METHOD(node_webrtc::PeerConnection::SetLocalDescription) {
-  TRACE_CALL;
-
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
-
-  SETUP_PROMISE(node_webrtc::PeerConnection);
+  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
+  info.GetReturnValue().Set(resolver->GetPromise());
 
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, descriptionInit, node_webrtc::RTCSessionDescriptionInit);
-
   if (descriptionInit.sdp.empty()) {
     descriptionInit.sdp = self->_lastSdp.sdp;
   }
 
   CONVERT_OR_REJECT_AND_RETURN(resolver, descriptionInit, description, webrtc::SessionDescriptionInterface*);
-
-  if (self->_jinglePeerConnection
-      && self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed) {
-    auto observer = new rtc::RefCountedObject<SetSessionDescriptionObserver>(self, std::move(promise));
-    self->_jinglePeerConnection->SetLocalDescription(observer, description);
-  } else {
+  if (!self->_jinglePeerConnection || self->_jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
     delete description;
     resolver->Reject(Nan::GetCurrentContext(), node_webrtc::ErrorFactory::CreateInvalidStateError(
             "Failed to execute 'setLocalDescription' on 'RTCPeerConnection': "
-            "The RTCPeerConnection's signalingState is 'closed'."
-        )).IsNothing();
+            "The RTCPeerConnection's signalingState is 'closed'.")).IsNothing();
+    return;
   }
 
-  TRACE_END;
+  auto observer = new rtc::RefCountedObject<SetSessionDescriptionObserver>(self, resolver);
+  self->_jinglePeerConnection->SetLocalDescription(observer, description);
 }
 
 NAN_METHOD(node_webrtc::PeerConnection::SetRemoteDescription) {
-  TRACE_CALL;
-
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
-
-  SETUP_PROMISE(node_webrtc::PeerConnection);
+  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
+  info.GetReturnValue().Set(resolver->GetPromise());
 
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, description, webrtc::SessionDescriptionInterface*);
 
-  if (self->_jinglePeerConnection
-      && self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed) {
-    auto observer = new rtc::RefCountedObject<SetSessionDescriptionObserver>(self, std::move(promise));
-    self->_jinglePeerConnection->SetRemoteDescription(observer, description);
-  } else {
+  if (!self->_jinglePeerConnection || self->_jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
     delete description;
     resolver->Reject(Nan::GetCurrentContext(), node_webrtc::ErrorFactory::CreateInvalidStateError(
             "Failed to execute 'setRemoteDescription' on 'RTCPeerConnection': "
-            "The RTCPeerConnection's signalingState is 'closed'."
-        )).IsNothing();
+            "The RTCPeerConnection's signalingState is 'closed'.")).IsNothing();
+    return;
   }
 
-  TRACE_END;
+  auto observer = new rtc::RefCountedObject<SetSessionDescriptionObserver>(self, resolver);
+  self->_jinglePeerConnection->SetRemoteDescription(observer, description);
 }
 
 NAN_METHOD(node_webrtc::PeerConnection::AddIceCandidate) {
