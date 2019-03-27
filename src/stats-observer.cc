@@ -7,35 +7,24 @@
  */
 #include "src/stats-observer.h"
 
-#include <type_traits>
+#include <iosfwd>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include <nan.h>
 
 #include "src/converters.h"  // IWYU pragma: keep
 #include "src/converters/dictionaries.h"  // IWYU pragma: keep
 #include "src/converters/v8.h"  // IWYU pragma: keep
 #include "src/error.h"
-#include "src/events.h"
 #include "src/functional/validation.h"
-#include "src/peerconnection.h"
 
 // IWYU pragma: no_include <api/scoped_refptr.h>
 // IWYU pragma: no_include <api/stats_types.h>
 // IWYU pragma: no_include <nan_implementation_12_inl.h>
-
-node_webrtc::StatsObserver::StatsObserver(
-    node_webrtc::PeerConnection* peer_connection)
-  : _peer_connection(peer_connection) {
-  Nan::HandleScope scope;
-  _resolver = std::make_unique<Nan::Persistent<v8::Promise::Resolver>>(
-          v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked());
-}
-
-node_webrtc::StatsObserver::StatsObserver(
-    node_webrtc::PeerConnection* peer_connection,
-    v8::Local<v8::Promise::Resolver> resolver)
-  : _peer_connection(peer_connection) {
-  Nan::HandleScope scope;
-  _resolver = std::make_unique<Nan::Persistent<v8::Promise::Resolver>>(resolver);
-}
+// IWYU pragma: no_include "src/events.h"
 
 void node_webrtc::StatsObserver::OnComplete(const webrtc::StatsReports& stats_reports) {
   double timestamp = 0;
@@ -55,17 +44,9 @@ void node_webrtc::StatsObserver::OnComplete(const webrtc::StatsReports& stats_re
 
   std::pair<double, std::vector<std::map<std::string, std::string>>> response(timestamp, reports);
 
-  _peer_connection->Dispatch(node_webrtc::CreateCallback<node_webrtc::PeerConnection>(
-  [_resolver = std::move(_resolver), response]() {
+  Dispatch([response](v8::Local<v8::Promise::Resolver> resolver) {
     Nan::EscapableHandleScope scope;
-    v8::Local<v8::Promise::Resolver> resolver = Nan::New(*_resolver);
     CONVERT_OR_REJECT_AND_RETURN(resolver, response, value, v8::Local<v8::Value>);
     resolver->Resolve(Nan::GetCurrentContext(), value).IsNothing();
-  }));
-}
-
-v8::Local<v8::Promise> node_webrtc::StatsObserver::promise() {
-  Nan::EscapableHandleScope scope;
-  v8::Local<v8::Promise::Resolver> resolver = Nan::New(*_resolver);
-  return scope.Escape(resolver->GetPromise());
+  });
 }

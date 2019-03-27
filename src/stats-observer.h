@@ -7,37 +7,25 @@
  */
 #pragma once
 
-#include <iosfwd>
-#include <map>
-#include <memory>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <nan.h>
 #include <webrtc/api/peer_connection_interface.h>
 #include <webrtc/api/stats_types.h>
 #include <v8.h>
 
+#include "src/peerconnection.h"  // IWYU pragma: keep
+#include "src/promise.h"
+
 namespace node_webrtc {
 
-class PeerConnection;
-
-typedef std::pair<double, std::vector<std::map<std::string, std::string>>> RTCStatsResponseInit;
-
-class StatsObserver: public webrtc::StatsObserver {
+class StatsObserver
+  : public PromiseCreator<PeerConnection>
+  , public webrtc::StatsObserver {
  public:
-  explicit StatsObserver(PeerConnection*);
-
-  StatsObserver(PeerConnection*, v8::Local<v8::Promise::Resolver>);
+  StatsObserver(
+      PeerConnection* peer_connection,
+      v8::Local<v8::Promise::Resolver> resolver)
+    : PromiseCreator(peer_connection, resolver) {}
 
   void OnComplete(const webrtc::StatsReports&) override;
-
-  v8::Local<v8::Promise> promise();
-
- private:
-  PeerConnection* _peer_connection;
-  std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
 };
 
 }  // namespace node_webrtc

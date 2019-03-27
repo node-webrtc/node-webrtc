@@ -9,6 +9,7 @@
 
 #include <type_traits>
 
+#include <nan.h>
 #include <webrtc/api/rtc_error.h>
 
 #include "src/converters.h"
@@ -17,31 +18,12 @@
 #include "src/errorfactory.h"
 #include "src/functional/either.h"
 #include "src/functional/validation.h"
-#include "src/peerconnection.h"
-
-node_webrtc::SetSessionDescriptionObserver::SetSessionDescriptionObserver(
-    node_webrtc::PeerConnection* peer_connection)
-  : _peer_connection(peer_connection) {
-  Nan::HandleScope scope;
-  _resolver = std::make_unique<Nan::Persistent<v8::Promise::Resolver>>(
-          v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked());
-}
-
-node_webrtc::SetSessionDescriptionObserver::SetSessionDescriptionObserver(
-    node_webrtc::PeerConnection* peer_connection,
-    v8::Local<v8::Promise::Resolver> resolver)
-  : _peer_connection(peer_connection) {
-  Nan::HandleScope scope;
-  _resolver = std::make_unique<Nan::Persistent<v8::Promise::Resolver>>(resolver);
-}
 
 void node_webrtc::SetSessionDescriptionObserver::OnSuccess() {
-  _peer_connection->Dispatch(node_webrtc::CreateCallback<node_webrtc::PeerConnection>(
-  [_resolver = std::move(_resolver)]() {
+  Dispatch([](v8::Local<v8::Promise::Resolver> resolver) {
     Nan::HandleScope scope;
-    v8::Local<v8::Promise::Resolver> resolver = Nan::New(*_resolver);
     resolver->Resolve(Nan::GetCurrentContext(), Nan::Undefined()).IsNothing();
-  }));
+  });
 }
 
 void node_webrtc::SetSessionDescriptionObserver::OnFailure(webrtc::RTCError error) {
@@ -56,17 +38,9 @@ void node_webrtc::SetSessionDescriptionObserver::OnFailure(webrtc::RTCError erro
                 node_webrtc::ErrorFactory::DOMExceptionName::kInvalidModificationError));
   }
 
-  _peer_connection->Dispatch(node_webrtc::CreateCallback<node_webrtc::PeerConnection>(
-  [_resolver = std::move(_resolver), someError]() {
+  Dispatch([someError](v8::Local<v8::Promise::Resolver> resolver) {
     Nan::HandleScope scope;
-    v8::Local<v8::Promise::Resolver> resolver = Nan::New(*_resolver);
     CONVERT_OR_REJECT_AND_RETURN(resolver, someError, value, v8::Local<v8::Value>);
     resolver->Reject(Nan::GetCurrentContext(), value).IsNothing();
-  }));
-}
-
-v8::Local<v8::Promise> node_webrtc::SetSessionDescriptionObserver::promise() {
-  Nan::EscapableHandleScope scope;
-  v8::Local<v8::Promise::Resolver> resolver = Nan::New(*_resolver);
-  return scope.Escape(resolver->GetPromise());
+  });
 }
