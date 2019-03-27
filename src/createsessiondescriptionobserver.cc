@@ -7,11 +7,14 @@
  */
 #include "src/createsessiondescriptionobserver.h"
 
+#include <type_traits>
+
 #include <webrtc/api/rtc_error.h>
 
 #include "src/converters.h"
 #include "src/converters/v8.h"
 #include "src/error.h"
+#include "src/events.h"
 #include "src/peerconnection.h"
 
 node_webrtc::CreateSessionDescriptionObserver::CreateSessionDescriptionObserver(

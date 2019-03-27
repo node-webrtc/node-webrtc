@@ -7,6 +7,8 @@
  */
 #pragma once
 
+#include <memory>
+
 #include <nan.h>
 #include <webrtc/api/jsep.h>
 #include <v8.h>

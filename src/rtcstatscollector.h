@@ -7,29 +7,32 @@
  */
 #pragma once
 
+#include <memory>
+
+#include <nan.h>
 #include <webrtc/api/scoped_refptr.h>
 #include <webrtc/api/stats/rtc_stats_collector_callback.h>
-#include <webrtc/api/stats/rtc_stats_report.h>
+#include <v8.h>
 
-#include "src/events.h"
+namespace webrtc { class RTCStatsReport; }
 
 namespace node_webrtc {
 
 class PeerConnection;
 
-class RTCStatsCollector : public webrtc::RTCStatsCollectorCallback {
+class RTCStatsCollector: public webrtc::RTCStatsCollectorCallback {
  public:
-  RTCStatsCollector(
-      PeerConnection* parent,
-      std::unique_ptr<PromiseEvent<PeerConnection, rtc::scoped_refptr<webrtc::RTCStatsReport>>> promise)
-    : _parent(parent)
-    , _promise(std::move(promise)) {}
+  explicit RTCStatsCollector(PeerConnection*);
+
+  RTCStatsCollector(PeerConnection*, v8::Local<v8::Promise::Resolver>);
 
   void OnStatsDelivered(const rtc::scoped_refptr<const webrtc::RTCStatsReport>&) override;
 
+  v8::Local<v8::Promise> promise();
+
  private:
-  PeerConnection* _parent;
-  std::unique_ptr<PromiseEvent<PeerConnection, rtc::scoped_refptr<webrtc::RTCStatsReport>>> _promise;
+  PeerConnection* _peer_connection;
+  std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
 };
 
 }  // namespace node_webrtc;
