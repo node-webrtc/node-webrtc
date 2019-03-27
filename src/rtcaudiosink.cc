@@ -8,8 +8,8 @@
 #include "src/rtcaudiosink.h"
 
 #include <cstdint>
+#include <cstring>
 #include <memory>
-#include <string.h>
 #include <type_traits>
 
 #include "src/functional/maybe.h"

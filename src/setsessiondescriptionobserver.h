@@ -33,8 +33,9 @@ class SetSessionDescriptionObserver
       std::unique_ptr<PromiseEvent<PeerConnection>> promise)
     : parent(connection), _promise(std::move(promise)) {}
 
-  virtual void OnSuccess();
-  virtual void OnFailure(webrtc::RTCError);
+  void OnSuccess() override;
+
+  void OnFailure(webrtc::RTCError) override;
 };
 
 }  // namespace node_webrtc

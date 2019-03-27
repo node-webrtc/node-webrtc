@@ -136,7 +136,7 @@ DECLARE_STRUCT(UNSIGNEDSHORTRANGE)
 
 struct ExtendedRTCConfiguration {
   ExtendedRTCConfiguration(): configuration(webrtc::PeerConnectionInterface::RTCConfiguration()), portRange(UnsignedShortRange()) {}
-  ExtendedRTCConfiguration(const webrtc::PeerConnectionInterface::RTCConfiguration configuration, const UnsignedShortRange portRange): configuration(configuration), portRange(portRange) {}
+  ExtendedRTCConfiguration(const webrtc::PeerConnectionInterface::RTCConfiguration& configuration, const UnsignedShortRange portRange): configuration(configuration), portRange(portRange) {}
   webrtc::PeerConnectionInterface::RTCConfiguration configuration;
   UnsignedShortRange portRange;
 };

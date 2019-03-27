@@ -60,8 +60,8 @@ class BidiMap {
    */
   Maybe<V> get(K key) const {
     return has(key)
-        ? Maybe<V>::Just(_keyToValue.at(key))
-        : Maybe<V>::Nothing();
+        ? MakeJust(_keyToValue.at(key))
+        : MakeNothing<V>();
   }
 
   /**
@@ -116,8 +116,8 @@ class BidiMap {
    */
   Maybe<K> reverseGet(V value) const {
     return reverseHas(value)
-        ? Maybe<K>::Just(_valueToKey.at(value))
-        : Maybe<K>::Nothing();
+        ? MakeJust(_valueToKey.at(value))
+        : MakeNothing<K>();
   }
 
   /**
@@ -161,8 +161,7 @@ class BidiMap {
    * Set a key and its value in the BidiMap.
    * @param key
    * @param value
-   * @return a pair of the previously set value (if any) and the previously set
-   *         key (if any)
+   * @return the previously set value (if any)
    */
   std::pair<Maybe<V>, Maybe<K>> set(K key, V value) {
     auto pair = std::make_pair(get(key), reverseGet(value));
@@ -181,11 +180,11 @@ class BidiMap {
     BidiMap<K, V> bidiMap;
     for (auto pair : map) {
       auto previousKey = bidiMap.reverseSet(pair.second, pair.first);
-      if (previousKey.IsJust()) {
-        return Maybe<BidiMap<K, V>>::Nothing();
+      if (previousKey.first().IsJust()) {
+        return MakeNothing<BidiMap<K, V>>();
       }
     }
-    return Maybe<BidiMap<K, V>>::Just(bidiMap);
+    return MakeJust(bidiMap);
   }
 
  private:

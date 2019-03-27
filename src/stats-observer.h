@@ -8,8 +8,8 @@
 #pragma once
 
 #include <iosfwd>
-#include <memory>
 #include <map>
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -36,7 +36,7 @@ class StatsObserver
       std::unique_ptr<PromiseEvent<PeerConnection, RTCStatsResponseInit>> promise)
     : parent(parent), _promise(std::move(promise)) {}
 
-  virtual void OnComplete(const webrtc::StatsReports& reports);
+  void OnComplete(const webrtc::StatsReports& reports) override;
 };
 
 }  // namespace node_webrtc

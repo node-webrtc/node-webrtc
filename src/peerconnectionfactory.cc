@@ -7,6 +7,8 @@
  */
 #include "src/peerconnectionfactory.h"
 
+#include <memory>
+
 #include <uv.h>
 #include <webrtc/api/create_peerconnection_factory.h>
 #include <webrtc/api/peer_connection_interface.h>
@@ -39,13 +41,10 @@ int node_webrtc::PeerConnectionFactory::_references = 0;
 node_webrtc::PeerConnectionFactory::PeerConnectionFactory(node_webrtc::Maybe<webrtc::AudioDeviceModule::AudioLayer> audioLayer) {
   TRACE_CALL;
 
-  bool result;
-  (void) result;
-
-  _workerThread = std::unique_ptr<rtc::Thread>(new rtc::Thread());
+  _workerThread = std::make_unique<rtc::Thread>();
   assert(_workerThread);
 
-  result = _workerThread->Start();
+  bool result = _workerThread->Start();
   assert(result);
 
   _audioDeviceModule = _workerThread->Invoke<rtc::scoped_refptr<webrtc::AudioDeviceModule>>(RTC_FROM_HERE, [audioLayer]() {

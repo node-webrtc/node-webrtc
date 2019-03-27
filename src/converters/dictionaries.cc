@@ -213,7 +213,7 @@ FROM_JS_IMPL(webrtc::PeerConnectionInterface::RTCConfiguration, value) {
 }
 
 static node_webrtc::ExtendedRTCConfiguration CreateExtendedRTCConfiguration(
-    const webrtc::PeerConnectionInterface::RTCConfiguration configuration,
+    const webrtc::PeerConnectionInterface::RTCConfiguration& configuration,
     const node_webrtc::UnsignedShortRange portRange) {
   return node_webrtc::ExtendedRTCConfiguration(configuration, portRange);
 }
@@ -283,7 +283,7 @@ static node_webrtc::RTCAnswerOptions CreateRTCAnswerOptions(const bool voiceActi
 
 static node_webrtc::RTCSessionDescriptionInit CreateRTCSessionDescriptionInit(
     const node_webrtc::RTCSdpType type,
-    const std::string sdp) {
+    const std::string& sdp) {
   return {type, sdp};
 }
 

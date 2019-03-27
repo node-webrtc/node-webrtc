@@ -89,7 +89,7 @@ NAN_METHOD(node_webrtc::RTCRtpReceiver::GetContributingSources) {
   auto self = node_webrtc::AsyncObjectWrap::Unwrap<node_webrtc::RTCRtpReceiver>(info.Holder());
   auto contributingSources = std::vector<webrtc::RtpSource>();
   auto sources = self->_receiver->GetSources();
-  for (auto source : sources) {
+  for (const auto& source : sources) {
     if (source.source_type() == webrtc::RtpSourceType::CSRC) {
       contributingSources.push_back(source);
     }
@@ -102,7 +102,7 @@ NAN_METHOD(node_webrtc::RTCRtpReceiver::GetSynchronizationSources) {
   auto self = node_webrtc::AsyncObjectWrap::Unwrap<node_webrtc::RTCRtpReceiver>(info.Holder());
   auto synchronizationSources = std::vector<webrtc::RtpSource>();
   auto sources = self->_receiver->GetSources();
-  for (auto source : sources) {
+  for (const auto& source : sources) {
     if (source.source_type() == webrtc::RtpSourceType::SSRC) {
       synchronizationSources.push_back(source);
     }

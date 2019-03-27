@@ -91,8 +91,8 @@ class EventLoop: private EventQueue<T> {
   }
 
  private:
-  uv_async_t _async;
-  uv_mutex_t _lock;
+  uv_async_t _async{};
+  uv_mutex_t _lock{};
   uv_loop_t* _loop;
   std::atomic<bool> _should_stop = {false};
   T& _target;

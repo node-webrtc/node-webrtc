@@ -7,9 +7,11 @@
  */
 #include "src/datachannel.h"
 
-#include <webrtc/api/datachannelinterface.h>
-#include <webrtc/rtc_base/copyonwritebuffer.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <utility>
+
+#include <webrtc/api/data_channel_interface.h>
+#include <webrtc/api/scoped_refptr.h>
+#include <webrtc/rtc_base/copy_on_write_buffer.h>
 #include <v8.h>
 
 #include "src/common.h"
@@ -25,8 +27,8 @@ Nan::Persistent<v8::Function>& node_webrtc::DataChannel::constructor() {
 node_webrtc::DataChannelObserver::DataChannelObserver(std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel)
   : EventQueue()
-  , _factory(factory)
-  , _jingleDataChannel(jingleDataChannel) {
+  , _factory(std::move(factory))
+  , _jingleDataChannel(std::move(jingleDataChannel)) {
   TRACE_CALL;
   _jingleDataChannel->RegisterObserver(this);
   TRACE_END;

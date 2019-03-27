@@ -83,8 +83,8 @@ struct MediaStreamConstraints {
   node_webrtc::Maybe<node_webrtc::Either<bool, MediaTrackConstraints>> video;
 
   static node_webrtc::Validation<MediaStreamConstraints> Create(
-      const node_webrtc::Maybe<node_webrtc::Either<bool, MediaTrackConstraints>> audio,
-      const node_webrtc::Maybe<node_webrtc::Either<bool, MediaTrackConstraints>> video
+      const node_webrtc::Maybe<node_webrtc::Either<bool, MediaTrackConstraints>>& audio,
+      const node_webrtc::Maybe<node_webrtc::Either<bool, MediaTrackConstraints>>& video
   ) {
     return audio.IsNothing() && video.IsNothing()
         ? node_webrtc::Validation<MediaStreamConstraints>::Invalid(R"(Must specify at least "audio" or "video")")

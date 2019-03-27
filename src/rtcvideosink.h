@@ -27,7 +27,7 @@ class RTCVideoSink
 
   static void Init(v8::Handle<v8::Object> exports);
 
-  virtual void OnFrame(const webrtc::VideoFrame& frame) override;
+  void OnFrame(const webrtc::VideoFrame& frame) override;
 
  protected:
   void Stop() override;

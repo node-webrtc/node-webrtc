@@ -12,7 +12,7 @@
 #include <cstdint>  // IWYU pragma: keep
 #include <iosfwd>
 #include <memory>
-#include <stddef.h>
+#include <cstddef>
 
 #include <webrtc/api/array_view.h>
 #include <webrtc/api/scoped_refptr.h>
@@ -38,7 +38,8 @@ class TestAudioDeviceModule : public webrtc::AudioDeviceModule {
 
   class Capturer {
    public:
-    virtual ~Capturer() {}
+    virtual ~Capturer() = default;
+
     // Returns the sampling frequency in Hz of the audio data that this
     // capturer produces.
     virtual int SamplingFrequency() const = 0;
@@ -52,7 +53,8 @@ class TestAudioDeviceModule : public webrtc::AudioDeviceModule {
 
   class Renderer {
    public:
-    virtual ~Renderer() {}
+    virtual ~Renderer() = default;
+
     // Returns the sampling frequency in Hz of the audio data that this
     // renderer receives.
     virtual int SamplingFrequency() const = 0;
@@ -67,12 +69,12 @@ class TestAudioDeviceModule : public webrtc::AudioDeviceModule {
   // -max_amplitude and +max_amplitude.
   class PulsedNoiseCapturer : public Capturer {
    public:
-    virtual ~PulsedNoiseCapturer() {}
+    ~PulsedNoiseCapturer() override = default;
 
     virtual void SetMaxAmplitude(int16_t amplitude) = 0;
   };
 
-  virtual ~TestAudioDeviceModule() {}
+  ~TestAudioDeviceModule() override = default;
 
   // Creates a new TestAudioDeviceModule. When capturing or playing, 10 ms audio
   // frames will be processed every 10ms / |speed|.
@@ -153,16 +155,21 @@ class TestAudioDeviceModule : public webrtc::AudioDeviceModule {
       int sampling_frequency_in_hz,
       int num_channels = 1);
 
-  virtual int32_t Init() = 0;
-  virtual int32_t RegisterAudioCallback(webrtc::AudioTransport* callback) = 0;
+  int32_t Init() override = 0;
 
-  virtual int32_t StartPlayout() = 0;
-  virtual int32_t StopPlayout() = 0;
-  virtual int32_t StartRecording() = 0;
-  virtual int32_t StopRecording() = 0;
+  int32_t RegisterAudioCallback(webrtc::AudioTransport* callback) override = 0;
 
-  virtual bool Playing() const = 0;
-  virtual bool Recording() const = 0;
+  int32_t StartPlayout() override = 0;
+
+  int32_t StopPlayout() override = 0;
+
+  int32_t StartRecording() override = 0;
+
+  int32_t StopRecording() override = 0;
+
+  bool Playing() const override = 0;
+
+  bool Recording() const override = 0;
 
   // Blocks until the Renderer refuses to receive data.
   // Returns false if |timeout_ms| passes before that happens.

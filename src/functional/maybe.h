@@ -45,7 +45,9 @@ class Maybe {
    */
   template <typename F>
   Maybe<typename std::result_of<F(T)>::type> Apply(const Maybe<F> f) const {
-    return f.IsJust() && _is_just ? Maybe(f.UnsafeFromJust()(_value)) : Nothing();
+    return f.IsJust() && _is_just
+        ? Maybe<typename std::result_of<F(T)>::type>::Just(f.UnsafeFromJust()(_value))
+        : Maybe<typename std::result_of<F(T)>::type>::Nothing();
   }
 
   /**
@@ -56,7 +58,7 @@ class Maybe {
    */
   template <typename S>
   Maybe<S> FlatMap(std::function<Maybe<S>(T)> f) const {
-    return _is_just ? f(_value) : Nothing();
+    return _is_just ? f(_value) : Maybe<S>::Nothing();
   }
 
   /**

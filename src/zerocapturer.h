@@ -15,7 +15,7 @@ namespace node_webrtc {
 
 class ZeroCapturer: public TestAudioDeviceModule::Capturer {
  public:
-  ZeroCapturer(int sampling_frequency_in_hz): _sampling_frequency_in_hz(sampling_frequency_in_hz) {}
+  explicit ZeroCapturer(int sampling_frequency_in_hz): _sampling_frequency_in_hz(sampling_frequency_in_hz) {}
 
   int SamplingFrequency() const override {
     return _sampling_frequency_in_hz;
@@ -35,7 +35,7 @@ class ZeroCapturer: public TestAudioDeviceModule::Capturer {
   }
 
   static std::unique_ptr<ZeroCapturer> Create(int sampling_frequency_in_hz) {
-    return std::unique_ptr<ZeroCapturer>(new ZeroCapturer(sampling_frequency_in_hz));
+    return std::make_unique<ZeroCapturer>(sampling_frequency_in_hz);
   }
 
  private:
