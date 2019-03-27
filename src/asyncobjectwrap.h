@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_ASYNCOBJECTWRAP_H_
-#define SRC_ASYNCOBJECTWRAP_H_
+#pragma once
 
 #include <atomic>
 
@@ -88,5 +87,3 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_ASYNCOBJECTWRAP_H_

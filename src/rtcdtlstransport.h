@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_RTCDTLSTRANSPORT_H_
-#define SRC_RTCDTLSTRANSPORT_H_
+#pragma once
 
 #include <memory>
 #include <mutex>  // IWYU pragma: keep
@@ -73,5 +72,3 @@ class RTCDtlsTransport
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_RTCDTLSTRANSPORT_H_

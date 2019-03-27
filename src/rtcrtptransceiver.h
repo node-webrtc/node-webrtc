@@ -5,13 +5,12 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_RTCRTPTRANSCEIVER_H_
-#define SRC_RTCRTPTRANSCEIVER_H_
+#pragma once
 
 #include <memory>
 
 #include <nan.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <webrtc/api/scoped_refptr.h>
 #include <v8.h>
 
 #include "src/asyncobjectwrap.h"
@@ -27,7 +26,7 @@ namespace node_webrtc {
 
 class PeerConnectionFactory;
 
-class RTCRtpTransceiver: public node_webrtc::AsyncObjectWrap {
+class RTCRtpTransceiver: public AsyncObjectWrap {
  public:
   ~RTCRtpTransceiver() override;
 
@@ -35,7 +34,7 @@ class RTCRtpTransceiver: public node_webrtc::AsyncObjectWrap {
 
   // NOTE(mroberts): Working around an MSVC bug.
   static RTCRtpTransceiver* Unwrap(v8::Local<v8::Object> object) {
-    return node_webrtc::AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(object);
+    return AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(object);
   }
 
   static ::node_webrtc::Wrap <
@@ -48,7 +47,7 @@ class RTCRtpTransceiver: public node_webrtc::AsyncObjectWrap {
 
  private:
   RTCRtpTransceiver(
-      std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
+      std::shared_ptr<PeerConnectionFactory>&& factory,
       rtc::scoped_refptr<webrtc::RtpTransceiverInterface>&& transceiver);
 
   static RTCRtpTransceiver* Create(
@@ -70,10 +69,8 @@ class RTCRtpTransceiver: public node_webrtc::AsyncObjectWrap {
   static NAN_METHOD(Stop);
   static NAN_METHOD(SetCodecPreferences);
 
-  const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
+  const std::shared_ptr<PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::RtpTransceiverInterface> _transceiver;
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_RTCRTPTRANSCEIVER_H_

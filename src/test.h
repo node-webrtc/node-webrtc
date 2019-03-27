@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_TEST_H_
-#define SRC_TEST_H_
+#pragma once
 
 #include <nan.h>
 #include <v8.h>
@@ -22,5 +21,3 @@ class Test {
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_TEST_H_

@@ -7,8 +7,6 @@
  */
 #include "src/rtcrtpsender.h"
 
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
-
 #include "src/converters/arguments.h"
 #include "src/converters/dictionaries.h"
 #include "src/converters/interfaces.h"
@@ -16,35 +14,17 @@
 #include "src/mediastreamtrack.h"
 #include "src/rtcdtlstransport.h"
 
-namespace node_webrtc {
-
-template <typename T> class Maybe;
-
-}  // namespace node_webrtc;
-
-using node_webrtc::AsyncObjectWrap;
-using node_webrtc::Maybe;
-using node_webrtc::MediaStreamTrack;
-using node_webrtc::RTCRtpSender;
-using v8::External;
-using v8::Function;
-using v8::FunctionTemplate;
-using v8::Handle;
-using v8::Local;
-using v8::Object;
-using v8::Value;
-
-Nan::Persistent<Function>& RTCRtpSender::constructor() {
-  static Nan::Persistent<Function> constructor;
+Nan::Persistent<v8::Function>& node_webrtc::RTCRtpSender::constructor() {
+  static Nan::Persistent<v8::Function> constructor;
   return constructor;
 }
 
-Nan::Persistent<FunctionTemplate>& RTCRtpSender::tpl() {
-  static Nan::Persistent<FunctionTemplate> tpl;
+Nan::Persistent<v8::FunctionTemplate>& node_webrtc::RTCRtpSender::tpl() {
+  static Nan::Persistent<v8::FunctionTemplate> tpl;
   return tpl;
 }
 
-RTCRtpSender::RTCRtpSender(
+node_webrtc::RTCRtpSender::RTCRtpSender(
     std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
     rtc::scoped_refptr<webrtc::RtpSenderInterface>&& sender)
   : AsyncObjectWrap("RTCRtpSender")
@@ -52,38 +32,38 @@ RTCRtpSender::RTCRtpSender(
   , _sender(std::move(sender)) {
 }
 
-RTCRtpSender::~RTCRtpSender() {
+node_webrtc::RTCRtpSender::~RTCRtpSender() {
   wrap()->Release(this);
 }
 
-NAN_METHOD(RTCRtpSender::New) {
+NAN_METHOD(node_webrtc::RTCRtpSender::New) {
   if (info.Length() != 2 || !info[0]->IsExternal() || !info[1]->IsExternal()) {
     return Nan::ThrowTypeError("You cannot construct a RTCRtpSender");
   }
 
-  auto factory = *static_cast<std::shared_ptr<node_webrtc::PeerConnectionFactory>*>(Local<External>::Cast(info[0])->Value());
-  auto sender = *static_cast<rtc::scoped_refptr<webrtc::RtpSenderInterface>*>(Local<External>::Cast(info[1])->Value());
+  auto factory = *static_cast<std::shared_ptr<node_webrtc::PeerConnectionFactory>*>(v8::Local<v8::External>::Cast(info[0])->Value());
+  auto sender = *static_cast<rtc::scoped_refptr<webrtc::RtpSenderInterface>*>(v8::Local<v8::External>::Cast(info[1])->Value());
 
-  auto obj = new RTCRtpSender(std::move(factory), std::move(sender));
+  auto obj = new node_webrtc::RTCRtpSender(std::move(factory), std::move(sender));
   obj->Wrap(info.This());
 
   info.GetReturnValue().Set(info.This());
 }
 
-NAN_GETTER(RTCRtpSender::GetTrack) {
+NAN_GETTER(node_webrtc::RTCRtpSender::GetTrack) {
   (void) property;
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
-  Local<Value> result = Nan::Null();
+  auto self = node_webrtc::AsyncObjectWrap::Unwrap<node_webrtc::RTCRtpSender>(info.Holder());
+  v8::Local<v8::Value> result = Nan::Null();
   auto track = self->_sender->track();
   if (track) {
-    result = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, track)->ToObject();
+    result = node_webrtc::MediaStreamTrack::wrap()->GetOrCreate(self->_factory, track)->ToObject();
   }
   info.GetReturnValue().Set(result);
 }
 
-NAN_GETTER(RTCRtpSender::GetTransport) {
+NAN_GETTER(node_webrtc::RTCRtpSender::GetTransport) {
   (void) property;
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
+  auto self = node_webrtc::AsyncObjectWrap::Unwrap<node_webrtc::RTCRtpSender>(info.Holder());
   v8::Local<v8::Value> result = Nan::Null();
   auto transport = self->_sender->dtls_transport();
   if (transport) {
@@ -92,43 +72,43 @@ NAN_GETTER(RTCRtpSender::GetTransport) {
   info.GetReturnValue().Set(result);
 }
 
-NAN_GETTER(RTCRtpSender::GetRtcpTransport) {
+NAN_GETTER(node_webrtc::RTCRtpSender::GetRtcpTransport) {
   (void) property;
   info.GetReturnValue().Set(Nan::Null());
 }
 
-NAN_METHOD(RTCRtpSender::GetCapabilities) {
+NAN_METHOD(node_webrtc::RTCRtpSender::GetCapabilities) {
   (void) info;
   Nan::ThrowError("Not yet implemented; file a feature request against node-webrtc");
 }
 
-NAN_METHOD(RTCRtpSender::GetParameters) {
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
+NAN_METHOD(node_webrtc::RTCRtpSender::GetParameters) {
+  auto self = node_webrtc::AsyncObjectWrap::Unwrap<node_webrtc::RTCRtpSender>(info.Holder());
   auto parameters = self->_sender->GetParameters();
-  CONVERT_OR_THROW_AND_RETURN(parameters, result, Local<Value>);
+  CONVERT_OR_THROW_AND_RETURN(parameters, result, v8::Local<v8::Value>);
   info.GetReturnValue().Set(result);
 }
 
-NAN_METHOD(RTCRtpSender::SetParameters) {
+NAN_METHOD(node_webrtc::RTCRtpSender::SetParameters) {
   auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
   resolver->Reject(Nan::GetCurrentContext(), Nan::Error("Not yet implemented; file a feature request against node-webrtc")).IsNothing();
   info.GetReturnValue().Set(resolver->GetPromise());
 }
 
-NAN_METHOD(RTCRtpSender::GetStats) {
+NAN_METHOD(node_webrtc::RTCRtpSender::GetStats) {
   auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
   resolver->Reject(Nan::GetCurrentContext(), Nan::Error("Not yet implemented; file a feature request against node-webrtc")).IsNothing();
   info.GetReturnValue().Set(resolver->GetPromise());
 }
 
-NAN_METHOD(RTCRtpSender::ReplaceTrack) {
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
+NAN_METHOD(node_webrtc::RTCRtpSender::ReplaceTrack) {
+  auto self = node_webrtc::AsyncObjectWrap::Unwrap<node_webrtc::RTCRtpSender>(info.Holder());
   auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
   info.GetReturnValue().Set(resolver->GetPromise());
-  CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, maybeTrack, node_webrtc::Either<node_webrtc::Null COMMA MediaStreamTrack*>);
-  auto mediaStreamTrack = maybeTrack.FromEither<MediaStreamTrack*>([](Null) {
+  CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, maybeTrack, node_webrtc::Either<node_webrtc::Null COMMA node_webrtc::MediaStreamTrack*>);
+  auto mediaStreamTrack = maybeTrack.FromEither<node_webrtc::MediaStreamTrack*>([](Null) {
     return nullptr;
-  }, [](MediaStreamTrack * track) {
+  }, [](node_webrtc::MediaStreamTrack * track) {
     return track;
   });
   auto track = mediaStreamTrack ? mediaStreamTrack->track().get() : nullptr;
@@ -140,32 +120,32 @@ NAN_METHOD(RTCRtpSender::ReplaceTrack) {
 }
 
 node_webrtc::Wrap <
-RTCRtpSender*,
+node_webrtc::RTCRtpSender*,
 rtc::scoped_refptr<webrtc::RtpSenderInterface>,
 std::shared_ptr<node_webrtc::PeerConnectionFactory>
-> * RTCRtpSender::wrap() {
+> * node_webrtc::RTCRtpSender::wrap() {
   static auto wrap = new node_webrtc::Wrap <
-  RTCRtpSender*,
+  node_webrtc::RTCRtpSender*,
   rtc::scoped_refptr<webrtc::RtpSenderInterface>,
   std::shared_ptr<node_webrtc::PeerConnectionFactory>
-  > (RTCRtpSender::Create);
+  > (node_webrtc::RTCRtpSender::Create);
   return wrap;
 }
 
-RTCRtpSender* RTCRtpSender::Create(
+node_webrtc::RTCRtpSender* node_webrtc::RTCRtpSender::Create(
     std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::RtpSenderInterface> sender) {
   Nan::HandleScope scope;
-  Local<Value> cargv[2];
-  cargv[0] = Nan::New<External>(static_cast<void*>(&factory));
-  cargv[1] = Nan::New<External>(static_cast<void*>(&sender));
-  auto value = Nan::NewInstance(Nan::New(RTCRtpSender::constructor()), 2, cargv).ToLocalChecked();
-  return AsyncObjectWrapWithLoop<RTCRtpSender>::Unwrap(value);
+  v8::Local<v8::Value> cargv[2];
+  cargv[0] = Nan::New<v8::External>(static_cast<void*>(&factory));
+  cargv[1] = Nan::New<v8::External>(static_cast<void*>(&sender));
+  auto value = Nan::NewInstance(Nan::New(node_webrtc::RTCRtpSender::constructor()), 2, cargv).ToLocalChecked();
+  return node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCRtpSender>::Unwrap(value);
 }
 
-void RTCRtpSender::Init(Handle<Object> exports) {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(New);
-  RTCRtpSender::tpl().Reset(tpl);
+void node_webrtc::RTCRtpSender::Init(v8::Handle<v8::Object> exports) {
+  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
+  node_webrtc::RTCRtpSender::tpl().Reset(tpl);
   tpl->SetClassName(Nan::New("RTCRtpSender").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("track").ToLocalChecked(), GetTrack, nullptr);

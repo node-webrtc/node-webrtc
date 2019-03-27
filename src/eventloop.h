@@ -5,12 +5,10 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_EVENTLOOP_H_
-#define SRC_EVENTLOOP_H_
+#pragma once
 
 #include <atomic>
 #include <memory>
-#include <queue>
 
 #include <uv.h>
 
@@ -101,5 +99,3 @@ class EventLoop: private EventQueue<T> {
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_EVENTLOOP_H_

@@ -11,8 +11,7 @@
  * https://hackage.haskell.org/package/base/docs/Data-Maybe.html
  */
 
-#ifndef SRC_FUNCTIONAL_MAYBE_H_
-#define SRC_FUNCTIONAL_MAYBE_H_
+#pragma once
 
 #include <cassert>
 #include <functional>
@@ -160,5 +159,3 @@ static Maybe<T> MakeNothing() {
 }
 
 }  // namespace node_webrtc
-
-#endif  // SRC_FUNCTIONAL_MAYBE_H_

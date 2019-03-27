@@ -5,8 +5,15 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_ERROR_H_
-#define SRC_ERROR_H_
+#pragma once
+
+#include <vector>
+
+#include <nan.h>
+
+#include "src/converters.h"
+#include "src/converters/arguments.h"
+#include "src/functional/validation.h"
 
 // https://stackoverflow.com/a/13842784
 template<typename T> struct argument_type;
@@ -94,5 +101,3 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
   auto resolver = NODE_WEBRTC_UNIQUE_NAME(pair).first; \
   auto promise = std::move(NODE_WEBRTC_UNIQUE_NAME(pair).second); \
   info.GetReturnValue().Set(resolver->GetPromise());
-
-#endif  // SRC_ERROR_H_

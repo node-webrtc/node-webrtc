@@ -5,14 +5,13 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_MEDIASTREAMTRACK_H_
-#define SRC_MEDIASTREAMTRACK_H_
+#pragma once
 
 #include <memory>
 
 #include <nan.h>
-#include <webrtc/api/mediastreaminterface.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <webrtc/api/media_stream_interface.h>
+#include <webrtc/api/scoped_refptr.h>
 #include <v8.h>
 
 #include "src/asyncobjectwrapwithloop.h"
@@ -23,7 +22,7 @@ namespace node_webrtc {
 class PeerConnectionFactory;
 
 class MediaStreamTrack
-  : public node_webrtc::AsyncObjectWrapWithLoop<MediaStreamTrack>
+  : public AsyncObjectWrapWithLoop<MediaStreamTrack>
   , public webrtc::ObserverInterface {
  public:
   ~MediaStreamTrack() override;
@@ -36,7 +35,7 @@ class MediaStreamTrack
   void OnPeerConnectionClosed();
 
   bool active() { return _ended ? false : _track->state() == webrtc::MediaStreamTrackInterface::TrackState::kLive; }
-  std::shared_ptr<node_webrtc::PeerConnectionFactory> factory() { return _factory; }
+  std::shared_ptr<PeerConnectionFactory> factory() { return _factory; }
   rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track() { return _track; }
 
   static ::node_webrtc::Wrap <
@@ -52,7 +51,7 @@ class MediaStreamTrack
 
  private:
   MediaStreamTrack(
-      std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory,
+      std::shared_ptr<PeerConnectionFactory>&& factory,
       rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>&& track);
 
   static MediaStreamTrack* Create(
@@ -75,10 +74,8 @@ class MediaStreamTrack
 
   bool _ended = false;
   bool _enabled;
-  const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
+  const std::shared_ptr<PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> _track;
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_MEDIASTREAMTRACK_H_

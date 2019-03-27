@@ -5,17 +5,12 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_PROMISEFULFILLINGEVENTLOOP_H_
-#define SRC_PROMISEFULFILLINGEVENTLOOP_H_
+#pragma once
 
-#include <iostream>
-#include <memory>
-#include <queue>
-
+#include <nan.h>
 #include <uv.h>
 
 #include "src/eventloop.h"
-#include "src/events.h"
 
 namespace node_webrtc {
 
@@ -40,5 +35,3 @@ class PromiseFulfillingEventLoop: public EventLoop<T> {
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_PROMISEFULFILLINGEVENTLOOP_H_

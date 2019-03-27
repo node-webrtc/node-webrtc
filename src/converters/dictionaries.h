@@ -11,15 +11,18 @@
  * try to match the W3C-specced Web IDL as closely as possible.
  */
 
-#ifndef SRC_DECLARE_CONVERTERS_WEBRTC_H_
-#define SRC_DECLARE_CONVERTERS_WEBRTC_H_
+#pragma once
 
+#include <cstdint>
 #include <iosfwd>
+#include <map>
+#include <utility>
+#include <vector>
 
 #include <absl/types/optional.h>
 #include <nan.h>
-#include <webrtc/api/mediastreaminterface.h>
-#include <webrtc/api/peerconnectioninterface.h>
+#include <webrtc/api/media_stream_interface.h>
+#include <webrtc/api/peer_connection_interface.h>
 #include <v8.h>
 
 #include "src/converters.h"
@@ -50,7 +53,6 @@ struct RtpParameters;
 class RtpSource;
 enum class RtpTransceiverDirection;
 struct RtpTransceiverInit;
-enum class SdpSemantics;
 class SessionDescriptionInterface;
 class VideoFrame;
 class VideoFrameBuffer;
@@ -74,30 +76,6 @@ class SomeError;
 #define DECLARE_STRUCT_REQUIRED(TYPE, VAR) TYPE VAR;
 
 #define EXPAND_DEFAULT_STRUCT(TYPE, VAR) TYPE VAR;
-
-#define DATACHANNELINIT webrtc::DataChannelInit
-#define DATACHANNELINIT_LIST \
-  DEFAULT(bool, ordered, "ordered", true) \
-  OPTIONAL(uint32_t, maxPacketLifeTime, "maxPacketLifeTime") \
-  OPTIONAL(uint32_t, maxRetransmits, "maxRetransmits") \
-  DEFAULT(std::string, protocol, "protocol", "") \
-  DEFAULT(bool, negotiated, "negotiated", false) \
-  OPTIONAL(uint32_t, id, "id") \
-  DEFAULT(node_webrtc::RTCPriorityType, priority, "priority", node_webrtc::RTCPriorityType::kLow)
-
-#define ICECANDIDATEINTERFACE webrtc::IceCandidateInterface*
-#define ICECANDIDATEINTERFACE_LIST \
-  DEFAULT(std::string, candidate, "candidate", "") \
-  DEFAULT(std::string, sdpMid, "sdpMid", "") \
-  DEFAULT(int, sdpMLineIndex, "sdpMLineIndex", 0) \
-  OPTIONAL(std::string, usernameFragment, "usernameFragment")
-
-#define ICESERVER webrtc::PeerConnectionInterface::IceServer
-#define ICESERVER_LIST \
-  REQUIRED(stringOrStrings, urls, "urls") \
-  DEFAULT(std::string, username, "username", "") \
-  DEFAULT(stringOrCredential, credential, "credential", node_webrtc::MakeLeft<node_webrtc::RTCOAuthCredential>(std::string(""))) \
-  DEFAULT(node_webrtc::RTCIceCredentialType, credentialType, "credentialType", node_webrtc::RTCIceCredentialType::kPassword)
 
 #define RTCANSWEROPTIONS RTCAnswerOptions
 #define RTCANSWEROPTIONS_LIST \
@@ -127,11 +105,6 @@ class SomeError;
 #define RTCDTLSFINGERPRINT_LIST \
   OPTIONAL(std::string, algorithm, "algorithm") \
   OPTIONAL(std::string, value, "value")
-
-#define RTCRTPTRANSCEIVERINIT webrtc::RtpTransceiverInit
-#define RTCRTPTRANSCEIVERINIT_LIST \
-  DEFAULT(webrtc::RtpTransceiverDirection, direciton, "direction", webrtc::RtpTransceiverDirection::kSendRecv) \
-  DEFAULT(std::vector<node_webrtc::MediaStream*>, streams, "streams", std::vector<node_webrtc::MediaStream*>())
 
 #define RTCSESSIONDESCRIPTIONINIT RTCSessionDescriptionInit
 #define RTCSESSIONDESCRIPTIONINIT_LIST \
@@ -235,5 +208,3 @@ DECLARE_FROM_JS(node_webrtc::I420ImageData)
 DECLARE_FROM_JS(node_webrtc::RgbaImageData)
 
 }  // namespace node_webrtc
-
-#endif  // SRC_DECLARE_CONVERTERS_WEBRTC_H_

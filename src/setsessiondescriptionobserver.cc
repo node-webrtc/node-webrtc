@@ -9,48 +9,34 @@
 
 #include <webrtc/api/rtcerror.h>
 
-#include "src/common.h"
 #include "src/converters.h"
 #include "src/converters/v8.h"
 #include "src/error.h"
 #include "src/errorfactory.h"
 #include "src/functional/either.h"
-#include "src/functional/validation.h"
 #include "src/peerconnection.h"
 
-using node_webrtc::Either;
-using node_webrtc::ErrorFactory;
-using node_webrtc::Errors;
-using node_webrtc::From;
-using node_webrtc::PeerConnection;
-using node_webrtc::SetSessionDescriptionObserver;
-using node_webrtc::SomeError;
-
-void SetSessionDescriptionObserver::OnSuccess() {
-  TRACE_CALL;
+void node_webrtc::SetSessionDescriptionObserver::OnSuccess() {
   if (_promise) {
     _promise->Resolve(Undefined());
     parent->Dispatch(std::move(_promise));
   }
-  TRACE_END;
 }
 
-void SetSessionDescriptionObserver::OnFailure(const webrtc::RTCError error) {
-  TRACE_CALL;
+void node_webrtc::SetSessionDescriptionObserver::OnFailure(const webrtc::RTCError error) {
   if (_promise) {
-    auto someError = From<SomeError>(&error).FromValidation([](Errors errors) {
-      return SomeError(errors[0]);
+    auto someError = node_webrtc::From<node_webrtc::SomeError>(&error).FromValidation([](node_webrtc::Errors errors) {
+      return node_webrtc::SomeError(errors[0]);
     });
     // NOTE(mroberts): This workaround is annoying.
     if (someError.message().find("Local fingerprint does not match identity. Expected: ") != std::string::npos) {
-      someError = SomeError(someError.message(),
-              Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName>::Left(
-                  ErrorFactory::DOMExceptionName::kInvalidModificationError
+      someError = node_webrtc::SomeError(someError.message(),
+              node_webrtc::Either<node_webrtc::ErrorFactory::DOMExceptionName, node_webrtc::ErrorFactory::ErrorName>::Left(
+                  node_webrtc::ErrorFactory::DOMExceptionName::kInvalidModificationError
               )
           );
     }
     _promise->Reject(someError);
     parent->Dispatch(std::move(_promise));
   }
-  TRACE_END;
 }

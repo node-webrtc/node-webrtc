@@ -9,9 +9,7 @@
 
 #include "src/peerconnection.h"
 
-using node_webrtc::RTCStatsCollector;
-
-void RTCStatsCollector::OnStatsDelivered(const rtc::scoped_refptr<const webrtc::RTCStatsReport>& report) {
+void node_webrtc::RTCStatsCollector::OnStatsDelivered(const rtc::scoped_refptr<const webrtc::RTCStatsReport>& report) {
   if (_promise) {
     _promise->Resolve(report->Copy());
     _parent->Dispatch(std::move(_promise));

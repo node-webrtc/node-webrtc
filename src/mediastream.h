@@ -5,13 +5,12 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_MEDIASTREAM_H_
-#define SRC_MEDIASTREAM_H_
+#pragma once
 
 #include <memory>
 
 #include <nan.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <webrtc/api/scoped_refptr.h>
 #include <v8.h>
 
 #include "src/wrap.h"
@@ -38,7 +37,7 @@ class MediaStream
   static ::node_webrtc::Wrap <
   MediaStream*,
   rtc::scoped_refptr<webrtc::MediaStreamInterface>,
-  std::shared_ptr<node_webrtc::PeerConnectionFactory>
+  std::shared_ptr<PeerConnectionFactory>
   > * wrap();
 
   static Nan::Persistent<v8::FunctionTemplate>& tpl();
@@ -46,15 +45,15 @@ class MediaStream
   rtc::scoped_refptr<webrtc::MediaStreamInterface> stream() { return _stream; }
 
  private:
-  explicit MediaStream(std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory = nullptr);
+  explicit MediaStream(std::shared_ptr<PeerConnectionFactory>&& factory = nullptr);
 
   explicit MediaStream(
-      std::vector<node_webrtc::MediaStreamTrack*>&& tracks,
-      std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory = nullptr);
+      std::vector<MediaStreamTrack*>&& tracks,
+      std::shared_ptr<PeerConnectionFactory>&& factory = nullptr);
 
   explicit MediaStream(
       rtc::scoped_refptr<webrtc::MediaStreamInterface>&& stream,
-      std::shared_ptr<node_webrtc::PeerConnectionFactory>&& factory = nullptr);
+      std::shared_ptr<PeerConnectionFactory>&& factory = nullptr);
 
   static MediaStream* Create(
       std::shared_ptr<PeerConnectionFactory>,
@@ -77,12 +76,9 @@ class MediaStream
 
   std::vector<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> tracks();
 
-  const std::shared_ptr<node_webrtc::PeerConnectionFactory> _factory;
+  const std::shared_ptr<PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::MediaStreamInterface> _stream;
   const bool _shouldReleaseFactory;
 };
 
-
 }  // namespace node_webrtc
-
-#endif  // SRC_MEDIASTREAM_H_

@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_RTCAUDIOSINK_H_
-#define SRC_RTCAUDIOSINK_H_
+#pragma once
 
 #include <stddef.h>
 
@@ -53,6 +52,3 @@ class RTCAudioSink
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_RTCAUDIOSINK_H_
-

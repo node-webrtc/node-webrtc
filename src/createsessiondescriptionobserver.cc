@@ -10,25 +10,16 @@
 #include <webrtc/api/jsep.h>
 #include <webrtc/api/rtcerror.h>
 
-#include "src/common.h"
 #include "src/converters.h"
 #include "src/converters/v8.h"
 #include "src/error.h"
-#include "src/functional/validation.h"
 #include "src/peerconnection.h"
 
-using node_webrtc::CreateSessionDescriptionObserver;
-using node_webrtc::Errors;
-using node_webrtc::From;
-using node_webrtc::PeerConnection;
-using node_webrtc::SomeError;
-
-void CreateSessionDescriptionObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp) {
-  TRACE_CALL;
+void node_webrtc::CreateSessionDescriptionObserver::OnSuccess(webrtc::SessionDescriptionInterface* sdp) {
   if (_promise) {
-    auto validation = From<RTCSessionDescriptionInit>(sdp);
+    auto validation = node_webrtc::From<RTCSessionDescriptionInit>(sdp);
     if (validation.IsInvalid()) {
-      _promise->Reject(SomeError(validation.ToErrors()[0]));
+      _promise->Reject(node_webrtc::SomeError(validation.ToErrors()[0]));
     } else {
       auto description = validation.UnsafeFromValid();
       parent->SaveLastSdp(description);
@@ -37,17 +28,14 @@ void CreateSessionDescriptionObserver::OnSuccess(webrtc::SessionDescriptionInter
     parent->Dispatch(std::move(_promise));
   }
   delete sdp;
-  TRACE_END;
 }
 
-void CreateSessionDescriptionObserver::OnFailure(const webrtc::RTCError error) {
-  TRACE_CALL;
+void node_webrtc::CreateSessionDescriptionObserver::OnFailure(const webrtc::RTCError error) {
   if (_promise) {
-    auto someError = From<SomeError>(&error).FromValidation([](Errors errors) {
-      return SomeError(errors[0]);
+    auto someError = node_webrtc::From<node_webrtc::SomeError>(&error).FromValidation([](node_webrtc::Errors errors) {
+      return node_webrtc::SomeError(errors[0]);
     });
     _promise->Reject(someError);
     parent->Dispatch(std::move(_promise));
   }
-  TRACE_END;
 }

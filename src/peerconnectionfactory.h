@@ -5,15 +5,14 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_PEERCONNECTIONFACTORY_H_
-#define SRC_PEERCONNECTIONFACTORY_H_
+#pragma once
 
 #include <memory>
 
 #include <nan.h>
 #include <uv.h>
+#include <webrtc/api/scoped_refptr.h>
 #include <webrtc/modules/audio_device/include/audio_device.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
 #include <v8.h>
 
 #include "src/functional/maybe.h"
@@ -92,5 +91,3 @@ class PeerConnectionFactory
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_PEERCONNECTIONFACTORY_H_

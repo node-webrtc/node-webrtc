@@ -5,13 +5,9 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_ASYNCOBJECTWRAPWITHLOOP_H_
-#define SRC_ASYNCOBJECTWRAPWITHLOOP_H_
-
-#include <atomic>
+#pragma once
 
 #include <nan.h>
-#include <uv.h>
 
 #include "src/asyncobjectwrap.h"
 #include "src/promisefulfillingeventloop.h"
@@ -101,5 +97,3 @@ class AsyncObjectWrapWithLoop
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_ASYNCOBJECTWRAPWITHLOOP_H_

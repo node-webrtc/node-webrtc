@@ -11,12 +11,12 @@
  * https://hackage.haskell.org/package/Validation
  */
 
-#ifndef SRC_FUNCTIONAL_VALIDATION_H_
-#define SRC_FUNCTIONAL_VALIDATION_H_
+#pragma once
 
 #include <cassert>
 #include <functional>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace node_webrtc {
@@ -231,5 +231,3 @@ Validation<T> Pure(const T& value) {
 }
 
 }  // namespace node_webrtc
-
-#endif  // SRC_FUNCTIONAL_VALIDATION_H_

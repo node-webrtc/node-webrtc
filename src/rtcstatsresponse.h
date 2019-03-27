@@ -5,8 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_RTCSTATSRESPONSE_H_
-#define SRC_RTCSTATSRESPONSE_H_
+#pragma once
 
 #include <iosfwd>
 #include <map>
@@ -47,5 +46,3 @@ class RTCStatsResponse
 };
 
 }  // namespace node_webrtc
-
-#endif  // SRC_RTCSTATSRESPONSE_H_

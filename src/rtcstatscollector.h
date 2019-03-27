@@ -5,12 +5,11 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifndef SRC_RTCSTATSCOLLECTOR_H_
-#define SRC_RTCSTATSCOLLECTOR_H_
+#pragma once
 
-#include <webrtc/api/stats/rtcstatscollectorcallback.h>
-#include <webrtc/api/stats/rtcstatsreport.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <webrtc/api/scoped_refptr.h>
+#include <webrtc/api/stats/rtc_stats_collector_callback.h>
+#include <webrtc/api/stats/rtc_stats_report.h>
 
 #include "src/events.h"
 
@@ -22,7 +21,7 @@ class RTCStatsCollector : public webrtc::RTCStatsCollectorCallback {
  public:
   RTCStatsCollector(
       PeerConnection* parent,
-      std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, rtc::scoped_refptr<webrtc::RTCStatsReport>>> promise)
+      std::unique_ptr<PromiseEvent<PeerConnection, rtc::scoped_refptr<webrtc::RTCStatsReport>>> promise)
     : _parent(parent)
     , _promise(std::move(promise)) {}
 
@@ -30,9 +29,7 @@ class RTCStatsCollector : public webrtc::RTCStatsCollectorCallback {
 
  private:
   PeerConnection* _parent;
-  std::unique_ptr<node_webrtc::PromiseEvent<PeerConnection, rtc::scoped_refptr<webrtc::RTCStatsReport>>> _promise;
+  std::unique_ptr<PromiseEvent<PeerConnection, rtc::scoped_refptr<webrtc::RTCStatsReport>>> _promise;
 };
 
 }  // namespace node_webrtc;
-
-#endif  // SRC_RTCSTATSCOLLECTOR_H_

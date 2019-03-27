@@ -8,7 +8,6 @@
 #include "src/getusermedia.h"
 
 #include <webrtc/api/audio_options.h>
-#include <webrtc/rtc_base/helpers.h>
 
 #include "src/converters.h"
 #include "src/converters/arguments.h"
@@ -99,8 +98,8 @@ struct node_webrtc::Converter<v8::Local<v8::Value>, MediaStreamConstraints> {
     return node_webrtc::From<v8::Local<v8::Object>>(value).FlatMap<MediaStreamConstraints>(
     [](const v8::Local<v8::Object> object) {
       return node_webrtc::Validation<MediaStreamConstraints>::Join(curry(MediaStreamConstraints::Create)
-              % GetOptional<node_webrtc::Either<bool, MediaTrackConstraints>>(object, "audio")
-              * GetOptional<node_webrtc::Either<bool, MediaTrackConstraints>>(object, "video"));
+              % node_webrtc::GetOptional<node_webrtc::Either<bool, MediaTrackConstraints>>(object, "audio")
+              * node_webrtc::GetOptional<node_webrtc::Either<bool, MediaTrackConstraints>>(object, "video"));
     });
   }
 };

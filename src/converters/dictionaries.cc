@@ -8,22 +8,24 @@
 #include "src/converters/dictionaries.h"
 
 #include <nan.h>
-#include <webrtc/api/datachannelinterface.h>
+#include <webrtc/api/data_channel_interface.h>
 #include <webrtc/api/jsep.h>
-#include <webrtc/api/peerconnectioninterface.h>
-#include <webrtc/api/rtcerror.h>
-#include <webrtc/api/rtpparameters.h>
-#include <webrtc/api/rtpreceiverinterface.h>
-#include <webrtc/api/rtptransceiverinterface.h>
-#include <webrtc/api/stats/rtcstats.h>
+#include <webrtc/api/peer_connection_interface.h>
+#include <webrtc/api/rtc_error.h>
+#include <webrtc/api/rtp_parameters.h>
+#include <webrtc/api/rtp_receiver_interface.h>
+#include <webrtc/api/rtp_transceiver_interface.h>
+#include <webrtc/api/stats/rtc_stats.h>
 #include <webrtc/api/video/i420_buffer.h>
 #include <v8.h>
 
-#include "src/asyncobjectwrapwithloop.h"
 #include "src/converters.h"
 #include "src/converters/interfaces.h"
 #include "src/converters/object.h"
 #include "src/converters/v8.h"
+#include "src/functional/curry.h"
+#include "src/functional/maybe.h"
+#include "src/functional/operators.h"
 #include "src/functional/either.h"
 #include "src/i420helpers.h"
 #include "src/errorfactory.h"
@@ -33,19 +35,6 @@
 #include "src/rtcrtpsender.h"
 #include "src/rtcrtptransceiver.h"
 #include "src/rtcstatsresponse.h"
-
-using node_webrtc::BinaryType;  // *
-using node_webrtc::RTCAnswerOptions;  // *
-using node_webrtc::RTCDtlsFingerprint;  // *
-using node_webrtc::RTCIceCredentialType;  // *
-using node_webrtc::RTCOAuthCredential;  // *
-using node_webrtc::RTCOfferOptions;  // *
-using node_webrtc::RTCPeerConnectionState;  // *
-using node_webrtc::RTCPriorityType;  // *
-using node_webrtc::RTCSdpType;  // *
-using node_webrtc::RTCSessionDescriptionInit;  // *
-using node_webrtc::RTCVideoSourceInit;  // *
-using node_webrtc::UnsignedShortRange;  // *
 
 typedef node_webrtc::Either<std::vector<std::string>, std::string> stringOrStrings;
 typedef node_webrtc::Either<std::string, node_webrtc::RTCOAuthCredential> stringOrCredential;
@@ -80,6 +69,35 @@ typedef node_webrtc::Either<std::string, node_webrtc::RTCOAuthCredential> string
           ); \
     }); \
   }
+
+#define DATACHANNELINIT webrtc::DataChannelInit
+#define DATACHANNELINIT_LIST \
+  DEFAULT(bool, ordered, "ordered", true) \
+  OPTIONAL(uint32_t, maxPacketLifeTime, "maxPacketLifeTime") \
+  OPTIONAL(uint32_t, maxRetransmits, "maxRetransmits") \
+  DEFAULT(std::string, protocol, "protocol", "") \
+  DEFAULT(bool, negotiated, "negotiated", false) \
+  OPTIONAL(uint32_t, id, "id") \
+  DEFAULT(node_webrtc::RTCPriorityType, priority, "priority", node_webrtc::RTCPriorityType::kLow)
+
+#define ICECANDIDATEINTERFACE webrtc::IceCandidateInterface*
+#define ICECANDIDATEINTERFACE_LIST \
+  DEFAULT(std::string, candidate, "candidate", "") \
+  DEFAULT(std::string, sdpMid, "sdpMid", "") \
+  DEFAULT(int, sdpMLineIndex, "sdpMLineIndex", 0) \
+  OPTIONAL(std::string, usernameFragment, "usernameFragment")
+
+#define ICESERVER webrtc::PeerConnectionInterface::IceServer
+#define ICESERVER_LIST \
+  REQUIRED(stringOrStrings, urls, "urls") \
+  DEFAULT(std::string, username, "username", "") \
+  DEFAULT(stringOrCredential, credential, "credential", node_webrtc::MakeLeft<node_webrtc::RTCOAuthCredential>(std::string(""))) \
+  DEFAULT(node_webrtc::RTCIceCredentialType, credentialType, "credentialType", node_webrtc::RTCIceCredentialType::kPassword)
+
+#define RTCRTPTRANSCEIVERINIT webrtc::RtpTransceiverInit
+#define RTCRTPTRANSCEIVERINIT_LIST \
+  DEFAULT(webrtc::RtpTransceiverDirection, direction, "direction", webrtc::RtpTransceiverDirection::kSendRecv) \
+  DEFAULT(std::vector<node_webrtc::MediaStream*>, streams, "streams", std::vector<node_webrtc::MediaStream*>())
 
 static node_webrtc::RTCOAuthCredential CreateRTCOAuthCredential(
     const std::string& macKey,
@@ -754,6 +772,8 @@ FROM_JS_IMPL(node_webrtc::RTCOnDataEventDict, value) {
   });
 }
 
+namespace node_webrtc {
+
 #define REQUIRED(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_REQUIRED(type, stringValue)
 #define OPTIONAL(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_OPTIONAL(type, stringValue)
 #define DEFAULT(type, memberName, stringValue, defaultValue) EXPAND_OBJ_FROM_JS_DEFAULT(type, stringValue, defaultValue)
@@ -771,6 +791,8 @@ OBJ_FROM_JS_IMPL1(RTCRTPTRANSCEIVERINIT, CreateRtpTransceiverInit)
 #undef REQUIRED
 #undef OPTIONAL
 #undef DEFAULT
+
+}  // namespace node_webrtc
 
 TO_JS_IMPL(rtc::scoped_refptr<webrtc::VideoFrameBuffer>, value) {
   return value->type() == webrtc::VideoFrameBuffer::Type::kI420
