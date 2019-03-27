@@ -7,6 +7,7 @@
  */
 #pragma once
 
+#include <functional>
 #include <memory>
 
 namespace node_webrtc {
