@@ -530,9 +530,9 @@ NAN_METHOD(node_webrtc::PeerConnection::GetSenders) {
 }
 
 NAN_METHOD(node_webrtc::PeerConnection::GetStats) {
-  SETUP_PROMISE(node_webrtc::PeerConnection, rtc::scoped_refptr<webrtc::RTCStatsReport>);
-
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
+  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
+  info.GetReturnValue().Set(resolver->GetPromise());
 
   if (!self->_jinglePeerConnection) {
     auto error = Nan::Error("RTCPeerConnection is closed");
@@ -540,7 +540,7 @@ NAN_METHOD(node_webrtc::PeerConnection::GetStats) {
     return;
   }
 
-  auto callback = new rtc::RefCountedObject<node_webrtc::RTCStatsCollector>(self, std::move(promise));
+  auto callback = new rtc::RefCountedObject<node_webrtc::RTCStatsCollector>(self, resolver);
   self->_jinglePeerConnection->GetStats(callback);
 }
 
