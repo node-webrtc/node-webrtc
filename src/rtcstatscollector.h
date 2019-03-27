@@ -7,32 +7,27 @@
  */
 #pragma once
 
-#include <memory>
-
-#include <nan.h>
 #include <webrtc/api/scoped_refptr.h>
 #include <webrtc/api/stats/rtc_stats_collector_callback.h>
 #include <v8.h>
+
+#include "src/peerconnection.h"  // IWYU pragma: keep
+#include "src/promise.h"
 
 namespace webrtc { class RTCStatsReport; }
 
 namespace node_webrtc {
 
-class PeerConnection;
-
-class RTCStatsCollector: public webrtc::RTCStatsCollectorCallback {
+class RTCStatsCollector
+  : public PromiseCreator<PeerConnection>
+  , public webrtc::RTCStatsCollectorCallback {
  public:
-  explicit RTCStatsCollector(PeerConnection*);
-
-  RTCStatsCollector(PeerConnection*, v8::Local<v8::Promise::Resolver>);
+  RTCStatsCollector(
+      PeerConnection* peer_connection,
+      v8::Local<v8::Promise::Resolver> resolver)
+    : PromiseCreator<PeerConnection>(peer_connection, resolver) {}
 
   void OnStatsDelivered(const rtc::scoped_refptr<const webrtc::RTCStatsReport>&) override;
-
-  v8::Local<v8::Promise> promise();
-
- private:
-  PeerConnection* _peer_connection;
-  std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
 };
 
 }  // namespace node_webrtc;

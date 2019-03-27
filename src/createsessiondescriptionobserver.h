@@ -9,9 +9,11 @@
 
 #include <memory>
 
-#include <nan.h>
 #include <webrtc/api/jsep.h>
 #include <v8.h>
+
+#include "src/peerconnection.h"
+#include "src/promise.h"
 
 namespace webrtc { class RTCError; }
 
@@ -20,21 +22,21 @@ namespace node_webrtc {
 class PeerConnection;
 
 class CreateSessionDescriptionObserver
-  : public webrtc::CreateSessionDescriptionObserver {
+  : public PromiseCreator<PeerConnection>
+  , public webrtc::CreateSessionDescriptionObserver {
  public:
-  explicit CreateSessionDescriptionObserver(PeerConnection*);
-
-  CreateSessionDescriptionObserver(PeerConnection*, v8::Local<v8::Promise::Resolver>);
+  CreateSessionDescriptionObserver(
+      PeerConnection* peer_connection,
+      v8::Local<v8::Promise::Resolver> resolver)
+    : PromiseCreator(peer_connection, resolver)
+    , _peer_connection(peer_connection) {}
 
   void OnSuccess(webrtc::SessionDescriptionInterface*) override;
 
   void OnFailure(webrtc::RTCError) override;
 
-  v8::Local<v8::Promise> promise();
-
  private:
   PeerConnection* _peer_connection;
-  std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
 };
 
 }  // namespace node_webrtc
