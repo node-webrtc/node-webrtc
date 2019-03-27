@@ -7,8 +7,10 @@
  */
 #include "src/mediastreamtrack.h"
 
-#include "src/error.h"
+#include "src/converters.h"
 #include "src/converters/dictionaries.h"
+#include "src/converters/v8.h"
+#include "src/error.h"
 #include "src/peerconnectionfactory.h"
 
 Nan::Persistent<v8::Function>& node_webrtc::MediaStreamTrack::constructor() {

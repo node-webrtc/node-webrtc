@@ -10,7 +10,7 @@
 #include <type_traits>
 
 #include "src/converters.h"  // IWYU pragma: keep
-#include "src/converters/dictionaries.h"
+#include "src/converters/dictionaries.h"  // IWYU pragma: keep
 #include "src/converters/v8.h"  // IWYU pragma: keep
 #include "src/error.h"
 #include "src/events.h"

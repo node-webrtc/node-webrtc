@@ -95,9 +95,3 @@ template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
     return; \
   } \
   auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
-
-#define SETUP_PROMISE(...) \
-  auto NODE_WEBRTC_UNIQUE_NAME(pair) = PromiseEvent<__VA_ARGS__>::Create(); \
-  auto resolver = NODE_WEBRTC_UNIQUE_NAME(pair).first; \
-  auto promise = std::move(NODE_WEBRTC_UNIQUE_NAME(pair).second); \
-  info.GetReturnValue().Set(resolver->GetPromise());

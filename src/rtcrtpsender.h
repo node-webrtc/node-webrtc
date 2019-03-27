@@ -10,6 +10,7 @@
 #include <memory>
 
 #include <nan.h>
+#include <webrtc/api/rtp_sender_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 #include <v8.h>
 

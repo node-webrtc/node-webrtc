@@ -23,6 +23,7 @@
 #include "src/converters/dictionaries.h"
 #include "src/converters/enums.h"
 #include "src/converters/interfaces.h"
+#include "src/converters/v8.h"
 #include "src/createsessiondescriptionobserver.h"
 #include "src/datachannel.h"
 #include "src/error.h"
@@ -407,8 +408,9 @@ NAN_METHOD(node_webrtc::PeerConnection::SetRemoteDescription) {
 
 NAN_METHOD(node_webrtc::PeerConnection::AddIceCandidate) {
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
+  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
+  info.GetReturnValue().Set(resolver->GetPromise());
 
-  SETUP_PROMISE(node_webrtc::PeerConnection);
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, rawCandidate, webrtc::IceCandidateInterface*);
 
   auto persistentResolver = std::shared_ptr<Nan::Persistent<v8::Promise::Resolver>>(new Nan::Persistent<v8::Promise::Resolver>(resolver));
@@ -427,7 +429,7 @@ NAN_METHOD(node_webrtc::PeerConnection::AddIceCandidate) {
         error += "; RTCPeerConnection is closed";
       }
       error += ".";
-      SomeError someError(error);
+      node_webrtc::SomeError someError(error);
       CONVERT_OR_REJECT_AND_RETURN(newResolver, someError, reason, v8::Local<v8::Value>);
       newResolver->Reject(Nan::GetCurrentContext(), reason).IsNothing();
     }

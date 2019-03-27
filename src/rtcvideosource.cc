@@ -13,6 +13,7 @@
 #include "src/converters.h"
 #include "src/converters/arguments.h"
 #include "src/converters/dictionaries.h"
+#include "src/converters/v8.h"
 #include "src/error.h"
 #include "src/functional/maybe.h"
 #include "src/mediastreamtrack.h"
