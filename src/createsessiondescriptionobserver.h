@@ -7,35 +7,32 @@
  */
 #pragma once
 
+#include <nan.h>
 #include <webrtc/api/jsep.h>
+#include <v8.h>
 
-#include "src/events.h"
-
-namespace webrtc {
-
-class RTCError;
-
-}  // namespace webrtc
+namespace webrtc { class RTCError; }
 
 namespace node_webrtc {
 
-struct RTCSessionDescriptionInit;
 class PeerConnection;
 
 class CreateSessionDescriptionObserver
   : public webrtc::CreateSessionDescriptionObserver {
- private:
-  PeerConnection* parent;
-  std::unique_ptr<PromiseEvent<PeerConnection, RTCSessionDescriptionInit>> _promise;
-
  public:
-  CreateSessionDescriptionObserver(
-      PeerConnection* parent,
-      std::unique_ptr<PromiseEvent<PeerConnection, RTCSessionDescriptionInit>> promise)
-    : parent(parent), _promise(std::move(promise)) {}
+  explicit CreateSessionDescriptionObserver(PeerConnection*);
 
-  void OnSuccess(webrtc::SessionDescriptionInterface* sdp) override;
-  void OnFailure(webrtc::RTCError error) override;
+  CreateSessionDescriptionObserver(PeerConnection*, v8::Local<v8::Promise::Resolver>);
+
+  void OnSuccess(webrtc::SessionDescriptionInterface*) override;
+
+  void OnFailure(webrtc::RTCError) override;
+
+  v8::Local<v8::Promise> promise();
+
+ private:
+  PeerConnection* _peer_connection;
+  std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
 };
 
 }  // namespace node_webrtc

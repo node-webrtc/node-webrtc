@@ -314,67 +314,53 @@ NAN_METHOD(node_webrtc::PeerConnection::RemoveTrack) {
 }
 
 NAN_METHOD(node_webrtc::PeerConnection::CreateOffer) {
-  TRACE_CALL;
-
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
+  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
+  info.GetReturnValue().Set(resolver->GetPromise());
 
-  SETUP_PROMISE(node_webrtc::PeerConnection, node_webrtc::RTCSessionDescriptionInit);
-
-  auto validationOptions = node_webrtc::From<node_webrtc::Maybe<RTCOfferOptions>>(node_webrtc::Arguments(info)).Map(
+  auto maybeOptions = node_webrtc::From<node_webrtc::Maybe<RTCOfferOptions>>(node_webrtc::Arguments(info)).Map(
   [](const node_webrtc::Maybe<RTCOfferOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCOfferOptions()); });
-  if (validationOptions.IsInvalid()) {
-    TRACE_END;
-    promise->Reject(SomeError(validationOptions.ToErrors()[0]));
+  if (maybeOptions.IsInvalid()) {
+    node_webrtc::SomeError error(maybeOptions.ToErrors()[0]);
+    CONVERT_OR_REJECT_AND_RETURN(resolver, error, value, v8::Local<v8::Value>);
+    resolver->Reject(Nan::GetCurrentContext(), value).IsNothing();
     return;
   }
 
-  auto options = validationOptions.UnsafeFromValid();
-
-  if (self->_jinglePeerConnection
-      && self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed) {
-    auto observer = new rtc::RefCountedObject<CreateSessionDescriptionObserver>(self, std::move(promise));
-    self->_jinglePeerConnection->CreateOffer(observer, options.options);
-  } else {
-    TRACE_END;
+  if (!self->_jinglePeerConnection || self->_jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
     resolver->Reject(Nan::GetCurrentContext(), node_webrtc::ErrorFactory::CreateInvalidStateError(
             "Failed to execute 'createOffer' on 'RTCPeerConnection': "
             "The RTCPeerConnection's signalingState is 'closed'.")).IsNothing();
     return;
   }
 
-  TRACE_END;
+  auto observer = new rtc::RefCountedObject<CreateSessionDescriptionObserver>(self, resolver);
+  self->_jinglePeerConnection->CreateOffer(observer, maybeOptions.UnsafeFromValid().options);
 }
 
 NAN_METHOD(node_webrtc::PeerConnection::CreateAnswer) {
-  TRACE_CALL;
-
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
+  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
+  info.GetReturnValue().Set(resolver->GetPromise());
 
-  SETUP_PROMISE(node_webrtc::PeerConnection, node_webrtc::RTCSessionDescriptionInit);
-
-  auto validationOptions = node_webrtc::From<node_webrtc::Maybe<RTCAnswerOptions>>(node_webrtc::Arguments(info)).Map(
+  auto maybeOptions = node_webrtc::From<node_webrtc::Maybe<RTCAnswerOptions>>(node_webrtc::Arguments(info)).Map(
   [](const node_webrtc::Maybe<RTCAnswerOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCAnswerOptions()); });
-  if (validationOptions.IsInvalid()) {
-    TRACE_END;
-    promise->Reject(SomeError(validationOptions.ToErrors()[0]));
+  if (maybeOptions.IsInvalid()) {
+    node_webrtc::SomeError error(maybeOptions.ToErrors()[0]);
+    CONVERT_OR_REJECT_AND_RETURN(resolver, error, value, v8::Local<v8::Value>);
+    resolver->Reject(Nan::GetCurrentContext(), value).IsNothing();
     return;
   }
 
-  auto options = validationOptions.UnsafeFromValid();
-
-  if (self->_jinglePeerConnection
-      && self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed) {
-    auto observer = new rtc::RefCountedObject<CreateSessionDescriptionObserver>(self, std::move(promise));
-    self->_jinglePeerConnection->CreateAnswer(observer, options.options);
-  } else {
-    TRACE_END;
+  if (!self->_jinglePeerConnection || self->_jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
     resolver->Reject(Nan::GetCurrentContext(), node_webrtc::ErrorFactory::CreateInvalidStateError(
             "Failed to execute 'createAnswer' on 'RTCPeerConnection': "
             "The RTCPeerConnection's signalingState is 'closed'.")).IsNothing();
     return;
   }
 
-  TRACE_END;
+  auto observer = new rtc::RefCountedObject<CreateSessionDescriptionObserver>(self, resolver);
+  self->_jinglePeerConnection->CreateAnswer(observer, maybeOptions.UnsafeFromValid().options);
 }
 
 NAN_METHOD(node_webrtc::PeerConnection::SetLocalDescription) {
