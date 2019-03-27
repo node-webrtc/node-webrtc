@@ -84,7 +84,7 @@ class TestAudioDeviceModuleImpl
     }
   }
 
-  ~TestAudioDeviceModuleImpl() {
+  ~TestAudioDeviceModuleImpl() override {
     StopPlayout();
     StopRecording();
     if (thread_) {
@@ -96,7 +96,7 @@ class TestAudioDeviceModuleImpl
     }
   }
 
-  int32_t Init() {
+  int32_t Init() override {
     thread_ = absl::make_unique<rtc::PlatformThread>(
             TestAudioDeviceModuleImpl::Run, this, "TestAudioDeviceModuleImpl",
             rtc::kHighPriority);
@@ -104,14 +104,14 @@ class TestAudioDeviceModuleImpl
     return 0;
   }
 
-  int32_t RegisterAudioCallback(webrtc::AudioTransport* callback) {
+  int32_t RegisterAudioCallback(webrtc::AudioTransport* callback) override {
     rtc::CritScope cs(&lock_);
     RTC_DCHECK(callback || audio_callback_);
     audio_callback_ = callback;
     return 0;
   }
 
-  int32_t StartPlayout() {
+  int32_t StartPlayout() override {
     rtc::CritScope cs(&lock_);
     RTC_CHECK(renderer_);
     rendering_ = true;
@@ -119,14 +119,14 @@ class TestAudioDeviceModuleImpl
     return 0;
   }
 
-  int32_t StopPlayout() {
+  int32_t StopPlayout() override {
     rtc::CritScope cs(&lock_);
     rendering_ = false;
     done_rendering_.Set();
     return 0;
   }
 
-  int32_t StartRecording() {
+  int32_t StartRecording() override {
     rtc::CritScope cs(&lock_);
     RTC_CHECK(capturer_);
     capturing_ = true;
@@ -134,32 +134,32 @@ class TestAudioDeviceModuleImpl
     return 0;
   }
 
-  int32_t StopRecording() {
+  int32_t StopRecording() override {
     rtc::CritScope cs(&lock_);
     capturing_ = false;
     done_capturing_.Set();
     return 0;
   }
 
-  bool Playing() const {
+  bool Playing() const override {
     rtc::CritScope cs(&lock_);
     return rendering_;
   }
 
-  bool Recording() const {
+  bool Recording() const override {
     rtc::CritScope cs(&lock_);
     return capturing_;
   }
 
   // Blocks until the Renderer refuses to receive data.
   // Returns false if |timeout_ms| passes before that happens.
-  bool WaitForPlayoutEnd(int timeout_ms = rtc::Event::kForever) {
+  bool WaitForPlayoutEnd(int timeout_ms = rtc::Event::kForever) override {
     return done_rendering_.Wait(timeout_ms);
   }
 
   // Blocks until the Recorder stops producing data.
   // Returns false if |timeout_ms| passes before that happens.
-  bool WaitForRecordingEnd(int timeout_ms = rtc::Event::kForever) {
+  bool WaitForRecordingEnd(int timeout_ms = rtc::Event::kForever) override {
     return done_capturing_.Wait(timeout_ms);
   }
 
@@ -343,7 +343,7 @@ class WavFileReader final : public TestAudioDeviceModule::Capturer {
     [&](rtc::ArrayView<int16_t> data) {
       return wav_reader_->ReadSamples(data.size(), data.data());
     });
-    return buffer->size() > 0;
+    return !buffer->empty();
   }
 
  private:
@@ -406,7 +406,7 @@ class WavFileWriter final : public TestAudioDeviceModule::Renderer {
 
 class BoundedWavFileWriter : public TestAudioDeviceModule::Renderer {
  public:
-  BoundedWavFileWriter(std::string filename,
+  BoundedWavFileWriter(const std::string& filename,
       int sampling_frequency_in_hz,
       int num_channels)
     : sampling_frequency_in_hz_(sampling_frequency_in_hz),
@@ -538,14 +538,14 @@ TestAudioDeviceModule::CreateWavFileReader(std::string filename,
     int sampling_frequency_in_hz,
     int num_channels) {
   return std::unique_ptr<TestAudioDeviceModule::Capturer>(
-          new WavFileReader(filename, sampling_frequency_in_hz, num_channels));
+          new WavFileReader(std::move(filename), sampling_frequency_in_hz, num_channels));
 }
 
 std::unique_ptr<TestAudioDeviceModule::Capturer>
 TestAudioDeviceModule::CreateWavFileReader(std::string filename) {
   webrtc::WavReader reader(filename);
   int sampling_frequency_in_hz = reader.sample_rate();
-  int num_channels = rtc::checked_cast<int>(reader.num_channels());
+  auto num_channels = rtc::checked_cast<int>(reader.num_channels());
   return std::unique_ptr<TestAudioDeviceModule::Capturer>(
           new WavFileReader(filename, sampling_frequency_in_hz, num_channels));
 }
@@ -555,7 +555,7 @@ TestAudioDeviceModule::CreateWavFileWriter(std::string filename,
     int sampling_frequency_in_hz,
     int num_channels) {
   return std::unique_ptr<TestAudioDeviceModule::Renderer>(
-          new WavFileWriter(filename, sampling_frequency_in_hz, num_channels));
+          new WavFileWriter(std::move(filename), sampling_frequency_in_hz, num_channels));
 }
 
 std::unique_ptr<TestAudioDeviceModule::Renderer>
@@ -579,7 +579,7 @@ std::unique_ptr<TestAudioDeviceModule::Capturer>
 TestAudioDeviceModule::CreateWavFileReader(rtc::PlatformFile file) {
   webrtc::WavReader reader(file);
   int sampling_frequency_in_hz = reader.sample_rate();
-  int num_channels = rtc::checked_cast<int>(reader.num_channels());
+  auto num_channels = rtc::checked_cast<int>(reader.num_channels());
   return std::unique_ptr<TestAudioDeviceModule::Capturer>(
           new WavFileReader(file, sampling_frequency_in_hz, num_channels));
 }

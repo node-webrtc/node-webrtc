@@ -11,8 +11,8 @@
 #include <memory>
 
 #include <nan.h>
-#include <webrtc/api/datachannelinterface.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <webrtc/api/data_channel_interface.h>
+#include <webrtc/api/scoped_refptr.h>
 #include <v8.h>
 
 #include "src/asyncobjectwrapwithloop.h"

@@ -62,7 +62,7 @@ class EventQueue {
 
  private:
   std::queue<std::unique_ptr<Event<T>>> _events;
-  uv_mutex_t _lock;
+  uv_mutex_t _lock{};
 };
 
 }  // namespace node_webrtc

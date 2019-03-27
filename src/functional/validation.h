@@ -17,6 +17,7 @@
 #include <functional>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace node_webrtc {
@@ -218,7 +219,7 @@ class Validation {
   }
 
  private:
-  Validation(const bool is_valid, const Errors& errors): _errors(errors), _is_valid(is_valid), _value(T()) {}
+  Validation(const bool is_valid, Errors errors): _errors(std::move(errors)), _is_valid(is_valid), _value(T()) {}
 
   Errors _errors;
   bool _is_valid;

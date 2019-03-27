@@ -27,7 +27,7 @@ struct _curry<std::function<R(T)>> {
 
   const type result;
 
-  _curry(type fun): result(fun) {}
+  explicit _curry(type fun): result(fun) {}
 };
 
 // recursive specialization for functions with more arguments
@@ -39,7 +39,7 @@ _curry<std::function<R(T, Ts...)>> {
 
   const type result;
 
-  _curry(std::function<R(T, Ts...)> fun): result(
+  explicit _curry(std::function<R(T, Ts...)> fun): result(
         [ = ](const T & t) {
     return _curry<std::function<R(Ts...)>>(
     [ = ](const Ts & ...ts) {

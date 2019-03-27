@@ -9,12 +9,12 @@
 
 #include <iosfwd>
 
-#include <webrtc/api/mediatypes.h>
-#include <webrtc/api/peerconnectioninterface.h>
-#include <webrtc/api/rtcerror.h>
-#include <webrtc/api/rtptransceiverinterface.h>
-#include <webrtc/p2p/client/basicportallocator.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <webrtc/api/media_types.h>
+#include <webrtc/api/peer_connection_interface.h>
+#include <webrtc/api/rtc_error.h>
+#include <webrtc/api/rtp_transceiver_interface.h>
+#include <webrtc/api/scoped_refptr.h>
+#include <webrtc/p2p/client/basic_port_allocator.h>
 
 #include "src/asyncobjectwrapwithloop.h"
 #include "src/common.h"
@@ -532,7 +532,7 @@ NAN_METHOD(node_webrtc::PeerConnection::GetReceivers) {
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
   std::vector<node_webrtc::RTCRtpReceiver*> receivers;
   if (self->_jinglePeerConnection) {
-    for (auto receiver : self->_jinglePeerConnection->GetReceivers()) {
+    for (const auto& receiver : self->_jinglePeerConnection->GetReceivers()) {
       receivers.emplace_back(node_webrtc::RTCRtpReceiver::wrap()->GetOrCreate(self->_factory, receiver));
     }
   }
@@ -546,7 +546,7 @@ NAN_METHOD(node_webrtc::PeerConnection::GetSenders) {
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
   std::vector<node_webrtc::RTCRtpSender*> senders;
   if (self->_jinglePeerConnection) {
-    for (auto sender : self->_jinglePeerConnection->GetSenders()) {
+    for (const auto& sender : self->_jinglePeerConnection->GetSenders()) {
       senders.emplace_back(node_webrtc::RTCRtpSender::wrap()->GetOrCreate(self->_factory, sender));
     }
   }
@@ -598,7 +598,7 @@ NAN_METHOD(node_webrtc::PeerConnection::GetTransceivers) {
   std::vector<node_webrtc::RTCRtpTransceiver*> transceivers;
   if (self->_jinglePeerConnection
       && self->_jinglePeerConnection->GetConfiguration().sdp_semantics == webrtc::SdpSemantics::kUnifiedPlan) {
-    for (auto transceiver : self->_jinglePeerConnection->GetTransceivers()) {
+    for (const auto& transceiver : self->_jinglePeerConnection->GetTransceivers()) {
       transceivers.emplace_back(node_webrtc::RTCRtpTransceiver::wrap()->GetOrCreate(self->_factory, transceiver));
     }
   }
@@ -626,7 +626,7 @@ NAN_METHOD(node_webrtc::PeerConnection::Close) {
     // NOTE(mroberts): Perhaps another way to do this is to just register all remote MediaStreamTracks against this
     // RTCPeerConnection, not unlike what we do with RTCDataChannels.
     if (self->_jinglePeerConnection->GetConfiguration().sdp_semantics == webrtc::SdpSemantics::kUnifiedPlan) {
-      for (auto transceiver : self->_jinglePeerConnection->GetTransceivers()) {
+      for (const auto& transceiver : self->_jinglePeerConnection->GetTransceivers()) {
         auto track = node_webrtc::MediaStreamTrack::wrap()->GetOrCreate(self->_factory, transceiver->receiver()->track());
         track->OnPeerConnectionClosed();
       }

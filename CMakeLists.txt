@@ -276,6 +276,7 @@ nodejs_init(${nodejs_init_args})
 
 file(GLOB_RECURSE MODULE_SRC src/*.cc src/*.h)
 add_nodejs_module(${MODULE} ${MODULE_SRC})
+set_property(TARGET ${MODULE} PROPERTY CXX_STANDARD 14)
 
 if(NOT iwyu_path STREQUAL "iwyu_path-NOTFOUND")
   set_property(TARGET ${MODULE} PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path})
@@ -339,10 +340,8 @@ else()
   target_compile_options(${MODULE} PRIVATE
     -fno-rtti
     -fvisibility=default
-    -std=c++14
     -Wall
     -Wextra
-    -Wno-c++14-extensions
     -Wno-missing-field-initializers
     -Wno-uninitialized
     -Wno-unused-local-typedefs

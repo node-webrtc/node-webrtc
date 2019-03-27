@@ -16,13 +16,12 @@
 #include <webrtc/media/base/adapted_video_track_source.h>
 #include <v8.h>
 
+#include "src/converters/dictionaries.h"
 #include "src/peerconnectionfactory.h"
 
 namespace webrtc { class VideoFrame; }
 
 namespace node_webrtc {
-
-struct RTCVideoSourceInit;
 
 class RTCVideoTrackSource : public rtc::AdaptedVideoTrackSource {
  public:
@@ -65,7 +64,7 @@ class RTCVideoSource
  public:
   RTCVideoSource();
 
-  explicit RTCVideoSource(const RTCVideoSourceInit init);
+  explicit RTCVideoSource(RTCVideoSourceInit);
 
   ~RTCVideoSource() override = default;
 

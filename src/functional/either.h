@@ -40,11 +40,11 @@ class Either {
   template <typename F>
   Either<L, typename std::result_of<F(R)>::type> Apply(const Either<L, F> f) const {
     if (f.IsLeft()) {
-      return Either::Left(f.UnsafeFromLeft());
+      return Either<L, typename std::result_of<F(R)>::type>::Left(f.UnsafeFromLeft());
     } else if (IsLeft()) {
-      return Either::Left(_left);
+      return Either<L, typename std::result_of<F(R)>::type>::Left(_left);
     }
-    return Either::Right(f.UnsafeFromRight()(_right));
+    return Either<L, typename std::result_of<F(R)>::type>::Left(_right);
   }
 
   /**
@@ -104,7 +104,9 @@ class Either {
    */
   template <typename F>
   Either<L, typename std::result_of<F(R)>::type> Map(F f) const {
-    return _is_right ? Either(f(_right)) : this;
+    return _is_right
+        ? Either<L, typename std::result_of<F(R)>::type>::Right(f(_right))
+        : Either<L, typename std::result_of<F(R)>::type>::Left(_left);
   }
 
   /**

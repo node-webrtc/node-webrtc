@@ -11,9 +11,9 @@
 #include <memory>
 
 #include <nan.h>
-#include <webrtc/api/mediastreaminterface.h>
-#include <webrtc/pc/localaudiosource.h>
-#include <webrtc/rtc_base/scoped_ref_ptr.h>
+#include <webrtc/api/media_stream_interface.h>
+#include <webrtc/api/scoped_refptr.h>
+#include <webrtc/pc/local_audio_source.h>
 #include <v8.h>
 
 #include "src/converters/dictionaries.h"

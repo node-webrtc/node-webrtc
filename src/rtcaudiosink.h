@@ -7,7 +7,7 @@
  */
 #pragma once
 
-#include <stddef.h>
+#include <cstddef>
 
 #include <nan.h>
 #include <webrtc/api/media_stream_interface.h>

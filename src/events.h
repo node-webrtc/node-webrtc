@@ -8,6 +8,7 @@
 #pragma once
 
 #include <iosfwd>
+#include <memory>
 
 #include <nan.h>
 #include <v8.h>
@@ -114,8 +115,8 @@ class PromiseEvent: public Event<T> {
     Nan::EscapableHandleScope scope;
     auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
     auto event = std::unique_ptr<PromiseEvent<T, R, L>>(new PromiseEvent<T, R, L>(
-                std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>>(
-                    new Nan::Persistent<v8::Promise::Resolver>(resolver))));
+                std::make_unique<Nan::Persistent<v8::Promise::Resolver>>(
+                    resolver)));
     return std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<PromiseEvent<T, R, L>>>(
             scope.Escape(resolver),
             std::move(event));

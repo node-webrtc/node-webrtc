@@ -7,7 +7,7 @@
  */
 #include "src/setsessiondescriptionobserver.h"
 
-#include <webrtc/api/rtcerror.h>
+#include <webrtc/api/rtc_error.h>
 
 #include "src/converters.h"
 #include "src/converters/v8.h"

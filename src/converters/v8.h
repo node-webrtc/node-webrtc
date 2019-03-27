@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <iosfwd>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <nan.h>
@@ -32,13 +33,13 @@ namespace node_webrtc {
 
 class SomeError {
  public:
-  SomeError() {}
+  SomeError() = default;
 
   explicit SomeError(const std::string& message)
     : SomeError(message, MakeRight<ErrorFactory::DOMExceptionName>(ErrorFactory::kError)) {}
 
-  SomeError(const std::string& message, const Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName> name)
-    : _message(message), _name(name) {}
+  SomeError(std::string message, const Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName> name)
+    : _message(std::move(message)), _name(name) {}
 
   std::string message() const {
     return _message;
@@ -57,14 +58,14 @@ DECLARE_TO_JS(SomeError)
 
 class Null {
  public:
-  Null() {}
+  Null() = default;
 };
 
 DECLARE_FROM_JS(Null)
 
 class Undefined {
  public:
-  Undefined() {}
+  Undefined() = default;
 };
 
 DECLARE_TO_JS(Undefined)
