@@ -545,25 +545,22 @@ NAN_METHOD(node_webrtc::PeerConnection::GetStats) {
 }
 
 NAN_METHOD(node_webrtc::PeerConnection::LegacyGetStats) {
-  TRACE_CALL;
-
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
+  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
+  info.GetReturnValue().Set(resolver->GetPromise());
 
-  SETUP_PROMISE(node_webrtc::PeerConnection, node_webrtc::RTCStatsResponseInit);
-
-  if (self->_jinglePeerConnection != nullptr) {
-    auto statsObserver = new rtc::RefCountedObject<StatsObserver>(self, std::move(promise));
-    if (!self->_jinglePeerConnection->GetStats(statsObserver, nullptr,
-            webrtc::PeerConnectionInterface::kStatsOutputLevelStandard)) {
-      auto error = Nan::Error("Failed to execute getStats");
-      resolver->Reject(Nan::GetCurrentContext(), error).IsNothing();
-    }
-  } else {
+  if (!self->_jinglePeerConnection) {
     auto error = Nan::Error("RTCPeerConnection is closed");
     resolver->Reject(Nan::GetCurrentContext(), error).IsNothing();
+    return;
   }
 
-  TRACE_END;
+  auto statsObserver = new rtc::RefCountedObject<StatsObserver>(self, resolver);
+  if (!self->_jinglePeerConnection->GetStats(statsObserver, nullptr,
+          webrtc::PeerConnectionInterface::kStatsOutputLevelStandard)) {
+    auto error = Nan::Error("Failed to execute getStats");
+    resolver->Reject(Nan::GetCurrentContext(), error).IsNothing();
+  }
 }
 
 NAN_METHOD(node_webrtc::PeerConnection::GetTransceivers) {

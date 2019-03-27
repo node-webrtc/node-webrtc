@@ -12,6 +12,7 @@
 #include <webrtc/api/rtc_error.h>
 
 #include "src/converters.h"
+#include "src/converters/dictionaries.h"  // IWYU pragma: keep
 #include "src/converters/v8.h"
 #include "src/error.h"
 #include "src/events.h"
