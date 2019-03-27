@@ -7,16 +7,7 @@
  */
 #pragma once
 
-#include <iosfwd>
 #include <memory>
-
-#include <nan.h>
-#include <v8.h>
-
-#include "src/converters/dictionaries.h"
-#include "src/converters/v8.h"
-#include "src/error.h"
-#include "src/functional/either.h"
 
 namespace node_webrtc {
 
@@ -77,58 +68,6 @@ class Callback1: public Event<T> {
  private:
   explicit Callback1(std::function<void(T&)> callback): _callback(std::move(callback)) {}
   const std::function<void(T&)> _callback;
-};
-
-/**
- * A PromiseEvent can be dispatched to a PromiseFulfillingEventLoop in order to
- * resolve or reject a Promise.
- * @tparam T the PromiseFulfillingEventLoop type
- * @tparam L the type of values representing failure
- * @tparam R the type of values representing success
- */
-template <typename T, typename R = Undefined, typename L = SomeError>
-class PromiseEvent: public Event<T> {
- public:
-  void Dispatch(T&) override {
-    Nan::HandleScope scope;
-    if (_resolver) {
-      auto resolver = Nan::New(*_resolver);
-      _result.template FromEither<void>([resolver](L error) {
-        CONVERT_OR_REJECT_AND_RETURN(resolver, error, value, v8::Local<v8::Value>);
-        resolver->Reject(Nan::GetCurrentContext(), value).IsNothing();
-      }, [resolver](R result) {
-        CONVERT_OR_REJECT_AND_RETURN(resolver, result, value, v8::Local<v8::Value>);
-        resolver->Resolve(Nan::GetCurrentContext(), value).IsNothing();
-      });
-    }
-  }
-
-  void Reject(L error) {
-    _result = Either<L, R>::Left(error);
-  }
-
-  void Resolve(R result) {
-    _result = Either<L, R>::Right(result);
-  }
-
-  static std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<PromiseEvent<T, R, L>>> Create() {
-    Nan::EscapableHandleScope scope;
-    auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
-    auto event = std::unique_ptr<PromiseEvent<T, R, L>>(new PromiseEvent<T, R, L>(
-                std::make_unique<Nan::Persistent<v8::Promise::Resolver>>(
-                    resolver)));
-    return std::pair<v8::Local<v8::Promise::Resolver>, std::unique_ptr<PromiseEvent<T, R, L>>>(
-            scope.Escape(resolver),
-            std::move(event));
-  }
-
- protected:
-  explicit PromiseEvent(std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver)
-    : _resolver(std::move(resolver)) {}
-
- private:
-  std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
-  Either<L, R> _result;
 };
 
 }  // namespace node_webrtc

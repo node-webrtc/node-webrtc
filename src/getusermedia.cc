@@ -105,7 +105,9 @@ struct node_webrtc::Converter<v8::Local<v8::Value>, MediaStreamConstraints> {
 };
 
 NAN_METHOD(node_webrtc::GetUserMedia::GetUserMediaImpl) {
-  SETUP_PROMISE(node_webrtc::GetUserMedia, node_webrtc::MediaStream*);
+  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
+  info.GetReturnValue().Set(resolver->GetPromise());
+
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, constraints, MediaStreamConstraints);
 
   auto factory = node_webrtc::PeerConnectionFactory::GetOrCreateDefault();
