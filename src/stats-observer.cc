@@ -7,28 +7,65 @@
  */
 #include "src/stats-observer.h"
 
-#include "src/common.h"
+#include <type_traits>
+
+#include "src/converters.h"  // IWYU pragma: keep
+#include "src/converters/dictionaries.h"
+#include "src/converters/v8.h"  // IWYU pragma: keep
+#include "src/error.h"
+#include "src/events.h"
+#include "src/functional/validation.h"
 #include "src/peerconnection.h"
 
-void node_webrtc::StatsObserver::OnComplete(const webrtc::StatsReports& statsReports) {
-  TRACE_CALL;
-  if (_promise) {
-    double timestamp = 0;
-    auto reports = std::vector<std::map<std::string, std::string>>();
-    for (auto statsReport : statsReports) {
-      auto report = std::map<std::string, std::string>();
-      // NOTE(mroberts): This is a little janky. We should thread each report's timestamp along.
-      timestamp = timestamp > statsReport->timestamp() ? timestamp : statsReport->timestamp();
-      report.emplace("type", statsReport->TypeToString());
-      for (auto const& pair : statsReport->values()) {
-        auto stat = std::string(pair.second->display_name());
-        auto value = std::string(pair.second->ToString());
-        report.emplace(stat, value);
-      }
-      reports.push_back(report);
+// IWYU pragma: no_include <api/scoped_refptr.h>
+// IWYU pragma: no_include <api/stats_types.h>
+// IWYU pragma: no_include <nan_implementation_12_inl.h>
+
+node_webrtc::StatsObserver::StatsObserver(
+    node_webrtc::PeerConnection* peer_connection)
+  : _peer_connection(peer_connection) {
+  Nan::HandleScope scope;
+  _resolver = std::make_unique<Nan::Persistent<v8::Promise::Resolver>>(
+          v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked());
+}
+
+node_webrtc::StatsObserver::StatsObserver(
+    node_webrtc::PeerConnection* peer_connection,
+    v8::Local<v8::Promise::Resolver> resolver)
+  : _peer_connection(peer_connection) {
+  Nan::HandleScope scope;
+  _resolver = std::make_unique<Nan::Persistent<v8::Promise::Resolver>>(resolver);
+}
+
+void node_webrtc::StatsObserver::OnComplete(const webrtc::StatsReports& stats_reports) {
+  double timestamp = 0;
+  auto reports = std::vector<std::map<std::string, std::string>>();
+  for (auto stats_report : stats_reports) {
+    auto report = std::map<std::string, std::string>();
+    // NOTE(mroberts): This is a little janky. We should thread each report's timestamp along.
+    timestamp = timestamp > stats_report->timestamp() ? timestamp : stats_report->timestamp();
+    report.emplace("type", stats_report->TypeToString());
+    for (auto const& pair : stats_report->values()) {
+      auto stat = std::string(pair.second->display_name());
+      auto value = std::string(pair.second->ToString());
+      report.emplace(stat, value);
     }
-    _promise->Resolve(std::pair<double, std::vector<std::map<std::string, std::string>>>(timestamp, reports));
-    parent->Dispatch(std::move(_promise));
+    reports.push_back(report);
   }
-  TRACE_END;
+
+  std::pair<double, std::vector<std::map<std::string, std::string>>> response(timestamp, reports);
+
+  _peer_connection->Dispatch(node_webrtc::CreateCallback<node_webrtc::PeerConnection>(
+  [_resolver = std::move(_resolver), response]() {
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Promise::Resolver> resolver = Nan::New(*_resolver);
+    CONVERT_OR_REJECT_AND_RETURN(resolver, response, value, v8::Local<v8::Value>);
+    resolver->Resolve(Nan::GetCurrentContext(), value).IsNothing();
+  }));
+}
+
+v8::Local<v8::Promise> node_webrtc::StatsObserver::promise() {
+  Nan::EscapableHandleScope scope;
+  v8::Local<v8::Promise::Resolver> resolver = Nan::New(*_resolver);
+  return scope.Escape(resolver->GetPromise());
 }

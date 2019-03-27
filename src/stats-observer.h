@@ -10,13 +10,14 @@
 #include <iosfwd>
 #include <map>
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
+#include <nan.h>
 #include <webrtc/api/peer_connection_interface.h>
 #include <webrtc/api/stats_types.h>
-
-#include "src/events.h"
+#include <v8.h>
 
 namespace node_webrtc {
 
@@ -24,19 +25,19 @@ class PeerConnection;
 
 typedef std::pair<double, std::vector<std::map<std::string, std::string>>> RTCStatsResponseInit;
 
-class StatsObserver
-  : public webrtc::StatsObserver {
- private:
-  PeerConnection* parent;
-  std::unique_ptr<PromiseEvent<PeerConnection, RTCStatsResponseInit>> _promise;
-
+class StatsObserver: public webrtc::StatsObserver {
  public:
-  StatsObserver(
-      PeerConnection* parent,
-      std::unique_ptr<PromiseEvent<PeerConnection, RTCStatsResponseInit>> promise)
-    : parent(parent), _promise(std::move(promise)) {}
+  explicit StatsObserver(PeerConnection*);
 
-  void OnComplete(const webrtc::StatsReports& reports) override;
+  StatsObserver(PeerConnection*, v8::Local<v8::Promise::Resolver>);
+
+  void OnComplete(const webrtc::StatsReports&) override;
+
+  v8::Local<v8::Promise> promise();
+
+ private:
+  PeerConnection* _peer_connection;
+  std::unique_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
 };
 
 }  // namespace node_webrtc
