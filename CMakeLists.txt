@@ -339,7 +339,7 @@ if(WIN32)
 else()
   target_compile_options(${MODULE} PRIVATE
     -fno-rtti
-    -fvisibility=default
+    -fvisibility=hidden
     -Wall
     -Wextra
     -Wno-missing-field-initializers
