@@ -201,6 +201,11 @@ FROM_JS_IMPL(v8::Local<v8::Object>, value) {
   return node_webrtc::Pure(scope.Escape(object));
 }
 
+TO_JS_IMPL(v8::Local<v8::Primitive>, value) {
+  Nan::EscapableHandleScope scope;
+  return node_webrtc::Pure(scope.Escape(value.As<v8::Value>()));
+}
+
 TO_JS_IMPL(std::vector<bool>, values) {
   Nan::EscapableHandleScope scope;
   auto array = Nan::New<v8::Array>();

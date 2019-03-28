@@ -7,22 +7,17 @@
  */
 #include "src/rtcstatscollector.h"
 
-#include <nan.h>
 #include <webrtc/api/stats/rtc_stats_report.h>
 
-#include "src/converters.h"  // IWYU pragma: keep
 #include "src/converters/dictionaries.h"  // IWYU pragma: keep
-#include "src/error.h"
-#include "src/functional/validation.h"
+#include "src/utility.h"
 
 // IWYU pragma: no_include <api/scoped_refptr.h>
 // IWYU pragma: no_include <nan_implementation_12_inl.h>
 // IWYU pragma: no_include "src/events.h"
 
 void node_webrtc::RTCStatsCollector::OnStatsDelivered(const rtc::scoped_refptr<const webrtc::RTCStatsReport>& report) {
-  Dispatch([report = report->Copy()](v8::Local<v8::Promise::Resolver> resolver) {
-    Nan::HandleScope scope;
-    CONVERT_OR_REJECT_AND_RETURN(resolver, report, value, v8::Local<v8::Value>);
-    resolver->Resolve(Nan::GetCurrentContext(), value).IsNothing();
+  Dispatch([report = report->Copy()](auto resolver) {
+    node_webrtc::Resolve(resolver, report);
   });
 }

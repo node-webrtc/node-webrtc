@@ -12,36 +12,31 @@
 #include <nan.h>
 #include <webrtc/api/rtc_error.h>
 
-#include "src/converters.h"
 #include "src/converters/dictionaries.h"  // IWYU pragma: keep
 #include "src/converters/v8.h"
 #include "src/error.h"
+#include "src/utility.h"
 
 void node_webrtc::CreateSessionDescriptionObserver::OnSuccess(webrtc::SessionDescriptionInterface* description) {
   auto validation = node_webrtc::From<RTCSessionDescriptionInit>(description);
   delete description;
-  Dispatch([peer_connection = _peer_connection, validation](v8::Local<v8::Promise::Resolver> resolver) {
-    Nan::HandleScope scope;
+  Dispatch([peer_connection = _peer_connection, validation](auto resolver) {
     if (validation.IsInvalid()) {
       node_webrtc::SomeError error(validation.ToErrors()[0]);
-      CONVERT_OR_REJECT_AND_RETURN(resolver, error, value, v8::Local<v8::Value>);
-      resolver->Reject(Nan::GetCurrentContext(), value).IsNothing();
+      node_webrtc::Reject(resolver, node_webrtc::SomeError(validation.ToErrors()[0]));
     } else {
       auto description = validation.UnsafeFromValid();
       peer_connection->SaveLastSdp(description);
-      CONVERT_OR_REJECT_AND_RETURN(resolver, description, value, v8::Local<v8::Value>);
-      resolver->Resolve(Nan::GetCurrentContext(), value).IsNothing();
+      node_webrtc::Resolve(resolver, description);
     }
   });
 }
 
 void node_webrtc::CreateSessionDescriptionObserver::OnFailure(webrtc::RTCError error) {
-  auto someError = node_webrtc::From<node_webrtc::SomeError>(&error).FromValidation([](node_webrtc::Errors errors) {
+  auto someError = node_webrtc::From<node_webrtc::SomeError>(&error).FromValidation([](auto errors) {
     return node_webrtc::SomeError(errors[0]);
   });
-  Dispatch([someError](v8::Local<v8::Promise::Resolver> resolver) {
-    Nan::HandleScope scope;
-    CONVERT_OR_REJECT_AND_RETURN(resolver, someError, value, v8::Local<v8::Value>);
-    resolver->Reject(Nan::GetCurrentContext(), value).IsNothing();
+  Dispatch([someError](auto resolver) {
+    node_webrtc::Reject(resolver, someError);
   });
 }

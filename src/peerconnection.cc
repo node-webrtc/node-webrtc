@@ -39,6 +39,7 @@
 #include "src/rtcstatscollector.h"
 #include "src/setsessiondescriptionobserver.h"
 #include "src/stats-observer.h"
+#include "src/utility.h"
 
 namespace webrtc {
 
@@ -302,22 +303,19 @@ NAN_METHOD(node_webrtc::PeerConnection::RemoveTrack) {
 
 NAN_METHOD(node_webrtc::PeerConnection::CreateOffer) {
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
-  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
-  info.GetReturnValue().Set(resolver->GetPromise());
+  RETURNS_PROMISE(resolver);
 
   auto maybeOptions = node_webrtc::From<node_webrtc::Maybe<RTCOfferOptions>>(node_webrtc::Arguments(info)).Map(
   [](const node_webrtc::Maybe<RTCOfferOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCOfferOptions()); });
   if (maybeOptions.IsInvalid()) {
-    node_webrtc::SomeError error(maybeOptions.ToErrors()[0]);
-    CONVERT_OR_REJECT_AND_RETURN(resolver, error, value, v8::Local<v8::Value>);
-    resolver->Reject(Nan::GetCurrentContext(), value).IsNothing();
+    node_webrtc::Reject(resolver, node_webrtc::SomeError(maybeOptions.ToErrors()[0]));
     return;
   }
 
   if (!self->_jinglePeerConnection || self->_jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
-    resolver->Reject(Nan::GetCurrentContext(), node_webrtc::ErrorFactory::CreateInvalidStateError(
+    node_webrtc::Reject(resolver, node_webrtc::ErrorFactory::CreateInvalidStateError(
             "Failed to execute 'createOffer' on 'RTCPeerConnection': "
-            "The RTCPeerConnection's signalingState is 'closed'.")).IsNothing();
+            "The RTCPeerConnection's signalingState is 'closed'."));
     return;
   }
 
@@ -327,22 +325,19 @@ NAN_METHOD(node_webrtc::PeerConnection::CreateOffer) {
 
 NAN_METHOD(node_webrtc::PeerConnection::CreateAnswer) {
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
-  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
-  info.GetReturnValue().Set(resolver->GetPromise());
+  RETURNS_PROMISE(resolver);
 
   auto maybeOptions = node_webrtc::From<node_webrtc::Maybe<RTCAnswerOptions>>(node_webrtc::Arguments(info)).Map(
   [](const node_webrtc::Maybe<RTCAnswerOptions> maybeOptions) { return maybeOptions.FromMaybe(RTCAnswerOptions()); });
   if (maybeOptions.IsInvalid()) {
-    node_webrtc::SomeError error(maybeOptions.ToErrors()[0]);
-    CONVERT_OR_REJECT_AND_RETURN(resolver, error, value, v8::Local<v8::Value>);
-    resolver->Reject(Nan::GetCurrentContext(), value).IsNothing();
+    node_webrtc::Reject(resolver, node_webrtc::SomeError(maybeOptions.ToErrors()[0]));
     return;
   }
 
   if (!self->_jinglePeerConnection || self->_jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
-    resolver->Reject(Nan::GetCurrentContext(), node_webrtc::ErrorFactory::CreateInvalidStateError(
+    node_webrtc::Reject(resolver, node_webrtc::ErrorFactory::CreateInvalidStateError(
             "Failed to execute 'createAnswer' on 'RTCPeerConnection': "
-            "The RTCPeerConnection's signalingState is 'closed'.")).IsNothing();
+            "The RTCPeerConnection's signalingState is 'closed'."));
     return;
   }
 
@@ -352,8 +347,7 @@ NAN_METHOD(node_webrtc::PeerConnection::CreateAnswer) {
 
 NAN_METHOD(node_webrtc::PeerConnection::SetLocalDescription) {
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
-  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
-  info.GetReturnValue().Set(resolver->GetPromise());
+  RETURNS_PROMISE(resolver);
 
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, descriptionInit, node_webrtc::RTCSessionDescriptionInit);
   if (descriptionInit.sdp.empty()) {
@@ -363,9 +357,9 @@ NAN_METHOD(node_webrtc::PeerConnection::SetLocalDescription) {
   CONVERT_OR_REJECT_AND_RETURN(resolver, descriptionInit, description, webrtc::SessionDescriptionInterface*);
   if (!self->_jinglePeerConnection || self->_jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
     delete description;
-    resolver->Reject(Nan::GetCurrentContext(), node_webrtc::ErrorFactory::CreateInvalidStateError(
+    node_webrtc::Reject(resolver, node_webrtc::ErrorFactory::CreateInvalidStateError(
             "Failed to execute 'setLocalDescription' on 'RTCPeerConnection': "
-            "The RTCPeerConnection's signalingState is 'closed'.")).IsNothing();
+            "The RTCPeerConnection's signalingState is 'closed'."));
     return;
   }
 
@@ -375,16 +369,15 @@ NAN_METHOD(node_webrtc::PeerConnection::SetLocalDescription) {
 
 NAN_METHOD(node_webrtc::PeerConnection::SetRemoteDescription) {
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
-  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
-  info.GetReturnValue().Set(resolver->GetPromise());
+  RETURNS_PROMISE(resolver);
 
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, description, webrtc::SessionDescriptionInterface*);
 
   if (!self->_jinglePeerConnection || self->_jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
     delete description;
-    resolver->Reject(Nan::GetCurrentContext(), node_webrtc::ErrorFactory::CreateInvalidStateError(
+    node_webrtc::Reject(resolver, node_webrtc::ErrorFactory::CreateInvalidStateError(
             "Failed to execute 'setRemoteDescription' on 'RTCPeerConnection': "
-            "The RTCPeerConnection's signalingState is 'closed'.")).IsNothing();
+            "The RTCPeerConnection's signalingState is 'closed'."));
     return;
   }
 
@@ -394,8 +387,7 @@ NAN_METHOD(node_webrtc::PeerConnection::SetRemoteDescription) {
 
 NAN_METHOD(node_webrtc::PeerConnection::AddIceCandidate) {
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
-  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
-  info.GetReturnValue().Set(resolver->GetPromise());
+  RETURNS_PROMISE(resolver);
 
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, rawCandidate, webrtc::IceCandidateInterface*);
 
@@ -407,7 +399,7 @@ NAN_METHOD(node_webrtc::PeerConnection::AddIceCandidate) {
     if (self->_jinglePeerConnection
         && self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed
         && self->_jinglePeerConnection->AddIceCandidate(candidate.get())) {
-      newResolver->Resolve(Nan::GetCurrentContext(), Nan::Undefined()).IsNothing();
+      node_webrtc::Resolve(newResolver, Nan::Undefined());
     } else {
       std::string error = std::string("Failed to set ICE candidate");
       if (!self->_jinglePeerConnection
@@ -415,9 +407,7 @@ NAN_METHOD(node_webrtc::PeerConnection::AddIceCandidate) {
         error += "; RTCPeerConnection is closed";
       }
       error += ".";
-      node_webrtc::SomeError someError(error);
-      CONVERT_OR_REJECT_AND_RETURN(newResolver, someError, reason, v8::Local<v8::Value>);
-      newResolver->Reject(Nan::GetCurrentContext(), reason).IsNothing();
+      node_webrtc::Reject(newResolver, node_webrtc::SomeError(error));
     }
   }));
 }
@@ -503,12 +493,10 @@ NAN_METHOD(node_webrtc::PeerConnection::GetSenders) {
 
 NAN_METHOD(node_webrtc::PeerConnection::GetStats) {
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
-  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
-  info.GetReturnValue().Set(resolver->GetPromise());
+  RETURNS_PROMISE(resolver);
 
   if (!self->_jinglePeerConnection) {
-    auto error = Nan::Error("RTCPeerConnection is closed");
-    resolver->Reject(Nan::GetCurrentContext(), error).IsNothing();
+    node_webrtc::Reject(resolver, Nan::Error("RTCPeerConnection is closed"));
     return;
   }
 
@@ -518,20 +506,17 @@ NAN_METHOD(node_webrtc::PeerConnection::GetStats) {
 
 NAN_METHOD(node_webrtc::PeerConnection::LegacyGetStats) {
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
-  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
-  info.GetReturnValue().Set(resolver->GetPromise());
+  RETURNS_PROMISE(resolver);
 
   if (!self->_jinglePeerConnection) {
-    auto error = Nan::Error("RTCPeerConnection is closed");
-    resolver->Reject(Nan::GetCurrentContext(), error).IsNothing();
+    node_webrtc::Reject(resolver, Nan::Error("RTCPeerConnection is closed"));
     return;
   }
 
   auto statsObserver = new rtc::RefCountedObject<StatsObserver>(self, resolver);
   if (!self->_jinglePeerConnection->GetStats(statsObserver, nullptr,
           webrtc::PeerConnectionInterface::kStatsOutputLevelStandard)) {
-    auto error = Nan::Error("Failed to execute getStats");
-    resolver->Reject(Nan::GetCurrentContext(), error).IsNothing();
+    node_webrtc::Reject(resolver, Nan::Error("Failed to execute getStats"));
   }
 }
 

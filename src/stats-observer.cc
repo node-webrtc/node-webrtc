@@ -13,13 +13,8 @@
 #include <utility>
 #include <vector>
 
-#include <nan.h>
-
-#include "src/converters.h"  // IWYU pragma: keep
 #include "src/converters/dictionaries.h"  // IWYU pragma: keep
-#include "src/converters/v8.h"  // IWYU pragma: keep
-#include "src/error.h"
-#include "src/functional/validation.h"
+#include "src/utility.h"
 
 // IWYU pragma: no_include <api/scoped_refptr.h>
 // IWYU pragma: no_include <api/stats_types.h>
@@ -44,9 +39,7 @@ void node_webrtc::StatsObserver::OnComplete(const webrtc::StatsReports& stats_re
 
   std::pair<double, std::vector<std::map<std::string, std::string>>> response(timestamp, reports);
 
-  Dispatch([response](v8::Local<v8::Promise::Resolver> resolver) {
-    Nan::EscapableHandleScope scope;
-    CONVERT_OR_REJECT_AND_RETURN(resolver, response, value, v8::Local<v8::Value>);
-    resolver->Resolve(Nan::GetCurrentContext(), value).IsNothing();
+  Dispatch([response](auto resolver) {
+    node_webrtc::Resolve(resolver, response);
   });
 }
