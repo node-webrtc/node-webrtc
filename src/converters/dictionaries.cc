@@ -99,12 +99,6 @@ typedef node_webrtc::Either<std::string, node_webrtc::RTCOAuthCredential> string
   DEFAULT(webrtc::RtpTransceiverDirection, direction, "direction", webrtc::RtpTransceiverDirection::kSendRecv) \
   DEFAULT(std::vector<node_webrtc::MediaStream*>, streams, "streams", std::vector<node_webrtc::MediaStream*>())
 
-static node_webrtc::RTCOAuthCredential CreateRTCOAuthCredential(
-    const std::string& macKey,
-    const std::string& accessToken) {
-  return {macKey, accessToken};
-}
-
 static node_webrtc::Validation<webrtc::PeerConnectionInterface::IceServer> CreateIceServer(
     const node_webrtc::Either<std::vector<std::string>, std::string>& urlsOrUrl,
     const std::string& username,
@@ -141,12 +135,6 @@ TO_JS_IMPL(webrtc::PeerConnectionInterface::IceServer, iceServer) {
     object->Set(Nan::New("credentialType").ToLocalChecked(), Nan::New("password").ToLocalChecked());
   }
   return node_webrtc::Pure(scope.Escape(object.As<v8::Value>()));
-}
-
-static node_webrtc::RTCDtlsFingerprint CreateRTCDtlsFingerprint(
-    const node_webrtc::Maybe<std::string>& algorithm,
-    const node_webrtc::Maybe<std::string>& value) {
-  return {algorithm, value};
 }
 
 static node_webrtc::Validation<node_webrtc::UnsignedShortRange> CreateUnsignedShortRange(
@@ -256,42 +244,6 @@ TO_JS_IMPL(node_webrtc::ExtendedRTCConfiguration, configuration) {
       * node_webrtc::Pure(Nan::New(configuration.configuration.ice_candidate_pool_size))
       * node_webrtc::From<v8::Local<v8::Value>>(configuration.portRange)
       * node_webrtc::From<v8::Local<v8::Value>>(configuration.configuration.sdp_semantics);
-}
-
-static node_webrtc::RTCOfferOptions CreateRTCOfferOptions(
-    const bool voiceActivityDetection,
-    const bool iceRestart,
-    const node_webrtc::Maybe<bool> offerToReceiveAudio,
-    const node_webrtc::Maybe<bool> offerToReceiveVideo) {
-  webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
-  options.ice_restart = iceRestart;
-  options.voice_activity_detection = voiceActivityDetection;
-  options.offer_to_receive_audio = offerToReceiveAudio.Map(
-  [](const bool boolean) { return boolean ? webrtc::PeerConnectionInterface::RTCOfferAnswerOptions::kOfferToReceiveMediaTrue : 0; }
-      ).FromMaybe(webrtc::PeerConnectionInterface::RTCOfferAnswerOptions::kUndefined);
-  options.offer_to_receive_video = offerToReceiveVideo.Map(
-  [](const bool boolean) { return boolean ? webrtc::PeerConnectionInterface::RTCOfferAnswerOptions::kOfferToReceiveMediaTrue : 0; }
-      ).FromMaybe(webrtc::PeerConnectionInterface::RTCOfferAnswerOptions::kUndefined);
-  return node_webrtc::RTCOfferOptions(options);
-}
-
-static node_webrtc::RTCAnswerOptions CreateRTCAnswerOptions(const bool voiceActivityDetection) {
-  webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
-  options.voice_activity_detection = voiceActivityDetection;
-  return node_webrtc::RTCAnswerOptions(options);
-}
-
-static node_webrtc::RTCSessionDescriptionInit CreateRTCSessionDescriptionInit(
-    const node_webrtc::RTCSdpType type,
-    const std::string& sdp) {
-  return {type, sdp};
-}
-
-static node_webrtc::RTCVideoSourceInit CreateRTCVideoSourceInit(
-    const bool isScreencast,
-    const node_webrtc::Maybe<bool> needsDenoising
-) {
-  return {isScreencast, needsDenoising};
 }
 
 node_webrtc::Validation<webrtc::SessionDescriptionInterface*> node_webrtc::Converter<node_webrtc::RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*>::Convert(
@@ -779,14 +731,8 @@ namespace node_webrtc {
 #define REQUIRED(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_REQUIRED(type, stringValue)
 #define OPTIONAL(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_OPTIONAL(type, stringValue)
 #define DEFAULT(type, memberName, stringValue, defaultValue) EXPAND_OBJ_FROM_JS_DEFAULT(type, stringValue, defaultValue)
-OBJ_FROM_JS_IMPL1(RTCOAUTHCREDENTIAL, CreateRTCOAuthCredential)
 OBJ_FROM_JS_IMPL2(ICESERVER, CreateIceServer)
-OBJ_FROM_JS_IMPL1(RTCDTLSFINGERPRINT, CreateRTCDtlsFingerprint)
-OBJ_FROM_JS_IMPL2(UNSIGNEDSHORTRANGE, CreateUnsignedShortRange)
-OBJ_FROM_JS_IMPL1(RTCOFFEROPTIONS, CreateRTCOfferOptions)
-OBJ_FROM_JS_IMPL1(RTCANSWEROPTIONS, CreateRTCAnswerOptions)
-OBJ_FROM_JS_IMPL1(RTCSESSIONDESCRIPTIONINIT, CreateRTCSessionDescriptionInit)
-OBJ_FROM_JS_IMPL1(RTCVIDEOSOURCEINIT, CreateRTCVideoSourceInit)
+OBJ_FROM_JS_IMPL2(UNSIGNED_SHORT_RANGE, CreateUnsignedShortRange)
 OBJ_FROM_JS_IMPL2(ICECANDIDATEINTERFACE, CreateIceCandidateInterface)
 OBJ_FROM_JS_IMPL2(DATACHANNELINIT, CreateDataChannelInit)
 OBJ_FROM_JS_IMPL1(RTCRTPTRANSCEIVERINIT, CreateRtpTransceiverInit)

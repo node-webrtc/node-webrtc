@@ -30,6 +30,15 @@
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
 
+#include "src/dictionaries/node_webrtc/rtc_answer_options.h"
+#include "src/dictionaries/node_webrtc/rtc_dtls_fingerprint.h"
+#include "src/dictionaries/node_webrtc/rtc_offer_options.h"
+#include "src/dictionaries/node_webrtc/rtc_on_data_event_dict.h"
+#include "src/dictionaries/node_webrtc/rtc_outh_credential.h"
+#include "src/dictionaries/node_webrtc/rtc_session_description_init.h"
+#include "src/dictionaries/node_webrtc/rtc_video_source_init.h"
+#include "src/dictionaries/node_webrtc/unsigned_short_range.h"
+
 namespace rtc {
 
 template <class T> class scoped_refptr;
@@ -66,74 +75,6 @@ class MediaStream;
 class RgbaImageData;
 class SomeError;
 
-#define DECLARE_STRUCT(TYPE) \
-  struct TYPE { \
-    TYPE ## _LIST \
-  };
-
-#define DECLARE_STRUCT_OPTIONAL(TYPE, VAR) node_webrtc::Maybe<TYPE> VAR;
-
-#define DECLARE_STRUCT_REQUIRED(TYPE, VAR) TYPE VAR;
-
-#define EXPAND_DEFAULT_STRUCT(TYPE, VAR) TYPE VAR;
-
-#define RTCANSWEROPTIONS RTCAnswerOptions
-#define RTCANSWEROPTIONS_LIST \
-  DEFAULT(bool, voiceActivityDetection, "voiceActivityDetection", true)
-
-#define RTCOAUTHCREDENTIAL RTCOAuthCredential
-#define RTCOAUTHCREDENTIAL_LIST \
-  REQUIRED(std::string, macKey, "macKey") \
-  REQUIRED(std::string, accessToken, "accessToken")
-
-#define RTCOFFEROPTIONS RTCOfferOptions
-#define RTCOFFEROPTIONS_LIST \
-  DEFAULT(bool, voiceActivityDetection, "voiceActivityDetection", true) \
-  DEFAULT(bool, iceRestart, "iceRestart", false) \
-  OPTIONAL(bool, offerToReceiveAudio, "offerToReceiveAudio") \
-  OPTIONAL(bool, offerToReceiveVideo, "offerToReceiveVideo")
-
-#define RTCONDATAEVENTDICT RTCOnDataEventDict
-#define RTCONDATAEVENTDICT_LIST \
-  REQUIRED(uint8_t*, samples, "samples") \
-  DEFAULT(uint8_t, bitsPerSample, "bitsPerSample", 16) \
-  REQUIRED(uint16_t, sampleRate, "sampleRate") \
-  DEFAULT(uint8_t, channelCount, "channelCount", 1) \
-  OPTIONAL(uint16_t, numberOfFrames, "numberOfFrames")
-
-#define RTCDTLSFINGERPRINT RTCDtlsFingerprint
-#define RTCDTLSFINGERPRINT_LIST \
-  OPTIONAL(std::string, algorithm, "algorithm") \
-  OPTIONAL(std::string, value, "value")
-
-#define RTCSESSIONDESCRIPTIONINIT RTCSessionDescriptionInit
-#define RTCSESSIONDESCRIPTIONINIT_LIST \
-  REQUIRED(node_webrtc::RTCSdpType, type, "type") \
-  DEFAULT(std::string, sdp, "sdp", "")
-
-#define RTCVIDEOSOURCEINIT RTCVideoSourceInit
-#define RTCVIDEOSOURCEINIT_LIST \
-  DEFAULT(bool, isScreencast, "isScreencast", false) \
-  OPTIONAL(bool, needsDenoising, "needsDenoising")
-
-#define UNSIGNEDSHORTRANGE UnsignedShortRange
-#define UNSIGNEDSHORTRANGE_LIST \
-  OPTIONAL(uint16_t, min, "min") \
-  OPTIONAL(uint16_t, max, "max")
-
-#define REQUIRED(TYPE, VAR, PROP) DECLARE_STRUCT_REQUIRED(TYPE, VAR)
-#define OPTIONAL(TYPE, VAR, PROP) DECLARE_STRUCT_OPTIONAL(TYPE, VAR)
-#define DEFAULT(TYPE, VAR, PROP, DEFAULT) EXPAND_DEFAULT_STRUCT(TYPE, VAR)
-DECLARE_STRUCT(RTCDTLSFINGERPRINT)
-DECLARE_STRUCT(RTCOAUTHCREDENTIAL)
-DECLARE_STRUCT(RTCONDATAEVENTDICT)
-DECLARE_STRUCT(RTCSESSIONDESCRIPTIONINIT)
-DECLARE_STRUCT(RTCVIDEOSOURCEINIT)
-DECLARE_STRUCT(UNSIGNEDSHORTRANGE)
-#undef REQUIRED
-#undef OPTIONAL
-#undef DEFAULT
-
 struct ExtendedRTCConfiguration {
   ExtendedRTCConfiguration(): configuration(webrtc::PeerConnectionInterface::RTCConfiguration()), portRange(UnsignedShortRange()) {}
   ExtendedRTCConfiguration(const webrtc::PeerConnectionInterface::RTCConfiguration& configuration, const UnsignedShortRange portRange): configuration(configuration), portRange(portRange) {}
@@ -141,17 +82,7 @@ struct ExtendedRTCConfiguration {
   UnsignedShortRange portRange;
 };
 
-struct RTCOfferOptions {
-  RTCOfferOptions(): options(webrtc::PeerConnectionInterface::RTCOfferAnswerOptions()) {}
-  explicit RTCOfferOptions(const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options): options(options) {}
-  const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
-};
 
-struct RTCAnswerOptions {
-  RTCAnswerOptions(): options(webrtc::PeerConnectionInterface::RTCOfferAnswerOptions()) {}
-  explicit RTCAnswerOptions(const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options): options(options) {}
-  const webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
-};
 
 // TODO(mroberts): Move this elsewhere.
 template <typename T>
@@ -190,16 +121,8 @@ DECLARE_TO_JS(const webrtc::SessionDescriptionInterface*)
 typedef std::pair<double, std::vector<std::map<std::string, std::string>>> RTCStatsResponseInit;
 
 DECLARE_TO_AND_FROM_JS(ExtendedRTCConfiguration)
-DECLARE_FROM_JS(RTCAnswerOptions)
-DECLARE_FROM_JS(RTCDtlsFingerprint)
-DECLARE_FROM_JS(RTCOAuthCredential)
-DECLARE_FROM_JS(RTCOfferOptions)
-DECLARE_TO_AND_FROM_JS(RTCOnDataEventDict)
-DECLARE_TO_AND_FROM_JS(RTCSessionDescriptionInit)
 DECLARE_CONVERTER(RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*)
 DECLARE_TO_JS(RTCStatsResponseInit)
-DECLARE_FROM_JS(RTCVideoSourceInit)
-DECLARE_TO_AND_FROM_JS(UnsignedShortRange)
 DECLARE_TO_JS(webrtc::VideoTrackSourceInterface::Stats)
 DECLARE_FROM_JS(rtc::scoped_refptr<webrtc::I420Buffer>)
 DECLARE_TO_JS(rtc::scoped_refptr<webrtc::VideoFrameBuffer>)

@@ -1,0 +1,30 @@
+#ifdef DICT
+
+#include "src/functional/maybe.h"
+
+#define DECLARE_STRUCT_OPTIONAL(TYPE, VAR) node_webrtc::Maybe<TYPE> VAR;
+
+#define DECLARE_STRUCT_REQUIRED(TYPE, VAR) TYPE VAR;
+
+#define EXPAND_DEFAULT_STRUCT(TYPE, VAR) TYPE VAR;
+
+#define REQUIRED(TYPE, VAR, PROP) DECLARE_STRUCT_REQUIRED(TYPE, VAR)
+#define OPTIONAL(TYPE, VAR, PROP) DECLARE_STRUCT_OPTIONAL(TYPE, VAR)
+#define DEFAULT(TYPE, VAR, PROP, DEFAULT) EXPAND_DEFAULT_STRUCT(TYPE, VAR)
+
+namespace node_webrtc {
+
+struct DICT() {
+  DICT(_LIST)
+};
+
+#undef DECLARE_STRUCT_OPTIONAL
+#undef DECLARE_STRUCT_REQUIRED
+#undef EXPAND_DEFAULT_STRUCT
+#undef REQUIRED
+#undef OPTIONAL
+#undef DEFAULT
+
+}  // namespace webrtc
+
+#endif  // DICT
