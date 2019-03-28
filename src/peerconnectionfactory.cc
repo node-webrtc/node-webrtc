@@ -25,7 +25,6 @@
 #include <webrtc/rtc_base/ssl_adapter.h>
 #include <webrtc/rtc_base/thread.h>
 
-#include "src/common.h"
 #include "src/webrtc/fake_audio_device.h"
 #include "src/zerocapturer.h"
 
@@ -39,8 +38,6 @@ uv_mutex_t node_webrtc::PeerConnectionFactory::_lock;
 int node_webrtc::PeerConnectionFactory::_references = 0;
 
 node_webrtc::PeerConnectionFactory::PeerConnectionFactory(node_webrtc::Maybe<webrtc::AudioDeviceModule::AudioLayer> audioLayer) {
-  TRACE_CALL;
-
   _workerThread = std::make_unique<rtc::Thread>();
   assert(_workerThread);
 
@@ -78,13 +75,9 @@ node_webrtc::PeerConnectionFactory::PeerConnectionFactory(node_webrtc::Maybe<web
 
   _networkManager = std::unique_ptr<rtc::NetworkManager>(new rtc::BasicNetworkManager());
   _socketFactory = std::unique_ptr<rtc::PacketSocketFactory>(new rtc::BasicPacketSocketFactory(_workerThread.get()));
-
-  TRACE_END;
 }
 
 node_webrtc::PeerConnectionFactory::~PeerConnectionFactory() {
-  TRACE_CALL;
-
   _factory = nullptr;
 
   _workerThread->Invoke<void>(RTC_FROM_HERE, [this]() {
@@ -99,12 +92,9 @@ node_webrtc::PeerConnectionFactory::~PeerConnectionFactory() {
 
   _networkManager = nullptr;
   _socketFactory = nullptr;
-
-  TRACE_END;
 }
 
 NAN_METHOD(node_webrtc::PeerConnectionFactory::New) {
-  TRACE_CALL;
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct a PeerConnectionFactory.");
   }
@@ -113,7 +103,6 @@ NAN_METHOD(node_webrtc::PeerConnectionFactory::New) {
   auto peerConnectionFactory = new node_webrtc::PeerConnectionFactory();
   peerConnectionFactory->Wrap(info.This());
 
-  TRACE_END;
   info.GetReturnValue().Set(info.This());
 }
 

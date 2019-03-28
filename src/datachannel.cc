@@ -14,7 +14,6 @@
 #include <webrtc/rtc_base/copy_on_write_buffer.h>
 #include <v8.h>
 
-#include "src/common.h"
 #include "src/error.h"
 #include "src/errorfactory.h"
 #include "src/events.h"
@@ -29,9 +28,7 @@ node_webrtc::DataChannelObserver::DataChannelObserver(std::shared_ptr<node_webrt
   : EventQueue()
   , _factory(std::move(factory))
   , _jingleDataChannel(std::move(jingleDataChannel)) {
-  TRACE_CALL;
   _jingleDataChannel->RegisterObserver(this);
-  TRACE_END;
 }
 
 void node_webrtc::DataChannelObserver::OnStateChange() {
@@ -94,8 +91,6 @@ void node_webrtc::DataChannel::OnPeerConnectionClosed() {
 }
 
 NAN_METHOD(node_webrtc::DataChannel::New) {
-  TRACE_CALL;
-
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct the DataChannel.");
   }
@@ -106,7 +101,6 @@ NAN_METHOD(node_webrtc::DataChannel::New) {
   auto obj = new node_webrtc::DataChannel(observer);
   obj->Wrap(info.This());
 
-  TRACE_END;
   info.GetReturnValue().Set(info.This());
 }
 
@@ -164,13 +158,10 @@ void node_webrtc::DataChannel::HandleMessage(node_webrtc::DataChannel& channel, 
 }
 
 NAN_METHOD(node_webrtc::DataChannel::Send) {
-  TRACE_CALL;
-
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::DataChannel>::Unwrap(info.This());
 
   if (self->_jingleDataChannel != nullptr) {
     if (self->_jingleDataChannel->state() != webrtc::DataChannelInterface::DataState::kOpen) {
-      TRACE_END;
       return Nan::ThrowError(node_webrtc::ErrorFactory::CreateInvalidStateError("RTCDataChannel.readyState is not 'open'"));
     }
     if (info[0]->IsString()) {
@@ -193,7 +184,6 @@ NAN_METHOD(node_webrtc::DataChannel::Send) {
         arraybuffer = v8::Local<v8::ArrayBuffer>::Cast(info[0]);
         byte_length = arraybuffer->ByteLength();
       } else {
-        TRACE_END;
         return Nan::ThrowTypeError("Expected a Blob or ArrayBuffer");
       }
 
@@ -206,27 +196,19 @@ NAN_METHOD(node_webrtc::DataChannel::Send) {
       self->_jingleDataChannel->Send(data_buffer);
     }
   } else {
-    TRACE_END;
     return Nan::ThrowError(node_webrtc::ErrorFactory::CreateInvalidStateError("RTCDataChannel.readyState is not 'open'"));
   }
-
-  TRACE_END;
 }
 
 NAN_METHOD(node_webrtc::DataChannel::Close) {
-  TRACE_CALL;
-
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::DataChannel>::Unwrap(info.This());
 
   if (self->_jingleDataChannel != nullptr) {
     self->_jingleDataChannel->Close();
   }
-
-  TRACE_END;
 }
 
 NAN_GETTER(node_webrtc::DataChannel::GetBufferedAmount) {
-  TRACE_CALL;
   (void) property;
 
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::DataChannel>::Unwrap(info.Holder());
@@ -235,12 +217,10 @@ NAN_GETTER(node_webrtc::DataChannel::GetBufferedAmount) {
       ? self->_jingleDataChannel->buffered_amount()
       : self->_cached_buffered_amount;
 
-  TRACE_END;
   info.GetReturnValue().Set(Nan::New<v8::Number>(buffered_amount));
 }
 
 NAN_GETTER(node_webrtc::DataChannel::GetId) {
-  TRACE_CALL;
   (void) property;
 
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::DataChannel>::Unwrap(info.Holder());
@@ -249,12 +229,10 @@ NAN_GETTER(node_webrtc::DataChannel::GetId) {
       ? self->_jingleDataChannel->id()
       : self->_cached_id;
 
-  TRACE_END;
   info.GetReturnValue().Set(Nan::New<v8::Number>(id));
 }
 
 NAN_GETTER(node_webrtc::DataChannel::GetLabel) {
-  TRACE_CALL;
   (void) property;
 
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::DataChannel>::Unwrap(info.Holder());
@@ -263,12 +241,10 @@ NAN_GETTER(node_webrtc::DataChannel::GetLabel) {
       ? self->_jingleDataChannel->label()
       : self->_cached_label;
 
-  TRACE_END;
   info.GetReturnValue().Set(Nan::New(label).ToLocalChecked());
 }
 
 NAN_GETTER(node_webrtc::DataChannel::GetMaxPacketLifeTime) {
-  TRACE_CALL;
   (void) property;
 
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::DataChannel>::Unwrap(info.Holder());
@@ -277,12 +253,10 @@ NAN_GETTER(node_webrtc::DataChannel::GetMaxPacketLifeTime) {
       ? self->_jingleDataChannel->maxRetransmitTime()
       : self->_cached_max_packet_life_time;
 
-  TRACE_END;
   info.GetReturnValue().Set(Nan::New(max_packet_life_time));
 }
 
 NAN_GETTER(node_webrtc::DataChannel::GetMaxRetransmits) {
-  TRACE_CALL;
   (void) property;
 
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::DataChannel>::Unwrap(info.Holder());
@@ -291,12 +265,10 @@ NAN_GETTER(node_webrtc::DataChannel::GetMaxRetransmits) {
       ? self->_jingleDataChannel->maxRetransmits()
       : self->_cached_max_retransmits;
 
-  TRACE_END;
   info.GetReturnValue().Set(Nan::New(max_retransmits));
 }
 
 NAN_GETTER(node_webrtc::DataChannel::GetNegotiated) {
-  TRACE_CALL;
   (void) property;
 
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::DataChannel>::Unwrap(info.Holder());
@@ -305,12 +277,10 @@ NAN_GETTER(node_webrtc::DataChannel::GetNegotiated) {
       ? self->_jingleDataChannel->negotiated()
       : self->_cached_negotiated;
 
-  TRACE_END;
   info.GetReturnValue().Set(negotiated);
 }
 
 NAN_GETTER(node_webrtc::DataChannel::GetOrdered) {
-  TRACE_CALL;
   (void) property;
 
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::DataChannel>::Unwrap(info.Holder());
@@ -319,20 +289,16 @@ NAN_GETTER(node_webrtc::DataChannel::GetOrdered) {
       ? self->_jingleDataChannel->ordered()
       : self->_cached_ordered;
 
-  TRACE_END;
   info.GetReturnValue().Set(Nan::New(ordered));
 }
 
 NAN_GETTER(node_webrtc::DataChannel::GetPriority) {
-  TRACE_CALL;
   (void) property;
 
-  TRACE_END;
   info.GetReturnValue().Set(Nan::New("high").ToLocalChecked());
 }
 
 NAN_GETTER(node_webrtc::DataChannel::GetProtocol) {
-  TRACE_CALL;
   (void) property;
 
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::DataChannel>::Unwrap(info.Holder());
@@ -341,12 +307,10 @@ NAN_GETTER(node_webrtc::DataChannel::GetProtocol) {
       ? self->_jingleDataChannel->protocol()
       : self->_cached_protocol;
 
-  TRACE_END;
   info.GetReturnValue().Set(Nan::New(protocol).ToLocalChecked());
 }
 
 NAN_GETTER(node_webrtc::DataChannel::GetReadyState) {
-  TRACE_CALL;
   (void) property;
 
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::DataChannel>::Unwrap(info.Holder());
@@ -357,24 +321,20 @@ NAN_GETTER(node_webrtc::DataChannel::GetReadyState) {
       state,
       v8::Local<v8::Value>);
 
-  TRACE_END;
   info.GetReturnValue().Set(state);
 }
 
 NAN_GETTER(node_webrtc::DataChannel::GetBinaryType) {
-  TRACE_CALL;
   (void) property;
 
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::DataChannel>::Unwrap(info.Holder());
 
   CONVERT_OR_THROW_AND_RETURN(self->_binaryType, binaryType, v8::Local<v8::Value>);
 
-  TRACE_END;
   info.GetReturnValue().Set(binaryType);
 }
 
 NAN_SETTER(node_webrtc::DataChannel::SetBinaryType) {
-  TRACE_CALL;
   (void) property;
 
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::DataChannel>::Unwrap(info.Holder());
@@ -382,15 +342,6 @@ NAN_SETTER(node_webrtc::DataChannel::SetBinaryType) {
   CONVERT_OR_THROW_AND_RETURN(value, binaryType, BinaryType);
 
   self->_binaryType = binaryType;
-
-  TRACE_END;
-}
-
-NAN_SETTER(node_webrtc::DataChannel::ReadOnly) {
-  (void) info;
-  (void) property;
-  (void) value;
-  INFO("PeerConnection::ReadOnly");
 }
 
 node_webrtc::Wrap <
@@ -423,17 +374,17 @@ void node_webrtc::DataChannel::Init(v8::Handle<v8::Object> exports) {
   Nan::SetPrototypeMethod(tpl, "close", Close);
   Nan::SetPrototypeMethod(tpl, "send", Send);
 
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("bufferedAmount").ToLocalChecked(), GetBufferedAmount, ReadOnly);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("id").ToLocalChecked(), GetId, ReadOnly);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("label").ToLocalChecked(), GetLabel, ReadOnly);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("maxPacketLifeTime").ToLocalChecked(), GetMaxPacketLifeTime, ReadOnly);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("maxRetransmits").ToLocalChecked(), GetMaxRetransmits, ReadOnly);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("negotiated").ToLocalChecked(), GetNegotiated, ReadOnly);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("ordered").ToLocalChecked(), GetOrdered, ReadOnly);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("priority").ToLocalChecked(), GetPriority, ReadOnly);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("protocol").ToLocalChecked(), GetProtocol, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("bufferedAmount").ToLocalChecked(), GetBufferedAmount, nullptr);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("id").ToLocalChecked(), GetId, nullptr);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("label").ToLocalChecked(), GetLabel, nullptr);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("maxPacketLifeTime").ToLocalChecked(), GetMaxPacketLifeTime, nullptr);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("maxRetransmits").ToLocalChecked(), GetMaxRetransmits, nullptr);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("negotiated").ToLocalChecked(), GetNegotiated, nullptr);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("ordered").ToLocalChecked(), GetOrdered, nullptr);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("priority").ToLocalChecked(), GetPriority, nullptr);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("protocol").ToLocalChecked(), GetProtocol, nullptr);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("binaryType").ToLocalChecked(), GetBinaryType, SetBinaryType);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("readyState").ToLocalChecked(), GetReadyState, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("readyState").ToLocalChecked(), GetReadyState, nullptr);
 
   constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("DataChannel").ToLocalChecked(), tpl->GetFunction());

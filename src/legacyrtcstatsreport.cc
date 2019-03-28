@@ -10,8 +10,6 @@
 #include <cstdint>  // IWYU pragma: keep
 #include <utility>
 
-#include "src/common.h"
-
 // IWYU pragma: no_include <_types/_uint32_t.h>
 // IWYU pragma: no_include <nan_callbacks_12_inl.h>
 // IWYU pragma: no_include <nan_implementation_12_inl.h>
@@ -22,8 +20,6 @@ Nan::Persistent<v8::Function>& node_webrtc::LegacyStatsReport::constructor() {
 }
 
 NAN_METHOD(node_webrtc::LegacyStatsReport::New) {
-  TRACE_CALL;
-
   if (info.Length() != 2 || !info[0]->IsExternal() || !info[1]->IsExternal()) {
     return Nan::ThrowTypeError("You cannot construct an node_webrtc::LegacyStatsReport");
   }
@@ -34,12 +30,10 @@ NAN_METHOD(node_webrtc::LegacyStatsReport::New) {
   auto obj = new node_webrtc::LegacyStatsReport(*timestamp, *stats);
   obj->Wrap(info.This());
 
-  TRACE_END;
   info.GetReturnValue().Set(info.This());
 }
 
 NAN_METHOD(node_webrtc::LegacyStatsReport::names) {
-  TRACE_CALL;
   Nan::HandleScope scope;
 
   auto self = Nan::ObjectWrap::Unwrap<node_webrtc::LegacyStatsReport>(info.This());
@@ -51,12 +45,10 @@ NAN_METHOD(node_webrtc::LegacyStatsReport::names) {
     names->Set(i++, Nan::New<v8::String>(name).ToLocalChecked());
   }
 
-  TRACE_END;
   info.GetReturnValue().Set(names);
 }
 
 NAN_METHOD(node_webrtc::LegacyStatsReport::stat) {
-  TRACE_CALL;
   Nan::HandleScope scope;
 
   auto self = Nan::ObjectWrap::Unwrap<node_webrtc::LegacyStatsReport>(info.This());
@@ -70,36 +62,24 @@ NAN_METHOD(node_webrtc::LegacyStatsReport::stat) {
     }
   }
 
-  TRACE_END;
   info.GetReturnValue().Set(found);
 }
 
 NAN_GETTER(node_webrtc::LegacyStatsReport::GetTimestamp) {
-  TRACE_CALL;
   (void) property;
 
   auto self = Nan::ObjectWrap::Unwrap<node_webrtc::LegacyStatsReport>(info.Holder());
 
-  TRACE_END;
   info.GetReturnValue().Set(Nan::New<v8::Number>(self->_timestamp));
 }
 
 NAN_GETTER(node_webrtc::LegacyStatsReport::GetType) {
-  TRACE_CALL;
   (void) property;
 
   auto self = Nan::ObjectWrap::Unwrap<node_webrtc::LegacyStatsReport>(info.Holder());
   auto type = self->_stats.find("type")->second;
 
-  TRACE_END;
   info.GetReturnValue().Set(Nan::New<v8::String>(type).ToLocalChecked());
-}
-
-NAN_SETTER(node_webrtc::LegacyStatsReport::ReadOnly) {
-  (void) info;
-  (void) property;
-  (void) value;
-  INFO("node_webrtc::LegacyStatsReport::ReadOnly");
 }
 
 node_webrtc::LegacyStatsReport* node_webrtc::LegacyStatsReport::Create(double timestamp, const std::map<std::string, std::string>& stats) {
@@ -119,8 +99,8 @@ void node_webrtc::LegacyStatsReport::Init(v8::Handle<v8::Object> exports) {
   Nan::SetPrototypeMethod(tpl, "names", names);
   Nan::SetPrototypeMethod(tpl, "stat", stat);
 
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("timestamp").ToLocalChecked(), GetTimestamp, ReadOnly);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("type").ToLocalChecked(), GetType, ReadOnly);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("timestamp").ToLocalChecked(), GetTimestamp, nullptr);
+  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("type").ToLocalChecked(), GetType, nullptr);
 
   constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("node_webrtc::LegacyStatsReport").ToLocalChecked(), tpl->GetFunction());
