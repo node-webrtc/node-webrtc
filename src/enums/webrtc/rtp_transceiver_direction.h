@@ -1,0 +1,18 @@
+#pragma once
+
+namespace webrtc { enum class RtpTransceiverDirection; }
+
+// IWYU pragma: no_include <api/rtp_transceiver_interface.h>
+// IWYU pragma: no_include "src/enums/macros/impls.h"
+
+#define RTP_TRANSCEIVER_DIRECTION webrtc::RtpTransceiverDirection
+#define RTP_TRANSCEIVER_DIRECTION_NAME "RTCRtpTransceiverDirection"
+#define RTP_TRANSCEIVER_DIRECTION_LIST \
+  SUPPORTED(RTP_TRANSCEIVER_DIRECTION, kSendRecv, "sendrecv") \
+  SUPPORTED(RTP_TRANSCEIVER_DIRECTION, kSendOnly, "sendonly") \
+  SUPPORTED(RTP_TRANSCEIVER_DIRECTION, kRecvOnly, "recvonly") \
+  SUPPORTED(RTP_TRANSCEIVER_DIRECTION, kInactive, "inactive")
+
+#define ENUM(X) RTP_TRANSCEIVER_DIRECTION ## X
+#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#undef ENUM
