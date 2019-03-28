@@ -12,7 +12,6 @@
 #include <nan.h>
 #include <v8.h>
 
-#include "src/common.h"
 #include "src/legacyrtcstatsreport.h"
 
 // IWYU pragma: no_include <_types/_uint32_t.h>
@@ -25,8 +24,6 @@ Nan::Persistent<v8::Function>& node_webrtc::RTCStatsResponse::constructor() {
 }
 
 NAN_METHOD(node_webrtc::RTCStatsResponse::New) {
-  TRACE_CALL;
-
   if (info.Length() != 2 || !info[0]->IsExternal() || !info[1]->IsExternal()) {
     return Nan::ThrowTypeError("You cannot construct an RTCStatsResponse");
   }
@@ -37,13 +34,10 @@ NAN_METHOD(node_webrtc::RTCStatsResponse::New) {
   auto obj = new node_webrtc::RTCStatsResponse(*timestamp, *reports);
   obj->Wrap(info.This());
 
-  TRACE_END;
   info.GetReturnValue().Set(info.This());
 }
 
 NAN_METHOD(node_webrtc::RTCStatsResponse::result) {
-  TRACE_CALL;
-
   auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCStatsResponse>(info.This());
   auto timestamp = self->_timestamp;
   auto reports = Nan::New<v8::Array>(self->_reports.size());
@@ -54,7 +48,6 @@ NAN_METHOD(node_webrtc::RTCStatsResponse::result) {
     reports->Set(i++, report->handle());
   }
 
-  TRACE_END;
   info.GetReturnValue().Set(reports);
 }
 
