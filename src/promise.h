@@ -14,6 +14,7 @@
 #include <v8.h>
 
 #include "src/events.h"
+#include "src/utility.h"
 
 namespace node_webrtc {
 
@@ -21,10 +22,10 @@ template <typename T, typename F>
 class Promise: public Event<T> {
  public:
   Promise(
-      F callback,
-      std::shared_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver)
+      std::shared_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver,
+      F callback)
     : _callback(callback),
-      _resolver(resolver) {}
+      _resolver(std::move(resolver)) {}
 
   void Dispatch(T&) override {
     _callback(resolver());
@@ -42,22 +43,38 @@ class Promise: public Event<T> {
 };
 
 template <typename T, typename F>
-std::unique_ptr<Promise<T, F>> CreatePromise(std::shared_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver, F callback) {
-  return std::make_unique<Promise<T, F>>(callback, resolver);
+std::unique_ptr<Promise<T, F>> CreatePromise(v8::Local<v8::Promise::Resolver> resolver, F callback) {
+  return std::make_unique<Promise<T, F>>(
+          std::make_shared<Nan::Persistent<v8::Promise::Resolver>>(resolver),
+          callback);
 }
 
 template <typename T>
 class PromiseCreator {
  public:
-  PromiseCreator(T* target, v8::Local<v8::Promise::Resolver> resolver): _target(target) {
-    Nan::HandleScope scope;
-    _resolver = std::make_shared<Nan::Persistent<v8::Promise::Resolver>>(resolver);
-  }
+  PromiseCreator(
+      T* target,
+      v8::Local<v8::Promise::Resolver> resolver)
+    : _target(target)
+    , _resolver(std::make_shared<Nan::Persistent<v8::Promise::Resolver>>(resolver)) {}
 
   template <typename F>
   void Dispatch(F callback) {
-    // NOTE(mroberts): This is a little unsafe, as it can only be called once.
-    _target->Dispatch(std::move(CreatePromise<T, F>(_resolver, callback)));
+    _target->Dispatch(std::make_unique<Promise<T, F>>(std::move(_resolver), callback));
+  }
+
+  template <typename F>
+  void Resolve(F value) {
+    Dispatch([value](auto resolver) {
+      node_webrtc::Resolve(resolver, value);
+    });
+  }
+
+  template <typename F>
+  void Reject(F value) {
+    Dispatch([value](auto resolver) {
+      node_webrtc::Reject(resolver, value);
+    });
   }
 
  private:

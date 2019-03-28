@@ -15,12 +15,9 @@
 #include "src/error.h"
 #include "src/errorfactory.h"
 #include "src/functional/either.h"
-#include "src/utility.h"
 
 void node_webrtc::SetSessionDescriptionObserver::OnSuccess() {
-  Dispatch([](auto resolver) {
-    node_webrtc::Resolve(resolver, Nan::Undefined());
-  });
+  Resolve(node_webrtc::Undefined());
 }
 
 void node_webrtc::SetSessionDescriptionObserver::OnFailure(webrtc::RTCError error) {
@@ -35,7 +32,5 @@ void node_webrtc::SetSessionDescriptionObserver::OnFailure(webrtc::RTCError erro
                 node_webrtc::ErrorFactory::DOMExceptionName::kInvalidModificationError));
   }
 
-  Dispatch([someError](auto resolver) {
-    node_webrtc::Reject(resolver, someError);
-  });
+  Reject(someError);
 }
