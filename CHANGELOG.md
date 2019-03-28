@@ -16,6 +16,11 @@ supports the `state` property, the "statechange" event, and the "error" event.
 - Added `maxPacketLifeTime` getter to RTCDataChannel (#492).
 - Added `negotiated` getter to RTCDataChannel.
 
+Bug Fixes
+---------
+
+- Fixed `addIceCandidate` queueing behavior (#498).
+
 0.3.6
 =====
 
