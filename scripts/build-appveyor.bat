@@ -19,10 +19,6 @@ ECHO npm test
 CALL npm test
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-ECHO npm run test:browsers
-IF NOT $env:nodejs_version == 6 (CALL npm run test:browsers)
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-
 ECHO node-pre-gyp package
 CALL node_modules\.bin\node-pre-gyp package
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
