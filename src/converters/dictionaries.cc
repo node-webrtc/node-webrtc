@@ -401,6 +401,8 @@ TO_JS_IMPL(webrtc::IceCandidateInterface*, value) {
   return node_webrtc::Pure(scope.Escape(object.As<v8::Value>()));
 }
 
+CONVERT_VIA(v8::Local<v8::Value>, webrtc::IceCandidateInterface*, std::shared_ptr<webrtc::IceCandidateInterface>)
+
 static node_webrtc::Validation<webrtc::DataChannelInit> CreateDataChannelInit(
     const bool ordered,
     const node_webrtc::Maybe<uint32_t> maxPacketLifeTime,

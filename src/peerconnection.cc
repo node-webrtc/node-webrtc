@@ -390,8 +390,7 @@ NAN_METHOD(node_webrtc::PeerConnection::AddIceCandidate) {
   auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::PeerConnection>::Unwrap(info.This());
   RETURNS_PROMISE(resolver);
 
-  CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, rawCandidate, webrtc::IceCandidateInterface*);
-  auto candidate = std::shared_ptr<webrtc::IceCandidateInterface>(rawCandidate);
+  CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, candidate, std::shared_ptr<webrtc::IceCandidateInterface>);
 
   self->Dispatch(node_webrtc::CreatePromise<node_webrtc::PeerConnection>(resolver, [self, candidate](auto resolver) {
     if (self->_jinglePeerConnection

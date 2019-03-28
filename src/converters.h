@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include <v8.h>
 
 #include "src/functional/either.h"
@@ -143,6 +145,13 @@ struct Converter<S, Either<L, R>> {
   static Validation<Either<L, R>> Convert(const S s) {
     return From<L>(s).Map(&MakeLeft<R, L>)
         | (From<R>(s).Map(&MakeRight<L, R>));
+  }
+};
+
+template <typename T>
+struct Converter<T*, std::shared_ptr<T>> {
+  static Validation<std::shared_ptr<T>> Convert(T* t) {
+    return Validation<std::shared_ptr<T>>(std::shared_ptr<T>(t));
   }
 };
 
