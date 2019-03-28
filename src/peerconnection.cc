@@ -33,6 +33,7 @@
 #include "src/mediastream.h"
 #include "src/mediastreamtrack.h"
 #include "src/peerconnectionfactory.h"
+#include "src/promise.h"
 #include "src/rtcrtpreceiver.h"
 #include "src/rtcrtpsender.h"
 #include "src/rtcrtptransceiver.h"
@@ -390,16 +391,13 @@ NAN_METHOD(node_webrtc::PeerConnection::AddIceCandidate) {
   RETURNS_PROMISE(resolver);
 
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, rawCandidate, webrtc::IceCandidateInterface*);
-
-  auto persistentResolver = std::shared_ptr<Nan::Persistent<v8::Promise::Resolver>>(new Nan::Persistent<v8::Promise::Resolver>(resolver));
   auto candidate = std::shared_ptr<webrtc::IceCandidateInterface>(rawCandidate);
-  self->Dispatch(node_webrtc::CreateCallback<node_webrtc::PeerConnection>([self, persistentResolver, candidate]() {
-    Nan::HandleScope scope;
-    auto newResolver = Nan::New(*persistentResolver);
+
+  self->Dispatch(node_webrtc::CreatePromise<node_webrtc::PeerConnection>(resolver, [self, candidate](auto resolver) {
     if (self->_jinglePeerConnection
         && self->_jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed
         && self->_jinglePeerConnection->AddIceCandidate(candidate.get())) {
-      node_webrtc::Resolve(newResolver, Nan::Undefined());
+      node_webrtc::Resolve(resolver, Nan::Undefined());
     } else {
       std::string error = std::string("Failed to set ICE candidate");
       if (!self->_jinglePeerConnection
@@ -407,7 +405,7 @@ NAN_METHOD(node_webrtc::PeerConnection::AddIceCandidate) {
         error += "; RTCPeerConnection is closed";
       }
       error += ".";
-      node_webrtc::Reject(newResolver, node_webrtc::SomeError(error));
+      node_webrtc::Reject(resolver, node_webrtc::SomeError(error));
     }
   }));
 }

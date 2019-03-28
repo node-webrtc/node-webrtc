@@ -14,7 +14,6 @@
 #include <vector>
 
 #include "src/converters/dictionaries.h"  // IWYU pragma: keep
-#include "src/utility.h"
 
 // IWYU pragma: no_include <api/scoped_refptr.h>
 // IWYU pragma: no_include <api/stats_types.h>
@@ -39,7 +38,5 @@ void node_webrtc::StatsObserver::OnComplete(const webrtc::StatsReports& stats_re
 
   std::pair<double, std::vector<std::map<std::string, std::string>>> response(timestamp, reports);
 
-  Dispatch([response](auto resolver) {
-    node_webrtc::Resolve(resolver, response);
-  });
+  Resolve(response);
 }
