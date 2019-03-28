@@ -15,6 +15,7 @@
 #include "src/error.h"
 #include "src/mediastreamtrack.h"
 #include "src/rtcdtlstransport.h"
+#include "src/utility.h"
 
 Nan::Persistent<v8::Function>& node_webrtc::RTCRtpReceiver::constructor() {
   static Nan::Persistent<v8::Function> constructor;
@@ -114,9 +115,8 @@ NAN_METHOD(node_webrtc::RTCRtpReceiver::GetSynchronizationSources) {
 }
 
 NAN_METHOD(node_webrtc::RTCRtpReceiver::GetStats) {
-  auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
-  resolver->Reject(Nan::GetCurrentContext(), Nan::Error("Not yet implemented; file a feature request against node-webrtc")).IsNothing();
-  info.GetReturnValue().Set(resolver->GetPromise());
+  RETURNS_PROMISE(resolver);
+  node_webrtc::Reject(resolver, Nan::Error("Not yet implemented; file a feature request against node-webrtc"));
 }
 
 node_webrtc::Wrap <

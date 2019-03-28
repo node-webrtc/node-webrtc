@@ -15,6 +15,7 @@
 #include "src/error.h"
 #include "src/mediastreamtrack.h"
 #include "src/rtcdtlstransport.h"
+#include "src/utility.h"
 
 Nan::Persistent<v8::Function>& node_webrtc::RTCRtpSender::constructor() {
   static Nan::Persistent<v8::Function> constructor;
@@ -92,21 +93,18 @@ NAN_METHOD(node_webrtc::RTCRtpSender::GetParameters) {
 }
 
 NAN_METHOD(node_webrtc::RTCRtpSender::SetParameters) {
-  auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
-  resolver->Reject(Nan::GetCurrentContext(), Nan::Error("Not yet implemented; file a feature request against node-webrtc")).IsNothing();
-  info.GetReturnValue().Set(resolver->GetPromise());
+  RETURNS_PROMISE(resolver);
+  node_webrtc::Reject(resolver, Nan::Error("Not yet implemented; file a feature request against node-webrtc"));
 }
 
 NAN_METHOD(node_webrtc::RTCRtpSender::GetStats) {
-  auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
-  resolver->Reject(Nan::GetCurrentContext(), Nan::Error("Not yet implemented; file a feature request against node-webrtc")).IsNothing();
-  info.GetReturnValue().Set(resolver->GetPromise());
+  RETURNS_PROMISE(resolver);
+  node_webrtc::Reject(resolver, Nan::Error("Not yet implemented; file a feature request against node-webrtc"));
 }
 
 NAN_METHOD(node_webrtc::RTCRtpSender::ReplaceTrack) {
   auto self = node_webrtc::AsyncObjectWrap::Unwrap<node_webrtc::RTCRtpSender>(info.Holder());
-  auto resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
-  info.GetReturnValue().Set(resolver->GetPromise());
+  RETURNS_PROMISE(resolver);
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, maybeTrack, node_webrtc::Either<node_webrtc::Null COMMA node_webrtc::MediaStreamTrack*>);
   auto mediaStreamTrack = maybeTrack.FromEither<node_webrtc::MediaStreamTrack*>([](Null) {
     return nullptr;
@@ -114,11 +112,9 @@ NAN_METHOD(node_webrtc::RTCRtpSender::ReplaceTrack) {
     return track;
   });
   auto track = mediaStreamTrack ? mediaStreamTrack->track().get() : nullptr;
-  if (self->_sender->SetTrack(track)) {
-    resolver->Resolve(Nan::GetCurrentContext(), Nan::Undefined()).IsNothing();
-  } else {
-    resolver->Reject(Nan::GetCurrentContext(), Nan::Error("Failed to replaceTrack")).IsNothing();
-  }
+  self->_sender->SetTrack(track)
+  ? node_webrtc::Resolve(resolver, Nan::Undefined())
+  : node_webrtc::Reject(resolver, Nan::Error("Failed to replaceTrack"));
 }
 
 node_webrtc::Wrap <

@@ -82,6 +82,7 @@ DECLARE_TO_AND_FROM_JS(std::string)
 DECLARE_FROM_JS(v8::Local<v8::External>)
 DECLARE_FROM_JS(v8::Local<v8::Function>)
 DECLARE_FROM_JS(v8::Local<v8::Object>)
+DECLARE_TO_JS(v8::Local<v8::Primitive>)
 DECLARE_TO_JS(std::vector<bool>)
 DECLARE_FROM_JS(v8::ArrayBuffer::Contents)
 

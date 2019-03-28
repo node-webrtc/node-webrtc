@@ -7,8 +7,6 @@
  */
 #include "src/setsessiondescriptionobserver.h"
 
-#include <type_traits>
-
 #include <nan.h>
 #include <webrtc/api/rtc_error.h>
 
@@ -17,17 +15,16 @@
 #include "src/error.h"
 #include "src/errorfactory.h"
 #include "src/functional/either.h"
-#include "src/functional/validation.h"
+#include "src/utility.h"
 
 void node_webrtc::SetSessionDescriptionObserver::OnSuccess() {
-  Dispatch([](v8::Local<v8::Promise::Resolver> resolver) {
-    Nan::HandleScope scope;
-    resolver->Resolve(Nan::GetCurrentContext(), Nan::Undefined()).IsNothing();
+  Dispatch([](auto resolver) {
+    node_webrtc::Resolve(resolver, Nan::Undefined());
   });
 }
 
 void node_webrtc::SetSessionDescriptionObserver::OnFailure(webrtc::RTCError error) {
-  auto someError = node_webrtc::From<node_webrtc::SomeError>(&error).FromValidation([](node_webrtc::Errors errors) {
+  auto someError = node_webrtc::From<node_webrtc::SomeError>(&error).FromValidation([](auto errors) {
     return node_webrtc::SomeError(errors[0]);
   });
 
@@ -38,9 +35,7 @@ void node_webrtc::SetSessionDescriptionObserver::OnFailure(webrtc::RTCError erro
                 node_webrtc::ErrorFactory::DOMExceptionName::kInvalidModificationError));
   }
 
-  Dispatch([someError](v8::Local<v8::Promise::Resolver> resolver) {
-    Nan::HandleScope scope;
-    CONVERT_OR_REJECT_AND_RETURN(resolver, someError, value, v8::Local<v8::Value>);
-    resolver->Reject(Nan::GetCurrentContext(), value).IsNothing();
+  Dispatch([someError](auto resolver) {
+    node_webrtc::Reject(resolver, someError);
   });
 }

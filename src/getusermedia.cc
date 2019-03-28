@@ -25,6 +25,7 @@
 #include "src/mediastream.h"
 #include "src/peerconnectionfactory.h"
 #include "src/rtcvideosource.h"
+#include "src/utility.h"
 
 // TODO(mroberts): Expand support for other members.
 struct MediaTrackConstraintSet {
@@ -105,8 +106,7 @@ struct node_webrtc::Converter<v8::Local<v8::Value>, MediaStreamConstraints> {
 };
 
 NAN_METHOD(node_webrtc::GetUserMedia::GetUserMediaImpl) {
-  v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
-  info.GetReturnValue().Set(resolver->GetPromise());
+  RETURNS_PROMISE(resolver);
 
   CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, constraints, MediaStreamConstraints);
 
@@ -134,7 +134,7 @@ NAN_METHOD(node_webrtc::GetUserMedia::GetUserMediaImpl) {
     stream->AddTrack(track);
   }
 
-  resolver->Resolve(Nan::GetCurrentContext(), MediaStream::wrap()->GetOrCreate(factory, stream)->handle()).IsNothing();
+  node_webrtc::Resolve(resolver, MediaStream::wrap()->GetOrCreate(factory, stream));
 }
 
 void node_webrtc::GetUserMedia::Init(v8::Handle<v8::Object> exports) {
