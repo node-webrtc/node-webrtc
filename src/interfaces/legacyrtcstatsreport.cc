@@ -5,7 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/legacyrtcstatsreport.h"
+#include "src/interfaces/legacyrtcstatsreport.h"
 
 #include <cstdint>  // IWYU pragma: keep
 #include <utility>

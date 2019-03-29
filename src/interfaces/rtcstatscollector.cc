@@ -5,7 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/rtcstatscollector.h"
+#include "src/interfaces/rtcstatscollector.h"
 
 #include <webrtc/api/stats/rtc_stats_report.h>
 

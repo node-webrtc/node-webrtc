@@ -5,7 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/rtcrtptransceiver.h"
+#include "src/interfaces/rtcrtptransceiver.h"
 
 #include <webrtc/api/rtp_transceiver_interface.h>
 #include <webrtc/api/scoped_refptr.h>
@@ -13,8 +13,8 @@
 #include "src/error.h"
 #include "src/converters/dictionaries.h"
 #include "src/converters/v8.h"
-#include "src/rtcrtpreceiver.h"
-#include "src/rtcrtpsender.h"
+#include "src/interfaces/rtcrtpreceiver.h"
+#include "src/interfaces/rtcrtpsender.h"
 
 Nan::Persistent<v8::Function>& node_webrtc::RTCRtpTransceiver::constructor() {
   static Nan::Persistent<v8::Function> constructor;

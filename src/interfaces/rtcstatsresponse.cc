@@ -5,14 +5,14 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/rtcstatsresponse.h"
+#include "src/interfaces/rtcstatsresponse.h"
 
 #include <cstdint>  // IWYU pragma: keep
 
 #include <nan.h>
 #include <v8.h>
 
-#include "src/legacyrtcstatsreport.h"
+#include "src/interfaces/legacyrtcstatsreport.h"
 
 // IWYU pragma: no_include <_types/_uint32_t.h>
 // IWYU pragma: no_include <nan_callbacks_12_inl.h>

@@ -22,9 +22,9 @@
 #include "src/functional/maybe.h"
 #include "src/functional/operators.h"
 #include "src/functional/validation.h"
-#include "src/mediastream.h"
+#include "src/interfaces/mediastream.h"
 #include "src/peerconnectionfactory.h"
-#include "src/rtcvideosource.h"
+#include "src/interfaces/rtcvideosource.h"
 #include "src/utility.h"
 
 // TODO(mroberts): Expand support for other members.

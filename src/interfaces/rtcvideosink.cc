@@ -5,7 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/rtcvideosink.h"
+#include "src/interfaces/rtcvideosink.h"
 
 #include <type_traits>
 

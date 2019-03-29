@@ -5,7 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/rtcaudiosink.h"
+#include "src/interfaces/rtcaudiosink.h"
 
 #include <cstdint>
 #include <cstring>

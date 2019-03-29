@@ -5,7 +5,7 @@
 
 #include "src/converters.h"
 #include "src/functional/validation.h"
-#include "src/rtcstatsresponse.h"
+#include "src/interfaces/rtcstatsresponse.h"
 
 namespace node_webrtc {
 

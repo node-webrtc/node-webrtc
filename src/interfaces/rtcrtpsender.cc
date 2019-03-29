@@ -5,7 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/rtcrtpsender.h"
+#include "src/interfaces/rtcrtpsender.h"
 
 #include "src/converters.h"
 #include "src/converters/arguments.h"
@@ -13,8 +13,8 @@
 #include "src/converters/interfaces.h"
 #include "src/converters/v8.h"
 #include "src/error.h"
-#include "src/mediastreamtrack.h"
-#include "src/rtcdtlstransport.h"
+#include "src/interfaces/mediastreamtrack.h"
+#include "src/interfaces/rtcdtlstransport.h"
 #include "src/utility.h"
 
 Nan::Persistent<v8::Function>& node_webrtc::RTCRtpSender::constructor() {
