@@ -4,7 +4,7 @@
 #include <webrtc/api/rtc_error.h>
 #include <v8.h>
 
-#include "src/errorfactory.h"
+#include "src/node/error_factory.h"
 #include "src/functional/validation.h"
 
 namespace node_webrtc {

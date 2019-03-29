@@ -7,7 +7,7 @@
 
 #include "src/enums/webrtc/rtp_transceiver_direction.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
-#include "src/interfaces/mediastream.h"
+#include "src/interfaces/media_stream.h"
 
 // TODO(mroberts): Remove me.
 #include "src/converters/interfaces.h"  // IWYU pragma: keep

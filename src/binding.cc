@@ -8,24 +8,24 @@
 #include <node.h>
 #include <v8.h>
 
-#include "src/interfaces/datachannel.h"
-#include "src/errorfactory.h"
-#include "src/getusermedia.h"
-#include "src/i420helpers.h"
-#include "src/interfaces/legacyrtcstatsreport.h"
-#include "src/interfaces/mediastream.h"
-#include "src/interfaces/mediastreamtrack.h"
-#include "src/interfaces/peerconnection.h"
-#include "src/peerconnectionfactory.h"
-#include "src/interfaces/rtcaudiosink.h"
-#include "src/interfaces/rtcaudiosource.h"
-#include "src/interfaces/rtcdtlstransport.h"
-#include "src/interfaces/rtcrtpreceiver.h"
-#include "src/interfaces/rtcrtpsender.h"
-#include "src/interfaces/rtcrtptransceiver.h"
-#include "src/interfaces/rtcstatsresponse.h"
-#include "src/interfaces/rtcvideosink.h"
-#include "src/interfaces/rtcvideosource.h"
+#include "src/interfaces/rtc_data_channel.h"
+#include "src/node/error_factory.h"
+#include "src/methods/get_user_media.h"
+#include "src/methods/i420_helpers.h"
+#include "src/interfaces/legacy_rtc_stats_report.h"
+#include "src/interfaces/media_stream.h"
+#include "src/interfaces/media_stream_track.h"
+#include "src/interfaces/rtc_peer_connection.h"
+#include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
+#include "src/interfaces/rtc_audio_sink.h"
+#include "src/interfaces/rtc_audio_source.h"
+#include "src/interfaces/rtc_dtls_transport.h"
+#include "src/interfaces/rtc_rtp_receiver.h"
+#include "src/interfaces/rtc_rtp_sender.h"
+#include "src/interfaces/rtc_rtp_transceiver.h"
+#include "src/interfaces/rtc_stats_response.h"
+#include "src/interfaces/rtc_video_sink.h"
+#include "src/interfaces/rtc_video_source.h"
 
 #ifdef DEBUG
 #include "src/test.h"
@@ -40,8 +40,8 @@ static void init(v8::Handle<v8::Object> exports, v8::Handle<v8::Object> module) 
   node_webrtc::GetUserMedia::Init(exports);
   node_webrtc::I420Helpers::Init(exports);
   node_webrtc::PeerConnectionFactory::Init(exports);
-  node_webrtc::PeerConnection::Init(exports);
-  node_webrtc::DataChannel::Init(exports);
+  node_webrtc::RTCPeerConnection::Init(exports);
+  node_webrtc::RTCDataChannel::Init(exports);
   node_webrtc::MediaStream::Init(exports);
   node_webrtc::MediaStreamTrack::Init(exports);
   node_webrtc::RTCAudioSink::Init(exports);

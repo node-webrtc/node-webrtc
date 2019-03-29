@@ -4,7 +4,7 @@
 
 #include "src/converters.h"
 #include "src/converters/v8.h"
-#include "src/errorfactory.h"
+#include "src/node/error_factory.h"
 #include "src/functional/either.h"
 
 namespace webrtc { class RTCError; }
