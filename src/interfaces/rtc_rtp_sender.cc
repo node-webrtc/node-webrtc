@@ -9,9 +9,9 @@
 
 #include "src/converters.h"
 #include "src/converters/arguments.h"
-#include "src/converters/dictionaries.h"
 #include "src/converters/interfaces.h"
 #include "src/converters/v8.h"
+#include "src/dictionaries/webrtc/rtp_parameters.h"
 #include "src/node/error.h"
 #include "src/interfaces/media_stream_track.h"
 #include "src/interfaces/rtc_dtls_transport.h"

@@ -14,7 +14,6 @@
 #include <webrtc/rtc_base/thread.h>
 
 #include "src/converters.h"
-#include "src/converters/dictionaries.h"  // IWYU pragma: keep
 #include "src/converters/enums.h"  // IWYU pragma: keep
 #include "src/dictionaries/node_webrtc/some_error.h"
 #include "src/node/error.h"

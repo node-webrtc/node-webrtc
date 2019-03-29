@@ -16,7 +16,7 @@
 #include <webrtc/pc/local_audio_source.h>
 #include <v8.h>
 
-#include "src/converters/dictionaries.h"
+#include "src/dictionaries/node_webrtc/rtc_on_data_event_dict.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
 
 namespace node_webrtc {

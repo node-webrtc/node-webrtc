@@ -10,11 +10,12 @@
 #include <webrtc/api/rtp_transceiver_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 
-#include "src/node/error.h"
-#include "src/converters/dictionaries.h"
+#include "src/converters/absl.h"
 #include "src/converters/v8.h"
+#include "src/enums/webrtc/rtp_transceiver_direction.h"
 #include "src/interfaces/rtc_rtp_receiver.h"
 #include "src/interfaces/rtc_rtp_sender.h"
+#include "src/node/error.h"
 
 Nan::Persistent<v8::Function>& node_webrtc::RTCRtpTransceiver::constructor() {
   static Nan::Persistent<v8::Function> constructor;
