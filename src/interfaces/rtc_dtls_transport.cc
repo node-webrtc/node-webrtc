@@ -9,17 +9,18 @@
 
 #include <type_traits>
 
+#include <webrtc/api/peer_connection_interface.h>
 #include <webrtc/api/rtc_error.h>
 #include <webrtc/rtc_base/location.h>
 #include <webrtc/rtc_base/thread.h>
 
 #include "src/converters.h"
-#include "src/converters/enums.h"  // IWYU pragma: keep
 #include "src/dictionaries/node_webrtc/some_error.h"
-#include "src/node/error.h"
-#include "src/node/events.h"
+#include "src/enums/webrtc/dtls_transport_state.h"
 #include "src/functional/validation.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
+#include "src/node/error.h"
+#include "src/node/events.h"
 
 // IWYU pragma: no_include <api/dtls_transport_interface.h>
 // IWYU pragma: no_include <api/scoped_refptr.h>
