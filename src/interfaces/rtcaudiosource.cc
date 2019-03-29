@@ -5,14 +5,14 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/rtcaudiosource.h"
+#include "src/interfaces/rtcaudiosource.h"
 
 #include "src/converters.h"
 #include "src/converters/arguments.h"
 #include "src/converters/dictionaries.h"
 #include "src/error.h"
 #include "src/functional/maybe.h"
-#include "src/mediastreamtrack.h"
+#include "src/interfaces/mediastreamtrack.h"
 
 Nan::Persistent<v8::Function>& node_webrtc::RTCAudioSource::constructor() {
   static Nan::Persistent<v8::Function> constructor;

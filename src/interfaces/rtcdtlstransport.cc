@@ -5,7 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/rtcdtlstransport.h"
+#include "src/interfaces/rtcdtlstransport.h"
 
 #include <type_traits>
 

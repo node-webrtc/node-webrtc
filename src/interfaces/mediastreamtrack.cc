@@ -5,7 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/mediastreamtrack.h"
+#include "src/interfaces/mediastreamtrack.h"
 
 #include "src/converters.h"
 #include "src/converters/dictionaries.h"

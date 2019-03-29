@@ -5,7 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/rtcvideosource.h"
+#include "src/interfaces/rtcvideosource.h"
 
 #include <webrtc/api/video/i420_buffer.h>
 #include <webrtc/api/video/video_frame.h>
@@ -16,7 +16,7 @@
 #include "src/converters/v8.h"
 #include "src/error.h"
 #include "src/functional/maybe.h"
-#include "src/mediastreamtrack.h"
+#include "src/interfaces/mediastreamtrack.h"
 
 Nan::Persistent<v8::Function>& node_webrtc::RTCVideoSource::constructor() {
   static Nan::Persistent<v8::Function> constructor;

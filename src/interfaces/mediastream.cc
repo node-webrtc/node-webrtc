@@ -5,7 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/mediastream.h"
+#include "src/interfaces/mediastream.h"
 
 #include <webrtc/api/scoped_refptr.h>
 #include <v8.h>
@@ -18,7 +18,7 @@
 #include "src/error.h"
 #include "src/functional/maybe.h"
 #include "src/functional/either.h"
-#include "src/mediastreamtrack.h"
+#include "src/interfaces/mediastreamtrack.h"
 #include "src/peerconnectionfactory.h"
 
 Nan::Persistent<v8::Function>& node_webrtc::MediaStream::constructor() {

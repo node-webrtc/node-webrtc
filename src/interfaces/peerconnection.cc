@@ -5,7 +5,7 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/peerconnection.h"
+#include "src/interfaces/peerconnection.h"
 
 #include <iosfwd>
 
@@ -24,20 +24,20 @@
 #include "src/converters/interfaces.h"
 #include "src/converters/v8.h"
 #include "src/createsessiondescriptionobserver.h"
-#include "src/datachannel.h"
+#include "src/interfaces/datachannel.h"
 #include "src/error.h"
 #include "src/errorfactory.h"
 #include "src/events.h"
 #include "src/functional/either.h"
 #include "src/functional/maybe.h"
-#include "src/mediastream.h"
-#include "src/mediastreamtrack.h"
+#include "src/interfaces/mediastream.h"
+#include "src/interfaces/mediastreamtrack.h"
 #include "src/peerconnectionfactory.h"
 #include "src/promise.h"
-#include "src/rtcrtpreceiver.h"
-#include "src/rtcrtpsender.h"
-#include "src/rtcrtptransceiver.h"
-#include "src/rtcstatscollector.h"
+#include "src/interfaces/rtcrtpreceiver.h"
+#include "src/interfaces/rtcrtpsender.h"
+#include "src/interfaces/rtcrtptransceiver.h"
+#include "src/interfaces/rtcstatscollector.h"
 #include "src/setsessiondescriptionobserver.h"
 #include "src/stats-observer.h"
 #include "src/utility.h"

@@ -12,7 +12,7 @@
 #include <webrtc/api/jsep.h>
 #include <v8.h>
 
-#include "src/peerconnection.h"
+#include "src/interfaces/peerconnection.h"
 #include "src/promise.h"
 
 namespace webrtc { class RTCError; }

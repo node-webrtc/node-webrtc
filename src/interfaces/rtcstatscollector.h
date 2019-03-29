@@ -11,7 +11,7 @@
 #include <webrtc/api/stats/rtc_stats_collector_callback.h>
 #include <v8.h>
 
-#include "src/peerconnection.h"  // IWYU pragma: keep
+#include "src/interfaces/peerconnection.h"  // IWYU pragma: keep
 #include "src/promise.h"
 
 namespace webrtc { class RTCStatsReport; }
