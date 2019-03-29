@@ -36,84 +36,10 @@
 #include "src/rtcrtptransceiver.h"
 #include "src/rtcstatsresponse.h"
 
-typedef node_webrtc::Either<std::vector<std::string>, std::string> stringOrStrings;
-typedef node_webrtc::Either<std::string, node_webrtc::RTCOAuthCredential> stringOrCredential;
-
-#define EXPAND_OBJ_FROM_JS_DEFAULT(TYPE, NAME, DEFAULT) * GetOptional<TYPE>(object, NAME, DEFAULT)
-
-#define EXPAND_OBJ_FROM_JS_OPTIONAL(TYPE, NAME) * GetOptional<TYPE>(object, NAME)
-
-#define EXPAND_OBJ_FROM_JS_REQUIRED(TYPE, NAME) * GetRequired<TYPE>(object, NAME)
-
-// TODO(mroberts): Use CONVERT_VIA and go through v8::Local<v8::Object>?
-// TODO(mroberts): Explain when to use _IMPL1 versus _IMPL2.
-// TODO(mroberts): Correct usage of `T` versus `TYPE`, etc., in comments.
-
-#define OBJ_FROM_JS_IMPL1(TYPE, FN) \
-  FROM_JS_IMPL(TYPE, value) { \
-    return node_webrtc::From<v8::Local<v8::Object>>(value).FlatMap<TYPE>( \
-    [](const v8::Local<v8::Object> object) { \
-      return node_webrtc::Pure(curry(FN)) \
-          TYPE ## _LIST \
-          ; \
-    }); \
-  }
-
-#define OBJ_FROM_JS_IMPL2(TYPE, FN) \
-  FROM_JS_IMPL(TYPE, value) { \
-    return node_webrtc::From<v8::Local<v8::Object>>(value).FlatMap<TYPE>( \
-    [](const v8::Local<v8::Object> object) { \
-      return node_webrtc::Validation<TYPE>::Join( \
-              node_webrtc::Pure(curry(FN)) \
-              TYPE ## _LIST \
-          ); \
-    }); \
-  }
-
-#define DATACHANNELINIT webrtc::DataChannelInit
-#define DATACHANNELINIT_LIST \
-  DEFAULT(bool, ordered, "ordered", true) \
-  OPTIONAL(uint32_t, maxPacketLifeTime, "maxPacketLifeTime") \
-  OPTIONAL(uint32_t, maxRetransmits, "maxRetransmits") \
-  DEFAULT(std::string, protocol, "protocol", "") \
-  DEFAULT(bool, negotiated, "negotiated", false) \
-  OPTIONAL(uint32_t, id, "id") \
-  DEFAULT(node_webrtc::RTCPriorityType, priority, "priority", node_webrtc::RTCPriorityType::kLow)
-
-#define ICECANDIDATEINTERFACE webrtc::IceCandidateInterface*
-#define ICECANDIDATEINTERFACE_LIST \
-  DEFAULT(std::string, candidate, "candidate", "") \
-  DEFAULT(std::string, sdpMid, "sdpMid", "") \
-  DEFAULT(int, sdpMLineIndex, "sdpMLineIndex", 0) \
-  OPTIONAL(std::string, usernameFragment, "usernameFragment")
-
-#define ICESERVER webrtc::PeerConnectionInterface::IceServer
-#define ICESERVER_LIST \
-  REQUIRED(stringOrStrings, urls, "urls") \
-  DEFAULT(std::string, username, "username", "") \
-  DEFAULT(stringOrCredential, credential, "credential", node_webrtc::MakeLeft<node_webrtc::RTCOAuthCredential>(std::string(""))) \
-  DEFAULT(node_webrtc::RTCIceCredentialType, credentialType, "credentialType", node_webrtc::RTCIceCredentialType::kPassword)
-
-#define RTCRTPTRANSCEIVERINIT webrtc::RtpTransceiverInit
-#define RTCRTPTRANSCEIVERINIT_LIST \
-  DEFAULT(webrtc::RtpTransceiverDirection, direction, "direction", webrtc::RtpTransceiverDirection::kSendRecv) \
-  DEFAULT(std::vector<node_webrtc::MediaStream*>, streams, "streams", std::vector<node_webrtc::MediaStream*>())
-
-static node_webrtc::Validation<webrtc::PeerConnectionInterface::IceServer> CreateIceServer(
-    const node_webrtc::Either<std::vector<std::string>, std::string>& urlsOrUrl,
-    const std::string& username,
-    const node_webrtc::Either<std::string, node_webrtc::RTCOAuthCredential>& credential,
-    const node_webrtc::RTCIceCredentialType credentialType) {
-  if (credential.IsRight() || credentialType != node_webrtc::RTCIceCredentialType::kPassword) {
-    return node_webrtc::Validation<webrtc::PeerConnectionInterface::IceServer>::Invalid("OAuth is not currently supported");
-  }
-  webrtc::PeerConnectionInterface::IceServer iceServer;
-  iceServer.urls = urlsOrUrl.FromLeft(std::vector<std::string>());
-  iceServer.uri = urlsOrUrl.FromRight("");
-  iceServer.username = username;
-  iceServer.password = credential.UnsafeFromLeft();
-  return node_webrtc::Pure(iceServer);
-}
+#include "src/dictionaries/webrtc/data_channel_init.h"
+#include "src/dictionaries/webrtc/ice_candidate_interface.h"
+#include "src/dictionaries/webrtc/ice_server.h"
+#include "src/dictionaries/webrtc/rtp_transceiver_init.h"
 
 TO_JS_IMPL(webrtc::PeerConnectionInterface::IceServer, iceServer) {
   Nan::EscapableHandleScope scope;
@@ -297,63 +223,8 @@ TO_JS_IMPL(const webrtc::SessionDescriptionInterface*, value) {
   return node_webrtc::Pure(scope.Escape(object.As<v8::Value>()));
 }
 
-static node_webrtc::Validation<webrtc::IceCandidateInterface*> CreateIceCandidateInterface(
-    const std::string& candidate,
-    const std::string& sdpMid,
-    const int sdpMLineIndex,
-    const node_webrtc::Maybe<std::string>&) {
-  webrtc::SdpParseError error;
-  auto candidate_ = webrtc::CreateIceCandidate(sdpMid, sdpMLineIndex, candidate, &error);
-  if (!candidate_) {
-    return node_webrtc::Validation<webrtc::IceCandidateInterface*>::Invalid(error.description);
-  }
-  return node_webrtc::Pure(candidate_);
-}
 
-TO_JS_IMPL(webrtc::IceCandidateInterface*, value) {
-  Nan::EscapableHandleScope scope;
 
-  if (!value) {
-    return node_webrtc::Validation<v8::Local<v8::Value>>::Invalid("RTCIceCandidate is null");
-  }
-
-  std::string candidate;
-  if (!value->ToString(&candidate)) {
-    return node_webrtc::Validation<v8::Local<v8::Value>>::Invalid("Failed to print the candidate string. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc");
-  }
-
-  auto object = Nan::New<v8::Object>();
-  object->Set(Nan::New("candidate").ToLocalChecked(), Nan::New(candidate).ToLocalChecked());
-  object->Set(Nan::New("sdpMid").ToLocalChecked(), Nan::New(value->sdp_mid()).ToLocalChecked());
-  object->Set(Nan::New("sdpMLineIndex").ToLocalChecked(), Nan::New(value->sdp_mline_index()));
-
-  return node_webrtc::Pure(scope.Escape(object.As<v8::Value>()));
-}
-
-CONVERT_VIA(v8::Local<v8::Value>, webrtc::IceCandidateInterface*, std::shared_ptr<webrtc::IceCandidateInterface>)
-
-static node_webrtc::Validation<webrtc::DataChannelInit> CreateDataChannelInit(
-    const bool ordered,
-    const node_webrtc::Maybe<uint32_t> maxPacketLifeTime,
-    const node_webrtc::Maybe<uint32_t> maxRetransmits,
-    const std::string& protocol,
-    const bool negotiated,
-    const node_webrtc::Maybe<uint32_t> id,
-    const node_webrtc::RTCPriorityType) {
-  if (id.FromMaybe(0) > UINT16_MAX) {
-    return node_webrtc::Validation<webrtc::DataChannelInit>::Invalid("id must be between 0 and 65534, inclusive");
-  } else if (maxPacketLifeTime.IsJust() && maxRetransmits.IsJust()) {
-    return node_webrtc::Validation<webrtc::DataChannelInit>::Invalid("You cannot set both maxPacketLifeTime and maxRetransmits");
-  }
-  webrtc::DataChannelInit init;
-  init.ordered = ordered;
-  init.maxRetransmitTime = maxPacketLifeTime.Map([](const uint32_t i) { return static_cast<int>(i); }).FromMaybe(-1);
-  init.maxRetransmits = maxRetransmits.Map([](const uint32_t i) { return static_cast<int>(i); }).FromMaybe(-1);
-  init.protocol = protocol;
-  init.negotiated = negotiated;
-  init.id = id.Map([](const uint32_t i) { return static_cast<int>(i); }).FromMaybe(-1);
-  return node_webrtc::Pure(init);
-}
 
 TO_JS_IMPL(webrtc::RTCError*, error) {
   return node_webrtc::Converter<const webrtc::RTCError*, v8::Local<v8::Value>>::Convert(error);
@@ -528,19 +399,6 @@ TO_JS_IMPL(webrtc::RtpParameters, params) {
       * node_webrtc::From<v8::Local<v8::Value>>(params.rtcp);
 }
 
-static webrtc::RtpTransceiverInit CreateRtpTransceiverInit(
-    const webrtc::RtpTransceiverDirection direction,
-    const std::vector<node_webrtc::MediaStream*> streams) {
-  webrtc::RtpTransceiverInit init;
-  init.direction = direction;
-  std::vector<std::string> stream_ids;
-  for (const auto& stream : streams) {
-    stream_ids.emplace_back(stream->stream()->id());
-  }
-  init.stream_ids = stream_ids;
-  return init;
-}
-
 TO_JS_IMPL(const webrtc::RTCStatsMemberInterface*, value) {
   switch (value->type()) {
     case webrtc::RTCStatsMemberInterface::Type::kBool:  // bool
@@ -645,17 +503,6 @@ CONVERTER_IMPL(node_webrtc::I420ImageData, rtc::scoped_refptr<webrtc::I420Buffer
 }
 
 namespace node_webrtc {
-
-#define REQUIRED(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_REQUIRED(type, stringValue)
-#define OPTIONAL(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_OPTIONAL(type, stringValue)
-#define DEFAULT(type, memberName, stringValue, defaultValue) EXPAND_OBJ_FROM_JS_DEFAULT(type, stringValue, defaultValue)
-OBJ_FROM_JS_IMPL2(ICESERVER, CreateIceServer)
-OBJ_FROM_JS_IMPL2(ICECANDIDATEINTERFACE, CreateIceCandidateInterface)
-OBJ_FROM_JS_IMPL2(DATACHANNELINIT, CreateDataChannelInit)
-OBJ_FROM_JS_IMPL1(RTCRTPTRANSCEIVERINIT, CreateRtpTransceiverInit)
-#undef REQUIRED
-#undef OPTIONAL
-#undef DEFAULT
 
 }  // namespace node_webrtc
 
