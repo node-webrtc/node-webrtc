@@ -4,7 +4,6 @@
 // IWYU pragma: no_include "src/dictionaries/macros/impls.h"
 
 #define RTC_VIDEO_SOURCE_INIT RTCVideoSourceInit
-#define RTC_VIDEO_SOURCE_INIT_NAME "RTCVideoSourceInit"
 #define RTC_VIDEO_SOURCE_INIT_LIST \
   DEFAULT(bool, isScreencast, "isScreencast", false) \
   OPTIONAL(bool, needsDenoising, "needsDenoising")

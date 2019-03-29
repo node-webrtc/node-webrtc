@@ -15,7 +15,6 @@ struct RTCAnswerOptions {
 }  // namespace node_webrtc
 
 #define RTC_ANSWER_OPTIONS RTCAnswerOptions
-#define RTC_ANSWER_OPTIONS_NAME "RTCAnswerOptions"
 #define RTC_ANSWER_OPTIONS_LIST \
   DEFAULT(bool, voiceActivityDetection, "voiceActivityDetection", true)
 

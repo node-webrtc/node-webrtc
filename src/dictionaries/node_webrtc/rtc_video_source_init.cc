@@ -1,15 +1,16 @@
 #include "src/dictionaries/node_webrtc/rtc_video_source_init.h"
 
 #include "src/functional/maybe.h"
+#include "src/functional/validation.h"
 
 namespace node_webrtc {
 
 #define RTC_VIDEO_SOURCE_INIT_FN CreateRTCVideoSourceInit
 
-static RTC_VIDEO_SOURCE_INIT RTC_VIDEO_SOURCE_INIT_FN(
+static Validation<RTC_VIDEO_SOURCE_INIT> RTC_VIDEO_SOURCE_INIT_FN(
     const bool isScreencast,
     const Maybe<bool> needsDenoising) {
-  return {isScreencast, needsDenoising};
+  return Pure<RTC_VIDEO_SOURCE_INIT>({isScreencast, needsDenoising});
 }
 
 }  // namespace node_webrtc

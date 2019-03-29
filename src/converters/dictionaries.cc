@@ -137,29 +137,6 @@ TO_JS_IMPL(webrtc::PeerConnectionInterface::IceServer, iceServer) {
   return node_webrtc::Pure(scope.Escape(object.As<v8::Value>()));
 }
 
-static node_webrtc::Validation<node_webrtc::UnsignedShortRange> CreateUnsignedShortRange(
-    const node_webrtc::Maybe<uint16_t>& maybeMin,
-    const node_webrtc::Maybe<uint16_t>& maybeMax) {
-  auto min = maybeMin.FromMaybe(0);
-  auto max = maybeMax.FromMaybe(65535);
-  if (min > max) {
-    return node_webrtc::Validation<node_webrtc::UnsignedShortRange>::Invalid("Expected min to be less than max");
-  }
-  return node_webrtc::Pure<node_webrtc::UnsignedShortRange>({maybeMin, maybeMax});
-}
-
-TO_JS_IMPL(node_webrtc::UnsignedShortRange, value) {
-  Nan::EscapableHandleScope scope;
-  auto object = Nan::New<v8::Object>();
-  if (value.min.IsJust()) {
-    object->Set(Nan::New("min").ToLocalChecked(), Nan::New(value.min.UnsafeFromJust()));
-  }
-  if (value.max.IsJust()) {
-    object->Set(Nan::New("max").ToLocalChecked(), Nan::New(value.max.UnsafeFromJust()));
-  }
-  return node_webrtc::Pure(scope.Escape(object.As<v8::Value>()));
-}
-
 static webrtc::PeerConnectionInterface::RTCConfiguration CreateRTCConfiguration(
     const std::vector<webrtc::PeerConnectionInterface::IceServer>& iceServers,
     const webrtc::PeerConnectionInterface::IceTransportsType iceTransportsPolicy,
@@ -667,72 +644,12 @@ CONVERTER_IMPL(node_webrtc::I420ImageData, rtc::scoped_refptr<webrtc::I420Buffer
   return node_webrtc::Pure(CreateI420Buffer(value));
 }
 
-static node_webrtc::Validation<node_webrtc::RTCOnDataEventDict> CreateRTCOnDataEventDict(
-    v8::ArrayBuffer::Contents samples,
-    uint8_t bitsPerSample,
-    uint16_t sampleRate,
-    uint8_t channelCount,
-    node_webrtc::Maybe<uint16_t> maybeNumberOfFrames
-) {
-  if (bitsPerSample != 16) {
-    auto error = "Expected a .bitsPerSample of 16, not " + std::to_string(bitsPerSample);
-    return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Invalid(error);
-  }
-
-  uint16_t numberOfFrames = sampleRate / 100;  // 10 ms
-  auto actualNumberOfFrames = maybeNumberOfFrames.FromMaybe(numberOfFrames);
-  if (actualNumberOfFrames != numberOfFrames) {
-    auto error = "Expected a .numberOfFrames of " + std::to_string(numberOfFrames) + ", not " + std::to_string(actualNumberOfFrames);
-    return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Invalid(error);
-  }
-
-  auto actualByteLength = samples.ByteLength();
-  auto expectedByteLength = static_cast<size_t>(channelCount * numberOfFrames * bitsPerSample / 8);
-  if (actualByteLength != expectedByteLength) {
-    auto error = "Expected a .byteLength of " + std::to_string(expectedByteLength) + ", not " +
-        std::to_string(actualByteLength);
-    return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Invalid(error);
-  }
-
-  std::unique_ptr<uint8_t[]> samplesCopy(new uint8_t[actualByteLength]);
-  if (!samplesCopy) {
-    auto error = "Failed to copy samples";
-    return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Invalid(error);
-  }
-  memcpy(samplesCopy.get(), samples.Data(), actualByteLength);
-
-  node_webrtc::RTCOnDataEventDict dict = {
-    samplesCopy.release(),
-    bitsPerSample,
-    sampleRate,
-    channelCount,
-    node_webrtc::MakeJust<uint16_t>(numberOfFrames)
-  };
-
-  return node_webrtc::Pure(dict);
-}
-
-FROM_JS_IMPL(node_webrtc::RTCOnDataEventDict, value) {
-  return node_webrtc::From<v8::Local<v8::Object>>(value).FlatMap<node_webrtc::RTCOnDataEventDict>(
-  [](const v8::Local<v8::Object> object) {
-    return node_webrtc::Validation<node_webrtc::RTCOnDataEventDict>::Join(
-            curry(CreateRTCOnDataEventDict)
-            % node_webrtc::GetRequired<v8::ArrayBuffer::Contents>(object, "samples")
-            * node_webrtc::GetOptional<uint8_t>(object, "bitsPerSample", 16)
-            * node_webrtc::GetRequired<uint16_t>(object, "sampleRate")
-            * node_webrtc::GetOptional<uint8_t>(object, "channelCount", 1)
-            * node_webrtc::GetOptional<uint16_t>(object, "numberOfFrames")
-        );
-  });
-}
-
 namespace node_webrtc {
 
 #define REQUIRED(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_REQUIRED(type, stringValue)
 #define OPTIONAL(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_OPTIONAL(type, stringValue)
 #define DEFAULT(type, memberName, stringValue, defaultValue) EXPAND_OBJ_FROM_JS_DEFAULT(type, stringValue, defaultValue)
 OBJ_FROM_JS_IMPL2(ICESERVER, CreateIceServer)
-OBJ_FROM_JS_IMPL2(UNSIGNED_SHORT_RANGE, CreateUnsignedShortRange)
 OBJ_FROM_JS_IMPL2(ICECANDIDATEINTERFACE, CreateIceCandidateInterface)
 OBJ_FROM_JS_IMPL2(DATACHANNELINIT, CreateDataChannelInit)
 OBJ_FROM_JS_IMPL1(RTCRTPTRANSCEIVERINIT, CreateRtpTransceiverInit)
@@ -789,41 +706,4 @@ TO_JS_IMPL(webrtc::VideoFrame, value) {
   auto data = maybeData.UnsafeFromValid();
   frame->Set(Nan::New("data").ToLocalChecked(), data);
   return node_webrtc::Pure(scope.Escape(frame).As<v8::Value>());
-}
-
-TO_JS_IMPL(node_webrtc::RTCOnDataEventDict, dict) {
-  Nan::EscapableHandleScope scope;
-
-  if (dict.numberOfFrames.IsNothing()) {
-    return node_webrtc::Validation<v8::Local<v8::Value>>::Invalid("numberOfFrames not provided");
-  }
-  auto numberOfFrames = dict.numberOfFrames.UnsafeFromJust();
-
-  auto isolate = Nan::GetCurrentContext()->GetIsolate();
-  auto length = dict.channelCount * numberOfFrames;
-  auto byteLength = length * dict.bitsPerSample / 8;
-  auto arrayBuffer = v8::ArrayBuffer::New(isolate, dict.samples, byteLength, v8::ArrayBufferCreationMode::kInternalized);
-
-  v8::Local<v8::Value> samples;
-  switch (dict.bitsPerSample) {
-    case 8:
-      samples = v8::Int8Array::New(arrayBuffer, 0, length);
-      break;
-    case 16:
-      samples = v8::Int16Array::New(arrayBuffer, 0, length);
-      break;
-    case 32:
-      samples = v8::Int32Array::New(arrayBuffer, 0, length);
-      break;
-    default:
-      samples = v8::Uint8Array::New(arrayBuffer, 0, byteLength);
-  }
-
-  auto object = Nan::New<v8::Object>();
-  object->Set(Nan::New("samples").ToLocalChecked(), samples);
-  object->Set(Nan::New("bitsPerSample").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(dict.bitsPerSample).UnsafeFromValid());
-  object->Set(Nan::New("sampleRate").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(dict.sampleRate).UnsafeFromValid());
-  object->Set(Nan::New("channelCount").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(dict.channelCount).UnsafeFromValid());
-  object->Set(Nan::New("numberOfFrames").ToLocalChecked(), node_webrtc::From<v8::Local<v8::Value>>(numberOfFrames).UnsafeFromValid());
-  return node_webrtc::Pure(scope.Escape(object).As<v8::Value>());
 }
