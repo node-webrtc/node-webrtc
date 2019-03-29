@@ -1,6 +1,7 @@
 #include "src/dictionaries/node_webrtc/rtc_offer_options.h"
 
 #include "src/functional/maybe.h"
+#include "src/functional/validation.h"
 
 // IWYU pragma: no_include <api/peer_connection_interface.h>
 
@@ -8,7 +9,7 @@ namespace node_webrtc {
 
 #define RTC_OFFER_OPTIONS_FN CreateRTCOfferOptions
 
-static RTC_OFFER_OPTIONS RTC_OFFER_OPTIONS_FN(
+static Validation<RTC_OFFER_OPTIONS> RTC_OFFER_OPTIONS_FN(
     const bool voiceActivityDetection,
     const bool iceRestart,
     const Maybe<bool> offerToReceiveAudio,
@@ -26,7 +27,7 @@ static RTC_OFFER_OPTIONS RTC_OFFER_OPTIONS_FN(
         ? webrtc::PeerConnectionInterface::RTCOfferAnswerOptions::kOfferToReceiveMediaTrue
         : 0;
   }).FromMaybe(webrtc::PeerConnectionInterface::RTCOfferAnswerOptions::kUndefined);
-  return RTC_OFFER_OPTIONS(options);
+  return Pure(RTC_OFFER_OPTIONS(options));
 }
 
 }  // namespace node_webrtc

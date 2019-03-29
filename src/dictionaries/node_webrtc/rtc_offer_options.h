@@ -15,7 +15,6 @@ struct RTCOfferOptions {
 }  // namespace node_webrtc
 
 #define RTC_OFFER_OPTIONS RTCOfferOptions
-#define RTC_OFFER_OPTIONS_NAME "RTCOfferOptions"
 #define RTC_OFFER_OPTIONS_LIST \
   DEFAULT(bool, voiceActivityDetection, "voiceActivityDetection", true) \
   DEFAULT(bool, iceRestart, "iceRestart", false) \

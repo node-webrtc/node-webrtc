@@ -11,31 +11,17 @@
 
 namespace node_webrtc {
 
-#define OBJ_FROM_JS_IMPL1(TYPE, FN) \
-
-#define EXPAND_OBJ_FROM_JS_DEFAULT(TYPE, NAME, DEFAULT) * GetOptional<TYPE>(object, NAME, DEFAULT)
-
-#define EXPAND_OBJ_FROM_JS_OPTIONAL(TYPE, NAME) * GetOptional<TYPE>(object, NAME)
-
-#define EXPAND_OBJ_FROM_JS_REQUIRED(TYPE, NAME) * GetRequired<TYPE>(object, NAME)
-
-#define REQUIRED(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_REQUIRED(type, stringValue)
-#define OPTIONAL(type, memberName, stringValue) EXPAND_OBJ_FROM_JS_OPTIONAL(type, stringValue)
-#define DEFAULT(type, memberName, stringValue, defaultValue) EXPAND_OBJ_FROM_JS_DEFAULT(type, stringValue, defaultValue)
+#define REQUIRED(type, memberName, stringValue) * GetRequired<type>(object, stringValue)
+#define OPTIONAL(type, memberName, stringValue) * GetOptional<type>(object, stringValue)
+#define DEFAULT(type, memberName, stringValue, defaultValue) * GetOptional<type>(object, stringValue, defaultValue)
 
 FROM_JS_IMPL(DICT(), value) {
-  return From<v8::Local<v8::Object>>(value).FlatMap<DICT()>(
-  [](const v8::Local<v8::Object> object) {
-    return Pure(curry(DICT(_FN)))
-        DICT(_LIST);
+  return From<v8::Local<v8::Object>>(value).FlatMap<DICT()>([](auto object) {
+    return Validation<DICT()>::Join(Pure(curry(DICT(_FN)))
+            DICT(_LIST));
   });
 }
 
-
-#undef OBJ_FROM_JS_IMPL1
-#undef EXPAND_OBJ_FROM_JS_DEFAULT
-#undef EXPAND_OBJ_FROM_JS_OPTIONAL
-#undef EXPAND_OBJ_FROM_JS_REQUIRED
 #undef REQUIRED
 #undef OPTIONAL
 #undef DEFAULT

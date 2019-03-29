@@ -9,7 +9,6 @@
 // IWYU pragma: no_include "src/dictionaries/macros/impls.h"
 
 #define RTC_SESSION_DESCRIPTION_INIT RTCSessionDescriptionInit
-#define RTC_SESSION_DESCRIPTION_INIT_NAME "RTCSessionDescriptionInit"
 #define RTC_SESSION_DESCRIPTION_INIT_LIST \
   REQUIRED(RTCSdpType, type, "type") \
   DEFAULT(std::string, sdp, "sdp", "")
@@ -21,9 +20,7 @@
 
 namespace node_webrtc {
 
-#define RTC_SESSION_DESCRIPTION_INIT_FN CreateRTCSessionDescriptionInit
-
-static inline RTC_SESSION_DESCRIPTION_INIT RTC_SESSION_DESCRIPTION_INIT_FN(
+static inline RTC_SESSION_DESCRIPTION_INIT CreateRTCSessionDescriptionInit(
     const RTCSdpType type,
     const std::string& sdp) {
   return {type, sdp};

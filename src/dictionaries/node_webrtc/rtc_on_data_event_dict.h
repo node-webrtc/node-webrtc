@@ -7,7 +7,6 @@
 // IWYU pragma: no_include <_types/_uint8_t.h>
 
 #define RTC_ON_DATA_EVENT_DICT RTCOnDataEventDict
-#define RTC_ON_DATA_EVENT_DICT_NAME "RTCOnDataEventDict"
 #define RTC_ON_DATA_EVENT_DICT_LIST \
   REQUIRED(uint8_t*, samples, "samples") \
   DEFAULT(uint8_t, bitsPerSample, "bitsPerSample", 16) \
