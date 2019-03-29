@@ -5,6 +5,8 @@
 
 #include "src/enums/node_webrtc/rtc_sdp_type.h"
 
+namespace webrtc { class SessionDescriptionInterface; }
+
 // IWYU pragma: no_forward_declare node_webrtc::RTCSessionDescriptionInit
 // IWYU pragma: no_include "src/dictionaries/macros/impls.h"
 
@@ -25,5 +27,10 @@ static inline RTC_SESSION_DESCRIPTION_INIT CreateRTCSessionDescriptionInit(
     const std::string& sdp) {
   return {type, sdp};
 }
+
+DECLARE_CONVERTER(RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*)
+DECLARE_CONVERTER(webrtc::SessionDescriptionInterface*, RTCSessionDescriptionInit)
+DECLARE_FROM_JS(webrtc::SessionDescriptionInterface*)
+DECLARE_TO_JS(const webrtc::SessionDescriptionInterface*)
 
 }  // namespace node_webrtc

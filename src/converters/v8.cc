@@ -7,35 +7,6 @@
  */
 #include "src/converters/v8.h"
 
-TO_JS_IMPL(node_webrtc::SomeError, someError) {
-  Nan::EscapableHandleScope scope;
-  auto message = someError.message();
-  return node_webrtc::Pure(scope.Escape(someError.name().FromEither<v8::Local<v8::Value>>(
-  [message](node_webrtc::ErrorFactory::DOMExceptionName name) {
-    switch (name) {
-      case node_webrtc::ErrorFactory::DOMExceptionName::kInvalidAccessError:
-        return node_webrtc::ErrorFactory::CreateInvalidAccessError(message);
-      case node_webrtc::ErrorFactory::DOMExceptionName::kInvalidModificationError:
-        return node_webrtc::ErrorFactory::CreateInvalidModificationError(message);
-      case node_webrtc::ErrorFactory::DOMExceptionName::kInvalidStateError:
-        return node_webrtc::ErrorFactory::CreateInvalidStateError(message);
-      case node_webrtc::ErrorFactory::DOMExceptionName::kNetworkError:
-        return node_webrtc::ErrorFactory::CreateNetworkError(message);
-      case node_webrtc::ErrorFactory::DOMExceptionName::kOperationError:
-        return node_webrtc::ErrorFactory::CreateOperationError(message);
-    }
-  }, [message](node_webrtc::ErrorFactory::ErrorName name) {
-    switch (name) {
-      case node_webrtc::ErrorFactory::ErrorName::kError:
-        return node_webrtc::ErrorFactory::CreateError(message);
-      case node_webrtc::ErrorFactory::ErrorName::kRangeError:
-        return node_webrtc::ErrorFactory::CreateRangeError(message);
-      case node_webrtc::ErrorFactory::ErrorName::kSyntaxError:
-        return node_webrtc::ErrorFactory::CreateSyntaxError(message);
-    }
-  })));
-}
-
 FROM_JS_IMPL(node_webrtc::Null, value) {
   return value->IsNull()
       ? node_webrtc::Pure(node_webrtc::Null())

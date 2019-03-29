@@ -1,5 +1,9 @@
 #pragma once
 
+#include <webrtc/api/peer_connection_interface.h>
+
+#include "src/converters.h"
+
 // IWYU pragma: no_include "src/enums/macros/impls.h"
 
 #define RTC_PEER_CONNECTION_STATE RTCPeerConnectionState
@@ -16,3 +20,9 @@
 #include "src/enums/macros/def.h"
 #include "src/enums/macros/decls.h"  // IWYU pragma: keep
 #undef ENUM
+
+namespace node_webrtc {
+
+DECLARE_CONVERTER(webrtc::PeerConnectionInterface::IceConnectionState, RTCPeerConnectionState)
+
+}  // namespace node_webrtc
