@@ -11,11 +11,11 @@
 #include <webrtc/api/media_stream_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 
-#include "src/interfaces/mediastream.h"
-#include "src/interfaces/mediastreamtrack.h"
-#include "src/interfaces/rtcrtpreceiver.h"
-#include "src/interfaces/rtcrtpsender.h"
-#include "src/interfaces/rtcrtptransceiver.h"
+#include "src/interfaces/media_stream.h"
+#include "src/interfaces/media_stream_track.h"
+#include "src/interfaces/rtc_rtp_receiver.h"
+#include "src/interfaces/rtc_rtp_sender.h"
+#include "src/interfaces/rtc_rtp_transceiver.h"
 
 #define CONVERT_INTERFACE_TO_JS(IFACE, NAME, TO_FN) \
   TO_JS_IMPL(IFACE*, value) { \
