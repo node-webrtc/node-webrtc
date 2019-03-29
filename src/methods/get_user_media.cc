@@ -8,10 +8,10 @@
 #include "src/methods/get_user_media.h"
 
 #include <webrtc/api/audio_options.h>
+#include <webrtc/api/peer_connection_interface.h>
 
 #include "src/converters.h"
 #include "src/converters/arguments.h"
-#include "src/converters/dictionaries.h"
 #include "src/converters/interfaces.h"
 #include "src/converters/object.h"
 #include "src/converters/v8.h"

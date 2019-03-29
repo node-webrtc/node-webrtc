@@ -16,7 +16,8 @@
 #include <v8.h>
 
 #include "src/node/async_object_wrap_with_loop.h"
-#include "src/converters/dictionaries.h"
+#include "src/dictionaries/node_webrtc/extended_rtc_configuration.h"
+#include "src/dictionaries/node_webrtc/rtc_session_description_init.h"
 
 namespace webrtc {
 

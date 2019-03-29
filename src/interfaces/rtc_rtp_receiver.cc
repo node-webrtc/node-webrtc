@@ -10,11 +10,12 @@
 #include <webrtc/api/rtp_receiver_interface.h>
 
 #include "src/converters.h"
-#include "src/converters/dictionaries.h"
 #include "src/converters/v8.h"
-#include "src/node/error.h"
+#include "src/dictionaries/webrtc/rtp_parameters.h"
+#include "src/dictionaries/webrtc/rtp_source.h"
 #include "src/interfaces/media_stream_track.h"
 #include "src/interfaces/rtc_dtls_transport.h"
+#include "src/node/error.h"
 #include "src/node/utility.h"
 
 Nan::Persistent<v8::Function>& node_webrtc::RTCRtpReceiver::constructor() {

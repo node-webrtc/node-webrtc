@@ -9,7 +9,7 @@
 
 #include <webrtc/api/stats/rtc_stats_report.h>
 
-#include "src/converters/dictionaries.h"  // IWYU pragma: keep
+#include "src/dictionaries/webrtc/rtc_stats_report.h"
 
 // IWYU pragma: no_include <api/scoped_refptr.h>
 // IWYU pragma: no_include <nan_implementation_12_inl.h>

@@ -16,7 +16,7 @@
 #include <webrtc/media/base/adapted_video_track_source.h>
 #include <v8.h>
 
-#include "src/converters/dictionaries.h"
+#include "src/dictionaries/node_webrtc/rtc_video_source_init.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
 
 namespace webrtc { class VideoFrame; }

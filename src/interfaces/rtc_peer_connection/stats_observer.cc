@@ -13,7 +13,7 @@
 #include <utility>
 #include <vector>
 
-#include "src/converters/dictionaries.h"  // IWYU pragma: keep
+#include "src/dictionaries/node_webrtc/rtc_stats_response_init.h"
 
 // IWYU pragma: no_include <api/scoped_refptr.h>
 // IWYU pragma: no_include <api/stats_types.h>

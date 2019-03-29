@@ -11,7 +11,7 @@
 
 #include "src/converters.h"
 #include "src/converters/arguments.h"
-#include "src/converters/dictionaries.h"
+#include "src/dictionaries/node_webrtc/image_data.h"
 #include "src/node/error.h"
 
 node_webrtc::Validation<node_webrtc::I420ImageData> node_webrtc::ImageData::toI420() const {

@@ -17,7 +17,6 @@
 #include "src/converters.h"
 #include "src/converters/arguments.h"  // IWYU pragma: keep
 #include "src/converters/interfaces.h"  // IWYU pragma: keep
-#include "src/converters/dictionaries.h"  // IWYU pragma: keep
 #include "src/dictionaries/node_webrtc/rtc_on_data_event_dict.h"
 #include "src/node/error.h"
 #include "src/node/events.h"
