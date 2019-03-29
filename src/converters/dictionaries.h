@@ -39,6 +39,10 @@
 #include "src/dictionaries/node_webrtc/rtc_video_source_init.h"
 #include "src/dictionaries/node_webrtc/unsigned_short_range.h"
 
+#include "src/dictionaries/webrtc/ice_candidate_interface.h"
+#include "src/dictionaries/webrtc/data_channel_init.h"
+#include "src/dictionaries/webrtc/rtp_transceiver_init.h"
+
 namespace rtc {
 
 template <class T> class scoped_refptr;
@@ -49,8 +53,6 @@ namespace webrtc {
 
 class I420Buffer;
 class I420BufferInterface;
-class IceCandidateInterface;
-struct DataChannelInit;
 class RTCError;
 class RTCStats;
 class RTCStatsMemberInterface;
@@ -60,8 +62,6 @@ struct RtpCodecParameters;
 struct RtpExtension;
 struct RtpParameters;
 class RtpSource;
-enum class RtpTransceiverDirection;
-struct RtpTransceiverInit;
 class SessionDescriptionInterface;
 class VideoFrame;
 class VideoFrameBuffer;
@@ -82,8 +82,6 @@ struct ExtendedRTCConfiguration {
   UnsignedShortRange portRange;
 };
 
-
-
 // TODO(mroberts): Move this elsewhere.
 template <typename T>
 struct Converter<absl::optional<T>, v8::Local<v8::Value>> {
@@ -96,11 +94,7 @@ struct Converter<absl::optional<T>, v8::Local<v8::Value>> {
 };
 
 DECLARE_TO_JS(rtc::scoped_refptr<webrtc::RTCStatsReport>)
-DECLARE_FROM_JS(webrtc::DataChannelInit)
 DECLARE_CONVERTER(webrtc::RTCError*, SomeError)
-DECLARE_TO_AND_FROM_JS(webrtc::IceCandidateInterface*)
-DECLARE_FROM_JS(std::shared_ptr<webrtc::IceCandidateInterface>)
-DECLARE_TO_AND_FROM_JS(webrtc::PeerConnectionInterface::IceServer)
 DECLARE_CONVERTER(webrtc::PeerConnectionInterface::IceConnectionState, RTCPeerConnectionState)
 DECLARE_FROM_JS(webrtc::PeerConnectionInterface::RTCConfiguration)
 DECLARE_TO_JS(webrtc::RtpCodecParameters)
@@ -113,7 +107,6 @@ DECLARE_TO_JS(webrtc::RtpExtension)
 DECLARE_TO_JS(webrtc::RtpSource)
 DECLARE_TO_JS(const webrtc::RTCStats*)
 DECLARE_TO_JS(const webrtc::RTCStatsMemberInterface*)
-DECLARE_FROM_JS(webrtc::RtpTransceiverInit)
 DECLARE_FROM_JS(webrtc::SessionDescriptionInterface*)
 DECLARE_CONVERTER(webrtc::SessionDescriptionInterface*, RTCSessionDescriptionInit)
 DECLARE_TO_JS(const webrtc::SessionDescriptionInterface*)
