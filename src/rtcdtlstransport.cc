@@ -16,7 +16,7 @@
 #include "src/converters.h"
 #include "src/converters/dictionaries.h"  // IWYU pragma: keep
 #include "src/converters/enums.h"  // IWYU pragma: keep
-#include "src/converters/v8.h"
+#include "src/dictionaries/node_webrtc/some_error.h"
 #include "src/error.h"
 #include "src/events.h"
 #include "src/functional/validation.h"

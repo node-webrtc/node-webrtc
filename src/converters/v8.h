@@ -31,31 +31,6 @@ namespace node_webrtc {
 
 // TODO(mroberts): The following could probably all be moved into a v8.cc file.
 
-class SomeError {
- public:
-  SomeError() = default;
-
-  explicit SomeError(const std::string& message)
-    : SomeError(message, MakeRight<ErrorFactory::DOMExceptionName>(ErrorFactory::kError)) {}
-
-  SomeError(std::string message, const Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName> name)
-    : _message(std::move(message)), _name(name) {}
-
-  std::string message() const {
-    return _message;
-  }
-
-  Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName> name() const {
-    return _name;
-  }
-
- private:
-  std::string _message;
-  Either<ErrorFactory::DOMExceptionName, ErrorFactory::ErrorName> _name;
-};
-
-DECLARE_TO_JS(SomeError)
-
 class Null {
  public:
   Null() = default;

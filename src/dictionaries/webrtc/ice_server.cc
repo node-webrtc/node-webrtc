@@ -4,8 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <nan.h>
 #include <webrtc/api/peer_connection_interface.h>
+#include <v8.h>
 
+#include "src/converters.h"
 #include "src/dictionaries/node_webrtc/rtc_outh_credential.h"
 #include "src/enums/node_webrtc/rtc_ice_credential_type.h"
 #include "src/functional/either.h"
@@ -38,6 +41,28 @@ static Validation<webrtc::PeerConnectionInterface::IceServer> ICE_SERVER_FN(
   iceServer.username = username;
   iceServer.password = credential.UnsafeFromLeft();
   return Pure(iceServer);
+}
+
+TO_JS_IMPL(webrtc::PeerConnectionInterface::IceServer, iceServer) {
+  Nan::EscapableHandleScope scope;
+  auto object = Nan::New<v8::Object>();
+  if (!iceServer.uri.empty()) {
+    object->Set(Nan::New("urls").ToLocalChecked(), Nan::New(iceServer.uri).ToLocalChecked());
+  } else {
+    auto maybeArray = From<v8::Local<v8::Value>>(iceServer.urls);
+    if (maybeArray.IsInvalid()) {
+      return Validation<v8::Local<v8::Value>>::Invalid(maybeArray.ToErrors());
+    }
+    object->Set(Nan::New("urls").ToLocalChecked(), maybeArray.UnsafeFromValid());
+  }
+  if (!iceServer.username.empty()) {
+    object->Set(Nan::New("username").ToLocalChecked(), Nan::New(iceServer.username).ToLocalChecked());
+  }
+  if (!iceServer.password.empty()) {
+    object->Set(Nan::New("credential").ToLocalChecked(), Nan::New(iceServer.password).ToLocalChecked());
+    object->Set(Nan::New("credentialType").ToLocalChecked(), Nan::New("password").ToLocalChecked());
+  }
+  return Pure(scope.Escape(object.As<v8::Value>()));
 }
 
 }  // namespace node_webrtc
