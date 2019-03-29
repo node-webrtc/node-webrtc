@@ -15,8 +15,8 @@
 #include <webrtc/api/scoped_refptr.h>
 #include <v8.h>
 
+#include "src/enums/node_webrtc/binary_type.h"
 #include "src/node/async_object_wrap_with_loop.h"
-#include "src/converters/enums.h"
 #include "src/node/event_queue.h"
 #include "src/node/wrap.h"
 
