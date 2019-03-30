@@ -33,10 +33,6 @@
 #include <webrtc/rtc_base/thread_annotations.h>
 #include <webrtc/rtc_base/time_utils.h>
 
-// IWYU pragma: no_include <_types/_int64_t.h>
-// IWYU pragma: no_include <api/array_view.h>
-// IWYU pragma: no_include <api/scoped_refptr.h>
-
 namespace node_webrtc {
 
 namespace {

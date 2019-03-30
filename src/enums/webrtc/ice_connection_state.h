@@ -17,5 +17,5 @@
   UNSUPPORTED(ICE_CONNECTION_STATE, kIceConnectionMax, "max", "\"max\" is not a valid RTCIceConnectionState")
 
 #define ENUM(X) ICE_CONNECTION_STATE ## X
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM

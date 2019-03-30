@@ -18,7 +18,7 @@
 
 #define ENUM(X) RTC_PEER_CONNECTION_STATE ## X
 #include "src/enums/macros/def.h"
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM
 
 namespace node_webrtc {

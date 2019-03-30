@@ -10,10 +10,8 @@
 #include <atomic>
 
 #include <nan.h>
-#include <uv.h>  // IWYU pragma: keep
+#include <uv.h>
 #include <v8.h>
-
-// IWYU pragma: no_include <uv/unix.h>
 
 namespace node_webrtc {
 

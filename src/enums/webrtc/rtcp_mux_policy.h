@@ -11,5 +11,5 @@
   SUPPORTED(RTCP_MUX_POLICY, kRtcpMuxPolicyRequire, "require")
 
 #define ENUM(X) RTCP_MUX_POLICY ## X
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM

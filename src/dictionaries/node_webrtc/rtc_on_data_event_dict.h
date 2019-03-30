@@ -1,10 +1,8 @@
 #pragma once
 
-#include <cstdint>  // IWYU pragma: keep
+#include <cstdint>
 
 // IWYU pragma: no_forward_declare node_webrtc::RTCOnDataEventDict
-// IWYU pragma: no_include <_types/_uint16_t.h>
-// IWYU pragma: no_include <_types/_uint8_t.h>
 
 #define RTC_ON_DATA_EVENT_DICT RTCOnDataEventDict
 #define RTC_ON_DATA_EVENT_DICT_LIST \

@@ -9,23 +9,19 @@
 
 #include <type_traits>
 
-#include <webrtc/api/peer_connection_interface.h>
+#include <webrtc/api/peer_connection_interface.h>  // IWYU pragma: keep
 #include <webrtc/api/rtc_error.h>
 #include <webrtc/rtc_base/location.h>
 #include <webrtc/rtc_base/thread.h>
+#include <v8.h>
 
 #include "src/converters.h"
 #include "src/dictionaries/node_webrtc/some_error.h"
-#include "src/enums/webrtc/dtls_transport_state.h"
+#include "src/enums/webrtc/dtls_transport_state.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
 #include "src/node/error.h"
 #include "src/node/events.h"
-
-// IWYU pragma: no_include <api/dtls_transport_interface.h>
-// IWYU pragma: no_include <api/scoped_refptr.h>
-// IWYU pragma: no_include <nan_callbacks_12_inl.h>
-// IWYU pragma: no_include <nan_implementation_12_inl.h>
 
 Nan::Persistent<v8::Function>& node_webrtc::RTCDtlsTransport::constructor() {
   static Nan::Persistent<v8::Function> constructor;

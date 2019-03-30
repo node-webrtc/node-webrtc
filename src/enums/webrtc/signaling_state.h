@@ -15,5 +15,5 @@
   SUPPORTED(SIGNALING_STATE, kClosed, "closed")
 
 #define ENUM(X) SIGNALING_STATE ## X
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM

@@ -1,9 +1,10 @@
 #include "src/dictionaries/node_webrtc/rtc_dtls_fingerprint.h"
 
-#include "src/functional/maybe.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
 
 namespace node_webrtc {
+
+template <typename T> class Maybe;
 
 #define RTC_DTLS_FINGERPRINT_FN CreateRTCDtlsFingerprint
 

@@ -8,18 +8,19 @@
 #pragma once
 
 #include <memory>
-#include <mutex>  // IWYU pragma: keep
+#include <mutex>
 
 #include <nan.h>
 #include <webrtc/api/dtls_transport_interface.h>
 #include <webrtc/api/scoped_refptr.h>
-#include <v8.h>  // IWYU pragma: keep
 
 #include "src/node/async_object_wrap_with_loop.h"
 #include "src/node/wrap.h"
 
-// IWYU pragma: no_include <__mutex_base>
-
+namespace v8 { class Function; }
+namespace v8 { class FunctionTemplate; }
+namespace v8 { class Object; }
+namespace v8 { template <class T> class Local; }
 namespace webrtc { class RTCError; }
 
 namespace node_webrtc {

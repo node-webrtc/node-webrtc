@@ -1,0 +1,14 @@
+[
+  { include: ["@<_types/_u?int.*_t\\.h>", "private", "<cstdint>", "public"] },
+  { include: ["@<uv/.*\\.h>", "private", "<uv.h>", "public"] },
+  { include: ["@<nan_.*\\.h>", "private", "<nan.h>", "public"] },
+  { include: ["<__mutex_base>", "private", "<mutex>", "public"] },
+  { include: ["<api/array_view.h>", "private", "<webrtc/api/array_view.h>", "public"] },
+  { include: ["<api/dtls_transport_interface.h>", "private", "<webrtc/api/dtls_transport_interface.h>", "public"] },
+  { include: ["<api/media_stream_interface.h>", "private", "<webrtc/api/media_stream_interface.h>", "public"] },
+  { include: ["<api/peer_connection_interface.h>", "private", "<webrtc/api/peer_connection_interface.h>", "public"] },
+  { include: ["<api/rtp_transceiver_interface.h>", "private", "<webrtc/api/rtp_transceiver_interface.h>", "public"] },
+  { include: ["<api/stats/rtc_stats.h>", "private", "<webrtc/api/stats/rtc_stats.h>", "public"] },
+  { include: ["<api/stats_types.h>", "private", "<webrtc/api/stats_types.h>", "public"] },
+  { include: ["<api/scoped_refptr.h>", "private", "<webrtc/api/scoped_refptr.h>", "public"] }
+]

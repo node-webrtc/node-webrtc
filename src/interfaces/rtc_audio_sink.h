@@ -12,9 +12,12 @@
 #include <nan.h>
 #include <webrtc/api/media_stream_interface.h>
 #include <webrtc/api/scoped_refptr.h>
-#include <v8.h>  // IWYU pragma: keep
 
 #include "src/node/async_object_wrap_with_loop.h"
+
+namespace v8 { class FunctionTemplate; }
+namespace v8 { class Object; }
+namespace v8 { template <class T> class Local; }
 
 namespace node_webrtc {
 

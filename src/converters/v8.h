@@ -14,16 +14,12 @@
 
 #include <cstdint>
 #include <iosfwd>
-#include <string>
-#include <utility>
 #include <vector>
 
 #include <nan.h>
 #include <v8.h>
 
 #include "src/converters.h"
-#include "src/node/error_factory.h"
-#include "src/functional/either.h"
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
 

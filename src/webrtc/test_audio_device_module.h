@@ -9,10 +9,10 @@
  */
 #pragma once
 
-#include <cstdint>  // IWYU pragma: keep
+#include <cstddef>
+#include <cstdint>
 #include <iosfwd>
 #include <memory>
-#include <cstddef>
 
 #include <webrtc/api/array_view.h>
 #include <webrtc/api/scoped_refptr.h>
@@ -20,9 +20,6 @@
 #include <webrtc/rtc_base/buffer.h>
 #include <webrtc/rtc_base/event.h>
 #include <webrtc/rtc_base/platform_file.h>
-
-// IWYU pragma: no_include <_types/_int16_t.h>
-// IWYU pragma: no_include <_types/_int32_t.h>
 
 namespace webrtc { class AudioTransport; }
 

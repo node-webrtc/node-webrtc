@@ -14,5 +14,5 @@
   SUPPORTED(VIDEO_FRAME_BUFFER_TYPE, kI010, "I010")
 
 #define ENUM(X) VIDEO_FRAME_BUFFER_TYPE ## X
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM

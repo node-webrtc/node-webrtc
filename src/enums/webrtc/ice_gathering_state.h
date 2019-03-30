@@ -12,5 +12,5 @@
   SUPPORTED(ICE_GATHERING_STATE, kIceGatheringComplete, "complete")
 
 #define ENUM(X) ICE_GATHERING_STATE ## X
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM

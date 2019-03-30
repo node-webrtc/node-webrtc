@@ -13,5 +13,5 @@
   SUPPORTED(DATA_STATE, kOpen, "open")
 
 #define ENUM(X) DATA_STATE ## X
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM

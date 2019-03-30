@@ -13,5 +13,5 @@
   SUPPORTED(MEDIA_TYPE, MEDIA_TYPE_DATA, "data")
 
 #define ENUM(X) MEDIA_TYPE ## X
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM

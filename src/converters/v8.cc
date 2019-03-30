@@ -7,6 +7,8 @@
  */
 #include "src/converters/v8.h"
 
+#include <string>
+
 FROM_JS_IMPL(node_webrtc::Null, value) {
   return value->IsNull()
       ? node_webrtc::Pure(node_webrtc::Null())

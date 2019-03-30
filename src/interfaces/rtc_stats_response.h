@@ -14,7 +14,10 @@
 #include <vector>
 
 #include <nan.h>
-#include <v8.h>  // IWYU pragma: keep
+
+namespace v8 { class Function; }
+namespace v8 { class Object; }
+namespace v8 { template <class T> class Local; }
 
 namespace node_webrtc {
 

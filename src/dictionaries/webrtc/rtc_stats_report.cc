@@ -2,13 +2,12 @@
 
 #include <nan.h>
 #include <webrtc/api/scoped_refptr.h>
+#include <webrtc/api/stats/rtc_stats.h>
 #include <webrtc/api/stats/rtc_stats_report.h>
 #include <v8.h>
 
 #include "src/dictionaries/webrtc/rtc_stats.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
-
-// IWYU pragma: no_include <api/stats/rtc_stats.h>
 
 namespace node_webrtc {
 

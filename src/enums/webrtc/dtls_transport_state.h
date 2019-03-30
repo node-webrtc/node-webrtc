@@ -1,8 +1,7 @@
 #pragma once
 
-namespace webrtc { enum class DtlsTransportState; }
+#include <webrtc/api/dtls_transport_interface.h>
 
-// IWYU pragma: no_include <api/dtls_transport_interface.h>
 // IWYU pragma: no_include "src/enums/macros/impls.h"
 
 #define DTLS_TRANSPORT_STATE webrtc::DtlsTransportState
@@ -16,5 +15,5 @@ namespace webrtc { enum class DtlsTransportState; }
   UNSUPPORTED(DTLS_TRANSPORT_STATE, kNumValues, "num-values", "\"num-values\" is not a valid RTCDtlsTransportState")
 
 #define ENUM(X) DTLS_TRANSPORT_STATE ## X
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM

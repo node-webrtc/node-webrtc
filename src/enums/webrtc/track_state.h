@@ -11,5 +11,5 @@
   SUPPORTED(TRACK_STATE, kLive, "live")
 
 #define ENUM(X) TRACK_STATE ## X
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM
