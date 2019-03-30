@@ -3,8 +3,6 @@
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
 
-// IWYU pragma: no_include <api/peer_connection_interface.h>
-
 namespace node_webrtc {
 
 #define RTC_OFFER_OPTIONS_FN CreateRTCOfferOptions

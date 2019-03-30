@@ -10,8 +10,6 @@
 #include "src/functional/validation.h"
 #include "src/functional/maybe.h"
 
-// IWYU pragma: no_include <_types/_uint32_t.h>
-
 namespace node_webrtc {
 
 #define DATA_CHANNEL_INIT_FN CreateDataChannelInit

@@ -12,5 +12,5 @@
 
 #define ENUM(X) RTC_PRIORITY_TYPE ## X
 #include "src/enums/macros/def.h"
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM

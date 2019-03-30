@@ -10,5 +10,5 @@
 
 #define ENUM(X) RTC_ICE_CREDENTIAL_TYPE ## X
 #include "src/enums/macros/def.h"
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM

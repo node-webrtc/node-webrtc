@@ -11,18 +11,15 @@
 
 #include <webrtc/api/video/video_source_interface.h>
 #include <webrtc/api/video/video_frame.h>
+#include <v8.h>
 
 #include "src/converters.h"
 #include "src/converters/arguments.h"  // IWYU pragma: keep
 #include "src/converters/interfaces.h"  // IWYU pragma: keep
-#include "src/dictionaries/webrtc/video_frame.h"
+#include "src/dictionaries/webrtc/video_frame.h"  // IWYU pragma: keep
 #include "src/node/error.h"
 #include "src/node/events.h"
 #include "src/functional/validation.h"
-
-// IWYU pragma: no_include <api/media_stream_interface.h>
-// IWYU pragma: no_include <api/scoped_refptr.h>
-// IWYU pragma: no_include <nan_callbacks_12_inl.h>
 
 Nan::Persistent<v8::FunctionTemplate>& node_webrtc::RTCVideoSink::tpl() {
   static Nan::Persistent<v8::FunctionTemplate> tpl;

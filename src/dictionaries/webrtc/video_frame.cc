@@ -2,10 +2,11 @@
 
 #include <nan.h>
 #include <webrtc/api/video/video_frame.h>
+#include <webrtc/api/scoped_refptr.h>
 #include <v8.h>
 
-#include "src/converters/v8.h"
-#include "src/dictionaries/webrtc/video_frame_buffer.h"
+#include "src/converters/v8.h"  // IWYU pragma: keep
+#include "src/dictionaries/webrtc/video_frame_buffer.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
 
 namespace node_webrtc {

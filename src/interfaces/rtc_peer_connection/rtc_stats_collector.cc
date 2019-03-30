@@ -9,11 +9,7 @@
 
 #include <webrtc/api/stats/rtc_stats_report.h>
 
-#include "src/dictionaries/webrtc/rtc_stats_report.h"
-
-// IWYU pragma: no_include <api/scoped_refptr.h>
-// IWYU pragma: no_include <nan_implementation_12_inl.h>
-// IWYU pragma: no_include "src/events.h"
+#include "src/dictionaries/webrtc/rtc_stats_report.h"  // IWYU pragma: keep
 
 void node_webrtc::RTCStatsCollector::OnStatsDelivered(const rtc::scoped_refptr<const webrtc::RTCStatsReport>& report) {
   Resolve(report->Copy());

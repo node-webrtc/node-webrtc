@@ -14,8 +14,6 @@
 #include "src/converters/v8.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
 
-// IWYU pragma: no_include <nan_implementation_12_inl.h>
-
 Nan::Persistent<v8::Function> node_webrtc::ErrorFactory::DOMException;
 
 void node_webrtc::ErrorFactory::Init(v8::Local<v8::Object> module) {

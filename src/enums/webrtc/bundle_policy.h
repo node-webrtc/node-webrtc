@@ -12,5 +12,5 @@
   SUPPORTED(BUNDLE_POLICY, kBundlePolicyMaxBundle, "max-bundle")
 
 #define ENUM(X) BUNDLE_POLICY ## X
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM

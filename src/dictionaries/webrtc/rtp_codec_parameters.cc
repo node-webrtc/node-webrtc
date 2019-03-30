@@ -1,7 +1,14 @@
 #include "src/dictionaries/webrtc/rtp_codec_parameters.h"
 
+#include <iosfwd>
+#include <string>
+#include <unordered_map>
+#include <utility>
+
+#include <absl/types/optional.h>
 #include <nan.h>
 #include <webrtc/api/rtp_parameters.h>
+#include <v8.h>
 
 #include "src/functional/validation.h"
 

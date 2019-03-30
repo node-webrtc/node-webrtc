@@ -13,12 +13,9 @@
 #include <utility>
 #include <vector>
 
-#include "src/dictionaries/node_webrtc/rtc_stats_response_init.h"
+#include <webrtc/api/scoped_refptr.h>
 
-// IWYU pragma: no_include <api/scoped_refptr.h>
-// IWYU pragma: no_include <api/stats_types.h>
-// IWYU pragma: no_include <nan_implementation_12_inl.h>
-// IWYU pragma: no_include "src/events.h"
+#include "src/dictionaries/node_webrtc/rtc_stats_response_init.h"  // IWYU pragma: keep
 
 void node_webrtc::StatsObserver::OnComplete(const webrtc::StatsReports& stats_reports) {
   double timestamp = 0;

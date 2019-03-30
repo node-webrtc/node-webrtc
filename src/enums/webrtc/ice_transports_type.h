@@ -13,5 +13,5 @@
   UNSUPPORTED(ICE_TRANSPORTS_TYPE, kNone, "none", "\"none\" is not a valid RTCIceTransportPolicy")
 
 #define ENUM(X) ICE_TRANSPORTS_TYPE ## X
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM

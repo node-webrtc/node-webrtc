@@ -1,10 +1,15 @@
 #include "src/dictionaries/webrtc/rtc_stats_member_interface.h"
 
+#include <cstdint>
+#include <iosfwd>
+#include <string>
+#include <vector>
+
 #include <webrtc/api/stats/rtc_stats.h>
+#include <v8.h>
 
 #include "src/converters.h"
-#include "src/converters/object.h"
-#include "src/converters/v8.h"
+#include "src/converters/v8.h"  // IWYU pragma: keep
 
 namespace node_webrtc {
 

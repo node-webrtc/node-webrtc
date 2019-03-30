@@ -1,8 +1,9 @@
 #include "src/dictionaries/webrtc/rtp_source.h"
 
-#include <webrtc/api/rtp_receiver_interface.h>
+#include <cstdint>
 
 #include <nan.h>
+#include <webrtc/api/rtp_receiver_interface.h>
 #include <v8.h>
 
 #include "src/functional/validation.h"

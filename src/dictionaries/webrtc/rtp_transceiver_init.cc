@@ -3,7 +3,9 @@
 #include <iosfwd>
 #include <vector>
 
+#include <webrtc/api/media_stream_interface.h>
 #include <webrtc/api/rtp_transceiver_interface.h>
+#include <webrtc/api/scoped_refptr.h>
 
 #include "src/enums/webrtc/rtp_transceiver_direction.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
@@ -11,9 +13,6 @@
 
 // TODO(mroberts): Remove me.
 #include "src/converters/interfaces.h"  // IWYU pragma: keep
-
-// IWYU pragma: no_include <api/media_stream_interface.h>
-// IWYU pragma: no_include <api/scoped_refptr.h>
 
 namespace node_webrtc {
 

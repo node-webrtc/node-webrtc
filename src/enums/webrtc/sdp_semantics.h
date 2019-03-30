@@ -1,8 +1,7 @@
 #pragma once
 
-namespace webrtc { enum class SdpSemantics; }
+#include <webrtc/api/peer_connection_interface.h>
 
-// IWYU pragma: no_include <api/peer_connection_interface.h>
 // IWYU pragma: no_include "src/enums/macros/impls.h"
 
 #define SDP_SEMANTICS webrtc::SdpSemantics
@@ -12,5 +11,5 @@ namespace webrtc { enum class SdpSemantics; }
   SUPPORTED(SDP_SEMANTICS, kUnifiedPlan, "unified-plan")
 
 #define ENUM(X) SDP_SEMANTICS ## X
-#include "src/enums/macros/decls.h"  // IWYU pragma: keep
+#include "src/enums/macros/decls.h"
 #undef ENUM

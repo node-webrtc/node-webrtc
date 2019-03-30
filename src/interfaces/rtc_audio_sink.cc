@@ -12,6 +12,8 @@
 #include <memory>
 #include <type_traits>
 
+#include <v8.h>
+
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
 #include "src/converters.h"
@@ -20,12 +22,6 @@
 #include "src/dictionaries/node_webrtc/rtc_on_data_event_dict.h"
 #include "src/node/error.h"
 #include "src/node/events.h"
-
-// IWYU pragma: no_include <_types/_uint16_t.h>
-// IWYU pragma: no_include <_types/_uint8_t.h>
-// IWYU pragma: no_include <api/media_stream_interface.h>
-// IWYU pragma: no_include <api/scoped_refptr.h>
-// IWYU pragma: no_include <nan_callbacks_12_inl.h>
 
 Nan::Persistent<v8::FunctionTemplate>& node_webrtc::RTCAudioSink::tpl() {
   static Nan::Persistent<v8::FunctionTemplate> tpl;

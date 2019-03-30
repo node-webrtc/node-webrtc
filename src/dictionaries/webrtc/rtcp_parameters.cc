@@ -1,5 +1,8 @@
 #include "src/dictionaries/webrtc/rtcp_parameters.h"
 
+#include <iosfwd>
+#include <string>
+
 #include <nan.h>
 #include <webrtc/api/rtp_parameters.h>
 #include <v8.h>
