@@ -28,16 +28,18 @@
 #include "src/webrtc/test_audio_device_module.h"
 #include "src/webrtc/zero_capturer.h"
 
-Nan::Persistent<v8::Function>& node_webrtc::PeerConnectionFactory::constructor() {
+namespace node_webrtc {
+
+Nan::Persistent<v8::Function>& PeerConnectionFactory::constructor() {
   static Nan::Persistent<v8::Function> constructor;
   return constructor;
 }
 
-std::shared_ptr<node_webrtc::PeerConnectionFactory> node_webrtc::PeerConnectionFactory::_default;
-uv_mutex_t node_webrtc::PeerConnectionFactory::_lock;
-int node_webrtc::PeerConnectionFactory::_references = 0;
+std::shared_ptr<PeerConnectionFactory> PeerConnectionFactory::_default;
+uv_mutex_t PeerConnectionFactory::_lock;
+int PeerConnectionFactory::_references = 0;
 
-node_webrtc::PeerConnectionFactory::PeerConnectionFactory(node_webrtc::Maybe<webrtc::AudioDeviceModule::AudioLayer> audioLayer) {
+PeerConnectionFactory::PeerConnectionFactory(Maybe<webrtc::AudioDeviceModule::AudioLayer> audioLayer) {
   _workerThread = std::make_unique<rtc::Thread>();
   assert(_workerThread);
 
@@ -45,12 +47,12 @@ node_webrtc::PeerConnectionFactory::PeerConnectionFactory(node_webrtc::Maybe<web
   assert(result);
 
   _audioDeviceModule = _workerThread->Invoke<rtc::scoped_refptr<webrtc::AudioDeviceModule>>(RTC_FROM_HERE, [audioLayer]() {
-    return audioLayer.Map([](const webrtc::AudioDeviceModule::AudioLayer audioLayer) {
+    return audioLayer.Map([](auto audioLayer) {
       return webrtc::AudioDeviceModule::Create(0, audioLayer);
     }).Or([]() {
-      return node_webrtc::TestAudioDeviceModule::CreateTestAudioDeviceModule(
-              node_webrtc::ZeroCapturer::Create(48000),
-              node_webrtc::TestAudioDeviceModule::CreateDiscardRenderer(48000));
+      return TestAudioDeviceModule::CreateTestAudioDeviceModule(
+              ZeroCapturer::Create(48000),
+              TestAudioDeviceModule::CreateDiscardRenderer(48000));
     });
   });
 
@@ -77,7 +79,7 @@ node_webrtc::PeerConnectionFactory::PeerConnectionFactory(node_webrtc::Maybe<web
   _socketFactory = std::unique_ptr<rtc::PacketSocketFactory>(new rtc::BasicPacketSocketFactory(_workerThread.get()));
 }
 
-node_webrtc::PeerConnectionFactory::~PeerConnectionFactory() {
+PeerConnectionFactory::~PeerConnectionFactory() {
   _factory = nullptr;
 
   _workerThread->Invoke<void>(RTC_FROM_HERE, [this]() {
@@ -94,29 +96,29 @@ node_webrtc::PeerConnectionFactory::~PeerConnectionFactory() {
   _socketFactory = nullptr;
 }
 
-NAN_METHOD(node_webrtc::PeerConnectionFactory::New) {
+NAN_METHOD(PeerConnectionFactory::New) {
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct a PeerConnectionFactory.");
   }
 
   // TODO(mroberts): Read `audioLayer` from some PeerConnectionFactoryOptions?
-  auto peerConnectionFactory = new node_webrtc::PeerConnectionFactory();
+  auto peerConnectionFactory = new PeerConnectionFactory();
   peerConnectionFactory->Wrap(info.This());
 
   info.GetReturnValue().Set(info.This());
 }
 
-std::shared_ptr<node_webrtc::PeerConnectionFactory> node_webrtc::PeerConnectionFactory::GetOrCreateDefault() {
+std::shared_ptr<PeerConnectionFactory> PeerConnectionFactory::GetOrCreateDefault() {
   uv_mutex_lock(&_lock);
   _references++;
   if (_references == 1) {
-    _default = std::make_shared<node_webrtc::PeerConnectionFactory>();
+    _default = std::make_shared<PeerConnectionFactory>();
   }
   uv_mutex_unlock(&_lock);
   return _default;
 }
 
-void node_webrtc::PeerConnectionFactory::Release() {
+void PeerConnectionFactory::Release() {
   uv_mutex_lock(&_lock);
   _references--;
   assert(_references >= 0);
@@ -126,12 +128,12 @@ void node_webrtc::PeerConnectionFactory::Release() {
   uv_mutex_unlock(&_lock);
 }
 
-void node_webrtc::PeerConnectionFactory::Dispose() {
+void PeerConnectionFactory::Dispose() {
   uv_mutex_destroy(&_lock);
   rtc::CleanupSSL();
 }
 
-void node_webrtc::PeerConnectionFactory::Init(v8::Handle<v8::Object> exports) {
+void PeerConnectionFactory::Init(v8::Handle<v8::Object> exports) {
   uv_mutex_init(&_lock);
 
   bool result;
@@ -147,3 +149,5 @@ void node_webrtc::PeerConnectionFactory::Init(v8::Handle<v8::Object> exports) {
   constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("PeerConnectionFactory").ToLocalChecked(), tpl->GetFunction());
 }
+
+}  // namespace node_webrtc

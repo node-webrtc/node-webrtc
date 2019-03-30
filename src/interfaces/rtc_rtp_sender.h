@@ -14,14 +14,11 @@
 #include <webrtc/api/scoped_refptr.h>
 #include <v8.h>
 
+#include "src/converters/v8.h"
 #include "src/node/async_object_wrap.h"
 #include "src/node/wrap.h"
 
-namespace webrtc {
-
-class RtpSenderInterface;
-
-}  // namespace webrtc
+namespace webrtc { class RtpSenderInterface; }
 
 namespace node_webrtc {
 
@@ -70,5 +67,7 @@ class RTCRtpSender: public AsyncObjectWrap {
   const std::shared_ptr<PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::RtpSenderInterface> _sender;
 };
+
+DECLARE_TO_AND_FROM_JS(RTCRtpSender*)
 
 }  // namespace node_webrtc

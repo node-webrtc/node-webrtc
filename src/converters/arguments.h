@@ -17,12 +17,46 @@
 #include <nan.h>
 
 #include "src/converters.h"
+#include "src/converters/macros.h"
 #include "src/functional/curry.h"
 #include "src/functional/either.h"
 #include "src/functional/operators.h"
 #include "src/functional/validation.h"
 
 namespace node_webrtc {
+
+#define CONVERT_ARGS_OR_THROW_AND_RETURN(O, T) \
+  auto NODE_WEBRTC_UNIQUE_NAME(validation) = Validation<detail::argument_type<void(T)>::type>::Invalid(std::vector<Error>()); \
+  { \
+    Nan::TryCatch tc; \
+    NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(Arguments(info)); \
+    if (tc.HasCaught()) { \
+      tc.ReThrow(); \
+      return; \
+    } \
+  } \
+  if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
+    auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
+    return Nan::ThrowTypeError(Nan::New(error).ToLocalChecked()); \
+  } \
+  auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
+
+#define CONVERT_ARGS_OR_REJECT_AND_RETURN(R, O, T) \
+  auto NODE_WEBRTC_UNIQUE_NAME(validation) = Validation<detail::argument_type<void(T)>::type>::Invalid(std::vector<Error>()); \
+  { \
+    Nan::TryCatch tc; \
+    NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(Arguments(info)); \
+    if (tc.HasCaught()) { \
+      R->Resolve(Nan::GetCurrentContext(), tc.Exception()).IsNothing(); \
+      return; \
+    } \
+  } \
+  if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
+    auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
+    R->Reject(Nan::GetCurrentContext(), Nan::TypeError(Nan::New(error).ToLocalChecked())).IsNothing(); \
+    return; \
+  } \
+  auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
 
 struct Arguments {
   Nan::NAN_METHOD_ARGS_TYPE info;

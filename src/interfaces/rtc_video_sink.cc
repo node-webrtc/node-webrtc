@@ -14,26 +14,27 @@
 #include <v8.h>
 
 #include "src/converters.h"
-#include "src/converters/arguments.h"  // IWYU pragma: keep
-#include "src/converters/interfaces.h"  // IWYU pragma: keep
+#include "src/converters/arguments.h"
 #include "src/dictionaries/webrtc/video_frame.h"  // IWYU pragma: keep
-#include "src/node/error.h"
+#include "src/interfaces/media_stream_track.h"  // IWYU pragma: keep
 #include "src/node/events.h"
 #include "src/functional/validation.h"
 
-Nan::Persistent<v8::FunctionTemplate>& node_webrtc::RTCVideoSink::tpl() {
+namespace node_webrtc {
+
+Nan::Persistent<v8::FunctionTemplate>& RTCVideoSink::tpl() {
   static Nan::Persistent<v8::FunctionTemplate> tpl;
   return tpl;
 }
 
-node_webrtc::RTCVideoSink::RTCVideoSink(rtc::scoped_refptr<webrtc::VideoTrackInterface> track)
-  : node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCVideoSink>("RTCVideoSink", *this)
+RTCVideoSink::RTCVideoSink(rtc::scoped_refptr<webrtc::VideoTrackInterface> track)
+  : AsyncObjectWrapWithLoop<RTCVideoSink>("RTCVideoSink", *this)
   , _track(std::move(track)) {
   rtc::VideoSinkWants wants;
   _track->AddOrUpdateSink(this, wants);
 }
 
-NAN_METHOD(node_webrtc::RTCVideoSink::New) {
+NAN_METHOD(RTCVideoSink::New) {
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct an RTCVideoSink.");
   }
@@ -43,30 +44,30 @@ NAN_METHOD(node_webrtc::RTCVideoSink::New) {
   info.GetReturnValue().Set(info.This());
 }
 
-NAN_GETTER(node_webrtc::RTCVideoSink::GetStopped) {
+NAN_GETTER(RTCVideoSink::GetStopped) {
   (void) property;
-  auto self = AsyncObjectWrapWithLoop<node_webrtc::RTCVideoSink>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<RTCVideoSink>::Unwrap(info.Holder());
   info.GetReturnValue().Set(self->_stopped);
 }
 
-void node_webrtc::RTCVideoSink::Stop() {
+void RTCVideoSink::Stop() {
   if (_track) {
     _stopped = true;
     _track->RemoveSink(this);
     _track = nullptr;
   }
-  node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCVideoSink>::Stop();
+  AsyncObjectWrapWithLoop<RTCVideoSink>::Stop();
 }
 
-NAN_METHOD(node_webrtc::RTCVideoSink::JsStop) {
-  auto self = AsyncObjectWrapWithLoop<node_webrtc::RTCVideoSink>::Unwrap(info.Holder());
+NAN_METHOD(RTCVideoSink::JsStop) {
+  auto self = AsyncObjectWrapWithLoop<RTCVideoSink>::Unwrap(info.Holder());
   self->Stop();
 }
 
-void node_webrtc::RTCVideoSink::OnFrame(const webrtc::VideoFrame& frame) {
-  Dispatch(node_webrtc::CreateCallback<node_webrtc::RTCVideoSink>([this, frame]() {
+void RTCVideoSink::OnFrame(const webrtc::VideoFrame& frame) {
+  Dispatch(CreateCallback<RTCVideoSink>([this, frame]() {
     Nan::HandleScope scope;
-    auto maybeValue = node_webrtc::From<v8::Local<v8::Value>>(frame);
+    auto maybeValue = From<v8::Local<v8::Value>>(frame);
     if (maybeValue.IsInvalid()) {
       // TODO(mroberts): Should raise an error; although this really shouldn't happen.
       return;
@@ -78,12 +79,14 @@ void node_webrtc::RTCVideoSink::OnFrame(const webrtc::VideoFrame& frame) {
   }));
 }
 
-void node_webrtc::RTCVideoSink::Init(v8::Handle<v8::Object> exports) {
+void RTCVideoSink::Init(v8::Handle<v8::Object> exports) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  node_webrtc::RTCVideoSink::tpl().Reset(tpl);
+  RTCVideoSink::tpl().Reset(tpl);
   tpl->SetClassName(Nan::New("RTCVideoSink").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("stopped").ToLocalChecked(), GetStopped, nullptr);
   Nan::SetPrototypeMethod(tpl, "stop", JsStop);
   exports->Set(Nan::New("RTCVideoSink").ToLocalChecked(), tpl->GetFunction());
 }
+
+}  // namespace node_webrtc

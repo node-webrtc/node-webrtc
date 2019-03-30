@@ -8,7 +8,8 @@
 #include <webrtc/api/stats/rtc_stats.h>
 #include <v8.h>
 
-#include "src/converters/v8.h"  // IWYU pragma: keep
+#include "src/converters.h"
+#include "src/converters/v8.h"
 #include "src/dictionaries/webrtc/rtc_stats_member_interface.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
 

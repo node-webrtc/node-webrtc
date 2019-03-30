@@ -39,4 +39,4 @@ class Wrap {
   BidiMap<U, T> _map;
 };
 
-}  // namespace webrtc
+}  // namespace node_webrtc

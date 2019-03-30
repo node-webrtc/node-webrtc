@@ -15,11 +15,11 @@
 
 #include <memory>
 
-#include <v8.h>
-
 #include "src/functional/either.h"
 #include "src/functional/operators.h"
 #include "src/functional/validation.h"
+
+namespace node_webrtc {
 
 /**
  * This macro declares a node_webrtc::Converter from I to O.
@@ -34,52 +34,13 @@
   };
 
 /**
- * This macro declares a node_webrtc::Converter from T to v8::Local<v8::Value>.
- *
- * @param T the input type
- */
-#define DECLARE_TO_JS(T) DECLARE_CONVERTER(T, v8::Local<v8::Value>)
-
-/**
- * This macro declares a node_webrtc::Converter from v8::Local<v8::Value> to T.
- *
- * @param T the output type
- */
-#define DECLARE_FROM_JS(T) DECLARE_CONVERTER(v8::Local<v8::Value>, T)
-
-/**
- * This macro declares node_webrtc::Converter instances between T and v8::Local<v8::Value>.
- *
- * @param T the type to convert
- */
-#define DECLARE_TO_AND_FROM_JS(T) \
-  DECLARE_TO_JS(T) \
-  DECLARE_FROM_JS(T)
-
-/**
  * This macro simplifies defining a node_webrtc::Converter from I to O.
  *
  * @param I the input type
  * @param O the output type
  * @param V the name of the input variable to convert
  */
-#define CONVERTER_IMPL(I, O, V) node_webrtc::Validation<O> node_webrtc::Converter<I, O>::Convert(I V)
-
-/**
- * This macro simplifies defining a node_webrtc::Converter from T to v8::Local<v8::Value>.
- *
- * @param T the input type
- * @param V the name of the input variable to convert
- */
-#define TO_JS_IMPL(T, V) CONVERTER_IMPL(T, v8::Local<v8::Value>, V)
-
-/**
- * This macro simplifies defining a node_webrtc::Converter from v8::Local<v8::Value> to T.
- *
- * @param T the output type
- * @param V the name of the input variable to convert
- */
-#define FROM_JS_IMPL(T, V) CONVERTER_IMPL(v8::Local<v8::Value>, T, V)
+#define CONVERTER_IMPL(I, O, V) Validation<O> Converter<I, O>::Convert(I V)
 
 /**
  * This macro defines a node_webrtc::Converter from I to O when node_webrtc::Converter instances from
@@ -95,12 +56,10 @@
  */
 #define CONVERT_VIA(I, M, O) \
   CONVERTER_IMPL(I, O, value) { \
-    return node_webrtc::Converter<I, M>::Convert(value).FlatMap<O>(node_webrtc::Converter<M, O>::Convert); \
+    return Converter<I, M>::Convert(value).FlatMap<O>(Converter<M, O>::Convert); \
   }
+
 // TODO(mroberts): This stuff is not so general as to warrant inclusion in converters.h.
-
-
-namespace node_webrtc {
 
 /**
  * A Converter converts values from some "source" type S to values of some

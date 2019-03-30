@@ -9,8 +9,6 @@
 
 namespace node_webrtc {
 
-DECLARE_FROM_JS(webrtc::PeerConnectionInterface::RTCConfiguration)
-
 static inline webrtc::PeerConnectionInterface::RTCConfiguration CreateRTCConfiguration(
     const std::vector<webrtc::PeerConnectionInterface::IceServer>& iceServers,
     const webrtc::PeerConnectionInterface::IceTransportsType iceTransportsPolicy,
@@ -29,5 +27,7 @@ static inline webrtc::PeerConnectionInterface::RTCConfiguration CreateRTCConfigu
   configuration.sdp_semantics = sdpSemantics;
   return configuration;
 }
+
+DECLARE_FROM_JS(webrtc::PeerConnectionInterface::RTCConfiguration)
 
 }  // namespace node_webrtc

@@ -21,29 +21,31 @@
 #include "src/functional/maybe.h"
 #include "src/interfaces/media_stream_track.h"
 
-Nan::Persistent<v8::Function>& node_webrtc::RTCVideoSource::constructor() {
+namespace node_webrtc {
+
+Nan::Persistent<v8::Function>& RTCVideoSource::constructor() {
   static Nan::Persistent<v8::Function> constructor;
   return constructor;
 }
 
-node_webrtc::RTCVideoSource::RTCVideoSource() {
+RTCVideoSource::RTCVideoSource() {
   _source = new rtc::RefCountedObject<RTCVideoTrackSource>();
 }
 
-node_webrtc::RTCVideoSource::RTCVideoSource(const node_webrtc::RTCVideoSourceInit init) {
+RTCVideoSource::RTCVideoSource(const RTCVideoSourceInit init) {
   auto needsDenoising = init.needsDenoising
-  .Map([](const bool needsDenoising) { return absl::optional<bool>(needsDenoising); })
+  .Map([](auto needsDenoising) { return absl::optional<bool>(needsDenoising); })
   .FromMaybe(absl::optional<bool>());
   _source = new rtc::RefCountedObject<RTCVideoTrackSource>(init.isScreencast, needsDenoising);
 }
 
-NAN_METHOD(node_webrtc::RTCVideoSource::New) {
+NAN_METHOD(RTCVideoSource::New) {
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct an RTCVideoSource.");
   }
 
-  CONVERT_ARGS_OR_THROW_AND_RETURN(maybeInit, node_webrtc::Maybe<node_webrtc::RTCVideoSourceInit>);
-  auto init = maybeInit.FromMaybe(node_webrtc::RTCVideoSourceInit());
+  CONVERT_ARGS_OR_THROW_AND_RETURN(maybeInit, Maybe<RTCVideoSourceInit>);
+  auto init = maybeInit.FromMaybe(RTCVideoSourceInit());
 
   auto instance = new RTCVideoSource(init);
   instance->Wrap(info.This());
@@ -51,39 +53,39 @@ NAN_METHOD(node_webrtc::RTCVideoSource::New) {
   info.GetReturnValue().Set(info.This());
 }
 
-NAN_METHOD(node_webrtc::RTCVideoSource::CreateTrack) {
-  auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCVideoSource>(info.Holder());
+NAN_METHOD(RTCVideoSource::CreateTrack) {
+  auto self = Nan::ObjectWrap::Unwrap<RTCVideoSource>(info.Holder());
 
   // TODO(mroberts): Again, we have some implicit factory we are threading around. How to handle?
-  auto factory = node_webrtc::PeerConnectionFactory::GetOrCreateDefault();
+  auto factory = PeerConnectionFactory::GetOrCreateDefault();
   auto track = factory->factory()->CreateVideoTrack(rtc::CreateRandomUuid(), self->_source);
-  auto result = node_webrtc::MediaStreamTrack::wrap()->GetOrCreate(factory, track);
+  auto result = MediaStreamTrack::wrap()->GetOrCreate(factory, track);
 
   info.GetReturnValue().Set(result->ToObject());
 }
 
-NAN_METHOD(node_webrtc::RTCVideoSource::OnFrame) {
-  auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCVideoSource>(info.Holder());
+NAN_METHOD(RTCVideoSource::OnFrame) {
+  auto self = Nan::ObjectWrap::Unwrap<RTCVideoSource>(info.Holder());
   CONVERT_ARGS_OR_THROW_AND_RETURN(buffer, rtc::scoped_refptr<webrtc::I420Buffer>);
   webrtc::VideoFrame::Builder builder;
   auto frame = builder.set_video_frame_buffer(buffer).build();
   self->_source->PushFrame(frame);
 }
 
-NAN_GETTER(node_webrtc::RTCVideoSource::GetNeedsDenoising) {
+NAN_GETTER(RTCVideoSource::GetNeedsDenoising) {
   (void) property;
-  auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCVideoSource>(info.Holder());
-  auto needsDenoising = node_webrtc::From<v8::Local<v8::Value>>(self->_source->needs_denoising());
+  auto self = Nan::ObjectWrap::Unwrap<RTCVideoSource>(info.Holder());
+  auto needsDenoising = From<v8::Local<v8::Value>>(self->_source->needs_denoising());
   info.GetReturnValue().Set(needsDenoising.UnsafeFromValid());
 }
 
-NAN_GETTER(node_webrtc::RTCVideoSource::GetIsScreencast) {
+NAN_GETTER(RTCVideoSource::GetIsScreencast) {
   (void) property;
-  auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCVideoSource>(info.Holder());
+  auto self = Nan::ObjectWrap::Unwrap<RTCVideoSource>(info.Holder());
   info.GetReturnValue().Set(self->_source->is_screencast());
 }
 
-void node_webrtc::RTCVideoSource::Init(v8::Handle<v8::Object> exports) {
+void RTCVideoSource::Init(v8::Handle<v8::Object> exports) {
   auto tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("RTCVideoSource").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -97,3 +99,5 @@ void node_webrtc::RTCVideoSource::Init(v8::Handle<v8::Object> exports) {
   constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("RTCVideoSource").ToLocalChecked(), tpl->GetFunction());
 }
+
+}  // namespace node_webrtc

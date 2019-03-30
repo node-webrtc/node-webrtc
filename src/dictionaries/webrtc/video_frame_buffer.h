@@ -1,16 +1,12 @@
 #pragma once
 
 #include "src/converters.h"
+#include "src/converters/v8.h"
 
 namespace rtc { template <typename T> class scoped_refptr; }
-
-namespace webrtc {
-
-class I420Buffer;
-class I420BufferInterface;
-class VideoFrameBuffer;
-
-}  // namespace webrtc
+namespace webrtc { class I420Buffer; }
+namespace webrtc { class I420BufferInterface; }
+namespace webrtc { class VideoFrameBuffer; }
 
 namespace node_webrtc {
 

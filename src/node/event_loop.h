@@ -48,7 +48,7 @@ class EventLoop: private EventQueue<T> {
 
  protected:
   explicit EventLoop(T& target): EventQueue<T>(), _loop(uv_default_loop()), _target(target) {
-    uv_async_init(_loop, &_async, [](uv_async_t* handle) {
+    uv_async_init(_loop, &_async, [](auto handle) {
       auto self = static_cast<EventLoop<T>*>(handle->data);
       self->Run();
     });
@@ -74,7 +74,7 @@ class EventLoop: private EventQueue<T> {
     }
     if (_should_stop) {
       uv_mutex_lock(&_lock);
-      uv_close(reinterpret_cast<uv_handle_t*>(&_async), [](uv_handle_t* handle) {
+      uv_close(reinterpret_cast<uv_handle_t*>(&_async), [](auto handle) {
         auto self = static_cast<EventLoop<T>*>(handle->data);
         self->DidStop();
       });

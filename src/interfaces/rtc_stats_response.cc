@@ -14,12 +14,14 @@
 
 #include "src/interfaces/legacy_rtc_stats_report.h"
 
-Nan::Persistent<v8::Function>& node_webrtc::RTCStatsResponse::constructor() {
+namespace node_webrtc {
+
+Nan::Persistent<v8::Function>& RTCStatsResponse::constructor() {
   static Nan::Persistent<v8::Function> constructor;
   return constructor;
 }
 
-NAN_METHOD(node_webrtc::RTCStatsResponse::New) {
+NAN_METHOD(RTCStatsResponse::New) {
   if (info.Length() != 2 || !info[0]->IsExternal() || !info[1]->IsExternal()) {
     return Nan::ThrowTypeError("You cannot construct an RTCStatsResponse");
   }
@@ -27,14 +29,14 @@ NAN_METHOD(node_webrtc::RTCStatsResponse::New) {
   auto timestamp = static_cast<double*>(v8::Local<v8::External>::Cast(info[0])->Value());
   auto reports = static_cast<std::vector<std::map<std::string, std::string>>*>(v8::Local<v8::External>::Cast(info[1])->Value());
 
-  auto obj = new node_webrtc::RTCStatsResponse(*timestamp, *reports);
+  auto obj = new RTCStatsResponse(*timestamp, *reports);
   obj->Wrap(info.This());
 
   info.GetReturnValue().Set(info.This());
 }
 
-NAN_METHOD(node_webrtc::RTCStatsResponse::result) {
-  auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCStatsResponse>(info.This());
+NAN_METHOD(RTCStatsResponse::result) {
+  auto self = Nan::ObjectWrap::Unwrap<RTCStatsResponse>(info.This());
   auto timestamp = self->_timestamp;
   auto reports = Nan::New<v8::Array>(self->_reports.size());
 
@@ -47,18 +49,18 @@ NAN_METHOD(node_webrtc::RTCStatsResponse::result) {
   info.GetReturnValue().Set(reports);
 }
 
-node_webrtc::RTCStatsResponse* node_webrtc::RTCStatsResponse::Create(
+RTCStatsResponse* RTCStatsResponse::Create(
     double timestamp,
     const std::vector<std::map<std::string, std::string>>& reports) {
   Nan::HandleScope scope;
   v8::Local<v8::Value> cargv[2];
   cargv[0] = Nan::New<v8::External>(static_cast<void*>(&timestamp));
   cargv[1] = Nan::New<v8::External>(const_cast<void*>(static_cast<const void*>(&reports)));
-  auto response = Nan::NewInstance(Nan::New(node_webrtc::RTCStatsResponse::constructor()), 2, cargv).ToLocalChecked();
-  return Nan::ObjectWrap::Unwrap<node_webrtc::RTCStatsResponse>(response);
+  auto response = Nan::NewInstance(Nan::New(RTCStatsResponse::constructor()), 2, cargv).ToLocalChecked();
+  return Nan::ObjectWrap::Unwrap<RTCStatsResponse>(response);
 }
 
-void node_webrtc::RTCStatsResponse::Init(v8::Handle<v8::Object> exports) {
+void RTCStatsResponse::Init(v8::Handle<v8::Object> exports) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate> (New);
   tpl->SetClassName(Nan::New("RTCStatsResponse").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -66,3 +68,5 @@ void node_webrtc::RTCStatsResponse::Init(v8::Handle<v8::Object> exports) {
   constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("RTCStatsResponse").ToLocalChecked(), tpl->GetFunction());
 }
+
+}  // namespace node_webrtc

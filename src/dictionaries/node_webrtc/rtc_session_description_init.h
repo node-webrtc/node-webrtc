@@ -3,6 +3,8 @@
 #include <iosfwd>
 #include <string>
 
+#include "src/converters.h"
+#include "src/converters/v8.h"
 #include "src/enums/node_webrtc/rtc_sdp_type.h"
 
 namespace webrtc { class SessionDescriptionInterface; }

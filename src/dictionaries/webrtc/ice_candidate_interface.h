@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "src/converters/v8.h"
+
 namespace webrtc { class IceCandidateInterface; }
 
 #define ICE_CANDIDATE_INTERFACE webrtc::IceCandidateInterface*

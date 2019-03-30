@@ -43,8 +43,7 @@ struct MediaTrackConstraintSet {
 template <>
 struct node_webrtc::Converter<v8::Local<v8::Value>, MediaTrackConstraintSet> {
   static node_webrtc::Validation<MediaTrackConstraintSet> Convert(const v8::Local<v8::Value> value) {
-    return node_webrtc::From<v8::Local<v8::Object>>(value).FlatMap<MediaTrackConstraintSet>(
-    [](const v8::Local<v8::Object> object) {
+    return node_webrtc::From<v8::Local<v8::Object>>(value).FlatMap<MediaTrackConstraintSet>([](auto object) {
       return curry(MediaTrackConstraintSet::Create)
           % node_webrtc::GetOptional<uint16_t>(object, "width")
           * node_webrtc::GetOptional<uint16_t>(object, "height");
@@ -70,8 +69,7 @@ struct MediaTrackConstraints: public MediaTrackConstraintSet {
 template <>
 struct node_webrtc::Converter<v8::Local<v8::Value>, MediaTrackConstraints> {
   static node_webrtc::Validation<MediaTrackConstraints> Convert(const v8::Local<v8::Value> value) {
-    return node_webrtc::From<v8::Local<v8::Object>>(value).FlatMap<MediaTrackConstraints>(
-    [&value](const v8::Local<v8::Object> object) {
+    return node_webrtc::From<v8::Local<v8::Object>>(value).FlatMap<MediaTrackConstraints>([&value](auto object) {
       return curry(MediaTrackConstraints::Create)
           % node_webrtc::From<MediaTrackConstraintSet>(value)
           * node_webrtc::GetOptional<std::vector<MediaTrackConstraintSet>>(object, "advanced", std::vector<MediaTrackConstraintSet>());
@@ -96,8 +94,7 @@ struct MediaStreamConstraints {
 template <>
 struct node_webrtc::Converter<v8::Local<v8::Value>, MediaStreamConstraints> {
   static node_webrtc::Validation<MediaStreamConstraints> Convert(const v8::Local<v8::Value> value) {
-    return node_webrtc::From<v8::Local<v8::Object>>(value).FlatMap<MediaStreamConstraints>(
-    [](const v8::Local<v8::Object> object) {
+    return node_webrtc::From<v8::Local<v8::Object>>(value).FlatMap<MediaStreamConstraints>([](auto object) {
       return node_webrtc::Validation<MediaStreamConstraints>::Join(curry(MediaStreamConstraints::Create)
               % node_webrtc::GetOptional<node_webrtc::Either<bool, MediaTrackConstraints>>(object, "audio")
               * node_webrtc::GetOptional<node_webrtc::Either<bool, MediaTrackConstraints>>(object, "video"));
@@ -113,11 +110,11 @@ NAN_METHOD(node_webrtc::GetUserMedia::GetUserMediaImpl) {
   auto factory = node_webrtc::PeerConnectionFactory::GetOrCreateDefault();
   auto stream = factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid());
 
-  auto audio = constraints.audio.Map([](const node_webrtc::Either<bool, MediaTrackConstraints> constraint) {
+  auto audio = constraints.audio.Map([](auto constraint) {
     return constraint.FromLeft(true);
   }).FromMaybe(false);
 
-  auto video = constraints.video.Map([](const node_webrtc::Either<bool, MediaTrackConstraints> constraint) {
+  auto video = constraints.video.Map([](auto constraint) {
     return constraint.FromLeft(true);
   }).FromMaybe(false);
 

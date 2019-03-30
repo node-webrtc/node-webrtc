@@ -64,7 +64,7 @@ class TestAudioDeviceModuleImpl
       done_rendering_(true, true),
       done_capturing_(true, true),
       stop_thread_(false) {
-    auto good_sample_rate = [](int sr) {
+    auto good_sample_rate = [](auto sr) {
       return sr == 8000 || sr == 16000 || sr == 32000 || sr == 44100 ||
           sr == 48000;
     };
@@ -285,7 +285,7 @@ class PulsedNoiseCapturerImpl final
     buffer->SetData(
         TestAudioDeviceModule::SamplesPerFrame(sampling_frequency_in_hz_) *
         num_channels_,
-    [&](rtc::ArrayView<int16_t> data) {
+    [&](auto data) {
       if (fill_with_zero_) {
         std::fill(data.begin(), data.end(), 0);
       } else {
@@ -336,7 +336,7 @@ class WavFileReader final : public TestAudioDeviceModule::Capturer {
     buffer->SetData(
         TestAudioDeviceModule::SamplesPerFrame(sampling_frequency_in_hz_) *
         num_channels_,
-    [&](rtc::ArrayView<int16_t> data) {
+    [&](auto data) {
       return wav_reader_->ReadSamples(data.size(), data.data());
     });
     return !buffer->empty();

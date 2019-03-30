@@ -187,7 +187,7 @@ class Validation {
    * @param tt a Validation for a Validation of T
    */
   static Validation<T> Join(const Validation<Validation<T>>& tt) {
-    return tt.template FlatMap<T>([](const Validation<T> t) { return t; });
+    return tt.template FlatMap<T>([](auto t) { return t; });
   }
 
   /**
