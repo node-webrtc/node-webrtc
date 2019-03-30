@@ -19,12 +19,14 @@
 #include "src/node/error_factory.h"
 #include "src/node/events.h"
 
-Nan::Persistent<v8::Function>& node_webrtc::RTCDataChannel::constructor() {
+namespace node_webrtc {
+
+Nan::Persistent<v8::Function>& RTCDataChannel::constructor() {
   static Nan::Persistent<v8::Function> constructor;
   return constructor;
 }
 
-node_webrtc::DataChannelObserver::DataChannelObserver(std::shared_ptr<node_webrtc::PeerConnectionFactory> factory,
+DataChannelObserver::DataChannelObserver(std::shared_ptr<PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel)
   : EventQueue()
   , _factory(std::move(factory))
@@ -32,27 +34,27 @@ node_webrtc::DataChannelObserver::DataChannelObserver(std::shared_ptr<node_webrt
   _jingleDataChannel->RegisterObserver(this);
 }
 
-void node_webrtc::DataChannelObserver::OnStateChange() {
+void DataChannelObserver::OnStateChange() {
   auto state = _jingleDataChannel->state();
-  Enqueue(node_webrtc::Callback1<node_webrtc::RTCDataChannel>::Create([state](node_webrtc::RTCDataChannel & channel) {
-    node_webrtc::RTCDataChannel::HandleStateChange(channel, state);
+  Enqueue(Callback1<RTCDataChannel>::Create([state](RTCDataChannel& channel) {
+    RTCDataChannel::HandleStateChange(channel, state);
   }));
 }
 
-void node_webrtc::DataChannelObserver::OnMessage(const webrtc::DataBuffer& buffer) {
-  Enqueue(node_webrtc::Callback1<node_webrtc::RTCDataChannel>::Create([buffer](node_webrtc::RTCDataChannel & channel) {
-    node_webrtc::RTCDataChannel::HandleMessage(channel, buffer);
+void DataChannelObserver::OnMessage(const webrtc::DataBuffer& buffer) {
+  Enqueue(Callback1<RTCDataChannel>::Create([buffer](RTCDataChannel& channel) {
+    RTCDataChannel::HandleMessage(channel, buffer);
   }));
 }
 
-static void requeue(node_webrtc::DataChannelObserver& observer, node_webrtc::RTCDataChannel& channel) {
+static void requeue(DataChannelObserver& observer, RTCDataChannel& channel) {
   while (auto event = observer.Dequeue()) {
     channel.Dispatch(std::move(event));
   }
 }
 
-node_webrtc::RTCDataChannel::RTCDataChannel(node_webrtc::DataChannelObserver* observer)
-  : node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>("RTCDataChannel", *this)
+RTCDataChannel::RTCDataChannel(node_webrtc::DataChannelObserver* observer)
+  : AsyncObjectWrapWithLoop<RTCDataChannel>("RTCDataChannel", *this)
   , _binaryType(BinaryType::kArrayBuffer)
   , _factory(observer->_factory)
   , _jingleDataChannel(observer->_jingleDataChannel) {
@@ -64,11 +66,11 @@ node_webrtc::RTCDataChannel::RTCDataChannel(node_webrtc::DataChannelObserver* ob
   delete observer;
 }
 
-node_webrtc::RTCDataChannel::~RTCDataChannel() {
+RTCDataChannel::~RTCDataChannel() {
   wrap()->Release(this);
 }
 
-void node_webrtc::RTCDataChannel::CleanupInternals() {
+void RTCDataChannel::CleanupInternals() {
   if (_jingleDataChannel == nullptr) {
     return;
   }
@@ -84,14 +86,14 @@ void node_webrtc::RTCDataChannel::CleanupInternals() {
   _jingleDataChannel = nullptr;
 }
 
-void node_webrtc::RTCDataChannel::OnPeerConnectionClosed() {
+void RTCDataChannel::OnPeerConnectionClosed() {
   if (_jingleDataChannel != nullptr) {
     CleanupInternals();
     Stop();
   }
 }
 
-NAN_METHOD(node_webrtc::RTCDataChannel::New) {
+NAN_METHOD(RTCDataChannel::New) {
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct the RTCDataChannel.");
   }
@@ -99,23 +101,23 @@ NAN_METHOD(node_webrtc::RTCDataChannel::New) {
   v8::Local<v8::External> _observer = v8::Local<v8::External>::Cast(info[0]);
   auto observer = static_cast<node_webrtc::DataChannelObserver*>(_observer->Value());
 
-  auto obj = new node_webrtc::RTCDataChannel(observer);
+  auto obj = new RTCDataChannel(observer);
   obj->Wrap(info.This());
 
   info.GetReturnValue().Set(info.This());
 }
 
-void node_webrtc::RTCDataChannel::OnStateChange() {
+void RTCDataChannel::OnStateChange() {
   auto state = _jingleDataChannel->state();
   if (state == webrtc::DataChannelInterface::kClosed) {
     CleanupInternals();
   }
-  Dispatch(node_webrtc::CreateCallback<node_webrtc::RTCDataChannel>([this, state]() {
-    node_webrtc::RTCDataChannel::HandleStateChange(*this, state);
+  Dispatch(CreateCallback<RTCDataChannel>([this, state]() {
+    RTCDataChannel::HandleStateChange(*this, state);
   }));
 }
 
-void node_webrtc::RTCDataChannel::HandleStateChange(node_webrtc::RTCDataChannel& channel, webrtc::DataChannelInterface::DataState state) {
+void RTCDataChannel::HandleStateChange(RTCDataChannel& channel, webrtc::DataChannelInterface::DataState state) {
   Nan::HandleScope scope;
   v8::Local<v8::Value> argv[1];
   if (state == webrtc::DataChannelInterface::kClosed) {
@@ -130,13 +132,13 @@ void node_webrtc::RTCDataChannel::HandleStateChange(node_webrtc::RTCDataChannel&
   }
 }
 
-void node_webrtc::RTCDataChannel::OnMessage(const webrtc::DataBuffer& buffer) {
-  Dispatch(node_webrtc::CreateCallback<node_webrtc::RTCDataChannel>([this, buffer]() {
-    node_webrtc::RTCDataChannel::HandleMessage(*this, buffer);
+void RTCDataChannel::OnMessage(const webrtc::DataBuffer& buffer) {
+  Dispatch(CreateCallback<RTCDataChannel>([this, buffer]() {
+    RTCDataChannel::HandleMessage(*this, buffer);
   }));
 }
 
-void node_webrtc::RTCDataChannel::HandleMessage(node_webrtc::RTCDataChannel& channel, const webrtc::DataBuffer& buffer) {
+void RTCDataChannel::HandleMessage(RTCDataChannel& channel, const webrtc::DataBuffer& buffer) {
   bool binary = buffer.binary;
   size_t size = buffer.size();
   std::unique_ptr<char[]> message = std::unique_ptr<char[]>(new char[size]);
@@ -158,12 +160,12 @@ void node_webrtc::RTCDataChannel::HandleMessage(node_webrtc::RTCDataChannel& cha
   channel.MakeCallback("onmessage", 1, argv);
 }
 
-NAN_METHOD(node_webrtc::RTCDataChannel::Send) {
-  auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>::Unwrap(info.This());
+NAN_METHOD(RTCDataChannel::Send) {
+  auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.This());
 
   if (self->_jingleDataChannel != nullptr) {
     if (self->_jingleDataChannel->state() != webrtc::DataChannelInterface::DataState::kOpen) {
-      return Nan::ThrowError(node_webrtc::ErrorFactory::CreateInvalidStateError("RTCDataChannel.readyState is not 'open'"));
+      return Nan::ThrowError(ErrorFactory::CreateInvalidStateError("RTCDataChannel.readyState is not 'open'"));
     }
     if (info[0]->IsString()) {
       v8::Local<v8::String> str = v8::Local<v8::String>::Cast(info[0]);
@@ -197,22 +199,22 @@ NAN_METHOD(node_webrtc::RTCDataChannel::Send) {
       self->_jingleDataChannel->Send(data_buffer);
     }
   } else {
-    return Nan::ThrowError(node_webrtc::ErrorFactory::CreateInvalidStateError("RTCDataChannel.readyState is not 'open'"));
+    return Nan::ThrowError(ErrorFactory::CreateInvalidStateError("RTCDataChannel.readyState is not 'open'"));
   }
 }
 
-NAN_METHOD(node_webrtc::RTCDataChannel::Close) {
-  auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>::Unwrap(info.This());
+NAN_METHOD(RTCDataChannel::Close) {
+  auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.This());
 
   if (self->_jingleDataChannel != nullptr) {
     self->_jingleDataChannel->Close();
   }
 }
 
-NAN_GETTER(node_webrtc::RTCDataChannel::GetBufferedAmount) {
+NAN_GETTER(RTCDataChannel::GetBufferedAmount) {
   (void) property;
 
-  auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.Holder());
 
   uint64_t buffered_amount = self->_jingleDataChannel != nullptr
       ? self->_jingleDataChannel->buffered_amount()
@@ -221,10 +223,10 @@ NAN_GETTER(node_webrtc::RTCDataChannel::GetBufferedAmount) {
   info.GetReturnValue().Set(Nan::New<v8::Number>(buffered_amount));
 }
 
-NAN_GETTER(node_webrtc::RTCDataChannel::GetId) {
+NAN_GETTER(RTCDataChannel::GetId) {
   (void) property;
 
-  auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.Holder());
 
   auto id = self->_jingleDataChannel
       ? self->_jingleDataChannel->id()
@@ -233,10 +235,10 @@ NAN_GETTER(node_webrtc::RTCDataChannel::GetId) {
   info.GetReturnValue().Set(Nan::New<v8::Number>(id));
 }
 
-NAN_GETTER(node_webrtc::RTCDataChannel::GetLabel) {
+NAN_GETTER(RTCDataChannel::GetLabel) {
   (void) property;
 
-  auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.Holder());
 
   std::string label = self->_jingleDataChannel != nullptr
       ? self->_jingleDataChannel->label()
@@ -245,10 +247,10 @@ NAN_GETTER(node_webrtc::RTCDataChannel::GetLabel) {
   info.GetReturnValue().Set(Nan::New(label).ToLocalChecked());
 }
 
-NAN_GETTER(node_webrtc::RTCDataChannel::GetMaxPacketLifeTime) {
+NAN_GETTER(RTCDataChannel::GetMaxPacketLifeTime) {
   (void) property;
 
-  auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.Holder());
 
   auto max_packet_life_time = self->_jingleDataChannel
       ? self->_jingleDataChannel->maxRetransmitTime()
@@ -257,10 +259,10 @@ NAN_GETTER(node_webrtc::RTCDataChannel::GetMaxPacketLifeTime) {
   info.GetReturnValue().Set(Nan::New(max_packet_life_time));
 }
 
-NAN_GETTER(node_webrtc::RTCDataChannel::GetMaxRetransmits) {
+NAN_GETTER(RTCDataChannel::GetMaxRetransmits) {
   (void) property;
 
-  auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.Holder());
 
   auto max_retransmits = self->_jingleDataChannel
       ? self->_jingleDataChannel->maxRetransmits()
@@ -269,10 +271,10 @@ NAN_GETTER(node_webrtc::RTCDataChannel::GetMaxRetransmits) {
   info.GetReturnValue().Set(Nan::New(max_retransmits));
 }
 
-NAN_GETTER(node_webrtc::RTCDataChannel::GetNegotiated) {
+NAN_GETTER(RTCDataChannel::GetNegotiated) {
   (void) property;
 
-  auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.Holder());
 
   auto negotiated = self->_jingleDataChannel
       ? self->_jingleDataChannel->negotiated()
@@ -281,10 +283,10 @@ NAN_GETTER(node_webrtc::RTCDataChannel::GetNegotiated) {
   info.GetReturnValue().Set(negotiated);
 }
 
-NAN_GETTER(node_webrtc::RTCDataChannel::GetOrdered) {
+NAN_GETTER(RTCDataChannel::GetOrdered) {
   (void) property;
 
-  auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.Holder());
 
   auto ordered = self->_jingleDataChannel
       ? self->_jingleDataChannel->ordered()
@@ -293,16 +295,16 @@ NAN_GETTER(node_webrtc::RTCDataChannel::GetOrdered) {
   info.GetReturnValue().Set(Nan::New(ordered));
 }
 
-NAN_GETTER(node_webrtc::RTCDataChannel::GetPriority) {
+NAN_GETTER(RTCDataChannel::GetPriority) {
   (void) property;
 
   info.GetReturnValue().Set(Nan::New("high").ToLocalChecked());
 }
 
-NAN_GETTER(node_webrtc::RTCDataChannel::GetProtocol) {
+NAN_GETTER(RTCDataChannel::GetProtocol) {
   (void) property;
 
-  auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.Holder());
 
   auto protocol = self->_jingleDataChannel
       ? self->_jingleDataChannel->protocol()
@@ -311,10 +313,10 @@ NAN_GETTER(node_webrtc::RTCDataChannel::GetProtocol) {
   info.GetReturnValue().Set(Nan::New(protocol).ToLocalChecked());
 }
 
-NAN_GETTER(node_webrtc::RTCDataChannel::GetReadyState) {
+NAN_GETTER(RTCDataChannel::GetReadyState) {
   (void) property;
 
-  auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.Holder());
 
   CONVERT_OR_THROW_AND_RETURN(self->_jingleDataChannel
       ? self->_jingleDataChannel->state()
@@ -325,49 +327,49 @@ NAN_GETTER(node_webrtc::RTCDataChannel::GetReadyState) {
   info.GetReturnValue().Set(state);
 }
 
-NAN_GETTER(node_webrtc::RTCDataChannel::GetBinaryType) {
+NAN_GETTER(RTCDataChannel::GetBinaryType) {
   (void) property;
 
-  auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.Holder());
 
   CONVERT_OR_THROW_AND_RETURN(self->_binaryType, binaryType, v8::Local<v8::Value>);
 
   info.GetReturnValue().Set(binaryType);
 }
 
-NAN_SETTER(node_webrtc::RTCDataChannel::SetBinaryType) {
+NAN_SETTER(RTCDataChannel::SetBinaryType) {
   (void) property;
 
-  auto self = node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.Holder());
 
   CONVERT_OR_THROW_AND_RETURN(value, binaryType, BinaryType);
 
   self->_binaryType = binaryType;
 }
 
-node_webrtc::Wrap <
-node_webrtc::RTCDataChannel*,
+Wrap <
+RTCDataChannel*,
 rtc::scoped_refptr<webrtc::DataChannelInterface>,
 node_webrtc::DataChannelObserver*
-> * node_webrtc::RTCDataChannel::wrap() {
+> * RTCDataChannel::wrap() {
   static auto wrap = new node_webrtc::Wrap <
-  node_webrtc::RTCDataChannel*,
+  RTCDataChannel*,
   rtc::scoped_refptr<webrtc::DataChannelInterface>,
   node_webrtc::DataChannelObserver*
-  > (node_webrtc::RTCDataChannel::Create);
+  > (RTCDataChannel::Create);
   return wrap;
 }
 
-node_webrtc::RTCDataChannel* node_webrtc::RTCDataChannel::Create(
+RTCDataChannel* RTCDataChannel::Create(
     node_webrtc::DataChannelObserver* observer,
     rtc::scoped_refptr<webrtc::DataChannelInterface>) {
   Nan::HandleScope scope;
   v8::Local<v8::Value> cargv = Nan::New<v8::External>(static_cast<void*>(observer));
-  auto channel = Nan::NewInstance(Nan::New(node_webrtc::RTCDataChannel::constructor()), 1, &cargv).ToLocalChecked();
-  return node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCDataChannel>::Unwrap(channel);
+  auto channel = Nan::NewInstance(Nan::New(RTCDataChannel::constructor()), 1, &cargv).ToLocalChecked();
+  return AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(channel);
 }
 
-void node_webrtc::RTCDataChannel::Init(v8::Handle<v8::Object> exports) {
+void RTCDataChannel::Init(v8::Handle<v8::Object> exports) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("RTCDataChannel").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -390,3 +392,5 @@ void node_webrtc::RTCDataChannel::Init(v8::Handle<v8::Object> exports) {
   constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("RTCDataChannel").ToLocalChecked(), tpl->GetFunction());
 }
+
+}  // namespace node_webrtc

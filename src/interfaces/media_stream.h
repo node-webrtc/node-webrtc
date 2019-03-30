@@ -13,14 +13,11 @@
 #include <webrtc/api/scoped_refptr.h>
 #include <v8.h>
 
+#include "src/converters/v8.h"
 #include "src/node/wrap.h"
 
-namespace webrtc {
-
-class MediaStreamInterface;
-class MediaStreamTrackInterface;
-
-}  // namespace webrc
+namespace webrtc { class MediaStreamInterface; }
+namespace webrtc { class MediaStreamTrackInterface; }
 
 namespace node_webrtc {
 
@@ -80,5 +77,7 @@ class MediaStream
   const rtc::scoped_refptr<webrtc::MediaStreamInterface> _stream;
   const bool _shouldReleaseFactory;
 };
+
+DECLARE_TO_AND_FROM_JS(MediaStream*)
 
 }  // namespace node_webrtc

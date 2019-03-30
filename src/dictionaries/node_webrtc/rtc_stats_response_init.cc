@@ -3,7 +3,6 @@
 #include <nan.h>
 #include <v8.h>
 
-#include "src/converters.h"
 #include "src/functional/validation.h"
 #include "src/interfaces/rtc_stats_response.h"
 

@@ -9,6 +9,7 @@
 #include <v8.h>
 
 #include "src/converters.h"
+#include "src/converters/v8.h"
 #include "src/dictionaries/node_webrtc/rtc_outh_credential.h"
 #include "src/enums/node_webrtc/rtc_ice_credential_type.h"
 #include "src/functional/either.h"

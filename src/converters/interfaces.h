@@ -1,47 +1,34 @@
-/* Copyright (c) 2019 The node-webrtc project authors. All rights reserved.
- *
- * Use of this source code is governed by a BSD-style license that can be found
- * in the LICENSE.md file in the root of the source tree. All contributing
- * project authors may be found in the AUTHORS file in the root of the source
- * tree.
- */
 #pragma once
 
-#include <v8.h>
+#include <nan.h>  // IWYU pragma: keep
+#include <v8.h>  // IWYU pragma: keep
 
-#include "src/converters.h"
-#include "src/functional/validation.h"
-
-namespace rtc {
-
-template <class T> class scoped_refptr;
-
-}  // namespace rtc
-
-namespace webrtc {
-
-class AudioTrackInterface;
-class VideoTrackInterface;
-
-}  // namespace webrtc
+#include "src/converters/v8.h"
+#include "src/functional/validation.h"  // IWYU pragma: keep
 
 namespace node_webrtc {
 
-class MediaStream;
-class MediaStreamTrack;
-class RTCRtpReceiver;
-class RTCRtpSender;
-class RTCRtpTransceiver;
+#define CONVERT_INTERFACE_TO_JS(IFACE, NAME, TO_FN) \
+  TO_JS_IMPL(IFACE*, value) { \
+    Nan::EscapableHandleScope scope; \
+    if (!value) { \
+      return Validation<v8::Local<v8::Value>>::Invalid(NAME " is null"); \
+    } \
+    return Pure(scope.Escape(value->TO_FN()).As<v8::Value>()); \
+  }
 
-DECLARE_TO_AND_FROM_JS(MediaStream*)
-DECLARE_TO_AND_FROM_JS(MediaStreamTrack*)
-DECLARE_TO_JS(RTCRtpReceiver*)
-DECLARE_TO_AND_FROM_JS(RTCRtpSender*)
-DECLARE_TO_JS(RTCRtpTransceiver*)
+// FIXME(mroberts): This is not safe.
+#define CONVERT_INTERFACE_FROM_JS(IFACE, NAME, FROM_FN) \
+  FROM_JS_IMPL(IFACE*, value) { \
+    auto isolate = Nan::GetCurrentContext()->GetIsolate(); \
+    auto tpl = IFACE::tpl().Get(isolate); \
+    return tpl->HasInstance(value) \
+        ? Pure(FROM_FN(value->ToObject())) \
+        : Validation<IFACE*>::Invalid("This is not an instance of " NAME); \
+  }
 
-DECLARE_CONVERTER(MediaStreamTrack*, rtc::scoped_refptr<webrtc::AudioTrackInterface>)
-DECLARE_CONVERTER(MediaStreamTrack*, rtc::scoped_refptr<webrtc::VideoTrackInterface>)
-DECLARE_FROM_JS(rtc::scoped_refptr<webrtc::AudioTrackInterface>)
-DECLARE_FROM_JS(rtc::scoped_refptr<webrtc::VideoTrackInterface>)
+#define CONVERT_INTERFACE_TO_AND_FROM_JS(IFACE, NAME, TO_FN, FROM_FN) \
+  CONVERT_INTERFACE_TO_JS(IFACE, NAME, TO_FN) \
+  CONVERT_INTERFACE_FROM_JS(IFACE, NAME, FROM_FN)
 
-}  // namespace node_webrtc
+} // namespace node_webrtc

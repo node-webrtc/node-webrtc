@@ -16,16 +16,18 @@
 #include "src/functional/maybe.h"
 #include "src/interfaces/media_stream_track.h"
 
-Nan::Persistent<v8::Function>& node_webrtc::RTCAudioSource::constructor() {
+namespace node_webrtc {
+
+Nan::Persistent<v8::Function>& RTCAudioSource::constructor() {
   static Nan::Persistent<v8::Function> constructor;
   return constructor;
 }
 
-node_webrtc::RTCAudioSource::RTCAudioSource() {
+RTCAudioSource::RTCAudioSource() {
   _source = new rtc::RefCountedObject<RTCAudioTrackSource>();
 }
 
-NAN_METHOD(node_webrtc::RTCAudioSource::New) {
+NAN_METHOD(RTCAudioSource::New) {
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct an RTCAudioSource.");
   }
@@ -36,24 +38,24 @@ NAN_METHOD(node_webrtc::RTCAudioSource::New) {
   info.GetReturnValue().Set(info.This());
 }
 
-NAN_METHOD(node_webrtc::RTCAudioSource::CreateTrack) {
-  auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCAudioSource>(info.Holder());
+NAN_METHOD(RTCAudioSource::CreateTrack) {
+  auto self = Nan::ObjectWrap::Unwrap<RTCAudioSource>(info.Holder());
 
   // TODO(mroberts): Again, we have some implicit factory we are threading around. How to handle?
-  auto factory = node_webrtc::PeerConnectionFactory::GetOrCreateDefault();
+  auto factory = PeerConnectionFactory::GetOrCreateDefault();
   auto track = factory->factory()->CreateAudioTrack(rtc::CreateRandomUuid(), self->_source);
-  auto result = node_webrtc::MediaStreamTrack::wrap()->GetOrCreate(factory, track);
+  auto result = MediaStreamTrack::wrap()->GetOrCreate(factory, track);
 
   info.GetReturnValue().Set(result->ToObject());
 }
 
-NAN_METHOD(node_webrtc::RTCAudioSource::OnData) {
-  auto self = Nan::ObjectWrap::Unwrap<node_webrtc::RTCAudioSource>(info.Holder());
-  CONVERT_ARGS_OR_THROW_AND_RETURN(dict, node_webrtc::RTCOnDataEventDict)
+NAN_METHOD(RTCAudioSource::OnData) {
+  auto self = Nan::ObjectWrap::Unwrap<RTCAudioSource>(info.Holder());
+  CONVERT_ARGS_OR_THROW_AND_RETURN(dict, RTCOnDataEventDict)
   self->_source->PushData(dict);
 }
 
-void node_webrtc::RTCAudioSource::Init(v8::Handle<v8::Object> exports) {
+void RTCAudioSource::Init(v8::Handle<v8::Object> exports) {
   auto tpl = Nan::New<v8::FunctionTemplate>(New);
   tpl->SetClassName(Nan::New("RTCAudioSource").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -64,3 +66,5 @@ void node_webrtc::RTCAudioSource::Init(v8::Handle<v8::Object> exports) {
   constructor().Reset(tpl->GetFunction());
   exports->Set(Nan::New("RTCAudioSource").ToLocalChecked(), tpl->GetFunction());
 }
+
+}  // namespace node_webrtc

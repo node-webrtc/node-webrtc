@@ -3,7 +3,7 @@
 #include <nan.h>
 #include <v8.h>
 
-#include "src/converters.h"
+#include "src/converters/v8.h"
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
 

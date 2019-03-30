@@ -20,10 +20,83 @@
 #include <v8.h>
 
 #include "src/converters.h"
+#include "src/converters/macros.h"
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
 
 namespace node_webrtc {
+
+#define CONVERT_OR_THROW_AND_RETURN(I, O, T) \
+  auto NODE_WEBRTC_UNIQUE_NAME(validation) = Validation<detail::argument_type<void(T)>::type>::Invalid(std::vector<Error>()); \
+  { \
+    Nan::TryCatch tc; \
+    NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(I); \
+    if (tc.HasCaught()) { \
+      tc.ReThrow(); \
+      return; \
+    } \
+  } \
+  if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
+    auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
+    return Nan::ThrowTypeError(Nan::New(error).ToLocalChecked()); \
+  } \
+  auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
+
+#define CONVERT_OR_REJECT_AND_RETURN(R, I, O, T) \
+  auto NODE_WEBRTC_UNIQUE_NAME(validation) = Validation<detail::argument_type<void(T)>::type>::Invalid(std::vector<Error>()); \
+  { \
+    Nan::TryCatch tc; \
+    NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(I); \
+    if (tc.HasCaught()) { \
+      R->Resolve(Nan::GetCurrentContext(), tc.Exception()).IsNothing(); \
+      return; \
+    } \
+  } \
+  if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
+    auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
+    R->Reject(Nan::GetCurrentContext(), Nan::TypeError(Nan::New(error).ToLocalChecked())).IsNothing(); \
+    return; \
+  } \
+  auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
+
+/**
+ * This macro declares a node_webrtc::Converter from T to v8::Local<v8::Value>.
+ *
+ * @param T the input type
+ */
+#define DECLARE_TO_JS(T) DECLARE_CONVERTER(T, v8::Local<v8::Value>)
+
+/**
+ * This macro declares a node_webrtc::Converter from v8::Local<v8::Value> to T.
+ *
+ * @param T the output type
+ */
+#define DECLARE_FROM_JS(T) DECLARE_CONVERTER(v8::Local<v8::Value>, T)
+
+/**
+ * This macro declares node_webrtc::Converter instances between T and v8::Local<v8::Value>.
+ *
+ * @param T the type to convert
+ */
+#define DECLARE_TO_AND_FROM_JS(T) \
+  DECLARE_TO_JS(T) \
+  DECLARE_FROM_JS(T)
+
+/**
+ * This macro simplifies defining a node_webrtc::Converter from T to v8::Local<v8::Value>.
+ *
+ * @param T the input type
+ * @param V the name of the input variable to convert
+ */
+#define TO_JS_IMPL(T, V) CONVERTER_IMPL(T, v8::Local<v8::Value>, V)
+
+/**
+ * This macro simplifies defining a node_webrtc::Converter from v8::Local<v8::Value> to T.
+ *
+ * @param T the output type
+ * @param V the name of the input variable to convert
+ */
+#define FROM_JS_IMPL(T, V) CONVERTER_IMPL(v8::Local<v8::Value>, T, V)
 
 // TODO(mroberts): The following could probably all be moved into a v8.cc file.
 

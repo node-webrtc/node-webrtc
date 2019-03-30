@@ -2,7 +2,7 @@
 
 #include <v8.h>
 
-#include "src/converters.h"
+#include "src/converters/v8.h"
 #include "src/functional/validation.h"
 
 namespace node_webrtc {

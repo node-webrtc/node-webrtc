@@ -14,27 +14,28 @@
 
 #include <v8.h>
 
+#include "src/converters.h"
+#include "src/converters/arguments.h"
+#include "src/dictionaries/node_webrtc/rtc_on_data_event_dict.h"
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
-#include "src/converters.h"
-#include "src/converters/arguments.h"  // IWYU pragma: keep
-#include "src/converters/interfaces.h"  // IWYU pragma: keep
-#include "src/dictionaries/node_webrtc/rtc_on_data_event_dict.h"
-#include "src/node/error.h"
+#include "src/interfaces/media_stream_track.h"  // IWYU pragma: keep
 #include "src/node/events.h"
 
-Nan::Persistent<v8::FunctionTemplate>& node_webrtc::RTCAudioSink::tpl() {
+namespace node_webrtc {
+
+Nan::Persistent<v8::FunctionTemplate>& RTCAudioSink::tpl() {
   static Nan::Persistent<v8::FunctionTemplate> tpl;
   return tpl;
 }
 
-node_webrtc::RTCAudioSink::RTCAudioSink(rtc::scoped_refptr<webrtc::AudioTrackInterface> track)
-  : node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCAudioSink>("RTCAudioSink", *this)
+RTCAudioSink::RTCAudioSink(rtc::scoped_refptr<webrtc::AudioTrackInterface> track)
+  : AsyncObjectWrapWithLoop<RTCAudioSink>("RTCAudioSink", *this)
   , _track(std::move(track)) {
   _track->AddSink(this);
 }
 
-NAN_METHOD(node_webrtc::RTCAudioSink::New) {
+NAN_METHOD(RTCAudioSink::New) {
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct an RTCAudioSink.");
   }
@@ -44,27 +45,27 @@ NAN_METHOD(node_webrtc::RTCAudioSink::New) {
   info.GetReturnValue().Set(info.This());
 }
 
-NAN_GETTER(node_webrtc::RTCAudioSink::GetStopped) {
+NAN_GETTER(RTCAudioSink::GetStopped) {
   (void) property;
-  auto self = AsyncObjectWrapWithLoop<node_webrtc::RTCAudioSink>::Unwrap(info.Holder());
+  auto self = AsyncObjectWrapWithLoop<RTCAudioSink>::Unwrap(info.Holder());
   info.GetReturnValue().Set(self->_stopped);
 }
 
-void node_webrtc::RTCAudioSink::Stop() {
+void RTCAudioSink::Stop() {
   if (_track) {
     _stopped = true;
     _track->RemoveSink(this);
     _track = nullptr;
   }
-  node_webrtc::AsyncObjectWrapWithLoop<node_webrtc::RTCAudioSink>::Stop();
+  AsyncObjectWrapWithLoop<RTCAudioSink>::Stop();
 }
 
-NAN_METHOD(node_webrtc::RTCAudioSink::JsStop) {
-  auto self = AsyncObjectWrapWithLoop<node_webrtc::RTCAudioSink>::Unwrap(info.Holder());
+NAN_METHOD(RTCAudioSink::JsStop) {
+  auto self = AsyncObjectWrapWithLoop<RTCAudioSink>::Unwrap(info.Holder());
   self->Stop();
 }
 
-void node_webrtc::RTCAudioSink::OnData(
+void RTCAudioSink::OnData(
     const void* audio_data,
     int bits_per_sample,
     int sample_rate,
@@ -78,7 +79,7 @@ void node_webrtc::RTCAudioSink::OnData(
   }
   memcpy(audio_data_copy.get(), audio_data, byte_length);
 
-  Dispatch(node_webrtc::CreateCallback<node_webrtc::RTCAudioSink>([
+  Dispatch(CreateCallback<RTCAudioSink>([
              this,
              audio_data_copy = std::move(audio_data_copy),
              bits_per_sample,
@@ -86,16 +87,16 @@ void node_webrtc::RTCAudioSink::OnData(
              number_of_channels,
              number_of_frames
   ]() mutable {
-    node_webrtc::RTCOnDataEventDict dict({
+    RTCOnDataEventDict dict({
       audio_data_copy.release(),
       static_cast<uint8_t>(bits_per_sample),
       static_cast<uint16_t>(sample_rate),
       static_cast<uint8_t>(number_of_channels),
-      node_webrtc::MakeJust<uint16_t>(static_cast<uint16_t>(number_of_frames))
+      MakeJust<uint16_t>(static_cast<uint16_t>(number_of_frames))
     });
 
     Nan::HandleScope scope;
-    auto maybeValue = node_webrtc::From<v8::Local<v8::Value>>(dict);
+    auto maybeValue = From<v8::Local<v8::Value>>(dict);
     if (maybeValue.IsInvalid()) {
       // TODO(mroberts): Should raise an error; although this really shouldn't happen.
       // HACK(mroberts): I'd rather we use a smart pointer.
@@ -109,12 +110,14 @@ void node_webrtc::RTCAudioSink::OnData(
   }));
 }
 
-void node_webrtc::RTCAudioSink::Init(v8::Handle<v8::Object> exports) {
+void RTCAudioSink::Init(v8::Handle<v8::Object> exports) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  node_webrtc::RTCAudioSink::tpl().Reset(tpl);
+  RTCAudioSink::tpl().Reset(tpl);
   tpl->SetClassName(Nan::New("RTCAudioSink").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("stopped").ToLocalChecked(), GetStopped, nullptr);
   Nan::SetPrototypeMethod(tpl, "stop", JsStop);
   exports->Set(Nan::New("RTCAudioSink").ToLocalChecked(), tpl->GetFunction());
 }
+
+}  // namespace node_webrtc

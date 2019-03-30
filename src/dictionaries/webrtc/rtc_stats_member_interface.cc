@@ -9,7 +9,6 @@
 #include <v8.h>
 
 #include "src/converters.h"
-#include "src/converters/v8.h"  // IWYU pragma: keep
 
 namespace node_webrtc {
 

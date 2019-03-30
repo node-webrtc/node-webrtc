@@ -6,6 +6,7 @@
 #include <webrtc/api/stats/rtc_stats_report.h>
 #include <v8.h>
 
+#include "src/converters.h"
 #include "src/dictionaries/webrtc/rtc_stats.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
 

@@ -14,39 +14,41 @@
 #include "src/dictionaries/node_webrtc/image_data.h"
 #include "src/node/error.h"
 
-node_webrtc::Validation<node_webrtc::I420ImageData> node_webrtc::ImageData::toI420() const {
-  return node_webrtc::I420ImageData::Create(*this);
+namespace node_webrtc {
+
+Validation<I420ImageData> ImageData::toI420() const {
+  return I420ImageData::Create(*this);
 }
 
-node_webrtc::Validation<node_webrtc::RgbaImageData> node_webrtc::ImageData::toRgba() const {
-  return node_webrtc::RgbaImageData::Create(*this);
+Validation<RgbaImageData> ImageData::toRgba() const {
+  return RgbaImageData::Create(*this);
 }
 
-node_webrtc::Validation<node_webrtc::I420ImageData> node_webrtc::I420ImageData::Create(const node_webrtc::ImageData imageData) {
+Validation<I420ImageData> I420ImageData::Create(const ImageData imageData) {
   auto expectedByteLength = static_cast<size_t>(imageData.width * imageData.height * 1.5);
   auto actualByteLength = imageData.contents.ByteLength();
   if (actualByteLength != expectedByteLength) {
     auto error = "Expected a .byteLength of " + std::to_string(expectedByteLength) + ", not " +
         std::to_string(actualByteLength);
-    return node_webrtc::Validation<node_webrtc::I420ImageData>::Invalid(error);
+    return Validation<I420ImageData>::Invalid(error);
   }
-  node_webrtc::I420ImageData i420ImageData(imageData);
-  return node_webrtc::Pure(i420ImageData);
+  I420ImageData i420ImageData(imageData);
+  return Pure(i420ImageData);
 }
 
-node_webrtc::Validation<node_webrtc::RgbaImageData> node_webrtc::RgbaImageData::Create(const node_webrtc::ImageData imageData) {
+Validation<RgbaImageData> RgbaImageData::Create(const ImageData imageData) {
   auto expectedByteLength = static_cast<size_t>(imageData.width * imageData.height * 4);
   auto actualByteLength = imageData.contents.ByteLength();
   if (actualByteLength != expectedByteLength) {
     auto error = "Expected a .byteLength of " + std::to_string(expectedByteLength) + ", not " +
         std::to_string(actualByteLength);
-    return node_webrtc::Validation<node_webrtc::RgbaImageData>::Invalid(error);
+    return Validation<RgbaImageData>::Invalid(error);
   }
-  node_webrtc::RgbaImageData rgbaImageData(imageData);
-  return node_webrtc::Pure(rgbaImageData);
+  RgbaImageData rgbaImageData(imageData);
+  return Pure(rgbaImageData);
 }
 
-NAN_METHOD(node_webrtc::I420Helpers::RgbaToI420) {
+NAN_METHOD(I420Helpers::RgbaToI420) {
   CONVERT_ARGS_OR_THROW_AND_RETURN(pair, std::tuple<RgbaImageData COMMA I420ImageData>);
 
   RgbaImageData rgbaFrame = std::get<0>(pair);
@@ -71,7 +73,7 @@ NAN_METHOD(node_webrtc::I420Helpers::RgbaToI420) {
   );
 }
 
-NAN_METHOD(node_webrtc::I420Helpers::I420ToRgba) {
+NAN_METHOD(I420Helpers::I420ToRgba) {
   CONVERT_ARGS_OR_THROW_AND_RETURN(pair, std::tuple<I420ImageData COMMA RgbaImageData>);
 
   I420ImageData i420Frame = std::get<0>(pair);
@@ -96,7 +98,9 @@ NAN_METHOD(node_webrtc::I420Helpers::I420ToRgba) {
   );
 }
 
-void node_webrtc::I420Helpers::Init(v8::Handle<v8::Object> exports) {
+void I420Helpers::Init(v8::Handle<v8::Object> exports) {
   Nan::SetMethod(exports, "rgbaToI420", RgbaToI420);
   Nan::SetMethod(exports, "i420ToRgba", I420ToRgba);
 }
+
+}  // namespace node_webrtc

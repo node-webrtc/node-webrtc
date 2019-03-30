@@ -12,29 +12,31 @@
 
 #include <v8.h>
 
-Nan::Persistent<v8::Function>& node_webrtc::LegacyStatsReport::constructor() {
+namespace node_webrtc {
+
+Nan::Persistent<v8::Function>& LegacyStatsReport::constructor() {
   static Nan::Persistent<v8::Function> constructor;
   return constructor;
 }
 
-NAN_METHOD(node_webrtc::LegacyStatsReport::New) {
+NAN_METHOD(LegacyStatsReport::New) {
   if (info.Length() != 2 || !info[0]->IsExternal() || !info[1]->IsExternal()) {
-    return Nan::ThrowTypeError("You cannot construct an node_webrtc::LegacyStatsReport");
+    return Nan::ThrowTypeError("You cannot construct an LegacyStatsReport");
   }
 
   auto timestamp = static_cast<double*>(v8::Local<v8::External>::Cast(info[0])->Value());
   auto stats = static_cast<std::map<std::string, std::string>*>(v8::Local<v8::External>::Cast(info[1])->Value());
 
-  auto obj = new node_webrtc::LegacyStatsReport(*timestamp, *stats);
+  auto obj = new LegacyStatsReport(*timestamp, *stats);
   obj->Wrap(info.This());
 
   info.GetReturnValue().Set(info.This());
 }
 
-NAN_METHOD(node_webrtc::LegacyStatsReport::names) {
+NAN_METHOD(LegacyStatsReport::names) {
   Nan::HandleScope scope;
 
-  auto self = Nan::ObjectWrap::Unwrap<node_webrtc::LegacyStatsReport>(info.This());
+  auto self = Nan::ObjectWrap::Unwrap<LegacyStatsReport>(info.This());
   v8::Local<v8::Array> names = Nan::New<v8::Array>(self->_stats.size());
 
   uint32_t i = 0;
@@ -46,10 +48,10 @@ NAN_METHOD(node_webrtc::LegacyStatsReport::names) {
   info.GetReturnValue().Set(names);
 }
 
-NAN_METHOD(node_webrtc::LegacyStatsReport::stat) {
+NAN_METHOD(LegacyStatsReport::stat) {
   Nan::HandleScope scope;
 
-  auto self = Nan::ObjectWrap::Unwrap<node_webrtc::LegacyStatsReport>(info.This());
+  auto self = Nan::ObjectWrap::Unwrap<LegacyStatsReport>(info.This());
   auto requested = std::string(*v8::String::Utf8Value(info[0]->ToString()));
 
   v8::Local<v8::Value> found = Nan::Undefined();
@@ -63,35 +65,35 @@ NAN_METHOD(node_webrtc::LegacyStatsReport::stat) {
   info.GetReturnValue().Set(found);
 }
 
-NAN_GETTER(node_webrtc::LegacyStatsReport::GetTimestamp) {
+NAN_GETTER(LegacyStatsReport::GetTimestamp) {
   (void) property;
 
-  auto self = Nan::ObjectWrap::Unwrap<node_webrtc::LegacyStatsReport>(info.Holder());
+  auto self = Nan::ObjectWrap::Unwrap<LegacyStatsReport>(info.Holder());
 
   info.GetReturnValue().Set(Nan::New<v8::Number>(self->_timestamp));
 }
 
-NAN_GETTER(node_webrtc::LegacyStatsReport::GetType) {
+NAN_GETTER(LegacyStatsReport::GetType) {
   (void) property;
 
-  auto self = Nan::ObjectWrap::Unwrap<node_webrtc::LegacyStatsReport>(info.Holder());
+  auto self = Nan::ObjectWrap::Unwrap<LegacyStatsReport>(info.Holder());
   auto type = self->_stats.find("type")->second;
 
   info.GetReturnValue().Set(Nan::New<v8::String>(type).ToLocalChecked());
 }
 
-node_webrtc::LegacyStatsReport* node_webrtc::LegacyStatsReport::Create(double timestamp, const std::map<std::string, std::string>& stats) {
+LegacyStatsReport* LegacyStatsReport::Create(double timestamp, const std::map<std::string, std::string>& stats) {
   Nan::HandleScope scope;
   v8::Local<v8::Value> cargv[2];
   cargv[0] = Nan::New<v8::External>(static_cast<void*>(&timestamp));
   cargv[1] = Nan::New<v8::External>(const_cast<void*>(static_cast<const void*>(&stats)));
-  auto report = Nan::NewInstance(Nan::New(node_webrtc::LegacyStatsReport::constructor()), 2, cargv).ToLocalChecked();
-  return Nan::ObjectWrap::Unwrap<node_webrtc::LegacyStatsReport>(report);
+  auto report = Nan::NewInstance(Nan::New(LegacyStatsReport::constructor()), 2, cargv).ToLocalChecked();
+  return Nan::ObjectWrap::Unwrap<LegacyStatsReport>(report);
 }
 
-void node_webrtc::LegacyStatsReport::Init(v8::Handle<v8::Object> exports) {
+void LegacyStatsReport::Init(v8::Handle<v8::Object> exports) {
   v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate> (New);
-  tpl->SetClassName(Nan::New("node_webrtc::LegacyStatsReport").ToLocalChecked());
+  tpl->SetClassName(Nan::New("LegacyStatsReport").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   Nan::SetPrototypeMethod(tpl, "names", names);
@@ -101,5 +103,7 @@ void node_webrtc::LegacyStatsReport::Init(v8::Handle<v8::Object> exports) {
   Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("type").ToLocalChecked(), GetType, nullptr);
 
   constructor().Reset(tpl->GetFunction());
-  exports->Set(Nan::New("node_webrtc::LegacyStatsReport").ToLocalChecked(), tpl->GetFunction());
+  exports->Set(Nan::New("LegacyStatsReport").ToLocalChecked(), tpl->GetFunction());
 }
+
+}  // namespace node_webrtc

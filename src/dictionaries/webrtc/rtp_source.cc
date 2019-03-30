@@ -8,6 +8,8 @@
 
 #include "src/functional/validation.h"
 
+namespace node_webrtc {
+
 TO_JS_IMPL(webrtc::RtpSource, source) {
   Nan::EscapableHandleScope scope;
   auto object = Nan::New<v8::Object>();
@@ -16,3 +18,4 @@ TO_JS_IMPL(webrtc::RtpSource, source) {
   return Pure(scope.Escape(object).As<v8::Value>());
 }
 
+}  // namespace node_webrtc

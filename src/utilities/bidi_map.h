@@ -79,7 +79,7 @@ class BidiMap {
    * @return Nothing if the key was not present
    */
   Maybe<V> remove(K key) {
-    return [this, key](V value) {
+    return [this, key](auto value) {
       this->_keyToValue.erase(key);
       this->_valueToKey.erase(value);
       return value;
@@ -135,7 +135,7 @@ class BidiMap {
    * @return Nothing if the value was not present
    */
   Maybe<K> reverseRemove(V value) {
-    return [this, value](K key) {
+    return [this, value](auto key) {
       this->_keyToValue.erase(key);
       this->_valueToKey.erase(value);
       return key;

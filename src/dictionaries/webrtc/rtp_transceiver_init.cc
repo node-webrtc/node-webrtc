@@ -11,9 +11,6 @@
 #include "src/functional/validation.h"
 #include "src/interfaces/media_stream.h"
 
-// TODO(mroberts): Remove me.
-#include "src/converters/interfaces.h"  // IWYU pragma: keep
-
 namespace node_webrtc {
 
 #define RTP_TRANSCEIVER_INIT_FN CreateRtpTransceiverInit

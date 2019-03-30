@@ -83,7 +83,6 @@ class RTCDataChannel
   static NAN_GETTER(GetBinaryType);
   static NAN_GETTER(GetReadyState);
   static NAN_SETTER(SetBinaryType);
-  static NAN_SETTER(ReadOnly);
 
   void CleanupInternals();
 

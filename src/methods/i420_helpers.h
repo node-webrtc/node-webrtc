@@ -14,7 +14,6 @@
 
 namespace node_webrtc {
 
-
 class I420Helpers {
  public:
   static void Init(v8::Handle<v8::Object> exports);

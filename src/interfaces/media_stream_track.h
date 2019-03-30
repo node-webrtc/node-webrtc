@@ -14,6 +14,8 @@
 #include <webrtc/api/scoped_refptr.h>
 #include <v8.h>
 
+#include "src/converters.h"
+#include "src/converters/v8.h"
 #include "src/node/async_object_wrap_with_loop.h"
 #include "src/node/wrap.h"
 
@@ -77,5 +79,11 @@ class MediaStreamTrack
   const std::shared_ptr<PeerConnectionFactory> _factory;
   const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> _track;
 };
+
+DECLARE_CONVERTER(MediaStreamTrack*, rtc::scoped_refptr<webrtc::AudioTrackInterface>)
+DECLARE_CONVERTER(MediaStreamTrack*, rtc::scoped_refptr<webrtc::VideoTrackInterface>)
+DECLARE_FROM_JS(rtc::scoped_refptr<webrtc::AudioTrackInterface>)
+DECLARE_FROM_JS(rtc::scoped_refptr<webrtc::VideoTrackInterface>)
+DECLARE_TO_AND_FROM_JS(MediaStreamTrack*)
 
 }  // namespace node_webrtc
