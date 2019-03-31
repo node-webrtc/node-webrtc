@@ -40,9 +40,9 @@ _curry<std::function<R(T, Ts...)>> {
   const type result;
 
   explicit _curry(std::function<R(T, Ts...)> fun): result(
-        [=](const T & t) {
+        [ = ](const T & t) {
     return _curry<std::function<R(Ts...)>>(
-    [=](const Ts & ...ts) {
+    [ = ](const Ts & ...ts) {
       return fun(t, ts...);
     }
         ).result;

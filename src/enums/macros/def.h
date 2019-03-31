@@ -2,15 +2,15 @@
 
 namespace node_webrtc {
 
-#define SUPPORTED(ENUM, VALUE, STRING) VALUE,
-#define UNSUPPORTED(ENUM, VALUE, STRING, ERROR) VALUE,
+#define ENUM_SUPPORTED(ENUM, VALUE, STRING) VALUE,
+#define ENUM_UNSUPPORTED(ENUM, VALUE, STRING, ERROR) VALUE,
 
 enum ENUM() {
   ENUM(_LIST)
 };
 
-#undef SUPPORTED
-#undef UNSUPPORTED
+#undef ENUM_SUPPORTED
+#undef ENUM_UNSUPPORTED
 
 }  // namespace webrtc
 

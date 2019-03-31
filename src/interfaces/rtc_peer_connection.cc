@@ -53,13 +53,6 @@
 #include "src/node/events.h"
 #include "src/node/utility.h"
 
-namespace webrtc {
-
-class SessionDescriptionInterface;
-struct DataChannelInit;
-
-}  // namespace webrtc
-
 namespace node_webrtc {
 
 Nan::Persistent<v8::Function>& RTCPeerConnection::constructor() {

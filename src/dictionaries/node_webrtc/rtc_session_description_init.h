@@ -14,8 +14,8 @@ namespace webrtc { class SessionDescriptionInterface; }
 
 #define RTC_SESSION_DESCRIPTION_INIT RTCSessionDescriptionInit
 #define RTC_SESSION_DESCRIPTION_INIT_LIST \
-  REQUIRED(RTCSdpType, type, "type") \
-  DEFAULT(std::string, sdp, "sdp", "")
+  DICT_REQUIRED(RTCSdpType, type, "type") \
+  DICT_DEFAULT(std::string, sdp, "sdp", "")
 
 #define DICT(X) RTC_SESSION_DESCRIPTION_INIT ## X
 #include "src/dictionaries/macros/def.h"

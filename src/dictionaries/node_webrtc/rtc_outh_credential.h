@@ -8,8 +8,8 @@
 
 #define RTC_OAUTH_CREDENTIAL RTCOAuthCredential
 #define RTC_OAUTH_CREDENTIAL_LIST \
-  REQUIRED(std::string, macKey, "macKey") \
-  REQUIRED(std::string, accessToken, "accessToken")
+  DICT_REQUIRED(std::string, macKey, "macKey") \
+  DICT_REQUIRED(std::string, accessToken, "accessToken")
 
 #define DICT(X) RTC_OAUTH_CREDENTIAL ## X
 #include "src/dictionaries/macros/def.h"
