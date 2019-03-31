@@ -7,12 +7,12 @@
 
 namespace node_webrtc {
 
-#define ENUM_SUPPORTED(ENUM, VALUE, STRING) \
-  case ENUM::VALUE: \
+#define ENUM_SUPPORTED(VALUE, STRING) \
+  case VALUE: \
   return Pure<std::string>(STRING);
 
-#define ENUM_UNSUPPORTED(ENUM, VALUE, STRING, ERROR) \
-  case ENUM::VALUE: \
+#define ENUM_UNSUPPORTED(VALUE, STRING, ERROR) \
+  case VALUE: \
   return Validation<std::string>::Invalid(ERROR);
 
 CONVERTER_IMPL(ENUM(), std::string, value) {
@@ -26,14 +26,14 @@ CONVERT_VIA(v8::Local<v8::Value>, std::string, ENUM())
 #undef ENUM_SUPPORTED
 #undef ENUM_UNSUPPORTED
 
-#define ENUM_SUPPORTED(ENUM, VALUE, STRING) \
+#define ENUM_SUPPORTED(VALUE, STRING) \
   if (value == STRING) { \
-    return Pure(ENUM::VALUE); \
+    return Pure(VALUE); \
   }
 
-#define ENUM_UNSUPPORTED(ENUM, VALUE, STRING, ERROR) \
+#define ENUM_UNSUPPORTED(VALUE, STRING, ERROR) \
   if (value == STRING) { \
-    return Validation<ENUM>::Invalid(ERROR); \
+    return Validation<decltype(VALUE)>::Invalid(ERROR); \
   }
 
 CONVERTER_IMPL(std::string, ENUM(), value) {

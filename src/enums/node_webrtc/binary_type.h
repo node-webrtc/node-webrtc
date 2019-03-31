@@ -5,8 +5,8 @@
 #define BINARY_TYPE BinaryType
 #define BINARY_TYPE_NAME "BinaryType"
 #define BINARY_TYPE_LIST \
-  ENUM_UNSUPPORTED(BINARY_TYPE, kBlob, "blob", "\"blob\" is not supported; see TODO") \
-  ENUM_SUPPORTED(BINARY_TYPE, kArrayBuffer, "arraybuffer")
+  ENUM_UNSUPPORTED(kBlob, "blob", "\"blob\" is not supported; see TODO") \
+  ENUM_SUPPORTED(kArrayBuffer, "arraybuffer")
 
 #define ENUM(X) BINARY_TYPE ## X
 #include "src/enums/macros/def.h"
