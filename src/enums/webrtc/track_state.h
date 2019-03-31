@@ -7,8 +7,8 @@
 #define TRACK_STATE webrtc::MediaStreamTrackInterface::TrackState
 #define TRACK_STATE_NAME "MediaStreamTrackState"
 #define TRACK_STATE_LIST \
-  ENUM_SUPPORTED(TRACK_STATE, kEnded, "ended") \
-  ENUM_SUPPORTED(TRACK_STATE, kLive, "live")
+  ENUM_SUPPORTED(TRACK_STATE::kEnded, "ended") \
+  ENUM_SUPPORTED(TRACK_STATE::kLive, "live")
 
 #define ENUM(X) TRACK_STATE ## X
 #include "src/enums/macros/decls.h"
