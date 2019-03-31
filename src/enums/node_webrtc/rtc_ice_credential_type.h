@@ -5,8 +5,8 @@
 #define RTC_ICE_CREDENTIAL_TYPE RTCIceCredentialType
 #define RTC_ICE_CREDENTIAL_TYPE_NAME "RTCIceCredentialType"
 #define RTC_ICE_CREDENTIAL_TYPE_LIST \
-  SUPPORTED(RTC_ICE_CREDENTIAL_TYPE, kPassword, "password") \
-  SUPPORTED(RTC_ICE_CREDENTIAL_TYPE, kOAuth, "oauth")
+  ENUM_SUPPORTED(RTC_ICE_CREDENTIAL_TYPE, kPassword, "password") \
+  ENUM_SUPPORTED(RTC_ICE_CREDENTIAL_TYPE, kOAuth, "oauth")
 
 #define ENUM(X) RTC_ICE_CREDENTIAL_TYPE ## X
 #include "src/enums/macros/def.h"

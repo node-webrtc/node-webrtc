@@ -2,9 +2,9 @@
 
 #include "src/functional/maybe.h"
 
-#define REQUIRED(TYPE, VAR, PROP) TYPE VAR;
-#define OPTIONAL(TYPE, VAR, PROP) Maybe<TYPE> VAR;
-#define DEFAULT(TYPE, VAR, PROP, DEFAULT) TYPE VAR;
+#define DICT_REQUIRED(TYPE, VAR, PROP) TYPE VAR;
+#define DICT_OPTIONAL(TYPE, VAR, PROP) Maybe<TYPE> VAR;
+#define DICT_DEFAULT(TYPE, VAR, PROP, DEFAULT) TYPE VAR;
 
 namespace node_webrtc {
 
@@ -12,9 +12,9 @@ struct DICT() {
   DICT(_LIST)
 };
 
-#undef REQUIRED
-#undef OPTIONAL
-#undef DEFAULT
+#undef DICT_REQUIRED
+#undef DICT_OPTIONAL
+#undef DICT_DEFAULT
 
 }  // namespace webrtc
 

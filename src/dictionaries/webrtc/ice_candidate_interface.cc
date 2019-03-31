@@ -9,10 +9,10 @@ namespace node_webrtc {
 
 #define ICE_CANDIDATE_INTERFACE_FN CreateIceCandidateInterface
 #define ICE_CANDIDATE_INTERFACE_LIST \
-  DEFAULT(std::string, candidate, "candidate", "") \
-  DEFAULT(std::string, sdpMid, "sdpMid", "") \
-  DEFAULT(int, sdpMLineIndex, "sdpMLineIndex", 0) \
-  OPTIONAL(std::string, usernameFragment, "usernameFragment")
+  DICT_DEFAULT(std::string, candidate, "candidate", "") \
+  DICT_DEFAULT(std::string, sdpMid, "sdpMid", "") \
+  DICT_DEFAULT(int, sdpMLineIndex, "sdpMLineIndex", 0) \
+  DICT_OPTIONAL(std::string, usernameFragment, "usernameFragment")
 
 static Validation<webrtc::IceCandidateInterface*> ICE_CANDIDATE_INTERFACE_FN(
     const std::string& candidate,

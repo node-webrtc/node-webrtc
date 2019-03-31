@@ -7,12 +7,12 @@
 #define SIGNALING_STATE webrtc::PeerConnectionInterface::SignalingState
 #define SIGNALING_STATE_NAME "RTCSignalingState"
 #define SIGNALING_STATE_LIST \
-  SUPPORTED(SIGNALING_STATE, kStable, "stable") \
-  SUPPORTED(SIGNALING_STATE, kHaveLocalOffer, "have-local-offer") \
-  SUPPORTED(SIGNALING_STATE, kHaveRemoteOffer, "have-remote-offer") \
-  SUPPORTED(SIGNALING_STATE, kHaveLocalPrAnswer, "have-local-pranswer") \
-  SUPPORTED(SIGNALING_STATE, kHaveRemotePrAnswer, "have-remote-pranswer") \
-  SUPPORTED(SIGNALING_STATE, kClosed, "closed")
+  ENUM_SUPPORTED(SIGNALING_STATE, kStable, "stable") \
+  ENUM_SUPPORTED(SIGNALING_STATE, kHaveLocalOffer, "have-local-offer") \
+  ENUM_SUPPORTED(SIGNALING_STATE, kHaveRemoteOffer, "have-remote-offer") \
+  ENUM_SUPPORTED(SIGNALING_STATE, kHaveLocalPrAnswer, "have-local-pranswer") \
+  ENUM_SUPPORTED(SIGNALING_STATE, kHaveRemotePrAnswer, "have-remote-pranswer") \
+  ENUM_SUPPORTED(SIGNALING_STATE, kClosed, "closed")
 
 #define ENUM(X) SIGNALING_STATE ## X
 #include "src/enums/macros/decls.h"

@@ -11,9 +11,9 @@
 
 namespace node_webrtc {
 
-#define REQUIRED(type, memberName, stringValue) * GetRequired<type>(object, stringValue)
-#define OPTIONAL(type, memberName, stringValue) * GetOptional<type>(object, stringValue)
-#define DEFAULT(type, memberName, stringValue, defaultValue) * GetOptional<type>(object, stringValue, defaultValue)
+#define DICT_REQUIRED(type, memberName, stringValue) * GetRequired<type>(object, stringValue)
+#define DICT_OPTIONAL(type, memberName, stringValue) * GetOptional<type>(object, stringValue)
+#define DICT_DEFAULT(type, memberName, stringValue, defaultValue) * GetOptional<type>(object, stringValue, defaultValue)
 
 FROM_JS_IMPL(DICT(), value) {
   return From<v8::Local<v8::Object>>(value).FlatMap<DICT()>([](auto object) {
@@ -22,9 +22,9 @@ FROM_JS_IMPL(DICT(), value) {
   });
 }
 
-#undef REQUIRED
-#undef OPTIONAL
-#undef DEFAULT
+#undef DICT_REQUIRED
+#undef DICT_OPTIONAL
+#undef DICT_DEFAULT
 
 }  // namespace node_webrtc
 

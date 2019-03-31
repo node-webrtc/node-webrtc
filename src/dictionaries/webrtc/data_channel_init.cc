@@ -14,13 +14,13 @@ namespace node_webrtc {
 
 #define DATA_CHANNEL_INIT_FN CreateDataChannelInit
 #define DATA_CHANNEL_INIT_LIST \
-  DEFAULT(bool, ordered, "ordered", true) \
-  OPTIONAL(uint32_t, maxPacketLifeTime, "maxPacketLifeTime") \
-  OPTIONAL(uint32_t, maxRetransmits, "maxRetransmits") \
-  DEFAULT(std::string, protocol, "protocol", "") \
-  DEFAULT(bool, negotiated, "negotiated", false) \
-  OPTIONAL(uint32_t, id, "id") \
-  DEFAULT(RTCPriorityType, priority, "priority", RTCPriorityType::kLow)
+  DICT_DEFAULT(bool, ordered, "ordered", true) \
+  DICT_OPTIONAL(uint32_t, maxPacketLifeTime, "maxPacketLifeTime") \
+  DICT_OPTIONAL(uint32_t, maxRetransmits, "maxRetransmits") \
+  DICT_DEFAULT(std::string, protocol, "protocol", "") \
+  DICT_DEFAULT(bool, negotiated, "negotiated", false) \
+  DICT_OPTIONAL(uint32_t, id, "id") \
+  DICT_DEFAULT(RTCPriorityType, priority, "priority", RTCPriorityType::kLow)
 
 static Validation<webrtc::DataChannelInit> DATA_CHANNEL_INIT_FN(
     const bool ordered,

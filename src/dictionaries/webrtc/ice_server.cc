@@ -22,10 +22,10 @@ typedef Either<std::vector<std::string>, std::string> stringOrStrings;
 
 #define ICE_SERVER_FN CreateIceServer
 #define ICE_SERVER_LIST \
-  REQUIRED(stringOrStrings, urls, "urls") \
-  DEFAULT(std::string, username, "username", "") \
-  DEFAULT(stringOrCredential, credential, "credential", MakeLeft<RTCOAuthCredential>(std::string(""))) \
-  DEFAULT(RTCIceCredentialType, credentialType, "credentialType", RTCIceCredentialType::kPassword)
+  DICT_REQUIRED(stringOrStrings, urls, "urls") \
+  DICT_DEFAULT(std::string, username, "username", "") \
+  DICT_DEFAULT(stringOrCredential, credential, "credential", MakeLeft<RTCOAuthCredential>(std::string(""))) \
+  DICT_DEFAULT(RTCIceCredentialType, credentialType, "credentialType", RTCIceCredentialType::kPassword)
 
 
 static Validation<webrtc::PeerConnectionInterface::IceServer> ICE_SERVER_FN(

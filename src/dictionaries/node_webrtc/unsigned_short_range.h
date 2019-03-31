@@ -7,8 +7,8 @@
 
 #define UNSIGNED_SHORT_RANGE UnsignedShortRange
 #define UNSIGNED_SHORT_RANGE_LIST \
-  OPTIONAL(uint16_t, min, "min") \
-  OPTIONAL(uint16_t, max, "max")
+  DICT_OPTIONAL(uint16_t, min, "min") \
+  DICT_OPTIONAL(uint16_t, max, "max")
 
 #define DICT(X) UNSIGNED_SHORT_RANGE ## X
 #include "src/dictionaries/macros/def.h"

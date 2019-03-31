@@ -16,7 +16,7 @@ struct RTCAnswerOptions {
 
 #define RTC_ANSWER_OPTIONS RTCAnswerOptions
 #define RTC_ANSWER_OPTIONS_LIST \
-  DEFAULT(bool, voiceActivityDetection, "voiceActivityDetection", true)
+  DICT_DEFAULT(bool, voiceActivityDetection, "voiceActivityDetection", true)
 
 #define DICT(X) RTC_ANSWER_OPTIONS ## X
 #include "src/dictionaries/macros/decls.h"

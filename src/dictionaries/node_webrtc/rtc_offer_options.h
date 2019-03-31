@@ -16,10 +16,10 @@ struct RTCOfferOptions {
 
 #define RTC_OFFER_OPTIONS RTCOfferOptions
 #define RTC_OFFER_OPTIONS_LIST \
-  DEFAULT(bool, voiceActivityDetection, "voiceActivityDetection", true) \
-  DEFAULT(bool, iceRestart, "iceRestart", false) \
-  OPTIONAL(bool, offerToReceiveAudio, "offerToReceiveAudio") \
-  OPTIONAL(bool, offerToReceiveVideo, "offerToReceiveVideo")
+  DICT_DEFAULT(bool, voiceActivityDetection, "voiceActivityDetection", true) \
+  DICT_DEFAULT(bool, iceRestart, "iceRestart", false) \
+  DICT_OPTIONAL(bool, offerToReceiveAudio, "offerToReceiveAudio") \
+  DICT_OPTIONAL(bool, offerToReceiveVideo, "offerToReceiveVideo")
 
 #define DICT(X) RTC_OFFER_OPTIONS ## X
 #include "src/dictionaries/macros/decls.h"

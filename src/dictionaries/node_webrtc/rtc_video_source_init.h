@@ -5,8 +5,8 @@
 
 #define RTC_VIDEO_SOURCE_INIT RTCVideoSourceInit
 #define RTC_VIDEO_SOURCE_INIT_LIST \
-  DEFAULT(bool, isScreencast, "isScreencast", false) \
-  OPTIONAL(bool, needsDenoising, "needsDenoising")
+  DICT_DEFAULT(bool, isScreencast, "isScreencast", false) \
+  DICT_OPTIONAL(bool, needsDenoising, "needsDenoising")
 
 #define DICT(X) RTC_VIDEO_SOURCE_INIT ## X
 #include "src/dictionaries/macros/def.h"

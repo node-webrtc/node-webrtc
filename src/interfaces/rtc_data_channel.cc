@@ -36,13 +36,13 @@ DataChannelObserver::DataChannelObserver(std::shared_ptr<PeerConnectionFactory> 
 
 void DataChannelObserver::OnStateChange() {
   auto state = _jingleDataChannel->state();
-  Enqueue(Callback1<RTCDataChannel>::Create([state](RTCDataChannel& channel) {
+  Enqueue(Callback1<RTCDataChannel>::Create([state](RTCDataChannel & channel) {
     RTCDataChannel::HandleStateChange(channel, state);
   }));
 }
 
 void DataChannelObserver::OnMessage(const webrtc::DataBuffer& buffer) {
-  Enqueue(Callback1<RTCDataChannel>::Create([buffer](RTCDataChannel& channel) {
+  Enqueue(Callback1<RTCDataChannel>::Create([buffer](RTCDataChannel & channel) {
     RTCDataChannel::HandleMessage(channel, buffer);
   }));
 }
