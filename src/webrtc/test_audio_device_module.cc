@@ -42,7 +42,7 @@ constexpr int kFramesPerSecond = rtc::kNumMicrosecsPerSec / kFrameLengthUs;
 
 // TestAudioDeviceModule implements an AudioDevice module that can act both as a
 // capturer and a renderer. It will use 10ms audio frames.
-class TestAudioDeviceModuleImpl
+class TestAudioDeviceModuleImpl  // NOLINT
   : public webrtc::webrtc_impl::AudioDeviceModuleDefault<TestAudioDeviceModule> {
  public:
   // Creates a new TestAudioDeviceModule. When capturing or playing, 10 ms audio
@@ -223,7 +223,7 @@ class TestAudioDeviceModuleImpl
         }
       } else {
         while (time_left_us > 1000) {
-          if (rtc::Thread::SleepMs(time_left_us / 1000)) {
+          if (rtc::Thread::SleepMs(time_left_us / 1000)) {  // NOLINT
             break;
           }
           time_left_us = time_us - rtc::TimeMicros();
@@ -534,7 +534,7 @@ TestAudioDeviceModule::CreateWavFileReader(std::string filename,
     int sampling_frequency_in_hz,
     int num_channels) {
   return std::unique_ptr<TestAudioDeviceModule::Capturer>(
-          new WavFileReader(std::move(filename), sampling_frequency_in_hz, num_channels));
+          new WavFileReader(filename, sampling_frequency_in_hz, num_channels));
 }
 
 std::unique_ptr<TestAudioDeviceModule::Capturer>

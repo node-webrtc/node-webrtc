@@ -9,11 +9,11 @@
 
 #include <type_traits>
 
+#include <v8.h>
 #include <webrtc/api/peer_connection_interface.h>  // IWYU pragma: keep
 #include <webrtc/api/rtc_error.h>
 #include <webrtc/rtc_base/location.h>
 #include <webrtc/rtc_base/thread.h>
-#include <v8.h>
 
 #include "src/converters.h"
 #include "src/converters/v8.h"

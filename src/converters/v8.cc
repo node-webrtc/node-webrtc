@@ -88,7 +88,7 @@ FROM_JS_IMPL(uint8_t, value) {
     return Validation<uint8_t>::Invalid("Expected an 8-bit unsigned integer");
   }
   auto int32 = (*maybeInt32.ToLocalChecked())->Value();
-  if (int32 < 0 || int32 > 255) {
+  if (int32 < 0 || int32 > UINT8_MAX) {
     return Validation<uint8_t>::Invalid("Expected an 8-bit unsigned integer");
   }
   auto uint8 = static_cast<uint8_t>(int32);
@@ -106,7 +106,7 @@ FROM_JS_IMPL(uint16_t, value) {
     return Validation<uint16_t>::Invalid("Expected a 16-bit unsigned integer");
   }
   auto int32 = (*maybeInt32.ToLocalChecked())->Value();
-  if (int32 < 0 || int32 > 65535) {
+  if (int32 < 0 || int32 > UINT16_MAX) {
     return Validation<uint16_t>::Invalid("Expected a 16-bit unsigned integer");
   }
   auto uint16 = static_cast<uint16_t>(int32);

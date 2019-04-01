@@ -24,6 +24,7 @@ static Validation<webrtc::RtpTransceiverInit> RTP_TRANSCEIVER_INIT_FN(
   webrtc::RtpTransceiverInit init;
   init.direction = direction;
   std::vector<std::string> stream_ids;
+  stream_ids.reserve(streams.size());
   for (const auto& stream : streams) {
     stream_ids.emplace_back(stream->stream()->id());
   }

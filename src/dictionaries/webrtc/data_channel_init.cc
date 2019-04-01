@@ -7,8 +7,8 @@
 #include <webrtc/api/data_channel_interface.h>
 
 #include "src/enums/node_webrtc/rtc_priority_type.h"
-#include "src/functional/validation.h"
 #include "src/functional/maybe.h"
+#include "src/functional/validation.h"
 
 namespace node_webrtc {
 

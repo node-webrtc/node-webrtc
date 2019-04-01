@@ -9,16 +9,16 @@
 
 #include <type_traits>
 
-#include <webrtc/api/video/video_source_interface.h>
-#include <webrtc/api/video/video_frame.h>
 #include <v8.h>
+#include <webrtc/api/video/video_frame.h>
+#include <webrtc/api/video/video_source_interface.h>
 
 #include "src/converters.h"
 #include "src/converters/arguments.h"
 #include "src/dictionaries/webrtc/video_frame.h"  // IWYU pragma: keep
+#include "src/functional/validation.h"
 #include "src/interfaces/media_stream_track.h"  // IWYU pragma: keep
 #include "src/node/events.h"
-#include "src/functional/validation.h"
 
 namespace node_webrtc {
 

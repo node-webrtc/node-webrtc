@@ -12,9 +12,9 @@
 #include "src/converters/interfaces.h"
 #include "src/converters/v8.h"
 #include "src/dictionaries/webrtc/rtp_parameters.h"
-#include "src/node/error.h"
 #include "src/interfaces/media_stream_track.h"
 #include "src/interfaces/rtc_dtls_transport.h"
+#include "src/node/error.h"
 #include "src/node/utility.h"
 
 namespace node_webrtc {

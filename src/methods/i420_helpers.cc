@@ -37,7 +37,7 @@ Validation<I420ImageData> I420ImageData::Create(const ImageData imageData) {
 }
 
 Validation<RgbaImageData> RgbaImageData::Create(const ImageData imageData) {
-  auto expectedByteLength = static_cast<size_t>(imageData.width * imageData.height * 4);
+  auto expectedByteLength = static_cast<size_t>(imageData.width * imageData.height * 4);  // NOLINT
   auto actualByteLength = imageData.contents.ByteLength();
   if (actualByteLength != expectedByteLength) {
     auto error = "Expected a .byteLength of " + std::to_string(expectedByteLength) + ", not " +

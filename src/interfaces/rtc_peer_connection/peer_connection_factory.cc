@@ -10,10 +10,10 @@
 #include <memory>
 
 #include <uv.h>
-#include <webrtc/api/create_peerconnection_factory.h>
-#include <webrtc/api/peer_connection_interface.h>
 #include <webrtc/api/audio_codecs/builtin_audio_decoder_factory.h>
 #include <webrtc/api/audio_codecs/builtin_audio_encoder_factory.h>
+#include <webrtc/api/create_peerconnection_factory.h>
+#include <webrtc/api/peer_connection_interface.h>
 #include <webrtc/api/video_codecs/builtin_video_decoder_factory.h>
 #include <webrtc/api/video_codecs/builtin_video_encoder_factory.h>
 #include <webrtc/api/video_codecs/video_decoder_factory.h>
@@ -35,8 +35,8 @@ Nan::Persistent<v8::Function>& PeerConnectionFactory::constructor() {
   return constructor;
 }
 
-std::shared_ptr<PeerConnectionFactory> PeerConnectionFactory::_default;
-uv_mutex_t PeerConnectionFactory::_lock;
+std::shared_ptr<PeerConnectionFactory> PeerConnectionFactory::_default;  // NOLINT
+uv_mutex_t PeerConnectionFactory::_lock;  // NOLINT
 int PeerConnectionFactory::_references = 0;
 
 PeerConnectionFactory::PeerConnectionFactory(Maybe<webrtc::AudioDeviceModule::AudioLayer> audioLayer) {

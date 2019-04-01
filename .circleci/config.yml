@@ -251,7 +251,6 @@ aliases:
           command: |
             if [[ -n "$DEBUG" ]]; then
               cd build
-              make check
               make format
               cd ..
             fi

@@ -15,8 +15,6 @@
 #include "src/converters/interfaces.h"
 #include "src/converters/object.h"
 #include "src/converters/v8.h"
-#include "src/node/error.h"
-#include "src/node/events.h"
 #include "src/functional/curry.h"
 #include "src/functional/either.h"
 #include "src/functional/maybe.h"
@@ -25,6 +23,8 @@
 #include "src/interfaces/media_stream.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
 #include "src/interfaces/rtc_video_source.h"
+#include "src/node/error.h"
+#include "src/node/events.h"
 #include "src/node/utility.h"
 
 // TODO(mroberts): Expand support for other members.
