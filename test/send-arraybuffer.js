@@ -11,7 +11,9 @@ tape('receiving two ArrayBuffers works', function(t) {
     var pc1 = pcs[0];
     var pc2 = pcs[1];
     pc1.onicecandidate = function(event) {
-      pc2.addIceCandidate(event.candidate);
+      if (event.candidate) {
+        pc2.addIceCandidate(event.candidate);
+      }
     };
   });
   var dc1 = pc1.createDataChannel('test');

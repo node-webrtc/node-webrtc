@@ -15,7 +15,6 @@
 #include <webrtc/rtc_base/copy_on_write_buffer.h>
 
 #include "src/enums/webrtc/data_state.h"
-#include "src/node/error.h"
 #include "src/node/error_factory.h"
 #include "src/node/events.h"
 

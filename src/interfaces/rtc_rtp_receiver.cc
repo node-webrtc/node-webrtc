@@ -16,7 +16,6 @@
 #include "src/dictionaries/webrtc/rtp_source.h"
 #include "src/interfaces/media_stream_track.h"
 #include "src/interfaces/rtc_dtls_transport.h"
-#include "src/node/error.h"
 #include "src/node/utility.h"
 
 namespace node_webrtc {

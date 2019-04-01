@@ -14,7 +14,6 @@
 
 #include "src/converters/v8.h"
 #include "src/dictionaries/node_webrtc/some_error.h"
-#include "src/node/error.h"
 
 void node_webrtc::CreateSessionDescriptionObserver::OnSuccess(webrtc::SessionDescriptionInterface* description) {
   auto maybeDescription = node_webrtc::From<RTCSessionDescriptionInit>(description);

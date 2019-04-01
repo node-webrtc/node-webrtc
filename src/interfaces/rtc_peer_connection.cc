@@ -47,7 +47,6 @@
 #include "src/interfaces/rtc_rtp_sender.h"
 #include "src/interfaces/rtc_rtp_transceiver.h"
 #include "src/node/async_object_wrap_with_loop.h"
-#include "src/node/error.h"
 #include "src/node/error_factory.h"
 #include "src/node/events.h"
 #include "src/node/promise.h"
