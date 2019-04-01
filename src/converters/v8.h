@@ -98,22 +98,6 @@ namespace node_webrtc {
  */
 #define FROM_JS_IMPL(T, V) CONVERTER_IMPL(v8::Local<v8::Value>, T, V)
 
-// TODO(mroberts): The following could probably all be moved into a v8.cc file.
-
-class Null {
- public:
-  Null() = default;
-};
-
-DECLARE_FROM_JS(Null)
-
-class Undefined {
- public:
-  Undefined() = default;
-};
-
-DECLARE_TO_JS(Undefined)
-
 DECLARE_TO_AND_FROM_JS(bool)
 DECLARE_TO_AND_FROM_JS(double)
 DECLARE_TO_AND_FROM_JS(int32_t)

@@ -10,6 +10,7 @@
 #include "src/converters.h"
 #include "src/converters/arguments.h"
 #include "src/converters/interfaces.h"
+#include "src/converters/null.h"
 #include "src/converters/v8.h"
 #include "src/dictionaries/webrtc/rtp_parameters.h"
 #include "src/interfaces/media_stream_track.h"

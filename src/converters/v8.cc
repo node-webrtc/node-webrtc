@@ -11,18 +11,6 @@
 
 namespace node_webrtc {
 
-FROM_JS_IMPL(Null, value) {
-  return value->IsNull()
-      ? Pure(Null())
-      : Validation<Null>::Invalid("Expected null");
-}
-
-TO_JS_IMPL(Undefined, value) {
-  (void) value;
-  Nan::EscapableHandleScope scope;
-  return Pure(scope.Escape(Nan::Undefined().As<v8::Value>()));
-}
-
 FROM_JS_IMPL(bool, value) {
   auto maybeBoolean = Nan::To<v8::Boolean>(value);
   if (maybeBoolean.IsEmpty()) {
