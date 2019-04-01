@@ -287,12 +287,15 @@ if(NOT clang_tidy_path STREQUAL "clang_tidy_path-NOTFOUND")
   set_property(TARGET ${MODULE} PROPERTY CXX_CLANG_TIDY ${clang_tidy_path})
 endif()
 
+execute_process(COMMAND node -p "JSON.parse(require('node-addon-api').include)" OUTPUT_VARIABLE node_addon_api_dir OUTPUT_STRIP_TRAILING_WHITESPACE)
+
 # NOTE(mroberts): Workaround for
 #
 #   https://gitlab.kitware.com/cmake/cmake/issues/15052
 #
 # is to include all the header files here.
 target_include_directories(${MODULE} SYSTEM PRIVATE
+  ${node_addon_api_dir}
   ${libwebrtc_source_dir}
   ${libwebrtc_source_dir}/webrtc
   ${libwebrtc_source_dir}/webrtc/third_party/abseil-cpp
