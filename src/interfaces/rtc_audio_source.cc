@@ -14,7 +14,6 @@
 #include "src/converters/arguments.h"
 #include "src/functional/maybe.h"
 #include "src/interfaces/media_stream_track.h"
-#include "src/node/error.h"
 
 namespace node_webrtc {
 

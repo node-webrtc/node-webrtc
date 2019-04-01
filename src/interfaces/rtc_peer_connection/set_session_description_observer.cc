@@ -14,7 +14,6 @@
 #include "src/converters/v8.h"
 #include "src/dictionaries/node_webrtc/some_error.h"
 #include "src/functional/either.h"
-#include "src/node/error.h"
 #include "src/node/error_factory.h"
 
 void node_webrtc::SetSessionDescriptionObserver::OnSuccess() {

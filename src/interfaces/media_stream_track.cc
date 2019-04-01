@@ -15,7 +15,6 @@
 #include "src/converters/v8.h"
 #include "src/enums/webrtc/track_state.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
-#include "src/node/error.h"
 
 namespace node_webrtc {
 

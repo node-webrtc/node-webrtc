@@ -12,7 +12,6 @@
 #include "src/converters.h"
 #include "src/converters/arguments.h"
 #include "src/dictionaries/node_webrtc/image_data.h"
-#include "src/node/error.h"
 
 namespace node_webrtc {
 

@@ -16,7 +16,6 @@
 #include "src/enums/webrtc/rtp_transceiver_direction.h"
 #include "src/interfaces/rtc_rtp_receiver.h"
 #include "src/interfaces/rtc_rtp_sender.h"
-#include "src/node/error.h"
 
 namespace node_webrtc {
 

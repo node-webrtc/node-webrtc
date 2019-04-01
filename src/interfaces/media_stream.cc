@@ -19,7 +19,6 @@
 #include "src/functional/maybe.h"
 #include "src/interfaces/media_stream_track.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
-#include "src/node/error.h"
 
 namespace node_webrtc {
 

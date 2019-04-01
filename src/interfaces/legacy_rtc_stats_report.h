@@ -10,7 +10,6 @@
 #include <iosfwd>
 #include <map>
 #include <string>
-#include <type_traits>
 
 #include <nan.h>
 

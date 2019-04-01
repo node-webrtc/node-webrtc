@@ -1,5 +1,6 @@
 #include "src/dictionaries/webrtc/rtp_codec_parameters.h"
 
+#include <cstdint>
 #include <iosfwd>
 #include <string>
 #include <unordered_map>
