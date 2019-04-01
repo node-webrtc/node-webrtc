@@ -20,7 +20,7 @@ namespace node_webrtc {
 
 static Validation<webrtc::RtpTransceiverInit> RTP_TRANSCEIVER_INIT_FN(
     const webrtc::RtpTransceiverDirection direction,
-    const std::vector<MediaStream*> streams) {
+    const std::vector<MediaStream*>& streams) {
   webrtc::RtpTransceiverInit init;
   init.direction = direction;
   std::vector<std::string> stream_ids;

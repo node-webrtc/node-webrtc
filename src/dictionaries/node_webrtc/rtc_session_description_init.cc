@@ -88,6 +88,7 @@ TO_JS_IMPL(const webrtc::SessionDescriptionInterface*, value) {
 
   return node_webrtc::Pure(scope.Escape(object.As<v8::Value>()));
 }
+
 }  // namespace node_webrtc
 
 #define DICT(X) RTC_SESSION_DESCRIPTION_INIT ## X

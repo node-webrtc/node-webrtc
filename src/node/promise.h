@@ -22,10 +22,10 @@ template <typename T, typename F>
 class Promise: public Event<T> {
  public:
   Promise(
-      std::shared_ptr<Nan::Persistent<v8::Promise::Resolver>> resolver,
+      const std::shared_ptr<Nan::Persistent<v8::Promise::Resolver>>& resolver,
       F callback)
     : _callback(callback),
-      _resolver(std::move(resolver)) {}
+      _resolver(resolver) {}
 
   void Dispatch(T&) override {
     _callback(resolver());

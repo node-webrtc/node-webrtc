@@ -39,7 +39,7 @@ NAN_METHOD(RTCAudioSink::New) {
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct an RTCAudioSink.");
   }
-  CONVERT_ARGS_OR_THROW_AND_RETURN(track, rtc::scoped_refptr<webrtc::AudioTrackInterface>);
+  CONVERT_ARGS_OR_THROW_AND_RETURN(track, rtc::scoped_refptr<webrtc::AudioTrackInterface>)
   auto sink = new RTCAudioSink(track);
   sink->Wrap(info.This());
   info.GetReturnValue().Set(info.This());

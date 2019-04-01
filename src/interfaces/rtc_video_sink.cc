@@ -38,7 +38,7 @@ NAN_METHOD(RTCVideoSink::New) {
   if (!info.IsConstructCall()) {
     return Nan::ThrowTypeError("Use the new operator to construct an RTCVideoSink.");
   }
-  CONVERT_ARGS_OR_THROW_AND_RETURN(track, rtc::scoped_refptr<webrtc::VideoTrackInterface>);
+  CONVERT_ARGS_OR_THROW_AND_RETURN(track, rtc::scoped_refptr<webrtc::VideoTrackInterface>)
   auto sink = new RTCVideoSink(track);
   sink->Wrap(info.This());
   info.GetReturnValue().Set(info.This());

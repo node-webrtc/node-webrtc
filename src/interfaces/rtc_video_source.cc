@@ -44,7 +44,7 @@ NAN_METHOD(RTCVideoSource::New) {
     return Nan::ThrowTypeError("Use the new operator to construct an RTCVideoSource.");
   }
 
-  CONVERT_ARGS_OR_THROW_AND_RETURN(maybeInit, Maybe<RTCVideoSourceInit>);
+  CONVERT_ARGS_OR_THROW_AND_RETURN(maybeInit, Maybe<RTCVideoSourceInit>)
   auto init = maybeInit.FromMaybe(RTCVideoSourceInit());
 
   auto instance = new RTCVideoSource(init);
@@ -66,7 +66,7 @@ NAN_METHOD(RTCVideoSource::CreateTrack) {
 
 NAN_METHOD(RTCVideoSource::OnFrame) {
   auto self = Nan::ObjectWrap::Unwrap<RTCVideoSource>(info.Holder());
-  CONVERT_ARGS_OR_THROW_AND_RETURN(buffer, rtc::scoped_refptr<webrtc::I420Buffer>);
+  CONVERT_ARGS_OR_THROW_AND_RETURN(buffer, rtc::scoped_refptr<webrtc::I420Buffer>)
   webrtc::VideoFrame::Builder builder;
   auto frame = builder.set_video_frame_buffer(buffer).build();
   self->_source->PushFrame(frame);

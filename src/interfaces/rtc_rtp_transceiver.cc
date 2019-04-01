@@ -59,7 +59,7 @@ NAN_METHOD(RTCRtpTransceiver::New) {
 NAN_GETTER(RTCRtpTransceiver::GetMid) {
   (void) property;
   auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  CONVERT_OR_THROW_AND_RETURN(self->_transceiver->mid(), result, v8::Local<v8::Value>);
+  CONVERT_OR_THROW_AND_RETURN(self->_transceiver->mid(), result, v8::Local<v8::Value>)
   info.GetReturnValue().Set(result);
 }
 
@@ -80,14 +80,14 @@ NAN_GETTER(RTCRtpTransceiver::GetReceiver) {
 NAN_GETTER(RTCRtpTransceiver::GetStopped) {
   (void) property;
   auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  CONVERT_OR_THROW_AND_RETURN(self->_transceiver->stopped(), result, v8::Local<v8::Value>);
+  CONVERT_OR_THROW_AND_RETURN(self->_transceiver->stopped(), result, v8::Local<v8::Value>)
   info.GetReturnValue().Set(result);
 }
 
 NAN_GETTER(RTCRtpTransceiver::GetDirection) {
   (void) property;
   auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  CONVERT_OR_THROW_AND_RETURN(self->_transceiver->direction(), result, v8::Local<v8::Value>);
+  CONVERT_OR_THROW_AND_RETURN(self->_transceiver->direction(), result, v8::Local<v8::Value>)
   info.GetReturnValue().Set(result);
 }
 
@@ -96,7 +96,7 @@ NAN_SETTER(RTCRtpTransceiver::SetDirection) {
 
   auto self = RTCRtpTransceiver::Unwrap(info.Holder());
 
-  CONVERT_OR_THROW_AND_RETURN(value, direction, webrtc::RtpTransceiverDirection);
+  CONVERT_OR_THROW_AND_RETURN(value, direction, webrtc::RtpTransceiverDirection)
 
   self->_transceiver->SetDirection(direction);
 }
@@ -104,7 +104,7 @@ NAN_SETTER(RTCRtpTransceiver::SetDirection) {
 NAN_GETTER(RTCRtpTransceiver::GetCurrentDirection) {
   (void) property;
   auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  CONVERT_OR_THROW_AND_RETURN(self->_transceiver->current_direction(), result, v8::Local<v8::Value>);
+  CONVERT_OR_THROW_AND_RETURN(self->_transceiver->current_direction(), result, v8::Local<v8::Value>)
   info.GetReturnValue().Set(result);
 }
 

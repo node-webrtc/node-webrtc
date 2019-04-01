@@ -90,24 +90,24 @@ NAN_METHOD(RTCRtpSender::GetCapabilities) {
 NAN_METHOD(RTCRtpSender::GetParameters) {
   auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
   auto parameters = self->_sender->GetParameters();
-  CONVERT_OR_THROW_AND_RETURN(parameters, result, v8::Local<v8::Value>);
+  CONVERT_OR_THROW_AND_RETURN(parameters, result, v8::Local<v8::Value>)
   info.GetReturnValue().Set(result);
 }
 
 NAN_METHOD(RTCRtpSender::SetParameters) {
-  RETURNS_PROMISE(resolver);
+  RETURNS_PROMISE(resolver)
   Reject(resolver, Nan::Error("Not yet implemented; file a feature request against node-webrtc"));
 }
 
 NAN_METHOD(RTCRtpSender::GetStats) {
-  RETURNS_PROMISE(resolver);
+  RETURNS_PROMISE(resolver)
   Reject(resolver, Nan::Error("Not yet implemented; file a feature request against node-webrtc"));
 }
 
 NAN_METHOD(RTCRtpSender::ReplaceTrack) {
   auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
-  RETURNS_PROMISE(resolver);
-  CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, maybeTrack, Either<Null COMMA MediaStreamTrack*>);
+  RETURNS_PROMISE(resolver)
+  CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, maybeTrack, Either<Null COMMA MediaStreamTrack*>)
   auto mediaStreamTrack = maybeTrack.FromEither<MediaStreamTrack*>([](auto) {
     return nullptr;
   }, [](auto track) {

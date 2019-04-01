@@ -103,9 +103,9 @@ struct node_webrtc::Converter<v8::Local<v8::Value>, MediaStreamConstraints> {
 };
 
 NAN_METHOD(node_webrtc::GetUserMedia::GetUserMediaImpl) {
-  RETURNS_PROMISE(resolver);
+  RETURNS_PROMISE(resolver)
 
-  CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, constraints, MediaStreamConstraints);
+  CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, constraints, MediaStreamConstraints)
 
   auto factory = node_webrtc::PeerConnectionFactory::GetOrCreateDefault();
   auto stream = factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid());

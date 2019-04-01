@@ -84,7 +84,7 @@ NAN_SETTER(MediaStreamTrack::SetEnabled) {
 
   auto self = AsyncObjectWrapWithLoop<MediaStreamTrack>::Unwrap(info.Holder());
 
-  CONVERT_OR_THROW_AND_RETURN(value, enabled, bool);
+  CONVERT_OR_THROW_AND_RETURN(value, enabled, bool)
 
   if (self->_ended) {
     self->_enabled = enabled;
@@ -111,7 +111,7 @@ NAN_GETTER(MediaStreamTrack::GetReadyState) {
   auto state = self->_ended
       ? webrtc::MediaStreamTrackInterface::TrackState::kEnded
       : self->_track->state();
-  CONVERT_OR_THROW_AND_RETURN(state, result, std::string);
+  CONVERT_OR_THROW_AND_RETURN(state, result, std::string)
   info.GetReturnValue().Set(Nan::New(result).ToLocalChecked());
 }
 

@@ -81,7 +81,7 @@ std::vector<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> MediaStream::
 }
 
 NAN_METHOD(MediaStream::New) {
-  CONVERT_ARGS_OR_THROW_AND_RETURN(eithers, Either<std::tuple<v8::Local<v8::External> COMMA v8::Local<v8::External>> COMMA Either<std::vector<MediaStreamTrack*> COMMA Maybe<MediaStream*>>>);
+  CONVERT_ARGS_OR_THROW_AND_RETURN(eithers, Either<std::tuple<v8::Local<v8::External> COMMA v8::Local<v8::External>> COMMA Either<std::vector<MediaStreamTrack*> COMMA Maybe<MediaStream*>>>)
 
   MediaStream* mediaStream = nullptr;
 
@@ -144,7 +144,7 @@ NAN_METHOD(MediaStream::GetAudioTracks) {
     auto mediaStreamTrack = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, track);
     tracks.push_back(mediaStreamTrack);
   }
-  CONVERT_OR_THROW_AND_RETURN(tracks, result, v8::Local<v8::Value>);
+  CONVERT_OR_THROW_AND_RETURN(tracks, result, v8::Local<v8::Value>)
   info.GetReturnValue().Set(result);
 }
 
@@ -155,7 +155,7 @@ NAN_METHOD(MediaStream::GetVideoTracks) {
     auto mediaStreamTrack = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, track);
     tracks.push_back(mediaStreamTrack);
   }
-  CONVERT_OR_THROW_AND_RETURN(tracks, result, v8::Local<v8::Value>);
+  CONVERT_OR_THROW_AND_RETURN(tracks, result, v8::Local<v8::Value>)
   info.GetReturnValue().Set(result);
 }
 
@@ -166,12 +166,12 @@ NAN_METHOD(MediaStream::GetTracks) {
     auto mediaStreamTrack = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, track);
     tracks.push_back(mediaStreamTrack);
   }
-  CONVERT_OR_THROW_AND_RETURN(tracks, result, v8::Local<v8::Value>);
+  CONVERT_OR_THROW_AND_RETURN(tracks, result, v8::Local<v8::Value>)
   info.GetReturnValue().Set(result);
 }
 
 NAN_METHOD(MediaStream::GetTrackById) {
-  CONVERT_ARGS_OR_THROW_AND_RETURN(label, std::string);
+  CONVERT_ARGS_OR_THROW_AND_RETURN(label, std::string)
   auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
   auto audioTrack = self->_stream->FindAudioTrack(label);
   if (audioTrack) {
@@ -189,7 +189,7 @@ NAN_METHOD(MediaStream::GetTrackById) {
 }
 
 NAN_METHOD(MediaStream::AddTrack) {
-  CONVERT_ARGS_OR_THROW_AND_RETURN(mediaStreamTrack, MediaStreamTrack*);
+  CONVERT_ARGS_OR_THROW_AND_RETURN(mediaStreamTrack, MediaStreamTrack*)
   auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
   auto stream = self->_stream;
   auto track = mediaStreamTrack->track();
@@ -201,7 +201,7 @@ NAN_METHOD(MediaStream::AddTrack) {
 }
 
 NAN_METHOD(MediaStream::RemoveTrack) {
-  CONVERT_ARGS_OR_THROW_AND_RETURN(mediaStreamTrack, MediaStreamTrack*);
+  CONVERT_ARGS_OR_THROW_AND_RETURN(mediaStreamTrack, MediaStreamTrack*)
   auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
   auto stream = self->_stream;
   auto track = mediaStreamTrack->track();
