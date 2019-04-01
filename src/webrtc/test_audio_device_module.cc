@@ -81,8 +81,8 @@ class TestAudioDeviceModuleImpl
   }
 
   ~TestAudioDeviceModuleImpl() override {
-    StopPlayout();
-    StopRecording();
+    StopPlayout();  // NOLINT
+    StopRecording();  // NOLINT
     if (thread_) {
       {
         rtc::CritScope cs(&lock_);

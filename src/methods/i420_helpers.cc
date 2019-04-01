@@ -49,7 +49,7 @@ Validation<RgbaImageData> RgbaImageData::Create(const ImageData imageData) {
 }
 
 NAN_METHOD(I420Helpers::RgbaToI420) {
-  CONVERT_ARGS_OR_THROW_AND_RETURN(pair, std::tuple<RgbaImageData COMMA I420ImageData>);
+  CONVERT_ARGS_OR_THROW_AND_RETURN(pair, std::tuple<RgbaImageData COMMA I420ImageData>)
 
   RgbaImageData rgbaFrame = std::get<0>(pair);
   I420ImageData i420Frame = std::get<1>(pair);
@@ -74,7 +74,7 @@ NAN_METHOD(I420Helpers::RgbaToI420) {
 }
 
 NAN_METHOD(I420Helpers::I420ToRgba) {
-  CONVERT_ARGS_OR_THROW_AND_RETURN(pair, std::tuple<I420ImageData COMMA RgbaImageData>);
+  CONVERT_ARGS_OR_THROW_AND_RETURN(pair, std::tuple<I420ImageData COMMA RgbaImageData>)
 
   I420ImageData i420Frame = std::get<0>(pair);
   RgbaImageData rgbaFrame = std::get<1>(pair);

@@ -67,7 +67,7 @@ class Callback1: public Event<T> {
   }
 
  private:
-  explicit Callback1(std::function<void(T&)> callback): _callback(std::move(callback)) {}
+  explicit Callback1(const std::function<void(T&)>& callback): _callback(callback) {}
   const std::function<void(T&)> _callback;
 };
 

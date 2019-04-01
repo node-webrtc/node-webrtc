@@ -322,7 +322,7 @@ NAN_GETTER(RTCDataChannel::GetReadyState) {
       ? self->_jingleDataChannel->state()
       : webrtc::DataChannelInterface::kClosed,
       state,
-      v8::Local<v8::Value>);
+      v8::Local<v8::Value>)
 
   info.GetReturnValue().Set(state);
 }
@@ -332,7 +332,7 @@ NAN_GETTER(RTCDataChannel::GetBinaryType) {
 
   auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.Holder());
 
-  CONVERT_OR_THROW_AND_RETURN(self->_binaryType, binaryType, v8::Local<v8::Value>);
+  CONVERT_OR_THROW_AND_RETURN(self->_binaryType, binaryType, v8::Local<v8::Value>)
 
   info.GetReturnValue().Set(binaryType);
 }
@@ -342,7 +342,7 @@ NAN_SETTER(RTCDataChannel::SetBinaryType) {
 
   auto self = AsyncObjectWrapWithLoop<RTCDataChannel>::Unwrap(info.Holder());
 
-  CONVERT_OR_THROW_AND_RETURN(value, binaryType, BinaryType);
+  CONVERT_OR_THROW_AND_RETURN(value, binaryType, BinaryType)
 
   self->_binaryType = binaryType;
 }

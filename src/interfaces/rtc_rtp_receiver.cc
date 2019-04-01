@@ -88,7 +88,7 @@ NAN_METHOD(RTCRtpReceiver::GetCapabilities) {
 NAN_METHOD(RTCRtpReceiver::GetParameters) {
   auto self = AsyncObjectWrap::Unwrap<RTCRtpReceiver>(info.Holder());
   auto parameters = self->_receiver->GetParameters();
-  CONVERT_OR_THROW_AND_RETURN(parameters, result, v8::Local<v8::Value>);
+  CONVERT_OR_THROW_AND_RETURN(parameters, result, v8::Local<v8::Value>)
   info.GetReturnValue().Set(result);
 }
 
@@ -101,7 +101,7 @@ NAN_METHOD(RTCRtpReceiver::GetContributingSources) {
       contributingSources.push_back(source);
     }
   }
-  CONVERT_OR_THROW_AND_RETURN(contributingSources, result, v8::Local<v8::Value>);
+  CONVERT_OR_THROW_AND_RETURN(contributingSources, result, v8::Local<v8::Value>)
   info.GetReturnValue().Set(result);
 }
 
@@ -114,12 +114,12 @@ NAN_METHOD(RTCRtpReceiver::GetSynchronizationSources) {
       synchronizationSources.push_back(source);
     }
   }
-  CONVERT_OR_THROW_AND_RETURN(synchronizationSources, result, v8::Local<v8::Value>);
+  CONVERT_OR_THROW_AND_RETURN(synchronizationSources, result, v8::Local<v8::Value>)
   info.GetReturnValue().Set(result);
 }
 
 NAN_METHOD(RTCRtpReceiver::GetStats) {
-  RETURNS_PROMISE(resolver);
+  RETURNS_PROMISE(resolver)
   Reject(resolver, Nan::Error("Not yet implemented; file a feature request against node-webrtc"));
 }
 

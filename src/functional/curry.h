@@ -39,7 +39,7 @@ _curry<std::function<R(T, Ts...)>> {
 
   const type result;
 
-  explicit _curry(std::function<R(T, Ts...)> fun): result(
+  explicit _curry(const std::function<R(T, Ts...)>& fun): result(
         [ = ](const T & t) {
     return _curry<std::function<R(Ts...)>>(
     [ = ](const Ts & ...ts) {
@@ -53,7 +53,7 @@ _curry<std::function<R(T, Ts...)>> {
 }  // namespace _dtl
 
 template <typename R, typename...Ts>
-auto curry(const std::function<R(Ts...)> fun) -> typename _dtl::_curry<std::function<R(Ts...)>>::type {
+auto curry(const std::function<R(Ts...)>& fun) -> typename _dtl::_curry<std::function<R(Ts...)>>::type {
   return _dtl::_curry<std::function<R(Ts...)>>(fun).result;
 }
 

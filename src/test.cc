@@ -16,7 +16,7 @@
 #include "src/converters/v8.h"
 
 TEST_CASE("converting booleans", "[converting-booleans]") {
-  SECTION("from JavaScript") {
+  SECTION("from JavaScript") {  // NOLINT
     SECTION("works for") {
       SECTION("true") {
         v8::Local<v8::Value> True = Nan::True();

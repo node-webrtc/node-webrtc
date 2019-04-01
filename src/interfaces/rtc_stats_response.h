@@ -36,8 +36,8 @@ class RTCStatsResponse
   static RTCStatsResponse* Create(double timestamp, const std::vector<std::map<std::string, std::string>>& reports);
 
  private:
-  explicit RTCStatsResponse(double timestamp, std::vector<std::map<std::string, std::string>> reports)
-    : _timestamp(timestamp), _reports(std::move(reports)) {}
+  explicit RTCStatsResponse(double timestamp, const std::vector<std::map<std::string, std::string>>& reports)
+    : _timestamp(timestamp), _reports(reports) {}
 
   static Nan::Persistent<v8::Function>& constructor();
 

@@ -22,7 +22,7 @@ class SomeError {
         MakeRight<ErrorFactory::DOMExceptionName>(ErrorFactory::kError)) {}
 
   SomeError(
-      std::string message,
+      const std::string& message,
       const Either<ErrorFactory::DOMExceptionName,
       ErrorFactory::ErrorName> name):
     _message(std::move(message)),

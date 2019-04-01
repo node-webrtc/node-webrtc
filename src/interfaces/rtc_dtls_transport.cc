@@ -107,7 +107,7 @@ NAN_GETTER(RTCDtlsTransport::GetState) {
   auto self = AsyncObjectWrapWithLoop<RTCDtlsTransport>::Unwrap(info.Holder());
   std::lock_guard<std::mutex> lock(self->_mutex);
   auto state = self->_state;
-  CONVERT_OR_THROW_AND_RETURN(state, result, v8::Local<v8::Value>);
+  CONVERT_OR_THROW_AND_RETURN(state, result, v8::Local<v8::Value>)
   info.GetReturnValue().Set(result);
 }
 

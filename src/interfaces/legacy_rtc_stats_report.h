@@ -35,8 +35,8 @@ class LegacyStatsReport
   static LegacyStatsReport* Create(double timestamp, const std::map<std::string, std::string>& stats);
 
  private:
-  explicit LegacyStatsReport(double timestamp, std::map<std::string, std::string> stats)
-    : _timestamp(timestamp), _stats(std::move(stats)) {}
+  explicit LegacyStatsReport(double timestamp, const std::map<std::string, std::string>& stats)
+    : _timestamp(timestamp), _stats(stats) {}
 
   static Nan::Persistent<v8::Function>& constructor();
 

@@ -4,6 +4,7 @@ include(ExternalProject)
 find_package(Git REQUIRED)
 find_package(Threads REQUIRED)
 find_program(iwyu_path OPTIONAL NAMES include-what-you-use iwyu)
+find_program(clang_tidy_path OPTIONAL NAMES clang-tidy)
 
 # depot_tools
 # -----------------------------------------------------------------------------
@@ -282,6 +283,10 @@ if(NOT iwyu_path STREQUAL "iwyu_path-NOTFOUND")
   set_property(TARGET ${MODULE} PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path} -Xiwyu --mapping_file=${CMAKE_SOURCE_DIR}/.iwyu.imp)
 endif()
 
+if(NOT clang_tidy_path STREQUAL "clang_tidy_path-NOTFOUND")
+  set_property(TARGET ${MODULE} PROPERTY CXX_CLANG_TIDY ${clang_tidy_path})
+endif()
+
 # NOTE(mroberts): Workaround for
 #
 #   https://gitlab.kitware.com/cmake/cmake/issues/15052
@@ -514,41 +519,4 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
       COMMENT "running astyle"
     )
   endif()
-endif()
-
-# cppcheck
-# -----------------------------------------------------------------------------
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  list(APPEND CPPCHECK_CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}")
-
-  ExternalProject_Add(
-    cppcheck
-    GIT_REPOSITORY      https://github.com/danmar/cppcheck.git
-    GIT_TAG             1.83
-    GIT_SHALLOW         true
-    CMAKE_ARGS          ${CPPCHECK_CMAKE_ARGS}
-    PREFIX              ${CMAKE_BINARY_DIR}/external/cppcheck/prefix
-    TMP_DIR             ${CMAKE_BINARY_DIR}/external/cppcheck/tmp
-    STAMP_DIR           ${CMAKE_BINARY_DIR}/external/cppcheck/stamp
-    DOWNLOAD_DIR        ${CMAKE_BINARY_DIR}/external/cppcheck/download
-    SOURCE_DIR          ${CMAKE_BINARY_DIR}/external/cppcheck/src
-    BINARY_DIR          ${CMAKE_BINARY_DIR}/external/cppcheck/build
-  )
-
-  list(APPEND CPPCHECK_ARGS
-    --enable=warning,style,performance,portability,unusedFunction
-    --std=c++14
-    --verbose
-    --error-exitcode=1
-    --language=c++
-    -i${CMAKE_SOURCE_DIR}/src/webrtc
-    ${CMAKE_SOURCE_DIR}/src/*.cc
-  )
-
-  add_custom_target(
-    check
-    COMMAND ${CMAKE_BINARY_DIR}/bin/cppcheck ${CPPCHECK_ARGS}
-    COMMENT "running cppcheck"
-  )
 endif()
