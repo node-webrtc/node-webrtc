@@ -11,7 +11,7 @@
 
 using node_webrtc::AsyncObjectWrap;
 
-AsyncObjectWrap::AsyncObjectWrap(const char* name)
+AsyncObjectWrap::AsyncObjectWrap(const char* name)  // NOLINT
   : _async_resource(new Nan::AsyncResource(name)) {
   uv_mutex_init(&_async_resource_lock);
 }

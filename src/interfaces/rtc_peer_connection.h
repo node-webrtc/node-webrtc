@@ -66,7 +66,7 @@ class RTCPeerConnection
   void SaveLastSdp(const RTCSessionDescriptionInit& lastSdp);
 
  private:
-  explicit RTCPeerConnection(ExtendedRTCConfiguration configuration);
+  explicit RTCPeerConnection(const ExtendedRTCConfiguration&);
 
   static Nan::Persistent<v8::Function>& constructor();
 

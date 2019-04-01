@@ -5,8 +5,8 @@
 #include <vector>
 
 #include <nan.h>
-#include <webrtc/api/peer_connection_interface.h>
 #include <v8.h>
+#include <webrtc/api/peer_connection_interface.h>
 
 #include "src/converters.h"
 #include "src/converters/v8.h"
@@ -17,8 +17,8 @@
 
 namespace node_webrtc {
 
-typedef Either<std::string, RTCOAuthCredential> stringOrCredential;
-typedef Either<std::vector<std::string>, std::string> stringOrStrings;
+using stringOrCredential = Either<std::string, RTCOAuthCredential>;
+using stringOrStrings = Either<std::vector<std::string>, std::string>;
 
 #define ICE_SERVER_FN CreateIceServer
 #define ICE_SERVER_LIST \

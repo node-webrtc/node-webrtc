@@ -182,7 +182,7 @@ struct Converter<std::vector<T>, v8::Local<v8::Value>> {
     Nan::EscapableHandleScope scope;
     auto array = Nan::New<v8::Array>();
     uint32_t i = 0;
-    for (auto value : values) {
+    for (const auto& value : values) {
       auto maybeValue = From<v8::Local<v8::Value>>(value);
       if (maybeValue.IsInvalid()) {
         return Validation<v8::Local<v8::Value>>::Invalid(maybeValue.ToErrors());

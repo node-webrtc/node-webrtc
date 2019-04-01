@@ -7,19 +7,19 @@
  */
 #include "src/interfaces/media_stream.h"
 
+#include <v8.h>
 #include <webrtc/api/peer_connection_interface.h>
 #include <webrtc/api/scoped_refptr.h>
-#include <v8.h>
 
 #include "src/converters.h"
 #include "src/converters/arguments.h"
 #include "src/converters/interfaces.h"
 #include "src/converters/v8.h"
-#include "src/node/error.h"
-#include "src/functional/maybe.h"
 #include "src/functional/either.h"
+#include "src/functional/maybe.h"
 #include "src/interfaces/media_stream_track.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
+#include "src/node/error.h"
 
 namespace node_webrtc {
 

@@ -7,8 +7,8 @@
 
 #include <absl/types/optional.h>
 #include <nan.h>
-#include <webrtc/api/rtp_parameters.h>
 #include <v8.h>
+#include <webrtc/api/rtp_parameters.h>
 
 #include "src/functional/validation.h"
 
@@ -27,8 +27,8 @@ TO_JS_IMPL(webrtc::RtpCodecParameters, params) {
   }
   if (!params.parameters.empty()) {
     std::string fmtp("a=fmtp:" + std::to_string(params.payload_type));
-    unsigned long i = 0;
-    for (auto param : params.parameters) {
+    uint64_t i = 0;
+    for (const auto& param : params.parameters) {
       fmtp += " " + param.first + "=" + param.second;
       if (i < params.parameters.size() - 1) {
         fmtp += ";";

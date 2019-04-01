@@ -14,7 +14,7 @@
 #include "src/converters/v8.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
 
-Nan::Persistent<v8::Function> node_webrtc::ErrorFactory::DOMException;
+Nan::Persistent<v8::Function> node_webrtc::ErrorFactory::DOMException;  // NOLINT
 
 void node_webrtc::ErrorFactory::Init(v8::Local<v8::Object> module) {
   Nan::TryCatch tc;

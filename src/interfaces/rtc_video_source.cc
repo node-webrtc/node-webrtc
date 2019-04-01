@@ -17,9 +17,9 @@
 #include "src/converters/arguments.h"
 #include "src/converters/v8.h"
 #include "src/dictionaries/webrtc/video_frame_buffer.h"
-#include "src/node/error.h"
 #include "src/functional/maybe.h"
 #include "src/interfaces/media_stream_track.h"
+#include "src/node/error.h"
 
 namespace node_webrtc {
 

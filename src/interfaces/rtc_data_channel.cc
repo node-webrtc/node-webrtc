@@ -9,10 +9,10 @@
 
 #include <utility>
 
+#include <v8.h>
 #include <webrtc/api/data_channel_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 #include <webrtc/rtc_base/copy_on_write_buffer.h>
-#include <v8.h>
 
 #include "src/enums/webrtc/data_state.h"
 #include "src/node/error.h"
@@ -27,9 +27,8 @@ Nan::Persistent<v8::Function>& RTCDataChannel::constructor() {
 }
 
 DataChannelObserver::DataChannelObserver(std::shared_ptr<PeerConnectionFactory> factory,
-    rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel)
-  : EventQueue()
-  , _factory(std::move(factory))
+    rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel):
+  _factory(std::move(factory))
   , _jingleDataChannel(std::move(jingleDataChannel)) {
   _jingleDataChannel->RegisterObserver(this);
 }
@@ -64,6 +63,14 @@ RTCDataChannel::RTCDataChannel(node_webrtc::DataChannelObserver* observer)
   requeue(*observer, *this);
 
   delete observer;
+
+  // NOTE(mroberts): These doesn't actually matter yet.
+  _cached_id = 0;
+  _cached_max_packet_life_time = 0;
+  _cached_max_retransmits = 0;
+  _cached_negotiated = false;
+  _cached_ordered = false;
+  _cached_buffered_amount = 0;
 }
 
 RTCDataChannel::~RTCDataChannel() {

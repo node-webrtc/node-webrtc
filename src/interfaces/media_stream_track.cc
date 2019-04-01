@@ -36,6 +36,8 @@ MediaStreamTrack::MediaStreamTrack(
   , _factory(std::move(factory))
   , _track(std::move(track)) {
   _track->RegisterObserver(this);
+  // NOTE(mroberts): This doesn't actually matter yet.
+  _enabled = false;
 }
 
 MediaStreamTrack::~MediaStreamTrack() {

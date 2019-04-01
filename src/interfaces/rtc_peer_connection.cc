@@ -16,7 +16,6 @@
 #include <webrtc/api/scoped_refptr.h>
 #include <webrtc/p2p/client/basic_port_allocator.h>
 
-#include "src/node/async_object_wrap_with_loop.h"
 #include "src/converters.h"
 #include "src/converters/arguments.h"
 #include "src/converters/interfaces.h"
@@ -34,23 +33,24 @@
 #include "src/enums/webrtc/ice_gathering_state.h"
 #include "src/enums/webrtc/media_type.h"
 #include "src/enums/webrtc/signaling_state.h"
-#include "src/interfaces/rtc_peer_connection/create_session_description_observer.h"
-#include "src/interfaces/rtc_data_channel.h"
 #include "src/functional/either.h"
 #include "src/functional/maybe.h"
 #include "src/interfaces/media_stream.h"
 #include "src/interfaces/media_stream_track.h"
+#include "src/interfaces/rtc_data_channel.h"
+#include "src/interfaces/rtc_peer_connection/create_session_description_observer.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
-#include "src/node/promise.h"
-#include "src/interfaces/rtc_rtp_receiver.h"
-#include "src/interfaces/rtc_rtp_sender.h"
-#include "src/interfaces/rtc_rtp_transceiver.h"
 #include "src/interfaces/rtc_peer_connection/rtc_stats_collector.h"
 #include "src/interfaces/rtc_peer_connection/set_session_description_observer.h"
 #include "src/interfaces/rtc_peer_connection/stats_observer.h"
+#include "src/interfaces/rtc_rtp_receiver.h"
+#include "src/interfaces/rtc_rtp_sender.h"
+#include "src/interfaces/rtc_rtp_transceiver.h"
+#include "src/node/async_object_wrap_with_loop.h"
 #include "src/node/error.h"
 #include "src/node/error_factory.h"
 #include "src/node/events.h"
+#include "src/node/promise.h"
 #include "src/node/utility.h"
 
 namespace node_webrtc {
@@ -64,7 +64,7 @@ Nan::Persistent<v8::Function>& RTCPeerConnection::constructor() {
 // PeerConnection
 //
 
-RTCPeerConnection::RTCPeerConnection(ExtendedRTCConfiguration configuration)
+RTCPeerConnection::RTCPeerConnection(const ExtendedRTCConfiguration& configuration)
   : AsyncObjectWrapWithLoop<RTCPeerConnection>("RTCPeerConnection", *this) {
 
   // TODO(mroberts): Read `factory` (non-standard) from RTCConfiguration?

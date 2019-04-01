@@ -40,7 +40,7 @@ NAN_METHOD(LegacyStatsReport::names) {
   v8::Local<v8::Array> names = Nan::New<v8::Array>(self->_stats.size());
 
   uint32_t i = 0;
-  for (auto pair : self->_stats) {
+  for (const auto& pair : self->_stats) {
     auto name = pair.first;
     names->Set(i++, Nan::New<v8::String>(name).ToLocalChecked());
   }
@@ -55,7 +55,7 @@ NAN_METHOD(LegacyStatsReport::stat) {
   auto requested = std::string(*v8::String::Utf8Value(info[0]->ToString()));
 
   v8::Local<v8::Value> found = Nan::Undefined();
-  for (auto pair : self->_stats) {
+  for (const auto& pair : self->_stats) {
     auto name = pair.first;
     if (requested == name) {
       found = Nan::New<v8::String>(pair.second).ToLocalChecked();

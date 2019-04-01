@@ -26,6 +26,7 @@ static Validation<RTC_ON_DATA_EVENT_DICT> CreateRTCOnDataEventDict(
   }
 
   auto actualByteLength = samples.ByteLength();
+  // NOLINTNEXTLINE
   auto expectedByteLength = static_cast<size_t>(channelCount * numberOfFrames * bitsPerSample / 8);
   if (actualByteLength != expectedByteLength) {
     auto error = "Expected a .byteLength of " + std::to_string(expectedByteLength) + ", not " +
