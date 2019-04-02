@@ -15,6 +15,7 @@
 #include <tuple>
 
 #include <nan.h>
+#include <node-addon-api/napi.h>
 
 #include "src/converters.h"
 #include "src/converters/macros.h"
@@ -70,11 +71,26 @@ struct Converter<Arguments, A> {
   }
 };
 
+template <typename A>
+struct Converter<Napi::CallbackInfo, A> {
+  static Validation<A> Convert(Napi::CallbackInfo args) {
+    return From<A>(args[0]);
+  }
+};
+
 template <typename L, typename R>
 struct Converter<Arguments, Either<L, R>> {
   static Validation<Either<L, R>> Convert(Arguments args) {
     return From<L>(args).Map(&Either<L, R>::Left)
         | (From<R>(args).Map(&Either<L, R>::Right));
+  }
+};
+
+template <typename L, typename R>
+struct Converter<Napi::CallbackInfo, Either<L, R>> {
+  static Validation<Either<L, R>> Convert(Napi::CallbackInfo args) {
+    return From<L>(args).Map(&MakeLeft<R, L>)
+        | (From<R>(args).Map(&MakeRight<L, R>));
   }
 };
 
@@ -92,6 +108,15 @@ struct Converter<Arguments, std::tuple<A, B>> {
   }
 };
 
+template <typename A, typename B>
+struct Converter<Napi::CallbackInfo, std::tuple<A, B>> {
+  static Validation<std::tuple<A, B>> Convert(Napi::CallbackInfo args) {
+    return curry(Make2Tuple<A, B>)
+        % From<A>(args[0])
+        * From<B>(args[1]);
+  }
+};
+
 template <typename A, typename B, typename C>
 static std::tuple<A, B> Make3Tuple(A a, B b, C c) {
   return std::make_tuple(a, b, c);
@@ -104,6 +129,16 @@ struct Converter<Arguments, std::tuple<A, B, C>> {
         % From<A>(args.info[0])
         * From<B>(args.info[1])
         * From<C>(args.info[2]);
+  }
+};
+
+template <typename A, typename B, typename C>
+struct Converter<Napi::CallbackInfo, std::tuple<A, B, C>> {
+  static Validation<std::tuple<A, B, C>> Convert(Napi::CallbackInfo args) {
+    return curry(Make3Tuple<A, B, C>)
+        % From<A>(args[0])
+        * From<B>(args[1])
+        * From<C>(args[2]);
   }
 };
 
