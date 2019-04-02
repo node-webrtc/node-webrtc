@@ -287,7 +287,7 @@ if(NOT clang_tidy_path STREQUAL "clang_tidy_path-NOTFOUND")
   set_property(TARGET ${MODULE} PROPERTY CXX_CLANG_TIDY ${clang_tidy_path})
 endif()
 
-execute_process(COMMAND node -p "JSON.parse(require('node-addon-api').include)" OUTPUT_VARIABLE node_addon_api_dir OUTPUT_STRIP_TRAILING_WHITESPACE)
+set(node_addon_api_dir ${CMAKE_SOURCE_DIR}/node_modules/node-addon-api)
 
 # NOTE(mroberts): Workaround for
 #
