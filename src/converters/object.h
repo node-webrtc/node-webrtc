@@ -13,6 +13,7 @@
 #pragma once
 
 #include <nan.h>
+#include <node-addon-api/napi.h>
 #include <v8.h>
 
 #include "src/converters.h"
@@ -44,5 +45,38 @@ static Validation<T> GetOptional(
     return maybeT.FromMaybe(default_value);
   });
 }
+
+namespace napi {
+
+template <typename T>
+static Validation<T> GetRequired(const Napi::Object object, const std::string& property) {
+  auto maybeValue = object.Get(property);
+  return maybeValue.Env().IsExceptionPending()
+      ? Validation<T>::Invalid(maybeValue.Env().GetAndClearPendingException().Message())
+      : From<T>(maybeValue);
+}
+
+template <typename T>
+static Validation<Maybe<T>> GetOptional(const Napi::Object object, const std::string& property) {
+  auto maybeValue = object.Get(property);
+  if (maybeValue.Env().IsExceptionPending()) {
+    return Validation<Maybe<T>>::Invalid(maybeValue.Env().GetAndClearPendingException().Message());
+  }
+  return maybeValue.IsUndefined()
+      ? Pure(MakeNothing<T>())
+      : From<T>(maybeValue).Map(&MakeJust<T>);
+}
+
+template <typename T>
+static Validation<T> GetOptional(
+    const Napi::Object object,
+    const std::string& property,
+    T default_value) {
+  return GetOptional<T>(object, property).Map([default_value](auto maybeT) {
+    return maybeT.FromMaybe(default_value);
+  });
+}
+
+}  // namespace napi
 
 }  // namespace node_webrtc

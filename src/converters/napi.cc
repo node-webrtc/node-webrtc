@@ -7,7 +7,7 @@ namespace node_webrtc {
 FROM_NAPI_IMPL(bool, value) {
   auto maybeBoolean = value.ToBoolean();
   return maybeBoolean.Env().IsExceptionPending()
-      ? Validation<bool>::Invalid("Expected a boolean")
+      ? Validation<bool>::Invalid(maybeBoolean.Env().GetAndClearPendingException().Message())
       : Pure(maybeBoolean.Value());
 }
 
@@ -19,7 +19,7 @@ TO_NAPI_IMPL(bool, pair) {
 FROM_NAPI_IMPL(double, value) {
   auto maybeNumber = value.ToNumber();
   return maybeNumber.Env().IsExceptionPending()
-      ? Validation<double>::Invalid("Expected a double")
+      ? Validation<double>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message())
       : Pure(maybeNumber.DoubleValue());
 }
 
@@ -31,7 +31,7 @@ TO_NAPI_IMPL(double, pair) {
 FROM_NAPI_IMPL(uint8_t, value) {
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<uint8_t>::Invalid("Expected a 8-bit unsigned integer");
+    return Validation<uint8_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
   if (doubleValue < 0 || doubleValue > UINT8_MAX) {
@@ -48,7 +48,7 @@ TO_NAPI_IMPL(uint8_t, pair) {
 FROM_NAPI_IMPL(uint16_t, value) {
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<uint16_t>::Invalid("Expected a 16-bit unsigned integer");
+    return Validation<uint16_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
   if (doubleValue < 0 || doubleValue > UINT16_MAX) {
@@ -65,7 +65,7 @@ TO_NAPI_IMPL(uint16_t, pair) {
 FROM_NAPI_IMPL(uint32_t, value) {
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<uint32_t>::Invalid("Expected a 32-bit unsigned integer");
+    return Validation<uint32_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
   if (doubleValue < 0 || doubleValue > UINT32_MAX) {
@@ -82,7 +82,7 @@ TO_NAPI_IMPL(uint32_t, pair) {
 FROM_NAPI_IMPL(uint64_t, value) {
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<uint64_t>::Invalid("Expected a 64-bit unsigned integer");
+    return Validation<uint64_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
   if (doubleValue < 0 || doubleValue > UINT64_MAX) {
@@ -99,7 +99,7 @@ TO_NAPI_IMPL(uint64_t, pair) {
 FROM_NAPI_IMPL(int8_t, value) {
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<int8_t>::Invalid("Expected a 8-bit integer");
+    return Validation<int8_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
   if (doubleValue < INT8_MIN || doubleValue > INT8_MAX) {
@@ -111,7 +111,7 @@ FROM_NAPI_IMPL(int8_t, value) {
 FROM_NAPI_IMPL(int16_t, value) {
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<int16_t>::Invalid("Expected a 16-bit integer");
+    return Validation<int16_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
   if (doubleValue < INT16_MIN || doubleValue > INT16_MAX) {
@@ -128,7 +128,7 @@ TO_NAPI_IMPL(int16_t, pair) {
 FROM_NAPI_IMPL(int32_t, value) {
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<int32_t>::Invalid("Expected a 32-bit integer");
+    return Validation<int32_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
   if (doubleValue < INT32_MIN || doubleValue > INT32_MAX) {
@@ -145,7 +145,7 @@ TO_NAPI_IMPL(int32_t, pair) {
 FROM_NAPI_IMPL(int64_t, value) {
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<int64_t>::Invalid("Expected a 64-bit integer");
+    return Validation<int64_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
   if (doubleValue < INT64_MIN || doubleValue > INT64_MAX) {
@@ -168,10 +168,10 @@ FROM_NAPI_IMPL(std::string, value) {
 
 TO_NAPI_IMPL(std::string, pair) {
   Napi::EscapableHandleScope scope(pair.first);
-  auto value = Napi::String::New(pair.first, pair.second);
-  return value.Env().IsExceptionPending()
-      ? Validation<Napi::Value>::Invalid("Failed to create string")
-      : Pure(scope.Escape(value.As<Napi::Value>()));
+  auto maybeValue = Napi::String::New(pair.first, pair.second);
+  return maybeValue.Env().IsExceptionPending()
+      ? Validation<Napi::Value>::Invalid(maybeValue.Env().GetAndClearPendingException().Message())
+      : Pure(scope.Escape(maybeValue.As<Napi::Value>()));
 }
 
 FROM_NAPI_IMPL(Napi::Function, value) {
@@ -188,12 +188,18 @@ FROM_NAPI_IMPL(Napi::Object, value) {
 
 TO_NAPI_IMPL(std::vector<bool>, pair) {
   Napi::EscapableHandleScope scope(pair.first);
-  auto array = Napi::Array::New(pair.first, pair.second.size());
+  auto maybeArray = Napi::Array::New(pair.first, pair.second.size());
+  if (maybeArray.Env().IsExceptionPending()) {
+    return Validation<Napi::Value>::Invalid(maybeArray.Env().GetAndClearPendingException().Message());
+  }
   uint32_t i = 0;
   for (bool value : pair.second) {
-    array.Set(i++, Napi::Boolean::New(pair.first, value));
+    maybeArray.Set(i++, Napi::Boolean::New(pair.first, value));
+    if (maybeArray.Env().IsExceptionPending()) {
+      return Validation<Napi::Value>::Invalid(maybeArray.Env().GetAndClearPendingException().Message());
+    }
   }
-  return Pure(scope.Escape(array.As<Napi::Value>()));
+  return Pure(scope.Escape(maybeArray.As<Napi::Value>()));
 }
 
 FROM_NAPI_IMPL(Napi::ArrayBuffer, value) {
