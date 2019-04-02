@@ -9,6 +9,7 @@
 
 #include <atomic>
 #include <memory>
+#include <mutex>
 
 #include <uv.h>
 
@@ -31,15 +32,11 @@ class EventLoop: private EventQueue<T> {
    */
   void Dispatch(std::unique_ptr<Event<T>> event) {
     this->Enqueue(std::move(event));
-    uv_mutex_lock(&_lock);
+    _mutex.lock();
     if (!uv_is_closing(reinterpret_cast<uv_handle_t*>(&_async))) {
       uv_async_send(&_async);
     }
-    uv_mutex_unlock(&_lock);
-  }
-
-  ~EventLoop() override {
-    uv_mutex_destroy(&_lock);
+    _mutex.unlock();
   }
 
   bool should_stop() const {
@@ -47,13 +44,12 @@ class EventLoop: private EventQueue<T> {
   }
 
  protected:
-  explicit EventLoop(T& target): EventQueue<T>(), _loop(uv_default_loop()), _target(target) {
+  explicit EventLoop(T& target): _loop(uv_default_loop()), _target(target) {
     uv_async_init(_loop, &_async, [](auto handle) {
       auto self = static_cast<EventLoop<T>*>(handle->data);
       self->Run();
     });
     _async.data = this;
-    uv_mutex_init(&_lock);
   }
 
   /**
@@ -73,12 +69,12 @@ class EventLoop: private EventQueue<T> {
       }
     }
     if (_should_stop) {
-      uv_mutex_lock(&_lock);
+      _mutex.lock();
       uv_close(reinterpret_cast<uv_handle_t*>(&_async), [](auto handle) {
         auto self = static_cast<EventLoop<T>*>(handle->data);
         self->DidStop();
       });
-      uv_mutex_unlock(&_lock);
+      _mutex.unlock();
     }
   }
 
@@ -92,7 +88,7 @@ class EventLoop: private EventQueue<T> {
 
  private:
   uv_async_t _async{};
-  uv_mutex_t _lock{};
+  std::mutex _mutex{};
   uv_loop_t* _loop;
   std::atomic<bool> _should_stop = {false};
   T& _target;

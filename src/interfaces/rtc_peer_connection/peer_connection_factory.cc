@@ -36,7 +36,7 @@ Nan::Persistent<v8::Function>& PeerConnectionFactory::constructor() {
 }
 
 std::shared_ptr<PeerConnectionFactory> PeerConnectionFactory::_default;  // NOLINT
-uv_mutex_t PeerConnectionFactory::_lock;  // NOLINT
+std::mutex PeerConnectionFactory::_mutex{};  // NOLINT
 int PeerConnectionFactory::_references = 0;
 
 PeerConnectionFactory::PeerConnectionFactory(Maybe<webrtc::AudioDeviceModule::AudioLayer> audioLayer) {
@@ -109,33 +109,30 @@ NAN_METHOD(PeerConnectionFactory::New) {
 }
 
 std::shared_ptr<PeerConnectionFactory> PeerConnectionFactory::GetOrCreateDefault() {
-  uv_mutex_lock(&_lock);
+  _mutex.lock();
   _references++;
   if (_references == 1) {
     _default = std::make_shared<PeerConnectionFactory>();
   }
-  uv_mutex_unlock(&_lock);
+  _mutex.unlock();
   return _default;
 }
 
 void PeerConnectionFactory::Release() {
-  uv_mutex_lock(&_lock);
+  _mutex.lock();
   _references--;
   assert(_references >= 0);
   if (!_references) {
     _default = nullptr;
   }
-  uv_mutex_unlock(&_lock);
+  _mutex.unlock();
 }
 
 void PeerConnectionFactory::Dispose() {
-  uv_mutex_destroy(&_lock);
   rtc::CleanupSSL();
 }
 
 void PeerConnectionFactory::Init(v8::Handle<v8::Object> exports) {
-  uv_mutex_init(&_lock);
-
   bool result;
   (void) result;
 

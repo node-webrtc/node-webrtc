@@ -13,12 +13,11 @@ using node_webrtc::AsyncObjectWrap;
 
 AsyncObjectWrap::AsyncObjectWrap(const char* name)  // NOLINT
   : _async_resource(new Nan::AsyncResource(name)) {
-  uv_mutex_init(&_async_resource_lock);
+  // Do nothing.
 }
 
 AsyncObjectWrap::~AsyncObjectWrap() {
   DestroyAsyncResource();
-  uv_mutex_destroy(&_async_resource_lock);
 }
 
 void AsyncObjectWrap::AddRef() {
@@ -43,16 +42,16 @@ void AsyncObjectWrap::Wrap(v8::Local<v8::Object> object) {
 }
 
 void AsyncObjectWrap::MakeCallback(const char* name, const int argc, v8::Local<v8::Value>* argv) {
-  uv_mutex_lock(&_async_resource_lock);
+  _async_resource_mutex.lock();
   if (_async_resource) {
     _async_resource->runInAsyncScope(ToObject(), name, argc, argv);
   }
-  uv_mutex_unlock(&_async_resource_lock);
+  _async_resource_mutex.unlock();
 }
 
 void AsyncObjectWrap::DestroyAsyncResource() {
   Nan::HandleScope scope;
-  uv_mutex_lock(&_async_resource_lock);
+  _async_resource_mutex.lock();
   if (_async_resource) {
 #if NODE_MAJOR_VERSION >= 9
     if (!Nan::GetCurrentContext().IsEmpty()) {
@@ -69,5 +68,5 @@ void AsyncObjectWrap::DestroyAsyncResource() {
 #endif
     _async_resource = nullptr;
   }
-  uv_mutex_unlock(&_async_resource_lock);
+  _async_resource_mutex.unlock();
 }

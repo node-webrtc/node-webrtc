@@ -8,9 +8,9 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 
 #include <nan.h>
-#include <uv.h>
 #include <webrtc/api/scoped_refptr.h>
 #include <webrtc/modules/audio_device/include/audio_device.h>
 #include <v8.h>
@@ -80,7 +80,7 @@ class PeerConnectionFactory
   static NAN_METHOD(New);
 
   static std::shared_ptr<PeerConnectionFactory> _default;
-  static uv_mutex_t _lock;
+  static std::mutex _mutex;
   static int _references;
 
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _factory;
