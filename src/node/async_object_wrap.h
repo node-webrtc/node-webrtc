@@ -8,9 +8,9 @@
 #pragma once
 
 #include <atomic>
+#include <mutex>
 
 #include <nan.h>
-#include <uv.h>
 #include <v8.h>
 
 namespace node_webrtc {
@@ -75,7 +75,7 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
 
  private:
   Nan::AsyncResource* _async_resource;
-  uv_mutex_t _async_resource_lock;
+  std::mutex _async_resource_mutex;
   std::atomic_int _reference_count = {0};
 
   /**

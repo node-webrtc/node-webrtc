@@ -8,9 +8,8 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <queue>
-
-#include <uv.h>
 
 #include "events.h"
 
@@ -29,9 +28,9 @@ class EventQueue {
    * @param event the event to enqueue
    */
   void Enqueue(std::unique_ptr<Event<T>> event) {
-    uv_mutex_lock(&_lock);
+    _mutex.lock();
     _events.push(std::move(event));
-    uv_mutex_unlock(&_lock);
+    _mutex.unlock();
   }
 
   /**
@@ -40,29 +39,22 @@ class EventQueue {
    * @return the dequeued Event or nullptr
    */
   std::unique_ptr<Event<T>> Dequeue() {
-    uv_mutex_lock(&_lock);
+    _mutex.lock();
     if (_events.empty()) {
-      uv_mutex_unlock(&_lock);
+      _mutex.unlock();
       return nullptr;
     }
     auto event = std::move(_events.front());
     _events.pop();
-    uv_mutex_unlock(&_lock);
+    _mutex.unlock();
     return event;
   }
 
-  virtual ~EventQueue() {
-    uv_mutex_destroy(&_lock);
-  }
-
- protected:
-  EventQueue() {
-    uv_mutex_init(&_lock);
-  }
+  virtual ~EventQueue() = default;
 
  private:
   std::queue<std::unique_ptr<Event<T>>> _events;
-  uv_mutex_t _lock{};
+  std::mutex _mutex{};
 };
 
 }  // namespace node_webrtc
