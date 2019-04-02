@@ -2,14 +2,18 @@
 
 #include <iosfwd>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <nan.h>
+#include <node-addon-api/napi.h>
 #include <v8.h>
 #include <webrtc/api/peer_connection_interface.h>
 
 #include "src/converters.h"
+#include "src/converters/napi.h"
 #include "src/converters/v8.h"
+#include "src/dictionaries/macros/napi.h"
 #include "src/dictionaries/node_webrtc/rtc_outh_credential.h"
 #include "src/enums/node_webrtc/rtc_ice_credential_type.h"
 #include "src/functional/either.h"
@@ -64,6 +68,29 @@ TO_JS_IMPL(webrtc::PeerConnectionInterface::IceServer, iceServer) {
     object->Set(Nan::New("credentialType").ToLocalChecked(), Nan::New("password").ToLocalChecked());
   }
   return Pure(scope.Escape(object.As<v8::Value>()));
+}
+
+TO_NAPI_IMPL(webrtc::PeerConnectionInterface::IceServer, pair) {
+  auto env = pair.first;
+  Napi::EscapableHandleScope scope(env);
+
+  NODE_WEBRTC_CREATE_OBJECT_OR_RETURN(env, object)
+
+  auto iceServer = pair.second;
+  if (!iceServer.uri.empty()) {
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "urls", iceServer.uri)
+  } else {
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "urls", iceServer.urls)
+  }
+  if (!iceServer.username.empty()) {
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "username", iceServer)
+  }
+  if (!iceServer.password.empty()) {
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "credential", iceServer.password)
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "credentialType", RTCIceCredentialType::kPassword)
+  }
+
+  return Pure(scope.Escape(object));
 }
 
 }  // namespace node_webrtc

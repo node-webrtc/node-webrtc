@@ -16,7 +16,7 @@
 #include "src/dictionaries/node_webrtc/some_error.h"
 
 void node_webrtc::CreateSessionDescriptionObserver::OnSuccess(webrtc::SessionDescriptionInterface* description) {
-  auto maybeDescription = node_webrtc::From<RTCSessionDescriptionInit>(description);
+  auto maybeDescription = node_webrtc::From<RTCSessionDescriptionInit>(const_cast<const webrtc::SessionDescriptionInterface*>(description));
   delete description;
   if (maybeDescription.IsInvalid()) {
     Reject(node_webrtc::SomeError(maybeDescription.ToErrors()[0]));

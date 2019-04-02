@@ -1,9 +1,14 @@
 #include "src/dictionaries/node_webrtc/unsigned_short_range.h"
 
+#include <utility>
+
 #include <nan.h>
+#include <node-addon-api/napi.h>
 #include <v8.h>
 
+#include "src/converters/napi.h"
 #include "src/converters/v8.h"
+#include "src/dictionaries/macros/napi.h"
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
 
@@ -32,6 +37,23 @@ TO_JS_IMPL(UNSIGNED_SHORT_RANGE, value) {
     object->Set(Nan::New("max").ToLocalChecked(), Nan::New(value.max.UnsafeFromJust()));
   }
   return Pure(scope.Escape(object.As<v8::Value>()));
+}
+
+TO_NAPI_IMPL(UNSIGNED_SHORT_RANGE, pair) {
+  auto env = pair.first;
+  Napi::EscapableHandleScope scope(pair.first);
+
+  NODE_WEBRTC_CREATE_OBJECT_OR_RETURN(env, object)
+
+  auto value = pair.second;
+  if (value.min.IsJust()) {
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "min", value.min.UnsafeFromJust())
+  }
+  if (value.max.IsJust()) {
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "max", value.max.UnsafeFromJust())
+  }
+
+  return Pure(scope.Escape(object));
 }
 
 }  // namespace node_webrtc

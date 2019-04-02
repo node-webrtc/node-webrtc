@@ -186,6 +186,10 @@ FROM_NAPI_IMPL(Napi::Object, value) {
       : Validation<Napi::Object>::Invalid("Expected an object");
 }
 
+TO_NAPI_IMPL(Napi::Value, pair) {
+  return Pure(pair.second);
+}
+
 TO_NAPI_IMPL(std::vector<bool>, pair) {
   Napi::EscapableHandleScope scope(pair.first);
   auto maybeArray = Napi::Array::New(pair.first, pair.second.size());

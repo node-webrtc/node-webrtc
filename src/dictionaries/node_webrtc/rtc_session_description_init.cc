@@ -1,7 +1,11 @@
 #include "src/dictionaries/node_webrtc/rtc_session_description_init.h"
 
+#include <utility>
+
+#include <node-addon-api/napi.h>
 #include <webrtc/api/jsep.h>
 
+#include "src/dictionaries/macros/napi.h"
 #include "src/functional/curry.h"
 #include "src/functional/operators.h"
 #include "src/functional/validation.h"
@@ -28,6 +32,15 @@ TO_JS_IMPL(RTCSessionDescriptionInit, init) {
   return Pure(scope.Escape(object.As<v8::Value>()));
 }
 
+TO_NAPI_IMPL(RTCSessionDescriptionInit, pair) {
+  auto env = pair.first;
+  Napi::EscapableHandleScope scope(env);
+  NODE_WEBRTC_CREATE_OBJECT_OR_RETURN(env, object)
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "type", pair.second.type)
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "sdp", pair.second.sdp)
+  return Pure(scope.Escape(object));
+}
+
 CONVERTER_IMPL(RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*, init) {
   std::string type_;
   switch (init.type) {
@@ -51,7 +64,7 @@ CONVERTER_IMPL(RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*, 
   return Pure(description);
 }
 
-CONVERTER_IMPL(webrtc::SessionDescriptionInterface*, RTCSessionDescriptionInit, description) {
+CONVERTER_IMPL(const webrtc::SessionDescriptionInterface*, RTCSessionDescriptionInit, description) {
   if (!description) {
     return Validation<RTCSessionDescriptionInit>::Invalid("RTCSessionDescription is null");
   }
@@ -62,7 +75,7 @@ CONVERTER_IMPL(webrtc::SessionDescriptionInterface*, RTCSessionDescriptionInit, 
   }
   return curry(CreateRTCSessionDescriptionInit)
       % From<RTCSdpType>(description->type())
-      * Validation<std::string>(sdp);
+      * Pure(sdp);
 }
 
 FROM_JS_IMPL(webrtc::SessionDescriptionInterface*, value) {
@@ -70,23 +83,34 @@ FROM_JS_IMPL(webrtc::SessionDescriptionInterface*, value) {
       .FlatMap<webrtc::SessionDescriptionInterface*>(Converter<RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*>::Convert);
 }
 
+FROM_NAPI_IMPL(webrtc::SessionDescriptionInterface*, pair) {
+  return From<RTCSessionDescriptionInit>(pair)
+      .FlatMap<webrtc::SessionDescriptionInterface*>(Converter<RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*>::Convert);
+}
+
 TO_JS_IMPL(const webrtc::SessionDescriptionInterface*, value) {
   Nan::EscapableHandleScope scope;
 
   if (!value) {
-    return node_webrtc::Validation<v8::Local<v8::Value>>::Invalid("RTCSessionDescription is null");
+    return Validation<v8::Local<v8::Value>>::Invalid("RTCSessionDescription is null");
   }
 
   std::string sdp;
   if (!value->ToString(&sdp)) {
-    return node_webrtc::Validation<v8::Local<v8::Value>>::Invalid("Failed to print the SDP. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc");
+    return Validation<v8::Local<v8::Value>>::Invalid("Failed to print the SDP. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc");
   }
 
   auto object = Nan::New<v8::Object>();
   object->Set(Nan::New("sdp").ToLocalChecked(), Nan::New(sdp).ToLocalChecked());
   object->Set(Nan::New("type").ToLocalChecked(), Nan::New(value->type()).ToLocalChecked());
 
-  return node_webrtc::Pure(scope.Escape(object.As<v8::Value>()));
+  return Pure(scope.Escape(object.As<v8::Value>()));
+}
+
+TO_NAPI_IMPL(const webrtc::SessionDescriptionInterface*, pair) {
+  return From<RTCSessionDescriptionInit>(pair.second).FlatMap<Napi::Value>([env = pair.first](auto value) {
+    return From<Napi::Value>(std::make_pair(env, value));
+  });
 }
 
 }  // namespace node_webrtc

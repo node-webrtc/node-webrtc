@@ -1,6 +1,7 @@
 #include "src/dictionaries/webrtc/rtc_stats_report.h"
 
 #include <nan.h>
+#include <node-addon-api/napi.h>
 #include <v8.h>
 #include <webrtc/api/scoped_refptr.h>
 #include <webrtc/api/stats/rtc_stats.h>
@@ -21,4 +22,10 @@ TO_JS_IMPL(rtc::scoped_refptr<webrtc::RTCStatsReport>, value) {
   }
   return Pure(scope.Escape(report).As<v8::Value>());
 }
+
+TO_NAPI_IMPL(rtc::scoped_refptr<webrtc::RTCStatsReport>, pair) {
+  (void) pair;
+  return Validation<Napi::Value>::Invalid("// FIXME(mroberts): How de we create Maps?");
+}
+
 }  // namespace node_webrtc

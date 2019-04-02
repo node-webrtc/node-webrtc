@@ -33,4 +33,24 @@ FROM_JS_IMPL(webrtc::PeerConnectionInterface::RTCConfiguration, value) {
   });
 }
 
+FROM_NAPI_IMPL(webrtc::PeerConnectionInterface::RTCConfiguration, value) {
+  // NOTE(mroberts): Allow overriding the default SdpSemantics via environment variable.
+  // Makes web-platform-tests easier to run.
+  auto sdp_semantics_env = std::getenv("SDP_SEMANTICS");
+  auto sdp_semantics_str = sdp_semantics_env ? std::string(sdp_semantics_env) : std::string();
+  auto sdp_semantics = From<webrtc::SdpSemantics>(sdp_semantics_str).FromValidation(webrtc::SdpSemantics::kPlanB);
+  return From<Napi::Object>(value).FlatMap<webrtc::PeerConnectionInterface::RTCConfiguration>([sdp_semantics](auto object) {
+    return curry(napi::CreateRTCConfiguration)
+        % napi::GetOptional<std::vector<webrtc::PeerConnectionInterface::IceServer>>(object, "iceServers", std::vector<webrtc::PeerConnectionInterface::IceServer>())
+        * napi::GetOptional<webrtc::PeerConnectionInterface::IceTransportsType>(object, "iceTransportPolicy", webrtc::PeerConnectionInterface::IceTransportsType::kAll)
+        * napi::GetOptional<webrtc::PeerConnectionInterface::BundlePolicy>(object, "bundlePolicy", webrtc::PeerConnectionInterface::BundlePolicy::kBundlePolicyBalanced)
+        * napi::GetOptional<webrtc::PeerConnectionInterface::RtcpMuxPolicy>(object, "rtcpMuxPolicy", webrtc::PeerConnectionInterface::RtcpMuxPolicy::kRtcpMuxPolicyRequire)
+        * napi::GetOptional<std::string>(object, "peerIdentity")
+        * napi::GetOptional<std::vector<Napi::Object>>(object, "certificates")
+        // TODO(mroberts): Implement EnforceRange and change to uint8_t.
+        * napi::GetOptional<uint8_t>(object, "iceCandidatePoolSize", 0)
+        * napi::GetOptional<webrtc::SdpSemantics>(object, "sdpSemantics", sdp_semantics);
+  });
+}
+
 }  // namespace node_webrtc

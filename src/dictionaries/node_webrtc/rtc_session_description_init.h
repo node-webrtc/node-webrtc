@@ -31,8 +31,12 @@ static inline RTC_SESSION_DESCRIPTION_INIT CreateRTCSessionDescriptionInit(
 }
 
 DECLARE_CONVERTER(RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*)
-DECLARE_CONVERTER(webrtc::SessionDescriptionInterface*, RTCSessionDescriptionInit)
+DECLARE_CONVERTER(const webrtc::SessionDescriptionInterface*, RTCSessionDescriptionInit)
+
 DECLARE_FROM_JS(webrtc::SessionDescriptionInterface*)
 DECLARE_TO_JS(const webrtc::SessionDescriptionInterface*)
+
+DECLARE_FROM_NAPI(webrtc::SessionDescriptionInterface*)
+DECLARE_TO_NAPI(const webrtc::SessionDescriptionInterface*)
 
 }  // namespace node_webrtc
