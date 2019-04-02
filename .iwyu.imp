@@ -10,5 +10,6 @@
   { include: ["<api/rtp_transceiver_interface.h>", "private", "<webrtc/api/rtp_transceiver_interface.h>", "public"] },
   { include: ["<api/stats/rtc_stats.h>", "private", "<webrtc/api/stats/rtc_stats.h>", "public"] },
   { include: ["<api/stats_types.h>", "private", "<webrtc/api/stats_types.h>", "public"] },
-  { include: ["<api/scoped_refptr.h>", "private", "<webrtc/api/scoped_refptr.h>", "public"] }
+  { include: ["<api/scoped_refptr.h>", "private", "<webrtc/api/scoped_refptr.h>", "public"] },
+  { include: ["<node_api_types.h>", "private", "<node-addon-api/napi.h>", "public"] }
 ]
