@@ -275,15 +275,6 @@ void MediaStream::Init(v8::Handle<v8::Object> exports) {
 }
 
 CONVERT_INTERFACE_TO_AND_FROM_JS(MediaStream, "MediaStream", handle, Nan::ObjectWrap::Unwrap<MediaStream>)
-
-FROM_NAPI_IMPL(MediaStream*, value) {
-  (void) value;
-  return Validation<MediaStream*>::Invalid("// FIXME(mroberts): Not yet implemented");
-}
-
-TO_NAPI_IMPL(MediaStream*, pair) {
-  (void) pair;
-  return Validation<Napi::Value>::Invalid("// FIXME(mroberts): Not yet implemented");
-}
+CONVERT_INTERFACE_TO_AND_FROM_NAPI(MediaStream, "MediaStream")
 
 }  // namespace node_webrtc

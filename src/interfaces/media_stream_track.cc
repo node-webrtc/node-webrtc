@@ -209,14 +209,6 @@ CONVERTER_IMPL(MediaStreamTrack*, rtc::scoped_refptr<webrtc::VideoTrackInterface
 CONVERT_VIA(v8::Local<v8::Value>, MediaStreamTrack*, rtc::scoped_refptr<webrtc::AudioTrackInterface>)
 CONVERT_VIA(v8::Local<v8::Value>, MediaStreamTrack*, rtc::scoped_refptr<webrtc::VideoTrackInterface>)
 
-FROM_NAPI_IMPL(MediaStreamTrack*, value) {
-  (void) value;
-  return Validation<MediaStreamTrack*>::Invalid("// FIXME(mroberts): Not yet implemented");
-}
-
-TO_NAPI_IMPL(MediaStreamTrack*, pair) {
-  (void) pair;
-  return Validation<Napi::Value>::Invalid("// FIXME(mroberts): Not yet implemented");
-}
+CONVERT_INTERFACE_TO_AND_FROM_NAPI(MediaStreamTrack, "MediaStreamTrack")
 
 }  // namespace node_webrtc
