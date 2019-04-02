@@ -163,5 +163,6 @@ void RTCRtpReceiver::Init(v8::Handle<v8::Object> exports) {
 }
 
 CONVERT_INTERFACE_TO_JS(RTCRtpReceiver, "RTCRtpReceiver", ToObject)
+CONVERT_INTERFACE_TO_NAPI(RTCRtpReceiver, "RTCRtpReceiver")
 
 }  // namespace node_webrtc

@@ -13,6 +13,7 @@
 #include <webrtc/api/scoped_refptr.h>
 #include <v8.h>
 
+#include "src/converters/napi.h"
 #include "src/converters/v8.h"
 #include "src/node/async_object_wrap.h"
 #include "src/node/wrap.h"
@@ -71,5 +72,6 @@ class RTCRtpReceiver: public AsyncObjectWrap {
 };
 
 DECLARE_TO_JS(RTCRtpReceiver*)
+DECLARE_TO_NAPI(RTCRtpReceiver*)
 
 }  // namespace node_webrtc
