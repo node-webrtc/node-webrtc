@@ -40,9 +40,20 @@ v8::Local<v8::Value> node_webrtc::ErrorFactory::CreateError(const std::string me
   return scope.Escape(Nan::Error(Nan::New(message).ToLocalChecked()));
 }
 
+Napi::Value node_webrtc::ErrorFactory::napi::CreateError(const Napi::Env env, const std::string message) {
+  Napi::EscapableHandleScope scope(env);
+  return scope.Escape(Napi::Error::New(env, message).Value());
+}
+
 v8::Local<v8::Value> node_webrtc::ErrorFactory::CreateInvalidAccessError(const std::string message) {
   Nan::EscapableHandleScope scope;
   return scope.Escape(CreateDOMException(message, kInvalidAccessError));
+}
+
+// FIXME(mroberts): Actually implement this.
+Napi::Value node_webrtc::ErrorFactory::napi::CreateInvalidAccessError(const Napi::Env env, const std::string message) {
+  Napi::EscapableHandleScope scope(env);
+  return scope.Escape(Napi::Error::New(env, message).Value());
 }
 
 v8::Local<v8::Value> node_webrtc::ErrorFactory::CreateInvalidModificationError(const std::string message) {
@@ -50,9 +61,21 @@ v8::Local<v8::Value> node_webrtc::ErrorFactory::CreateInvalidModificationError(c
   return scope.Escape(CreateDOMException(message, kInvalidModificationError));
 }
 
+// FIXME(mroberts): Actually implement this.
+Napi::Value node_webrtc::ErrorFactory::napi::CreateInvalidModificationError(const Napi::Env env, const std::string message) {
+  Napi::EscapableHandleScope scope(env);
+  return scope.Escape(Napi::Error::New(env, message).Value());
+}
+
 v8::Local<v8::Value> node_webrtc::ErrorFactory::CreateInvalidStateError(const std::string message) {
   Nan::EscapableHandleScope scope;
   return scope.Escape(CreateDOMException(message, kInvalidStateError));
+}
+
+// FIXME(mroberts): Actually implement this.
+Napi::Value node_webrtc::ErrorFactory::napi::CreateInvalidStateError(const Napi::Env env, const std::string message) {
+  Napi::EscapableHandleScope scope(env);
+  return scope.Escape(Napi::Error::New(env, message).Value());
 }
 
 v8::Local<v8::Value> node_webrtc::ErrorFactory::CreateNetworkError(const std::string message) {
@@ -60,9 +83,21 @@ v8::Local<v8::Value> node_webrtc::ErrorFactory::CreateNetworkError(const std::st
   return scope.Escape(CreateDOMException(message, kNetworkError));
 }
 
+// FIXME(mroberts): Actually implement this.
+Napi::Value node_webrtc::ErrorFactory::napi::CreateNetworkError(const Napi::Env env, const std::string message) {
+  Napi::EscapableHandleScope scope(env);
+  return scope.Escape(Napi::Error::New(env, message).Value());
+}
+
 v8::Local<v8::Value> node_webrtc::ErrorFactory::CreateOperationError(const std::string message) {
   Nan::EscapableHandleScope scope;
   return scope.Escape(CreateDOMException(message, kOperationError));
+}
+
+// FIXME(mroberts): Actually implement this.
+Napi::Value node_webrtc::ErrorFactory::napi::CreateOperationError(const Napi::Env env, const std::string message) {
+  Napi::EscapableHandleScope scope(env);
+  return scope.Escape(Napi::Error::New(env, message).Value());
 }
 
 v8::Local<v8::Value> node_webrtc::ErrorFactory::CreateRangeError(const std::string message) {
@@ -70,9 +105,20 @@ v8::Local<v8::Value> node_webrtc::ErrorFactory::CreateRangeError(const std::stri
   return scope.Escape(Nan::RangeError(Nan::New(message).ToLocalChecked()));
 }
 
+Napi::Value node_webrtc::ErrorFactory::napi::CreateRangeError(const Napi::Env env, const std::string message) {
+  Napi::EscapableHandleScope scope(env);
+  return scope.Escape(Napi::RangeError::New(env, message).Value());
+}
+
 v8::Local<v8::Value> node_webrtc::ErrorFactory::CreateSyntaxError(const std::string message) {
   Nan::EscapableHandleScope scope;
   return scope.Escape(Nan::SyntaxError(Nan::New(message).ToLocalChecked()));
+}
+
+// FIXME(mroberts): Actually implement this.
+Napi::Value node_webrtc::ErrorFactory::napi::CreateSyntaxError(const Napi::Env env, const std::string message) {
+  Napi::EscapableHandleScope scope(env);
+  return scope.Escape(Napi::Error::New(env, message).Value());
 }
 
 const char* node_webrtc::ErrorFactory::DOMExceptionNameToString(DOMExceptionName name) {

@@ -75,4 +75,34 @@ TO_JS_IMPL(SomeError, someError) {
   })));
 }
 
+TO_NAPI_IMPL(SomeError, pair) {
+  auto env = pair.first;
+  Napi::EscapableHandleScope scope(pair.first);
+  auto someError = pair.second;
+  auto message = someError.message();
+  return Pure(scope.Escape(someError.name().FromEither<Napi::Value>([env, message](auto name) {
+    switch (name) {
+      case ErrorFactory::DOMExceptionName::kInvalidAccessError:
+        return ErrorFactory::napi::CreateInvalidAccessError(env, message);
+      case ErrorFactory::DOMExceptionName::kInvalidModificationError:
+        return ErrorFactory::napi::CreateInvalidModificationError(env, message);
+      case ErrorFactory::DOMExceptionName::kInvalidStateError:
+        return ErrorFactory::napi::CreateInvalidStateError(env, message);
+      case ErrorFactory::DOMExceptionName::kNetworkError:
+        return ErrorFactory::napi::CreateNetworkError(env, message);
+      case ErrorFactory::DOMExceptionName::kOperationError:
+        return ErrorFactory::napi::CreateOperationError(env, message);
+    }
+  }, [env, message](auto name) {
+    switch (name) {
+      case ErrorFactory::ErrorName::kError:
+        return ErrorFactory::napi::CreateError(env, message);
+      case ErrorFactory::ErrorName::kRangeError:
+        return ErrorFactory::napi::CreateRangeError(env, message);
+      case ErrorFactory::ErrorName::kSyntaxError:
+        return ErrorFactory::napi::CreateSyntaxError(env, message);
+    }
+  })));
+}
+
 }  // namespace node_webrtc

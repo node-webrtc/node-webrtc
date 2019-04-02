@@ -10,6 +10,7 @@
 #include <iosfwd>
 
 #include <nan.h>
+#include <node-addon-api/napi.h>
 #include <v8.h>
 
 namespace node_webrtc {
@@ -40,6 +41,18 @@ class ErrorFactory {
   static v8::Local<v8::Value> CreateOperationError(std::string message);
   static v8::Local<v8::Value> CreateRangeError(std::string message);
   static v8::Local<v8::Value> CreateSyntaxError(std::string message);
+
+  class napi {
+   public:
+    static Napi::Value CreateError(Napi::Env, std::string);
+    static Napi::Value CreateInvalidAccessError(Napi::Env, std::string);
+    static Napi::Value CreateInvalidModificationError(Napi::Env, std::string);
+    static Napi::Value CreateInvalidStateError(Napi::Env, std::string);
+    static Napi::Value CreateNetworkError(Napi::Env, std::string);
+    static Napi::Value CreateOperationError(Napi::Env, std::string);
+    static Napi::Value CreateRangeError(Napi::Env, std::string);
+    static Napi::Value CreateSyntaxError(Napi::Env, std::string);
+  };
 
  private:
   static Nan::Persistent<v8::Function> DOMException;

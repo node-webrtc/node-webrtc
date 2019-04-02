@@ -2,6 +2,7 @@
 
 #include <webrtc/api/jsep.h>
 
+#include "src/dictionaries/macros/napi.h"
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
 
@@ -48,6 +49,28 @@ TO_JS_IMPL(webrtc::IceCandidateInterface*, value) {
 }
 
 CONVERT_VIA(v8::Local<v8::Value>, webrtc::IceCandidateInterface*, std::shared_ptr<webrtc::IceCandidateInterface>)
+
+TO_NAPI_IMPL(webrtc::IceCandidateInterface*, pair) {
+  auto env = pair.first;
+  Napi::EscapableHandleScope scope(env);
+
+  auto value = pair.second;
+  if (!value) {
+    return Validation<Napi::Value>::Invalid("RTCIceCandidate is null");
+  }
+
+  std::string candidate;
+  if (!value->ToString(&candidate)) {
+    return Validation<Napi::Value>::Invalid("Failed to print the candidate string. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc");
+  }
+
+  NODE_WEBRTC_CREATE_OBJECT_OR_RETURN(env, object)
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "candidate", candidate)
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "sdpMid", value->sdp_mid())
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "sdpMLineIndex", value->sdp_mline_index())
+
+  return Pure(scope.Escape(object));
+}
 
 }  // namespace node_webrtc
 

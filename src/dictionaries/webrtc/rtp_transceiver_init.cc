@@ -37,4 +37,3 @@ static Validation<webrtc::RtpTransceiverInit> RTP_TRANSCEIVER_INIT_FN(
 #define DICT(X) RTP_TRANSCEIVER_INIT ## X
 #include "src/dictionaries/macros/impls.h"
 #undef DICT
-

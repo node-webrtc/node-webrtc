@@ -2,6 +2,7 @@
 
 #include <v8.h>
 
+#include "src/converters/napi.h"
 #include "src/converters/v8.h"
 #include "src/functional/validation.h"
 
@@ -106,5 +107,8 @@ class RgbaImageData {
 
 DECLARE_FROM_JS(I420ImageData)
 DECLARE_FROM_JS(RgbaImageData)
+
+DECLARE_FROM_NAPI(I420ImageData)
+DECLARE_FROM_NAPI(RgbaImageData)
 
 }  // namespace node_webrtc

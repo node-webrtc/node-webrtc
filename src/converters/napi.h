@@ -40,6 +40,7 @@ DECLARE_TO_AND_FROM_NAPI(int64_t)
 DECLARE_TO_AND_FROM_NAPI(std::string)
 DECLARE_FROM_NAPI(Napi::Function)
 DECLARE_FROM_NAPI(Napi::Object)
+DECLARE_TO_NAPI(Napi::Value)
 DECLARE_TO_NAPI(std::vector<bool>)
 DECLARE_FROM_NAPI(Napi::ArrayBuffer)
 
@@ -86,24 +87,36 @@ struct Converter<Napi::Array, std::vector<T>> {
       }
       validated.push_back(maybeValidated.UnsafeFromValid());
     }
-    return validated;
+    return Pure(validated);
+  }
+};
+
+template <typename T>
+struct Converter<Napi::Value, std::vector<T>> {
+  static Validation<std::vector<T>> Convert(const Napi::Value value) {
+    return Converter<Napi::Value, Napi::Array>::Convert(value).FlatMap<std::vector<T>>(Converter<Napi::Array, std::vector<T>>::Convert);
   }
 };
 
 template <typename T>
 struct Converter<std::pair<Napi::Env, std::vector<T>>, Napi::Value> {
   static Validation<Napi::Value> Convert(std::pair<Napi::Env, std::vector<T>> pair) {
-    Napi::EscapableHandleScope scope(pair.first);
-    auto maybeArray = Napi::Array::New(pair.first, pair.second.size());
+    auto env = pair.first;
+    Napi::EscapableHandleScope scope(env);
+    auto values = pair.second;
+    auto maybeArray = Napi::Array::New(env, values.size());
+    if (maybeArray.Env().IsExceptionPending()) {
+      return Validation<Napi::Value>::Invalid(maybeArray.Env().GetAndClearPendingException().Message());
+    }
     uint32_t i = 0;
-    for (const auto& value : pair.second) {
-      auto maybeValue = From<Napi::Value>(value);
+    for (const auto& value : values) {
+      auto maybeValue = From<Napi::Value>(std::make_pair(env, value));
       if (maybeValue.IsInvalid()) {
         return Validation<Napi::Value>::Invalid(maybeValue.ToErrors());
       }
       maybeArray.Set(i++, maybeValue.UnsafeFromValid());
       if (maybeArray.Env().IsExceptionPending()) {
-        return Validation<Napi::Value>::Invalid(maybeArray.Env().GetAndClearPendingException());
+        return Validation<Napi::Value>::Invalid(maybeArray.Env().GetAndClearPendingException().Message());
       }
     }
     return Pure(scope.Escape(maybeArray));
