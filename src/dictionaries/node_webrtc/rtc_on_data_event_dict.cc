@@ -177,12 +177,12 @@ TO_NAPI_IMPL(RTC_ON_DATA_EVENT_DICT, pair) {
 
   auto length = dict.channelCount * numberOfFrames;
   auto byteLength = length * dict.bitsPerSample / 8;
-  auto maybeArrayBuffer = Napi::ArrayBuffer::New(env, byteLength);
+  auto maybeArrayBuffer = Napi::ArrayBuffer::New(env, samples.release(), byteLength, [](void* samples, void*) {
+    delete static_cast<uint8_t*>(samples);
+  });
   if (maybeArrayBuffer.Env().IsExceptionPending()) {
     return Validation<Napi::Value>::Invalid(maybeArrayBuffer.Env().GetAndClearPendingException().Message());
   }
-
-  memcpy(maybeArrayBuffer.Data(), samples.get(), byteLength);
 
   Napi::Value maybeSamples;
   switch (dict.bitsPerSample) {
