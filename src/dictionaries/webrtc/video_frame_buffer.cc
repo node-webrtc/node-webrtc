@@ -63,6 +63,7 @@ TO_JS_IMPL(rtc::scoped_refptr<webrtc::I420BufferInterface>, value) {
 }
 
 CONVERT_VIA(v8::Local<v8::Value>, I420ImageData, rtc::scoped_refptr<webrtc::I420Buffer>)
+CONVERT_VIA(Napi::Value, I420ImageData, rtc::scoped_refptr<webrtc::I420Buffer>)
 
 TO_NAPI_IMPL(rtc::scoped_refptr<webrtc::I420BufferInterface>, pair) {
   auto env = pair.first;

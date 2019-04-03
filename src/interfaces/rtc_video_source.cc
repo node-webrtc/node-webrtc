@@ -15,88 +15,81 @@
 #include "src/converters.h"
 #include "src/converters/absl.h"
 #include "src/converters/arguments.h"
-#include "src/converters/v8.h"
+#include "src/converters/napi.h"
 #include "src/dictionaries/webrtc/video_frame_buffer.h"
 #include "src/functional/maybe.h"
 #include "src/interfaces/media_stream_track.h"
 
 namespace node_webrtc {
 
-Nan::Persistent<v8::Function>& RTCVideoSource::constructor() {
-  static Nan::Persistent<v8::Function> constructor;
+Napi::FunctionReference& RTCVideoSource::constructor() {
+  static Napi::FunctionReference constructor;
   return constructor;
 }
 
-RTCVideoSource::RTCVideoSource() {
-  _source = new rtc::RefCountedObject<RTCVideoTrackSource>();
+RTCVideoSource::RTCVideoSource(const Napi::CallbackInfo& info)
+  : Napi::ObjectWrap<RTCVideoSource>(info) {
+  New(info);
 }
 
-RTCVideoSource::RTCVideoSource(const RTCVideoSourceInit init) {
+Napi::Value RTCVideoSource::New(const Napi::CallbackInfo& info) {
+  if (!info.IsConstructCall()) {
+    Nan::ThrowTypeError("Use the new operator to construct an RTCVideoSource.");
+    return info.Env().Undefined();
+  }
+
+  CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, maybeInit, Maybe<RTCVideoSourceInit>)
+  auto init = maybeInit.FromMaybe(RTCVideoSourceInit());
+
   auto needsDenoising = init.needsDenoising
   .Map([](auto needsDenoising) { return absl::optional<bool>(needsDenoising); })
   .FromMaybe(absl::optional<bool>());
+
   _source = new rtc::RefCountedObject<RTCVideoTrackSource>(init.isScreencast, needsDenoising);
+
+  return info.Env().Undefined();
 }
 
-NAN_METHOD(RTCVideoSource::New) {
-  if (!info.IsConstructCall()) {
-    return Nan::ThrowTypeError("Use the new operator to construct an RTCVideoSource.");
-  }
-
-  CONVERT_ARGS_OR_THROW_AND_RETURN(maybeInit, Maybe<RTCVideoSourceInit>)
-  auto init = maybeInit.FromMaybe(RTCVideoSourceInit());
-
-  auto instance = new RTCVideoSource(init);
-  instance->Wrap(info.This());
-
-  info.GetReturnValue().Set(info.This());
-}
-
-NAN_METHOD(RTCVideoSource::CreateTrack) {
-  auto self = Nan::ObjectWrap::Unwrap<RTCVideoSource>(info.Holder());
-
+Napi::Value RTCVideoSource::CreateTrack(const Napi::CallbackInfo& info) {
   // TODO(mroberts): Again, we have some implicit factory we are threading around. How to handle?
   auto factory = PeerConnectionFactory::GetOrCreateDefault();
-  auto track = factory->factory()->CreateVideoTrack(rtc::CreateRandomUuid(), self->_source);
+  auto track = factory->factory()->CreateVideoTrack(rtc::CreateRandomUuid(), _source);
   auto result = MediaStreamTrack::wrap()->GetOrCreate(factory, track);
-
-  info.GetReturnValue().Set(result->ToObject());
+  return napi::UnsafeFromV8(info.Env(), result->ToObject());
 }
 
-NAN_METHOD(RTCVideoSource::OnFrame) {
-  auto self = Nan::ObjectWrap::Unwrap<RTCVideoSource>(info.Holder());
-  CONVERT_ARGS_OR_THROW_AND_RETURN(buffer, rtc::scoped_refptr<webrtc::I420Buffer>)
+Napi::Value RTCVideoSource::OnFrame(const Napi::CallbackInfo& info) {
+  CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, buffer, rtc::scoped_refptr<webrtc::I420Buffer>)
   webrtc::VideoFrame::Builder builder;
   auto frame = builder.set_video_frame_buffer(buffer).build();
-  self->_source->PushFrame(frame);
+  _source->PushFrame(frame);
+  return info.Env().Undefined();
 }
 
-NAN_GETTER(RTCVideoSource::GetNeedsDenoising) {
-  (void) property;
-  auto self = Nan::ObjectWrap::Unwrap<RTCVideoSource>(info.Holder());
-  auto needsDenoising = From<v8::Local<v8::Value>>(self->_source->needs_denoising());
-  info.GetReturnValue().Set(needsDenoising.UnsafeFromValid());
+Napi::Value RTCVideoSource::GetNeedsDenoising(const Napi::CallbackInfo& info) {
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _source->needs_denoising(), result, Napi::Value)
+  return result;
 }
 
-NAN_GETTER(RTCVideoSource::GetIsScreencast) {
-  (void) property;
-  auto self = Nan::ObjectWrap::Unwrap<RTCVideoSource>(info.Holder());
-  info.GetReturnValue().Set(self->_source->is_screencast());
+Napi::Value RTCVideoSource::GetIsScreencast(const Napi::CallbackInfo& info) {
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _source->is_screencast(), result, Napi::Value)
+  return result;
 }
 
-void RTCVideoSource::Init(v8::Handle<v8::Object> exports) {
-  auto tpl = Nan::New<v8::FunctionTemplate>(New);
-  tpl->SetClassName(Nan::New("RTCVideoSource").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+void RTCVideoSource::Init(Napi::Env env, Napi::Object exports) {
+  Napi::HandleScope scope(env);
 
-  Nan::SetPrototypeMethod(tpl, "createTrack", CreateTrack);
-  Nan::SetPrototypeMethod(tpl, "onFrame", OnFrame);
+  Napi::Function func = DefineClass(env, "RTCVideoSource", {
+    InstanceMethod("createTrack", &RTCVideoSource::CreateTrack),
+    InstanceMethod("onFrame", &RTCVideoSource::OnFrame),
+    InstanceAccessor("needsDenoising", &RTCVideoSource::GetNeedsDenoising, nullptr),
+    InstanceAccessor("isScreencast", &RTCVideoSource::GetIsScreencast, nullptr)
+  });
 
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("needsDenoising").ToLocalChecked(), GetNeedsDenoising, nullptr);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("isScreencast").ToLocalChecked(), GetIsScreencast, nullptr);
+  constructor() = Napi::Persistent(func);
+  constructor().SuppressDestruct();
 
-  constructor().Reset(tpl->GetFunction());
-  exports->Set(Nan::New("RTCVideoSource").ToLocalChecked(), tpl->GetFunction());
+  exports.Set("RTCVideoSource", func);
 }
 
 }  // namespace node_webrtc
