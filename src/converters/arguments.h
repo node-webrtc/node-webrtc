@@ -59,12 +59,12 @@ namespace node_webrtc {
   } \
   auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
 
-#define CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(D, I, O, T) \
+#define CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(I, O, T) \
   auto NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(napi::Arguments(I)); \
   if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
     auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
-    Napi::TypeError::New(D.Env(), error).ThrowAsJavaScriptException(); \
-    return D.Env().Undefined(); \
+    Napi::TypeError::New(I.Env(), error).ThrowAsJavaScriptException(); \
+    return I.Env().Undefined(); \
   } \
   auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
 

@@ -7,20 +7,17 @@
  */
 #pragma once
 
-#include <nan.h>
-#include <v8.h>
-
-#include "src/functional/validation.h"
+#include <node-addon-api/napi.h>
 
 namespace node_webrtc {
 
 class I420Helpers {
  public:
-  static void Init(v8::Handle<v8::Object> exports);
+  static void Init(Napi::Env, Napi::Object);
 
  private:
-  static NAN_METHOD(I420ToRgba);
-  static NAN_METHOD(RgbaToI420);
+  static Napi::Value I420ToRgba(const Napi::CallbackInfo&);
+  static Napi::Value RgbaToI420(const Napi::CallbackInfo&);
 };
 
 }  // namespace node_webrtc
