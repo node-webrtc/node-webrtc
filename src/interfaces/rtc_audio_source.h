@@ -10,11 +10,10 @@
 #include <atomic>
 #include <memory>
 
-#include <nan.h>
+#include <node-addon-api/napi.h>
 #include <webrtc/api/media_stream_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 #include <webrtc/pc/local_audio_source.h>
-#include <v8.h>
 
 #include "src/dictionaries/node_webrtc/rtc_on_data_event_dict.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
@@ -65,24 +64,17 @@ class RTCAudioTrackSource : public webrtc::LocalAudioSource {
 };
 
 class RTCAudioSource
-  : public Nan::ObjectWrap {
+  : public Napi::ObjectWrap<RTCAudioSource> {
  public:
-  RTCAudioSource();
+  RTCAudioSource(const Napi::CallbackInfo&);
 
-  ~RTCAudioSource() override = default;
-
-  //
-  // Nodejs wrapping.
-  //
-  static void Init(v8::Handle<v8::Object> exports);
+  static void Init(Napi::Env, Napi::Object);
 
  private:
-  static Nan::Persistent<v8::Function>& constructor();
+  static Napi::FunctionReference& constructor();
 
-  static NAN_METHOD(New);
-
-  static NAN_METHOD(CreateTrack);
-  static NAN_METHOD(OnData);
+  Napi::Value CreateTrack(const Napi::CallbackInfo&);
+  Napi::Value OnData(const Napi::CallbackInfo&);
 
   rtc::scoped_refptr<RTCAudioTrackSource> _source;
 };
