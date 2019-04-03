@@ -1,5 +1,6 @@
 #include "src/converters/napi.h"
 
+#include "src/converters/v8.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
 
 namespace node_webrtc {
@@ -214,6 +215,10 @@ FROM_NAPI_IMPL(Napi::ArrayBuffer, value) {
   return value.IsArrayBuffer()
       ? Pure(value.As<Napi::ArrayBuffer>())
       : Validation<Napi::ArrayBuffer>::Invalid("Expected an ArrayBuffer");
+}
+
+FROM_NAPI_IMPL(v8::Local<v8::External>, value) {
+  return From<v8::Local<v8::External>>(napi::UnsafeToV8(value));
 }
 
 }  // namespace node_webrtc

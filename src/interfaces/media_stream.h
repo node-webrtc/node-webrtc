@@ -9,9 +9,8 @@
 
 #include <memory>
 
-#include <nan.h>
+#include <node-addon-api/napi.h>
 #include <webrtc/api/scoped_refptr.h>
-#include <v8.h>
 
 #include "src/converters/napi.h"
 #include "src/converters/v8.h"
@@ -26,11 +25,13 @@ class MediaStreamTrack;
 class PeerConnectionFactory;
 
 class MediaStream
-  : public Nan::ObjectWrap {
+  : public Napi::ObjectWrap<MediaStream> {
  public:
-  ~MediaStream() override;
+  MediaStream(const Napi::CallbackInfo&);
 
-  static void Init(v8::Handle<v8::Object> exports);
+  static void Init(Napi::Env, Napi::Object);
+
+  static Napi::FunctionReference& constructor();
 
   static ::node_webrtc::Wrap <
   MediaStream*,
@@ -38,45 +39,58 @@ class MediaStream
   std::shared_ptr<PeerConnectionFactory>
   > * wrap();
 
-  static Nan::Persistent<v8::FunctionTemplate>& tpl();
-
-  rtc::scoped_refptr<webrtc::MediaStreamInterface> stream() { return _stream; }
+  rtc::scoped_refptr<webrtc::MediaStreamInterface> stream();
 
  private:
-  explicit MediaStream(std::shared_ptr<PeerConnectionFactory>&& factory = nullptr);
+  class Impl {
+   public:
+    Impl& operator=(Impl&& other) noexcept {
+      if (&other != this) {
+        _factory = std::move(other._factory);
+        _stream = std::move(other._stream);
+        _shouldReleaseFactory = other._shouldReleaseFactory;
+        if (_shouldReleaseFactory) {
+          other._shouldReleaseFactory = false;
+        }
+      }
+      return *this;
+    }
 
-  explicit MediaStream(
-      std::vector<MediaStreamTrack*>&& tracks,
-      std::shared_ptr<PeerConnectionFactory>&& factory = nullptr);
+    ~Impl();
 
-  explicit MediaStream(
-      rtc::scoped_refptr<webrtc::MediaStreamInterface>&& stream,
-      std::shared_ptr<PeerConnectionFactory>&& factory = nullptr);
+    explicit Impl(std::shared_ptr<PeerConnectionFactory>&& factory = nullptr);
+
+    explicit Impl(
+        std::vector<MediaStreamTrack*>&& tracks,
+        std::shared_ptr<PeerConnectionFactory>&& factory = nullptr);
+
+    explicit Impl(
+        rtc::scoped_refptr<webrtc::MediaStreamInterface>&& stream,
+        std::shared_ptr<PeerConnectionFactory>&& factory = nullptr);
+
+    std::shared_ptr<PeerConnectionFactory> _factory;
+    rtc::scoped_refptr<webrtc::MediaStreamInterface> _stream;
+    bool _shouldReleaseFactory;
+  };
 
   static MediaStream* Create(
       std::shared_ptr<PeerConnectionFactory>,
       rtc::scoped_refptr<webrtc::MediaStreamInterface>);
 
-  static Nan::Persistent<v8::Function>& constructor();
+  Napi::Value GetId(const Napi::CallbackInfo&);
+  Napi::Value GetActive(const Napi::CallbackInfo&);
 
-  static NAN_METHOD(New);
-
-  static NAN_GETTER(GetId);
-  static NAN_GETTER(GetActive);
-
-  static NAN_METHOD(GetAudioTracks);
-  static NAN_METHOD(GetVideoTracks);
-  static NAN_METHOD(GetTracks);
-  static NAN_METHOD(GetTrackById);
-  static NAN_METHOD(AddTrack);
-  static NAN_METHOD(RemoveTrack);
-  static NAN_METHOD(Clone);
+  Napi::Value GetAudioTracks(const Napi::CallbackInfo&);
+  Napi::Value GetVideoTracks(const Napi::CallbackInfo&);
+  Napi::Value GetTracks(const Napi::CallbackInfo&);
+  Napi::Value GetTrackById(const Napi::CallbackInfo&);
+  Napi::Value AddTrack(const Napi::CallbackInfo&);
+  Napi::Value RemoveTrack(const Napi::CallbackInfo&);
+  Napi::Value Clone(const Napi::CallbackInfo&);
 
   std::vector<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> tracks();
 
-  const std::shared_ptr<PeerConnectionFactory> _factory;
-  const rtc::scoped_refptr<webrtc::MediaStreamInterface> _stream;
-  const bool _shouldReleaseFactory;
+  Impl _impl;
 };
 
 DECLARE_TO_AND_FROM_JS(MediaStream*)

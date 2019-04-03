@@ -78,6 +78,9 @@ DECLARE_TO_NAPI(Napi::Value)
 DECLARE_TO_NAPI(std::vector<bool>)
 DECLARE_FROM_NAPI(Napi::ArrayBuffer)
 
+// FIXME(mroberts): Remove me later...
+DECLARE_FROM_NAPI(v8::Local<v8::External>)
+
 template <typename T>
 struct Converter<Napi::Value, Maybe<T>> {
   static Validation<Maybe<T>> Convert(const Napi::Value value) {
