@@ -14,6 +14,7 @@
 #include "src/converters.h"
 #include "src/converters/arguments.h"
 #include "src/converters/interfaces.h"
+#include "src/converters/napi.h"
 #include "src/converters/v8.h"
 #include "src/functional/either.h"
 #include "src/functional/maybe.h"
@@ -22,23 +23,18 @@
 
 namespace node_webrtc {
 
-Nan::Persistent<v8::Function>& MediaStream::constructor() {
-  static Nan::Persistent<v8::Function> constructor;
+Napi::FunctionReference& MediaStream::constructor() {
+  static Napi::FunctionReference constructor;
   return constructor;
 }
 
-Nan::Persistent<v8::FunctionTemplate>& MediaStream::tpl() {
-  static Nan::Persistent<v8::FunctionTemplate> tpl;
-  return tpl;
-}
-
-MediaStream::MediaStream(std::shared_ptr<PeerConnectionFactory>&& factory)
+MediaStream::Impl::Impl(std::shared_ptr<PeerConnectionFactory>&& factory)
   : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault())
   , _stream(_factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid()))
   , _shouldReleaseFactory(!factory) {
 }
 
-MediaStream::MediaStream(std::vector<MediaStreamTrack*>&& tracks, std::shared_ptr<PeerConnectionFactory>&& factory)
+MediaStream::Impl::Impl(std::vector<MediaStreamTrack*>&& tracks, std::shared_ptr<PeerConnectionFactory>&& factory)
   : _factory(factory ? factory : tracks.empty() ? PeerConnectionFactory::GetOrCreateDefault() : tracks[0]->factory())
   , _stream(_factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid()))
   , _shouldReleaseFactory(!factory && tracks.empty()) {
@@ -53,7 +49,7 @@ MediaStream::MediaStream(std::vector<MediaStreamTrack*>&& tracks, std::shared_pt
   }
 }
 
-MediaStream::MediaStream(
+MediaStream::Impl::Impl(
     rtc::scoped_refptr<webrtc::MediaStreamInterface>&& stream,
     std::shared_ptr<PeerConnectionFactory>&& factory)
   : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault())
@@ -61,8 +57,7 @@ MediaStream::MediaStream(
   , _shouldReleaseFactory(!factory) {
 }
 
-MediaStream::~MediaStream() {
-  wrap()->Release(this);
+MediaStream::Impl::~Impl() {
   if (_shouldReleaseFactory) {
     PeerConnectionFactory::Release();
   }
@@ -70,166 +65,162 @@ MediaStream::~MediaStream() {
 
 std::vector<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> MediaStream::tracks() {
   auto tracks = std::vector<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>>();
-  for (auto const& track : _stream->GetAudioTracks()) {
+  for (auto const& track : _impl._stream->GetAudioTracks()) {
     tracks.emplace_back(track);
   }
-  for (auto const& track : _stream->GetVideoTracks()) {
+  for (auto const& track : _impl._stream->GetVideoTracks()) {
     tracks.emplace_back(track);
   }
   return tracks;
 }
 
-NAN_METHOD(MediaStream::New) {
-  CONVERT_ARGS_OR_THROW_AND_RETURN(eithers, Either<std::tuple<v8::Local<v8::External> COMMA v8::Local<v8::External>> COMMA Either<std::vector<MediaStreamTrack*> COMMA Maybe<MediaStream*>>>)
+rtc::scoped_refptr<webrtc::MediaStreamInterface> MediaStream::stream() {
+  return _impl._stream;
+}
 
-  MediaStream* mediaStream = nullptr;
+MediaStream::MediaStream(const Napi::CallbackInfo& info): Napi::ObjectWrap<MediaStream>(info) {
+  auto maybeEither = From<Either<std::tuple<v8::Local<v8::External> COMMA v8::Local<v8::External>> COMMA Either<std::vector<MediaStreamTrack*> COMMA Maybe<MediaStream*>>>>(napi::Arguments(info));
+  if (maybeEither.IsInvalid()) {
+    Napi::TypeError::New(info.Env(), maybeEither.ToErrors()[0]).ThrowAsJavaScriptException();
+    return;
+  }
+  auto eithers = maybeEither.UnsafeFromValid();
 
   if (eithers.IsLeft()) {
     // 1. Remote MediaStream
     auto pair = eithers.UnsafeFromLeft();
     auto factory = *static_cast<std::shared_ptr<PeerConnectionFactory>*>(v8::Local<v8::External>::Cast(std::get<0>(pair))->Value());
     auto stream = *static_cast<rtc::scoped_refptr<webrtc::MediaStreamInterface>*>(v8::Local<v8::External>::Cast(std::get<1>(pair))->Value());
-    mediaStream = new MediaStream(std::move(stream), std::move(factory));
+    _impl = MediaStream::Impl(std::move(stream), std::move(factory));
   } else {
     auto either = eithers.UnsafeFromRight();
     if (either.IsLeft()) {
       // 2. Local MediaStream, Array of MediaStreamTracks
       auto tracks = either.UnsafeFromLeft();
-      mediaStream = new MediaStream(std::move(tracks));
+      _impl = MediaStream::Impl(std::move(tracks));
     } else {
       auto maybeStream = either.UnsafeFromRight();
       if (maybeStream.IsJust()) {
         // 3. Local MediaStream, existing MediaStream
         auto existingStream = maybeStream.UnsafeFromJust();
-        auto factory = existingStream->_factory;
+        auto factory = existingStream->_impl._factory;
         auto tracks = std::vector<MediaStreamTrack*>();
         for (auto const& track : existingStream->tracks()) {
           tracks.push_back(MediaStreamTrack::wrap()->GetOrCreate(factory, track));
         }
-        mediaStream = new MediaStream(std::move(tracks), std::move(factory));
+        _impl = MediaStream::Impl(std::move(tracks), std::move(factory));
       } else {
         // 4. Local MediaStream
-        mediaStream = new MediaStream();
+        _impl = MediaStream::Impl();
       }
     }
   }
-
-  mediaStream->Wrap(info.This());
-
-  info.GetReturnValue().Set(info.This());
 }
 
-NAN_GETTER(MediaStream::GetId) {
-  (void) property;
-  auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
-  info.GetReturnValue().Set(Nan::New(self->_stream->id()).ToLocalChecked());
+Napi::Value MediaStream::GetId(const Napi::CallbackInfo& info) {
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _impl._stream->id(), result, Napi::Value)
+  return result;
 }
 
-NAN_GETTER(MediaStream::GetActive) {
-  (void) property;
-  auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
+Napi::Value MediaStream::GetActive(const Napi::CallbackInfo& info) {
   auto active = false;
-  for (auto const& track : self->tracks()) {
-    auto mediaStreamTrack = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, track);
+  for (auto const& track : tracks()) {
+    auto mediaStreamTrack = MediaStreamTrack::wrap()->GetOrCreate(_impl._factory, track);
     active = active || mediaStreamTrack->active();
   }
-  info.GetReturnValue().Set(Nan::New(active));
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), active, result, Napi::Value)
+  return result;
 }
 
-NAN_METHOD(MediaStream::GetAudioTracks) {
-  auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
+Napi::Value MediaStream::GetAudioTracks(const Napi::CallbackInfo& info) {
   auto tracks = std::vector<MediaStreamTrack*>();
-  for (auto const& track : self->_stream->GetAudioTracks()) {
-    auto mediaStreamTrack = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, track);
+  for (auto const& track : _impl._stream->GetAudioTracks()) {
+    auto mediaStreamTrack = MediaStreamTrack::wrap()->GetOrCreate(_impl._factory, track);
     tracks.push_back(mediaStreamTrack);
   }
-  CONVERT_OR_THROW_AND_RETURN(tracks, result, v8::Local<v8::Value>)
-  info.GetReturnValue().Set(result);
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), tracks, result, Napi::Value)
+  return result;
 }
 
-NAN_METHOD(MediaStream::GetVideoTracks) {
-  auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
+Napi::Value MediaStream::GetVideoTracks(const Napi::CallbackInfo& info) {
   auto tracks = std::vector<MediaStreamTrack*>();
-  for (auto const& track : self->_stream->GetVideoTracks()) {
-    auto mediaStreamTrack = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, track);
+  for (auto const& track : _impl._stream->GetVideoTracks()) {
+    auto mediaStreamTrack = MediaStreamTrack::wrap()->GetOrCreate(_impl._factory, track);
     tracks.push_back(mediaStreamTrack);
   }
-  CONVERT_OR_THROW_AND_RETURN(tracks, result, v8::Local<v8::Value>)
-  info.GetReturnValue().Set(result);
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), tracks, result, Napi::Value)
+  return result;
 }
 
-NAN_METHOD(MediaStream::GetTracks) {
-  auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
+Napi::Value MediaStream::GetTracks(const Napi::CallbackInfo& info) {
   auto tracks = std::vector<MediaStreamTrack*>();
-  for (auto const& track : self->tracks()) {
-    auto mediaStreamTrack = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, track);
+  for (auto const& track : this->tracks()) {
+    auto mediaStreamTrack = MediaStreamTrack::wrap()->GetOrCreate(_impl._factory, track);
     tracks.push_back(mediaStreamTrack);
   }
-  CONVERT_OR_THROW_AND_RETURN(tracks, result, v8::Local<v8::Value>)
-  info.GetReturnValue().Set(result);
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), tracks, result, Napi::Value)
+  return result;
 }
 
-NAN_METHOD(MediaStream::GetTrackById) {
-  CONVERT_ARGS_OR_THROW_AND_RETURN(label, std::string)
-  auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
-  auto audioTrack = self->_stream->FindAudioTrack(label);
+Napi::Value MediaStream::GetTrackById(const Napi::CallbackInfo& info) {
+  CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, label, std::string)
+  auto audioTrack = _impl._stream->FindAudioTrack(label);
   if (audioTrack) {
-    auto track = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, audioTrack);
-    info.GetReturnValue().Set(track->ToObject());
-    return;
+    auto track = MediaStreamTrack::wrap()->GetOrCreate(_impl._factory, audioTrack);
+    CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), track, result, Napi::Value)
+    return result;
   }
-  auto videoTrack = self->_stream->FindVideoTrack(label);
+  auto videoTrack = _impl._stream->FindVideoTrack(label);
   if (videoTrack) {
-    auto track = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, videoTrack);
-    info.GetReturnValue().Set(track->ToObject());
-    return;
+    auto track = MediaStreamTrack::wrap()->GetOrCreate(_impl._factory, videoTrack);
+    CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), track, result, Napi::Value)
+    return result;
   }
-  info.GetReturnValue().Set(Nan::Null());
+  return info.Env().Null();
 }
 
-NAN_METHOD(MediaStream::AddTrack) {
-  CONVERT_ARGS_OR_THROW_AND_RETURN(mediaStreamTrack, MediaStreamTrack*)
-  auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
-  auto stream = self->_stream;
+Napi::Value MediaStream::AddTrack(const Napi::CallbackInfo& info) {
+  CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, mediaStreamTrack, MediaStreamTrack*)
+  auto stream = _impl._stream;
   auto track = mediaStreamTrack->track();
   if (track->kind() == track->kAudioKind) {
     stream->AddTrack(static_cast<webrtc::AudioTrackInterface*>(track.get()));
   } else {
     stream->AddTrack(static_cast<webrtc::VideoTrackInterface*>(track.get()));
   }
+  return info.Env().Undefined();
 }
 
-NAN_METHOD(MediaStream::RemoveTrack) {
-  CONVERT_ARGS_OR_THROW_AND_RETURN(mediaStreamTrack, MediaStreamTrack*)
-  auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
-  auto stream = self->_stream;
+Napi::Value MediaStream::RemoveTrack(const Napi::CallbackInfo& info) {
+  CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, mediaStreamTrack, MediaStreamTrack*)
+  auto stream = _impl._stream;
   auto track = mediaStreamTrack->track();
   if (track->kind() == track->kAudioKind) {
     stream->RemoveTrack(static_cast<webrtc::AudioTrackInterface*>(track.get()));
   } else {
     stream->RemoveTrack(static_cast<webrtc::VideoTrackInterface*>(track.get()));
   }
+  return info.Env().Undefined();
 }
 
-NAN_METHOD(MediaStream::Clone) {
-  (void) info;
-  auto self = Nan::ObjectWrap::Unwrap<MediaStream>(info.Holder());
-  auto clonedStream = self->_factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid());
-  for (auto const& track : self->tracks()) {
+Napi::Value MediaStream::Clone(const Napi::CallbackInfo& info) {
+  auto clonedStream = _impl._factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid());
+  for (auto const& track : this->tracks()) {
     if (track->kind() == track->kAudioKind) {
       auto audioTrack = static_cast<webrtc::AudioTrackInterface*>(track.get());
       auto source = audioTrack->GetSource();
-      auto clonedTrack = self->_factory->factory()->CreateAudioTrack(rtc::CreateRandomUuid(), source);
+      auto clonedTrack = _impl._factory->factory()->CreateAudioTrack(rtc::CreateRandomUuid(), source);
       clonedStream->AddTrack(clonedTrack);
     } else {
       auto videoTrack = static_cast<webrtc::VideoTrackInterface*>(track.get());
       auto source = videoTrack->GetSource();
-      auto clonedTrack = self->_factory->factory()->CreateVideoTrack(rtc::CreateRandomUuid(), source);
+      auto clonedTrack = _impl._factory->factory()->CreateVideoTrack(rtc::CreateRandomUuid(), source);
       clonedStream->AddTrack(clonedTrack);
     }
   }
-  auto mediaStream = MediaStream::wrap()->GetOrCreate(self->_factory, clonedStream);
-  info.GetReturnValue().Set(mediaStream->handle());
+  auto mediaStream = MediaStream::wrap()->GetOrCreate(_impl._factory, clonedStream);
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), mediaStream, result, Napi::Value)
+  return result;
 }
 
 Wrap <
@@ -248,33 +239,64 @@ std::shared_ptr<PeerConnectionFactory>
 MediaStream* MediaStream::Create(
     std::shared_ptr<PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) {
-  Nan::HandleScope scope;
-  v8::Local<v8::Value> cargv[2];
-  cargv[0] = Nan::New<v8::External>(static_cast<void*>(&factory));
-  cargv[1] = Nan::New<v8::External>(static_cast<void*>(&stream));
-  auto mediaStream = Nan::NewInstance(Nan::New(MediaStream::constructor()), 2, cargv).ToLocalChecked();
-  return Nan::ObjectWrap::Unwrap<MediaStream>(mediaStream);
+  auto env = MediaStream::constructor().Env();
+  Napi::HandleScope scope(env);
+
+  auto factoryExternal = Nan::New<v8::External>(static_cast<void*>(&factory));
+  auto streamExternal = Nan::New<v8::External>(static_cast<void*>(&stream));
+
+  auto object = MediaStream::constructor().New({
+    napi::UnsafeFromV8(env, factoryExternal),
+    napi::UnsafeFromV8(env, streamExternal)
+  });
+
+  return MediaStream::Unwrap(object);
 }
 
-void MediaStream::Init(v8::Handle<v8::Object> exports) {
-  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  MediaStream::tpl().Reset(tpl);
-  tpl->SetClassName(Nan::New("MediaStream").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("id").ToLocalChecked(), GetId, nullptr);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("active").ToLocalChecked(), GetActive, nullptr);
-  Nan::SetPrototypeMethod(tpl, "getAudioTracks", GetAudioTracks);
-  Nan::SetPrototypeMethod(tpl, "getVideoTracks", GetVideoTracks);
-  Nan::SetPrototypeMethod(tpl, "getTracks", GetTracks);
-  Nan::SetPrototypeMethod(tpl, "getTrackById", GetTrackById);
-  Nan::SetPrototypeMethod(tpl, "addTrack", AddTrack);
-  Nan::SetPrototypeMethod(tpl, "removeTrack", RemoveTrack);
-  Nan::SetPrototypeMethod(tpl, "clone", Clone);
-  constructor().Reset(tpl->GetFunction());
-  exports->Set(Nan::New("MediaStream").ToLocalChecked(), tpl->GetFunction());
+void MediaStream::Init(Napi::Env env, Napi::Object exports) {
+  Napi::HandleScope scope(env);
+
+  Napi::Function func = DefineClass(env, "MediaStream", {
+    InstanceAccessor("id", &MediaStream::GetId, nullptr),
+    InstanceAccessor("active", &MediaStream::GetActive, nullptr),
+    InstanceMethod("getAudioTracks", &MediaStream::GetAudioTracks),
+    InstanceMethod("getVideoTracks", &MediaStream::GetVideoTracks),
+    InstanceMethod("getTracks", &MediaStream::GetTracks),
+    InstanceMethod("getTrackById", &MediaStream::GetTrackById),
+    InstanceMethod("addTrack", &MediaStream::AddTrack),
+    InstanceMethod("removeTrack", &MediaStream::RemoveTrack),
+    InstanceMethod("clone", &MediaStream::Clone),
+  });
+
+  constructor() = Napi::Persistent(func);
+  constructor().SuppressDestruct();
+
+  exports.Set("MediaStream", func);
 }
 
-CONVERT_INTERFACE_TO_AND_FROM_JS(MediaStream, "MediaStream", handle, Nan::ObjectWrap::Unwrap<MediaStream>)
-CONVERT_INTERFACE_TO_AND_FROM_NAPI(MediaStream, "MediaStream")
+FROM_NAPI_IMPL(MediaStream*, value) {
+  return From<Napi::Object>(value).FlatMap<MediaStream*>([](Napi::Object object) {
+    auto isMediaStream = false;
+    napi_instanceof(object.Env(), object, MediaStream::constructor().Value(), &isMediaStream);
+    if (object.Env().IsExceptionPending()) {
+      return Validation<MediaStream*>::Invalid(object.Env().GetAndClearPendingException().Message());
+    } else if (!isMediaStream) {
+      return Validation<MediaStream*>::Invalid("This is not an instance of MediaStream");
+    }
+    return Pure(MediaStream::Unwrap(object));
+  });
+}
+
+TO_NAPI_IMPL(MediaStream*, pair) {
+  return Pure(pair.second->Value().As<Napi::Value>());
+}
+
+FROM_JS_IMPL(MediaStream*, value) {
+  return From<MediaStream*>(napi::UnsafeFromV8(MediaStream::constructor().Env(), value));
+}
+
+TO_JS_IMPL(MediaStream*, value) {
+  return Pure(napi::UnsafeToV8(value->Value()));
+}
 
 }  // namespace node_webrtc
