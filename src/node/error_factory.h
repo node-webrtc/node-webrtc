@@ -31,7 +31,7 @@ class ErrorFactory {
     kSyntaxError
   };
 
-  static void Init(v8::Local<v8::Object> module);
+  static void Init(Napi::Env, Napi::Object);
 
   static v8::Local<v8::Value> CreateError(std::string message);
   static v8::Local<v8::Value> CreateInvalidAccessError(std::string message);
@@ -55,6 +55,8 @@ class ErrorFactory {
   };
 
  private:
+  static Napi::Value SetDOMException(const Napi::CallbackInfo&);
+
   static Nan::Persistent<v8::Function> DOMException;
 
   static const char* DOMExceptionNameToString(DOMExceptionName name);

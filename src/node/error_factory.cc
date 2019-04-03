@@ -10,29 +10,14 @@
 #include <string>
 
 #include "src/converters.h"
-#include "src/converters/object.h"
+#include "src/converters/napi.h"
 #include "src/converters/v8.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
 
 Nan::Persistent<v8::Function> node_webrtc::ErrorFactory::DOMException;  // NOLINT
 
-void node_webrtc::ErrorFactory::Init(v8::Local<v8::Object> module) {
-  Nan::TryCatch tc;
-  auto maybeRequire = node_webrtc::GetRequired<v8::Local<v8::Function>>(module, "require");
-  if (tc.HasCaught() || maybeRequire.IsInvalid()) {
-    return;
-  }
-  auto require = maybeRequire.UnsafeFromValid();
-  v8::Local<v8::Value> argv = Nan::New("domexception").ToLocalChecked();
-  auto result = Nan::Call(require, module, 1, &argv);
-  if (tc.HasCaught() || result.IsEmpty()) {
-    return;
-  }
-  auto maybeDOMException = node_webrtc::From<v8::Local<v8::Function>>(result.ToLocalChecked());
-  if (tc.HasCaught() || maybeDOMException.IsInvalid()) {
-    return;
-  }
-  DOMException.Reset(maybeDOMException.UnsafeFromValid());
+void node_webrtc::ErrorFactory::Init(Napi::Env env, Napi::Object exports) {
+  exports.Set("setDOMException", Napi::Function::New(env, SetDOMException));
 }
 
 v8::Local<v8::Value> node_webrtc::ErrorFactory::CreateError(const std::string message) {
@@ -150,4 +135,15 @@ v8::Local<v8::Value> node_webrtc::ErrorFactory::CreateDOMException(const std::st
     }
   }
   return scope.Escape(Nan::Error(Nan::New(std::string(prefix) + ": " + message).ToLocalChecked()));
+}
+
+Napi::Value node_webrtc::ErrorFactory::SetDOMException(const Napi::CallbackInfo& info) {
+  auto maybeDOMException = node_webrtc::From<Napi::Function>(info[0]);
+  if (maybeDOMException.IsInvalid()) {
+    Napi::TypeError::New(info.Env(), maybeDOMException.ToErrors()[0]).ThrowAsJavaScriptException();
+    return info.Env().Undefined();
+  }
+  auto domException = node_webrtc::napi::UnsafeToV8(maybeDOMException.UnsafeFromValid());
+  DOMException.Reset(domException.As<v8::Function>());
+  return info.Env().Undefined();
 }
