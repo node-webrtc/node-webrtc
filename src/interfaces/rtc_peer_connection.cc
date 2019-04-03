@@ -435,6 +435,11 @@ NAN_METHOD(RTCPeerConnection::CreateDataChannel) {
   rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel_interface =
       self->_jinglePeerConnection->CreateDataChannel(label, &dataChannelInit);
 
+  if (!data_channel_interface) {
+    Nan::ThrowError(ErrorFactory::CreateInvalidStateError("'createDataChannel' failed"));
+    return;
+  }
+
   auto observer = new DataChannelObserver(self->_factory, data_channel_interface);
   auto channel = RTCDataChannel::wrap()->GetOrCreate(observer, observer->channel());
   self->_channels.push_back(channel);
