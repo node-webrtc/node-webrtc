@@ -10,8 +10,10 @@
 #include <cstdint>
 
 #include <nan.h>
+#include <node-addon-api/napi.h>
 #include <v8.h>
 
+#include "src/converters/napi.h"
 #include "src/interfaces/legacy_rtc_stats_report.h"
 
 namespace node_webrtc {
@@ -43,7 +45,7 @@ NAN_METHOD(RTCStatsResponse::result) {
   uint32_t i = 0;
   for (auto const& stats : self->_reports) {
     auto report = LegacyStatsReport::Create(timestamp, stats);
-    reports->Set(i++, report->handle());
+    reports->Set(i++, napi::UnsafeToV8(report->Value()));
   }
 
   info.GetReturnValue().Set(reports);
