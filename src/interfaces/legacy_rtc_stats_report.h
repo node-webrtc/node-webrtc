@@ -11,43 +11,31 @@
 #include <map>
 #include <string>
 
-#include <nan.h>
-
-namespace v8 { class Function; }
-namespace v8 { class Object; }
-namespace v8 { template <class T> class Local; }
+#include <node-addon-api/napi.h>
 
 namespace node_webrtc {
 
 class LegacyStatsReport
-  : public Nan::ObjectWrap {
+  : public Napi::ObjectWrap<LegacyStatsReport> {
  public:
-  LegacyStatsReport() = delete;
+  explicit LegacyStatsReport(const Napi::CallbackInfo&);
 
-  ~LegacyStatsReport() override = default;
+  ~LegacyStatsReport() = default;
 
-  //
-  // Nodejs wrapping.
-  //
-  static void Init(v8::Handle<v8::Object> exports);
+  static void Init(Napi::Env, Napi::Object);
 
   static LegacyStatsReport* Create(double timestamp, const std::map<std::string, std::string>& stats);
 
  private:
-  explicit LegacyStatsReport(double timestamp, const std::map<std::string, std::string>& stats)
-    : _timestamp(timestamp), _stats(stats) {}
+  static Napi::FunctionReference& constructor();
 
-  static Nan::Persistent<v8::Function>& constructor();
+  Napi::Value New(const Napi::CallbackInfo&);
 
-  static NAN_METHOD(New);
+  Napi::Value Names(const Napi::CallbackInfo&);
+  Napi::Value Stat(const Napi::CallbackInfo&);
 
-  static NAN_METHOD(names);
-  static NAN_METHOD(stat);
-
-  static NAN_GETTER(GetTimestamp);
-  static NAN_GETTER(GetType);
-
-  static NAN_SETTER(ReadOnly);
+  Napi::Value GetTimestamp(const Napi::CallbackInfo&);
+  Napi::Value GetType(const Napi::CallbackInfo&);
 
   double _timestamp;
   std::map<std::string, std::string> _stats;

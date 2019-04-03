@@ -9,101 +9,99 @@
 
 #include <cstdint>
 #include <utility>
+#include <vector>
 
+#include <nan.h>
 #include <v8.h>
+
+#include "src/converters/arguments.h"
+#include "src/converters/napi.h"
+#include "src/functional/validation.h"
 
 namespace node_webrtc {
 
-Nan::Persistent<v8::Function>& LegacyStatsReport::constructor() {
-  static Nan::Persistent<v8::Function> constructor;
+Napi::FunctionReference& LegacyStatsReport::constructor() {
+  static Napi::FunctionReference constructor;
   return constructor;
 }
 
-NAN_METHOD(LegacyStatsReport::New) {
-  if (info.Length() != 2 || !info[0]->IsExternal() || !info[1]->IsExternal()) {
-    return Nan::ThrowTypeError("You cannot construct an LegacyStatsReport");
+LegacyStatsReport::LegacyStatsReport(const Napi::CallbackInfo& info): Napi::ObjectWrap<LegacyStatsReport>(info) {
+  if (info.Length() != 2 || !info[0].IsExternal() || !info[1].IsExternal()) {
+    Napi::TypeError::New(info.Env(), "You cannot construct an LegacyStatsReport").ThrowAsJavaScriptException();
+    return;
   }
 
-  auto timestamp = static_cast<double*>(v8::Local<v8::External>::Cast(info[0])->Value());
-  auto stats = static_cast<std::map<std::string, std::string>*>(v8::Local<v8::External>::Cast(info[1])->Value());
+  auto timestamp = static_cast<double*>(napi::UnsafeToV8(info[0]).As<v8::External>()->Value());
+  auto stats = static_cast<std::map<std::string, std::string>*>(napi::UnsafeToV8(info[1]).As<v8::External>()->Value());
 
-  auto obj = new LegacyStatsReport(*timestamp, *stats);
-  obj->Wrap(info.This());
-
-  info.GetReturnValue().Set(info.This());
+  _timestamp = *timestamp;
+  _stats = *stats;
 }
 
-NAN_METHOD(LegacyStatsReport::names) {
-  Nan::HandleScope scope;
-
-  auto self = Nan::ObjectWrap::Unwrap<LegacyStatsReport>(info.This());
-  v8::Local<v8::Array> names = Nan::New<v8::Array>(self->_stats.size());
-
-  uint32_t i = 0;
-  for (const auto& pair : self->_stats) {
-    auto name = pair.first;
-    names->Set(i++, Nan::New<v8::String>(name).ToLocalChecked());
+Napi::Value LegacyStatsReport::Names(const Napi::CallbackInfo& info) {
+  auto names = std::vector<std::string>(_stats.size());
+  uint64_t i = 0;
+  for (const auto& stat : _stats) {
+    names[i] = stat.first;
   }
-
-  info.GetReturnValue().Set(names);
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), names, result, Napi::Value)
+  return result;
 }
 
-NAN_METHOD(LegacyStatsReport::stat) {
-  Nan::HandleScope scope;
+Napi::Value LegacyStatsReport::Stat(const Napi::CallbackInfo& info) {
+  CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, requested, std::string)
 
-  auto self = Nan::ObjectWrap::Unwrap<LegacyStatsReport>(info.This());
-  auto requested = std::string(*v8::String::Utf8Value(info[0]->ToString()));
-
-  v8::Local<v8::Value> found = Nan::Undefined();
-  for (const auto& pair : self->_stats) {
+  Napi::Value found = info.Env().Undefined();
+  for (const auto& pair : _stats) {
     auto name = pair.first;
     if (requested == name) {
-      found = Nan::New<v8::String>(pair.second).ToLocalChecked();
+      CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), pair.second, result, Napi::Value)
+      found = result;
     }
   }
 
-  info.GetReturnValue().Set(found);
+  return found;
 }
 
-NAN_GETTER(LegacyStatsReport::GetTimestamp) {
-  (void) property;
-
-  auto self = Nan::ObjectWrap::Unwrap<LegacyStatsReport>(info.Holder());
-
-  info.GetReturnValue().Set(Nan::New<v8::Number>(self->_timestamp));
+Napi::Value LegacyStatsReport::GetTimestamp(const Napi::CallbackInfo& info) {
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _timestamp, result, Napi::Value)
+  return result;
 }
 
-NAN_GETTER(LegacyStatsReport::GetType) {
-  (void) property;
-
-  auto self = Nan::ObjectWrap::Unwrap<LegacyStatsReport>(info.Holder());
-  auto type = self->_stats.find("type")->second;
-
-  info.GetReturnValue().Set(Nan::New<v8::String>(type).ToLocalChecked());
+Napi::Value LegacyStatsReport::GetType(const Napi::CallbackInfo& info) {
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _stats.find("type")->second, result, Napi::Value)
+  return result;
 }
 
 LegacyStatsReport* LegacyStatsReport::Create(double timestamp, const std::map<std::string, std::string>& stats) {
-  Nan::HandleScope scope;
-  v8::Local<v8::Value> cargv[2];
-  cargv[0] = Nan::New<v8::External>(static_cast<void*>(&timestamp));
-  cargv[1] = Nan::New<v8::External>(const_cast<void*>(static_cast<const void*>(&stats)));
-  auto report = Nan::NewInstance(Nan::New(LegacyStatsReport::constructor()), 2, cargv).ToLocalChecked();
-  return Nan::ObjectWrap::Unwrap<LegacyStatsReport>(report);
+  auto env = LegacyStatsReport::constructor().Env();
+  Napi::HandleScope scope(env);
+
+  auto timestampExternal = Nan::New<v8::External>(static_cast<void*>(&timestamp));
+  auto statsExternal = Nan::New<v8::External>(const_cast<void*>(static_cast<const void*>(&stats)));
+
+  auto object = LegacyStatsReport::constructor().New({
+    napi::UnsafeFromV8(env, timestampExternal),
+    napi::UnsafeFromV8(env, statsExternal)
+  });
+
+  return LegacyStatsReport::Unwrap(object);
 }
 
-void LegacyStatsReport::Init(v8::Handle<v8::Object> exports) {
-  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate> (New);
-  tpl->SetClassName(Nan::New("LegacyStatsReport").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+void LegacyStatsReport::Init(Napi::Env env, Napi::Object exports) {
+  Napi::HandleScope scope(env);
 
-  Nan::SetPrototypeMethod(tpl, "names", names);
-  Nan::SetPrototypeMethod(tpl, "stat", stat);
+  Napi::Function func = DefineClass(env, "LegacyStatsReport", {
+    InstanceMethod("names", &LegacyStatsReport::Names),
+    InstanceMethod("stat", &LegacyStatsReport::Stat),
+    InstanceAccessor("timestamp", &LegacyStatsReport::GetTimestamp, nullptr),
+    InstanceAccessor("type", &LegacyStatsReport::GetType, nullptr),
+  });
 
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("timestamp").ToLocalChecked(), GetTimestamp, nullptr);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("type").ToLocalChecked(), GetType, nullptr);
+  constructor() = Napi::Persistent(func);
+  constructor().SuppressDestruct();
 
-  constructor().Reset(tpl->GetFunction());
-  exports->Set(Nan::New("LegacyStatsReport").ToLocalChecked(), tpl->GetFunction());
+  exports.Set("LegacyStatsReport", exports);
 }
 
 }  // namespace node_webrtc
