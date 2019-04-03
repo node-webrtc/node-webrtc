@@ -5,9 +5,11 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
+#include <node-addon-api/napi.h>
 #include <node.h>
 #include <v8.h>
 
+#include "src/converters/napi.h"
 #include "src/interfaces/legacy_rtc_stats_report.h"
 #include "src/interfaces/media_stream.h"
 #include "src/interfaces/media_stream_track.h"
@@ -35,8 +37,8 @@ static void dispose(void*) {
   node_webrtc::PeerConnectionFactory::Dispose();
 }
 
-static void init(v8::Handle<v8::Object> exports, v8::Handle<v8::Object> module) {
-  node_webrtc::ErrorFactory::Init(module);
+static void init(Napi::Env env, v8::Handle<v8::Object> exports, v8::Handle<v8::Object>) {
+  (void) env;
   node_webrtc::GetUserMedia::Init(exports);
   node_webrtc::I420Helpers::Init(exports);
   node_webrtc::PeerConnectionFactory::Init(exports);
@@ -60,4 +62,13 @@ static void init(v8::Handle<v8::Object> exports, v8::Handle<v8::Object> module) 
   node::AtExit(dispose);
 }
 
-NODE_MODULE(wrtc, init)
+Napi::Object Init(Napi::Env env, Napi::Object exports) {
+  node_webrtc::ErrorFactory::Init(env, exports);
+
+  auto v8_exports = node_webrtc::napi::UnsafeToV8(exports).As<v8::Object>();
+  init(env, v8_exports, v8_exports);
+
+  return exports;
+}
+
+NODE_API_MODULE(wrtc_napi, Init)
