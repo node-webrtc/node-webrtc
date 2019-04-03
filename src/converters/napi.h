@@ -15,6 +15,24 @@
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
 
+#define CONVERT_OR_THROW_AND_RETURN_NAPI(E, I, O, T) \
+  auto NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(std::make_pair(E, I)); \
+  if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
+    auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
+    Napi::TypeError::New(E, error).ThrowAsJavaScriptException(); \
+    return E.Undefined(); \
+  } \
+  auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
+
+#define CONVERT_OR_REJECT_AND_RETURN_NAPI(D, I, O, T) \
+  auto NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(std::make_pair(D.Env(), I)); \
+  if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
+    auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
+    D.Reject(Napi::TypeError::New(D.Env(), error)); \
+    return D.Env().Undefined(); \
+  } \
+  auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
+
 namespace node_webrtc {
 
 namespace napi {

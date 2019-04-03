@@ -7,17 +7,16 @@
  */
 #pragma once
 
-#include <nan.h>
-#include <v8.h>
+#include <node-addon-api/napi.h>
 
 namespace node_webrtc {
 
 class GetUserMedia {
  public:
-  static void Init(v8::Handle<v8::Object> exports);
+  static void Init(Napi::Env, Napi::Object);
 
  private:
-  static NAN_METHOD(GetUserMediaImpl);
+  static Napi::Value GetUserMediaImpl(const Napi::CallbackInfo&);
 };
 
 }  // namespace node_webrtc

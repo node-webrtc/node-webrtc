@@ -11,10 +11,14 @@
 #include <v8.h>
 
 #include "src/converters.h"
+#include "src/converters/napi.h"
 #include "src/converters/v8.h"
 
 #define CREATE_RESOLVER(R) \
   auto R = v8::Promise::Resolver::New(Nan::GetCurrentContext()).ToLocalChecked();
+
+#define CREATE_DEFERRED(E, D) \
+  auto deferred = Napi::Promise::Deferred::New(E);
 
 #define RETURNS_PROMISE(R) \
   CREATE_RESOLVER(R) \
@@ -47,5 +51,33 @@ bool Reject(v8::Local<v8::Promise::Resolver> resolver, T input) {
   resolver->Reject(Nan::GetCurrentContext(), error).IsNothing();
   return false;
 }
+
+namespace napi {
+
+template <typename T>
+bool Resolve(Napi::Promise::Deferred deferred, T input) {
+  auto env = deferred.Env();
+  auto maybeOutput = From<Napi::Value>(std::make_pair(env, input));
+  if (maybeOutput.IsValid()) {
+    deferred.Resolve(maybeOutput.UnsafeFromValid());
+    return true;
+  }
+  deferred.Reject(Napi::Error::New(env, maybeOutput.ToErrors()[0]).Value());
+  return false;
+}
+
+template <typename T>
+bool Reject(Napi::Promise::Deferred deferred, T input) {
+  auto env = deferred.Env();
+  auto maybeOutput = From<Napi::Value>(std::make_pair(env, input));
+  if (maybeOutput.IsValid()) {
+    deferred.Reject(maybeOutput.UnsafeFromValid());
+    return true;
+  }
+  deferred.Reject(Napi::Error::New(env, maybeOutput.ToErrors()[0]));
+  return false;
+}
+
+}  // namepsace napi
 
 }  // namespace node_webrtc
