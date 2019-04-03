@@ -26,7 +26,7 @@ template <typename T>
 struct Converter<std::pair<Napi::Env, absl::optional<T>>, Napi::Value> {
   static Validation<Napi::Value> Convert(std::pair<Napi::Env, absl::optional<T>> pair) {
     return pair.second
-        ? Converter<T, Napi::Value>::Convert(std::make_pair(pair.first, *pair.second))
+        ? From<Napi::Value>(std::make_pair(pair.first, *pair.second))
         : Pure(pair.first.Null());
   }
 };

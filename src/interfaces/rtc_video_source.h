@@ -10,11 +10,10 @@
 #include <memory>
 
 #include <absl/types/optional.h>
-#include <nan.h>
+#include <node-addon-api/napi.h>
 #include <webrtc/api/media_stream_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 #include <webrtc/media/base/adapted_video_track_source.h>
-#include <v8.h>
 
 #include "src/dictionaries/node_webrtc/rtc_video_source_init.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
@@ -60,29 +59,22 @@ class RTCVideoTrackSource : public rtc::AdaptedVideoTrackSource {
 };
 
 class RTCVideoSource
-  : public Nan::ObjectWrap {
+  : public Napi::ObjectWrap<RTCVideoSource> {
  public:
-  RTCVideoSource();
+  explicit RTCVideoSource(const Napi::CallbackInfo&);
 
-  explicit RTCVideoSource(RTCVideoSourceInit);
-
-  ~RTCVideoSource() override = default;
-
-  //
-  // Nodejs wrapping.
-  //
-  static void Init(v8::Handle<v8::Object> exports);
+  static void Init(Napi::Env, Napi::Object);
 
  private:
-  static Nan::Persistent<v8::Function>& constructor();
+  static Napi::FunctionReference& constructor();
 
-  static NAN_METHOD(New);
+  Napi::Value New(const Napi::CallbackInfo&);
 
-  static NAN_GETTER(GetIsScreencast);
-  static NAN_GETTER(GetNeedsDenoising);
+  Napi::Value GetIsScreencast(const Napi::CallbackInfo&);
+  Napi::Value GetNeedsDenoising(const Napi::CallbackInfo&);
 
-  static NAN_METHOD(CreateTrack);
-  static NAN_METHOD(OnFrame);
+  Napi::Value CreateTrack(const Napi::CallbackInfo&);
+  Napi::Value OnFrame(const Napi::CallbackInfo&);
 
   rtc::scoped_refptr<RTCVideoTrackSource> _source;
 };
