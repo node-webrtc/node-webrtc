@@ -39,7 +39,6 @@ static void dispose(void*) {
 
 static void init(Napi::Env env, v8::Handle<v8::Object> exports, v8::Handle<v8::Object>) {
   (void) env;
-  node_webrtc::I420Helpers::Init(exports);
   node_webrtc::PeerConnectionFactory::Init(exports);
   node_webrtc::RTCPeerConnection::Init(exports);
   node_webrtc::RTCDataChannel::Init(exports);
@@ -64,6 +63,7 @@ static void init(Napi::Env env, v8::Handle<v8::Object> exports, v8::Handle<v8::O
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
   node_webrtc::ErrorFactory::Init(env, exports);
   node_webrtc::GetUserMedia::Init(env, exports);
+  node_webrtc::I420Helpers::Init(env, exports);
 
   auto v8_exports = node_webrtc::napi::UnsafeToV8(exports).As<v8::Object>();
   init(env, v8_exports, v8_exports);

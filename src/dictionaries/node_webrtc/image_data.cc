@@ -18,7 +18,7 @@ CONVERTER_IMPL(v8::Local<v8::Value>, ImageData, value) {
     return curry(ImageData::Create)
         % GetRequired<int>(object, "width")
         * GetRequired<int>(object, "height")
-        * GetRequired<v8::ArrayBuffer::Contents>(object, "data");
+        * GetRequired<v8::ArrayBuffer::Contents>(object, "data").Map(MakeLeft<Napi::ArrayBuffer, v8::ArrayBuffer::Contents>);
   });
 }
 
@@ -28,7 +28,7 @@ FROM_NAPI_IMPL(ImageData, value) {
     return curry(ImageData::Create)
         % napi::GetRequired<int>(object, "width")
         * napi::GetRequired<int>(object, "height")
-        * Validation<v8::ArrayBuffer::Contents>::Invalid("// FIXME(mroberts): Unsupported");
+        * napi::GetRequired<Napi::ArrayBuffer>(object, "data").Map(MakeRight<v8::ArrayBuffer::Contents, Napi::ArrayBuffer>);
   });
 }
 

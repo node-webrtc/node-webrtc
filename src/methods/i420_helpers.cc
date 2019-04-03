@@ -11,6 +11,7 @@
 
 #include "src/converters.h"
 #include "src/converters/arguments.h"
+#include "src/converters/napi.h"
 #include "src/dictionaries/node_webrtc/image_data.h"
 
 namespace node_webrtc {
@@ -25,7 +26,11 @@ Validation<RgbaImageData> ImageData::toRgba() const {
 
 Validation<I420ImageData> I420ImageData::Create(const ImageData imageData) {
   auto expectedByteLength = static_cast<size_t>(imageData.width * imageData.height * 1.5);
-  auto actualByteLength = imageData.contents.ByteLength();
+  auto actualByteLength = imageData.contents.FromEither<size_t>([](auto arrayBufferContents) {
+    return arrayBufferContents.ByteLength();
+  }, [](auto arrayBuffer) {
+    return arrayBuffer.ByteLength();
+  });
   if (actualByteLength != expectedByteLength) {
     auto error = "Expected a .byteLength of " + std::to_string(expectedByteLength) + ", not " +
         std::to_string(actualByteLength);
@@ -37,7 +42,11 @@ Validation<I420ImageData> I420ImageData::Create(const ImageData imageData) {
 
 Validation<RgbaImageData> RgbaImageData::Create(const ImageData imageData) {
   auto expectedByteLength = static_cast<size_t>(imageData.width * imageData.height * 4);  // NOLINT
-  auto actualByteLength = imageData.contents.ByteLength();
+  auto actualByteLength = imageData.contents.FromEither<size_t>([](auto arrayBufferContents) {
+    return arrayBufferContents.ByteLength();
+  }, [](auto arrayBuffer) {
+    return arrayBuffer.ByteLength();
+  });
   if (actualByteLength != expectedByteLength) {
     auto error = "Expected a .byteLength of " + std::to_string(expectedByteLength) + ", not " +
         std::to_string(actualByteLength);
@@ -47,15 +56,15 @@ Validation<RgbaImageData> RgbaImageData::Create(const ImageData imageData) {
   return Pure(rgbaImageData);
 }
 
-NAN_METHOD(I420Helpers::RgbaToI420) {
-  CONVERT_ARGS_OR_THROW_AND_RETURN(pair, std::tuple<RgbaImageData COMMA I420ImageData>)
+Napi::Value I420Helpers::RgbaToI420(const Napi::CallbackInfo& info) {
+  CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, pair, std::tuple<RgbaImageData COMMA I420ImageData>)
 
   RgbaImageData rgbaFrame = std::get<0>(pair);
   I420ImageData i420Frame = std::get<1>(pair);
 
   if (rgbaFrame.width() != i420Frame.width() || rgbaFrame.height() != i420Frame.height()) {
-    Nan::ThrowError("Dimensions must match");
-    return;
+    Napi::TypeError::New(info.Env(), "Dimensions must match").ThrowAsJavaScriptException();
+    return info.Env().Undefined();
   }
 
   libyuv::ABGRToI420(
@@ -70,17 +79,19 @@ NAN_METHOD(I420Helpers::RgbaToI420) {
       rgbaFrame.width(),
       rgbaFrame.height()
   );
+
+  return info.Env().Undefined();
 }
 
-NAN_METHOD(I420Helpers::I420ToRgba) {
-  CONVERT_ARGS_OR_THROW_AND_RETURN(pair, std::tuple<I420ImageData COMMA RgbaImageData>)
+Napi::Value I420Helpers::I420ToRgba(const Napi::CallbackInfo& info) {
+  CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, pair, std::tuple<I420ImageData COMMA RgbaImageData>)
 
   I420ImageData i420Frame = std::get<0>(pair);
   RgbaImageData rgbaFrame = std::get<1>(pair);
 
   if (i420Frame.width() != rgbaFrame.width() || i420Frame.height() != rgbaFrame.height()) {
-    Nan::ThrowError("Dimensions must match");
-    return;
+    Napi::TypeError::New(info.Env(), "Dimensions must match").ThrowAsJavaScriptException();
+    return info.Env().Undefined();
   }
 
   libyuv::I420ToABGR(
@@ -95,11 +106,13 @@ NAN_METHOD(I420Helpers::I420ToRgba) {
       i420Frame.width(),
       i420Frame.height()
   );
+
+  return info.Env().Undefined();
 }
 
-void I420Helpers::Init(v8::Handle<v8::Object> exports) {
-  Nan::SetMethod(exports, "rgbaToI420", RgbaToI420);
-  Nan::SetMethod(exports, "i420ToRgba", I420ToRgba);
+void I420Helpers::Init(Napi::Env env, Napi::Object exports) {
+  exports.Set("rgbaToI420", Napi::Function::New(env, RgbaToI420));
+  exports.Set("i420ToRgba", Napi::Function::New(env, I420ToRgba));
 }
 
 }  // namespace node_webrtc

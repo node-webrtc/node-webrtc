@@ -1,9 +1,11 @@
 #pragma once
 
+#include <node-addon-api/napi.h>
 #include <v8.h>
 
 #include "src/converters/napi.h"
 #include "src/converters/v8.h"
+#include "src/functional/either.h"
 #include "src/functional/validation.h"
 
 namespace node_webrtc {
@@ -15,9 +17,9 @@ class ImageData {
  public:
   int width;
   int height;
-  v8::ArrayBuffer::Contents contents;
+  Either<v8::ArrayBuffer::Contents, Napi::ArrayBuffer> contents;
 
-  static ImageData Create(int width, int height, v8::ArrayBuffer::Contents contents) {
+  static ImageData Create(int width, int height, Either<v8::ArrayBuffer::Contents, Napi::ArrayBuffer> contents) {
     return {width, height, contents};
   }
 
@@ -40,7 +42,11 @@ class I420ImageData {
   }
 
   uint8_t* dataY() const {
-    return static_cast<uint8_t*>(data.contents.Data());
+    return data.contents.FromEither<uint8_t*>([](auto arrayBufferContents) {
+      return static_cast<uint8_t*>(arrayBufferContents.Data());
+    }, [](auto arrayBuffer) {
+      return static_cast<uint8_t*>(arrayBuffer.Data());
+    });
   }
 
   int strideY() const {
@@ -84,7 +90,11 @@ class RgbaImageData {
   static Validation<RgbaImageData> Create(ImageData imageData);
 
   uint8_t* dataRgba() const {
-    return static_cast<uint8_t*>(data.contents.Data());
+    return data.contents.FromEither<uint8_t*>([](auto arrayBufferContents) {
+      return static_cast<uint8_t*>(arrayBufferContents.Data());
+    }, [](auto arrayBuffer) {
+      return static_cast<uint8_t*>(arrayBuffer.Data());
+    });
   }
 
   int strideRgba() const {

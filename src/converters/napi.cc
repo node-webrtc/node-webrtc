@@ -207,6 +207,10 @@ TO_NAPI_IMPL(std::vector<bool>, pair) {
 }
 
 FROM_NAPI_IMPL(Napi::ArrayBuffer, value) {
+  if (value.IsTypedArray()) {
+    auto typedArray = value.As<Napi::TypedArray>();
+    return Pure(typedArray.ArrayBuffer());
+  }
   return value.IsArrayBuffer()
       ? Pure(value.As<Napi::ArrayBuffer>())
       : Validation<Napi::ArrayBuffer>::Invalid("Expected an ArrayBuffer");
