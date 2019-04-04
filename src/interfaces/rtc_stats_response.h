@@ -9,40 +9,25 @@
 
 #include <iosfwd>
 #include <map>
+#include <node-addon-api/napi.h>
 #include <string>
 #include <vector>
-
-#include <nan.h>
-
-namespace v8 { class Function; }
-namespace v8 { class Object; }
-namespace v8 { template <class T> class Local; }
 
 namespace node_webrtc {
 
 class RTCStatsResponse
-  : public Nan::ObjectWrap {
+  : public Napi::ObjectWrap<RTCStatsResponse> {
  public:
-  RTCStatsResponse() = delete;
+  explicit RTCStatsResponse(const Napi::CallbackInfo&);
 
-  ~RTCStatsResponse() override = default;
-
-  //
-  // Nodejs wrapping.
-  //
-  static void Init(v8::Handle<v8::Object> exports);
+  static void Init(Napi::Env, Napi::Object);
 
   static RTCStatsResponse* Create(double timestamp, const std::vector<std::map<std::string, std::string>>& reports);
 
  private:
-  explicit RTCStatsResponse(double timestamp, const std::vector<std::map<std::string, std::string>>& reports)
-    : _timestamp(timestamp), _reports(reports) {}
+  static Napi::FunctionReference& constructor();
 
-  static Nan::Persistent<v8::Function>& constructor();
-
-  static NAN_METHOD(New);
-
-  static NAN_METHOD(result);
+  Napi::Value Result(const Napi::CallbackInfo&);
 
   double _timestamp;
   std::vector<std::map<std::string, std::string>> _reports;
