@@ -33,7 +33,7 @@ static Validation<Napi::Object> CreateObject(const Napi::Env env) {
   auto maybeObject = Napi::Object::New(env);
   return maybeObject.Env().IsExceptionPending()
       ? Validation<Napi::Object>::Invalid(maybeObject.Env().GetAndClearPendingException().Message())
-      : Pure(maybeObject);
+      : Pure(scope.Escape(maybeObject).ToObject());
 }
 
 template <typename T>

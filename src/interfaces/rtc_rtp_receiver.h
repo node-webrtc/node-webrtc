@@ -10,6 +10,7 @@
 #include <memory>
 
 #include <nan.h>
+#include <node-addon-api/napi.h>
 #include <webrtc/api/scoped_refptr.h>
 #include <v8.h>
 
@@ -24,16 +25,13 @@ namespace node_webrtc {
 
 class PeerConnectionFactory;
 
-class RTCRtpReceiver: public AsyncObjectWrap {
+class RTCRtpReceiver: public napi::AsyncObjectWrap<RTCRtpReceiver> {
  public:
+  explicit RTCRtpReceiver(const Napi::CallbackInfo&);
+
   ~RTCRtpReceiver() override;
 
-  static void Init(v8::Handle<v8::Object> exports);
-
-  // NOTE(mroberts): Working around an MSVC bug.
-  static RTCRtpReceiver* Unwrap(v8::Local<v8::Object> object) {
-    return AsyncObjectWrap::Unwrap<RTCRtpReceiver>(object);
-  }
+  static void Init(Napi::Env, Napi::Object);
 
   static ::node_webrtc::Wrap <
   RTCRtpReceiver*,
@@ -41,37 +39,29 @@ class RTCRtpReceiver: public AsyncObjectWrap {
   std::shared_ptr<PeerConnectionFactory>
   > * wrap();
 
-  static Nan::Persistent<v8::FunctionTemplate>& tpl();
+  static Napi::FunctionReference& constructor();
 
  private:
-  RTCRtpReceiver(
-      std::shared_ptr<PeerConnectionFactory>&& factory,
-      rtc::scoped_refptr<webrtc::RtpReceiverInterface>&& receiver);
-
   static RTCRtpReceiver* Create(
       std::shared_ptr<PeerConnectionFactory>,
       rtc::scoped_refptr<webrtc::RtpReceiverInterface>);
 
-  static Nan::Persistent<v8::Function>& constructor();
+  Napi::Value GetTrack(const Napi::CallbackInfo&);
+  Napi::Value GetTransport(const Napi::CallbackInfo&);
+  Napi::Value GetRtcpTransport(const Napi::CallbackInfo&);
 
-  static NAN_METHOD(New);
+  static Napi::Value GetCapabilities(const Napi::CallbackInfo&);
 
-  static NAN_GETTER(GetTrack);
-  static NAN_GETTER(GetTransport);
-  static NAN_GETTER(GetRtcpTransport);
+  Napi::Value GetParameters(const Napi::CallbackInfo&);
+  Napi::Value GetContributingSources(const Napi::CallbackInfo&);
+  Napi::Value GetSynchronizationSources(const Napi::CallbackInfo&);
+  Napi::Value GetStats(const Napi::CallbackInfo&);
 
-  static NAN_METHOD(GetCapabilities);
-
-  static NAN_METHOD(GetParameters);
-  static NAN_METHOD(GetContributingSources);
-  static NAN_METHOD(GetSynchronizationSources);
-  static NAN_METHOD(GetStats);
-
-  const std::shared_ptr<PeerConnectionFactory> _factory;
-  const rtc::scoped_refptr<webrtc::RtpReceiverInterface> _receiver;
+  std::shared_ptr<PeerConnectionFactory> _factory;
+  rtc::scoped_refptr<webrtc::RtpReceiverInterface> _receiver;
 };
 
 DECLARE_TO_JS(RTCRtpReceiver*)
-DECLARE_TO_NAPI(RTCRtpReceiver*)
+DECLARE_TO_AND_FROM_NAPI(RTCRtpReceiver*)
 
 }  // namespace node_webrtc

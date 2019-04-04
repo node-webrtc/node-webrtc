@@ -184,7 +184,7 @@ void RTCPeerConnection::OnAddTrack(rtc::scoped_refptr<webrtc::RtpReceiverInterfa
     CONVERT_OR_THROW_AND_RETURN(mediaStreams, streamArray, v8::Local<v8::Value>)
 
     v8::Local<v8::Value> argv[3];
-    argv[0] = RTCRtpReceiver::wrap()->GetOrCreate(_factory, receiver)->ToObject();
+    argv[0] = napi::UnsafeToV8(RTCRtpReceiver::wrap()->GetOrCreate(_factory, receiver)->Value());
     argv[1] = streamArray;
     argv[2] = Nan::Null();
     MakeCallback("ontrack", 3, argv);
@@ -205,7 +205,7 @@ void RTCPeerConnection::OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterfa
     CONVERT_OR_THROW_AND_RETURN(mediaStreams, streamArray, v8::Local<v8::Value>)
 
     v8::Local<v8::Value> argv[3];
-    argv[0] = RTCRtpReceiver::wrap()->GetOrCreate(_factory, receiver)->ToObject();
+    argv[0] = napi::UnsafeToV8(RTCRtpReceiver::wrap()->GetOrCreate(_factory, receiver)->Value());
     argv[1] = streamArray;
     argv[2] = RTCRtpTransceiver::wrap()->GetOrCreate(_factory, transceiver)->ToObject();
     MakeCallback("ontrack", 3, argv);
