@@ -207,7 +207,7 @@ void RTCPeerConnection::OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterfa
     v8::Local<v8::Value> argv[3];
     argv[0] = napi::UnsafeToV8(RTCRtpReceiver::wrap()->GetOrCreate(_factory, receiver)->Value());
     argv[1] = streamArray;
-    argv[2] = RTCRtpTransceiver::wrap()->GetOrCreate(_factory, transceiver)->ToObject();
+    argv[2] = napi::UnsafeToV8(RTCRtpTransceiver::wrap()->GetOrCreate(_factory, transceiver)->Value());
     MakeCallback("ontrack", 3, argv);
   }));
 }
@@ -286,7 +286,7 @@ NAN_METHOD(RTCPeerConnection::AddTransceiver) {
   }
   auto rtpTransceiver = result.value();
   auto transceiver = RTCRtpTransceiver::wrap()->GetOrCreate(self->_factory, rtpTransceiver);
-  info.GetReturnValue().Set(transceiver->ToObject());
+  info.GetReturnValue().Set(napi::UnsafeToV8(transceiver->Value()));
 }
 
 NAN_METHOD(RTCPeerConnection::RemoveTrack) {

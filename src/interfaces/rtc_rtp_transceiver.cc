@@ -10,112 +10,84 @@
 #include <webrtc/api/rtp_transceiver_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 
+#include "src/converters/arguments.h"
 #include "src/converters/absl.h"
 #include "src/converters/interfaces.h"
-#include "src/converters/v8.h"
 #include "src/enums/webrtc/rtp_transceiver_direction.h"
 #include "src/interfaces/rtc_rtp_receiver.h"
 #include "src/interfaces/rtc_rtp_sender.h"
 
 namespace node_webrtc {
 
-Nan::Persistent<v8::Function>& RTCRtpTransceiver::constructor() {
-  static Nan::Persistent<v8::Function> constructor;
+Napi::FunctionReference& RTCRtpTransceiver::constructor() {
+  static Napi::FunctionReference constructor;
   return constructor;
 }
 
-Nan::Persistent<v8::FunctionTemplate>& RTCRtpTransceiver::tpl() {
-  static Nan::Persistent<v8::FunctionTemplate> tpl;
-  return tpl;
-}
-
 RTCRtpTransceiver::RTCRtpTransceiver(
-    std::shared_ptr<PeerConnectionFactory>&& factory,
-    rtc::scoped_refptr<webrtc::RtpTransceiverInterface>&& transceiver)
-  : AsyncObjectWrap("RTCRtpTransceiver")
-  , _factory(std::move(factory))
-  , _transceiver(std::move(transceiver)) {
+    const Napi::CallbackInfo& info):
+  napi::AsyncObjectWrap<RTCRtpTransceiver>("RTCRtpTransceiver", info) {
+  if (info.Length() != 2 || !info[0].IsExternal() || !info[1].IsExternal()) {
+    Napi::TypeError::New(info.Env(), "You cannot construct a RTCRtpTransceiver").ThrowAsJavaScriptException();
+    return;
+  }
+
+  auto factory = *static_cast<std::shared_ptr<PeerConnectionFactory>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[0]))->Value());
+  auto transceiver = *static_cast<rtc::scoped_refptr<webrtc::RtpTransceiverInterface>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[1]))->Value());
+
+  _factory = std::move(factory);
+  _transceiver = std::move(transceiver);
 }
 
 RTCRtpTransceiver::~RTCRtpTransceiver() {
   wrap()->Release(this);
 }
 
-NAN_METHOD(RTCRtpTransceiver::New) {
-  if (info.Length() != 2 || !info[0]->IsExternal() || !info[1]->IsExternal()) {
-    return Nan::ThrowTypeError("You cannot construct a RTCRtpTransceiver");
+Napi::Value RTCRtpTransceiver::GetMid(const Napi::CallbackInfo& info) {
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _transceiver->mid(), result, Napi::Value)
+  return result;
+}
+
+Napi::Value RTCRtpTransceiver::GetSender(const Napi::CallbackInfo&) {
+  return RTCRtpSender::wrap()->GetOrCreate(_factory, _transceiver->sender())->Value();
+}
+
+Napi::Value RTCRtpTransceiver::GetReceiver(const Napi::CallbackInfo&) {
+  return RTCRtpReceiver::wrap()->GetOrCreate(_factory, _transceiver->receiver())->Value();
+}
+
+Napi::Value RTCRtpTransceiver::GetStopped(const Napi::CallbackInfo& info) {
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _transceiver->stopped(), result, Napi::Value)
+  return result;
+}
+
+Napi::Value RTCRtpTransceiver::GetDirection(const Napi::CallbackInfo& info) {
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _transceiver->direction(), result, Napi::Value)
+  return result;
+}
+
+void RTCRtpTransceiver::SetDirection(const Napi::CallbackInfo& info, const Napi::Value& value) {
+  auto maybeDirection = From<webrtc::RtpTransceiverDirection>(value);
+  if (maybeDirection.IsInvalid()) {
+    Napi::TypeError::New(info.Env(), maybeDirection.ToErrors()[0]).ThrowAsJavaScriptException();
+    return;
   }
-
-  auto factory = *static_cast<std::shared_ptr<PeerConnectionFactory>*>(v8::Local<v8::External>::Cast(info[0])->Value());
-  auto transceiver = *static_cast<rtc::scoped_refptr<webrtc::RtpTransceiverInterface>*>(v8::Local<v8::External>::Cast(info[1])->Value());
-
-  auto obj = new RTCRtpTransceiver(std::move(factory), std::move(transceiver));
-  obj->Wrap(info.This());
-
-  info.GetReturnValue().Set(info.This());
+  _transceiver->SetDirection(maybeDirection.UnsafeFromValid());
 }
 
-NAN_GETTER(RTCRtpTransceiver::GetMid) {
-  (void) property;
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  CONVERT_OR_THROW_AND_RETURN(self->_transceiver->mid(), result, v8::Local<v8::Value>)
-  info.GetReturnValue().Set(result);
+Napi::Value RTCRtpTransceiver::GetCurrentDirection(const Napi::CallbackInfo& info) {
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _transceiver->current_direction(), result, Napi::Value)
+  return result;
 }
 
-NAN_GETTER(RTCRtpTransceiver::GetSender) {
-  (void) property;
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  auto sender = RTCRtpSender::wrap()->GetOrCreate(self->_factory, self->_transceiver->sender());
-  info.GetReturnValue().Set(napi::UnsafeToV8(sender->Value()));
+Napi::Value RTCRtpTransceiver::Stop(const Napi::CallbackInfo& info) {
+  _transceiver->Stop();
+  return info.Env().Undefined();
 }
 
-NAN_GETTER(RTCRtpTransceiver::GetReceiver) {
-  (void) property;
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  auto receiver = RTCRtpReceiver::wrap()->GetOrCreate(self->_factory, self->_transceiver->receiver());
-  info.GetReturnValue().Set(napi::UnsafeToV8(receiver->Value()));
-}
-
-NAN_GETTER(RTCRtpTransceiver::GetStopped) {
-  (void) property;
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  CONVERT_OR_THROW_AND_RETURN(self->_transceiver->stopped(), result, v8::Local<v8::Value>)
-  info.GetReturnValue().Set(result);
-}
-
-NAN_GETTER(RTCRtpTransceiver::GetDirection) {
-  (void) property;
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  CONVERT_OR_THROW_AND_RETURN(self->_transceiver->direction(), result, v8::Local<v8::Value>)
-  info.GetReturnValue().Set(result);
-}
-
-NAN_SETTER(RTCRtpTransceiver::SetDirection) {
-  (void) property;
-
-  auto self = RTCRtpTransceiver::Unwrap(info.Holder());
-
-  CONVERT_OR_THROW_AND_RETURN(value, direction, webrtc::RtpTransceiverDirection)
-
-  self->_transceiver->SetDirection(direction);
-}
-
-NAN_GETTER(RTCRtpTransceiver::GetCurrentDirection) {
-  (void) property;
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  CONVERT_OR_THROW_AND_RETURN(self->_transceiver->current_direction(), result, v8::Local<v8::Value>)
-  info.GetReturnValue().Set(result);
-}
-
-NAN_METHOD(RTCRtpTransceiver::Stop) {
-  (void) info;
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
-  self->_transceiver->Stop();
-}
-
-NAN_METHOD(RTCRtpTransceiver::SetCodecPreferences) {
-  (void) info;
-  Nan::ThrowError("Not yet implemented; file a feature request against node-webrtc");
+Napi::Value RTCRtpTransceiver::SetCodecPreferences(const Napi::CallbackInfo& info) {
+  Napi::Error::New(info.Env(), "Not yet implemented; file a feature request against node-webrtc").ThrowAsJavaScriptException();
+  return info.Env().Undefined();
 }
 
 Wrap <
@@ -134,31 +106,44 @@ std::shared_ptr<PeerConnectionFactory>
 RTCRtpTransceiver* RTCRtpTransceiver::Create(
     std::shared_ptr<PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
-  Nan::HandleScope scope;
-  v8::Local<v8::Value> cargv[2];
-  cargv[0] = Nan::New<v8::External>(static_cast<void*>(&factory));
-  cargv[1] = Nan::New<v8::External>(static_cast<void*>(&transceiver));
-  auto value = Nan::NewInstance(Nan::New(RTCRtpTransceiver::constructor()), 2, cargv).ToLocalChecked();
-  return RTCRtpTransceiver::Unwrap(value);
+  auto env = constructor().Env();
+  Napi::HandleScope scope(env);
+
+  auto factoryExternal = Nan::New<v8::External>(static_cast<void*>(&factory));
+  auto transceiverExternal = Nan::New<v8::External>(static_cast<void*>(&transceiver));
+
+  auto object = constructor().New({
+    napi::UnsafeFromV8(env, factoryExternal),
+    napi::UnsafeFromV8(env, transceiverExternal)
+  });
+
+  return Unwrap(object);
 }
 
-void RTCRtpTransceiver::Init(v8::Handle<v8::Object> exports) {
-  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  RTCRtpTransceiver::tpl().Reset(tpl);
-  tpl->SetClassName(Nan::New("RTCRtpTransceiver").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("mid").ToLocalChecked(), GetMid, nullptr);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("sender").ToLocalChecked(), GetSender, nullptr);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("receiver").ToLocalChecked(), GetReceiver, nullptr);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("stopped").ToLocalChecked(), GetStopped, nullptr);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("direction").ToLocalChecked(), GetDirection, SetDirection);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("currentDirection").ToLocalChecked(), GetCurrentDirection, nullptr);
-  Nan::SetPrototypeMethod(tpl, "stop", Stop);
-  Nan::SetPrototypeMethod(tpl, "setCodecPreferences", SetCodecPreferences);
-  constructor().Reset(tpl->GetFunction());
-  exports->Set(Nan::New("RTCRtpTransceiver").ToLocalChecked(), tpl->GetFunction());
+void RTCRtpTransceiver::Init(Napi::Env env, Napi::Object exports) {
+  auto func = DefineClass(env, "RTCRtpTransceiver", {
+    InstanceAccessor("mid", &RTCRtpTransceiver::GetMid, nullptr),
+    InstanceAccessor("sender", &RTCRtpTransceiver::GetSender, nullptr),
+    InstanceAccessor("receiver", &RTCRtpTransceiver::GetReceiver, nullptr),
+    InstanceAccessor("stopped", &RTCRtpTransceiver::GetStopped, nullptr),
+    InstanceAccessor("direction", &RTCRtpTransceiver::GetDirection, &RTCRtpTransceiver::SetDirection),
+    InstanceAccessor("currentDirection", &RTCRtpTransceiver::GetCurrentDirection, nullptr),
+    InstanceMethod("stop", &RTCRtpTransceiver::Stop),
+    InstanceMethod("setCodecPreferences", &RTCRtpTransceiver::SetCodecPreferences),
+  });
+
+  constructor() = Napi::Persistent(func);
+  constructor().SuppressDestruct();
+
+  exports.Set("RTCRtpTransceiver", func);
 }
 
-CONVERT_INTERFACE_TO_JS(RTCRtpTransceiver, "RTCRtpTransceiver", ToObject)
+TO_NAPI_IMPL(RTCRtpTransceiver*, pair) {
+  return Pure(pair.second->Value().As<Napi::Value>());
+}
+
+TO_JS_IMPL(RTCRtpTransceiver*, value) {
+  return Pure(napi::UnsafeToV8(value->Value()));
+}
 
 }  // namespace node_webrtc
