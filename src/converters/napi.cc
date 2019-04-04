@@ -175,6 +175,10 @@ TO_NAPI_IMPL(std::string, pair) {
       : Pure(scope.Escape(maybeValue.As<Napi::Value>()));
 }
 
+TO_NAPI_IMPL(Napi::Error, pair) {
+  return Pure(pair.second.Value().As<Napi::Value>());
+}
+
 FROM_NAPI_IMPL(Napi::Function, value) {
   return value.IsFunction()
       ? Pure(value.As<Napi::Function>())

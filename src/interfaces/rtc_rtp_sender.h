@@ -25,11 +25,13 @@ namespace node_webrtc {
 
 class PeerConnectionFactory;
 
-class RTCRtpSender: public AsyncObjectWrap {
+class RTCRtpSender: public napi::AsyncObjectWrap<RTCRtpSender> {
  public:
+  explicit RTCRtpSender(const Napi::CallbackInfo&);
+
   ~RTCRtpSender() override;
 
-  static void Init(v8::Handle<v8::Object> exports);
+  static void Init(Napi::Env, Napi::Object);
 
   rtc::scoped_refptr<webrtc::RtpSenderInterface> sender() { return _sender; }
 
@@ -39,34 +41,26 @@ class RTCRtpSender: public AsyncObjectWrap {
   std::shared_ptr<PeerConnectionFactory>
   > * wrap();
 
-  static Nan::Persistent<v8::FunctionTemplate>& tpl();
+  static Napi::FunctionReference& constructor();
 
  private:
-  RTCRtpSender(
-      std::shared_ptr<PeerConnectionFactory>&& factory,
-      rtc::scoped_refptr<webrtc::RtpSenderInterface>&& sender);
-
   static RTCRtpSender* Create(
       std::shared_ptr<PeerConnectionFactory>,
       rtc::scoped_refptr<webrtc::RtpSenderInterface>);
 
-  static Nan::Persistent<v8::Function>& constructor();
+  Napi::Value GetTrack(const Napi::CallbackInfo&);
+  Napi::Value GetTransport(const Napi::CallbackInfo&);
+  Napi::Value GetRtcpTransport(const Napi::CallbackInfo&);
 
-  static NAN_METHOD(New);
+  static Napi::Value GetCapabilities(const Napi::CallbackInfo&);
 
-  static NAN_GETTER(GetTrack);
-  static NAN_GETTER(GetTransport);
-  static NAN_GETTER(GetRtcpTransport);
+  Napi::Value GetParameters(const Napi::CallbackInfo&);
+  Napi::Value SetParameters(const Napi::CallbackInfo&);
+  Napi::Value GetStats(const Napi::CallbackInfo&);
+  Napi::Value ReplaceTrack(const Napi::CallbackInfo&);
 
-  static NAN_METHOD(GetCapabilities);
-
-  static NAN_METHOD(GetParameters);
-  static NAN_METHOD(SetParameters);
-  static NAN_METHOD(GetStats);
-  static NAN_METHOD(ReplaceTrack);
-
-  const std::shared_ptr<PeerConnectionFactory> _factory;
-  const rtc::scoped_refptr<webrtc::RtpSenderInterface> _sender;
+  std::shared_ptr<PeerConnectionFactory> _factory;
+  rtc::scoped_refptr<webrtc::RtpSenderInterface> _sender;
 };
 
 DECLARE_TO_AND_FROM_JS(RTCRtpSender*)

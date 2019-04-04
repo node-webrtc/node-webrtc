@@ -19,104 +19,87 @@
 
 namespace node_webrtc {
 
-Nan::Persistent<v8::Function>& RTCRtpSender::constructor() {
-  static Nan::Persistent<v8::Function> constructor;
+Napi::FunctionReference& RTCRtpSender::constructor() {
+  static Napi::FunctionReference constructor;
   return constructor;
 }
 
-Nan::Persistent<v8::FunctionTemplate>& RTCRtpSender::tpl() {
-  static Nan::Persistent<v8::FunctionTemplate> tpl;
-  return tpl;
-}
+RTCRtpSender::RTCRtpSender(const Napi::CallbackInfo& info)
+  : napi::AsyncObjectWrap<RTCRtpSender>("RTCRtpSender", info) {
+  if (info.Length() != 2 || !info[0].IsExternal() || !info[1].IsExternal()) {
+    Napi::TypeError::New(info.Env(), "You cannot construct a RTCRtpSender").ThrowAsJavaScriptException();
+    return;
+  }
 
-RTCRtpSender::RTCRtpSender(
-    std::shared_ptr<PeerConnectionFactory>&& factory,
-    rtc::scoped_refptr<webrtc::RtpSenderInterface>&& sender)
-  : AsyncObjectWrap("RTCRtpSender")
-  , _factory(std::move(factory))
-  , _sender(std::move(sender)) {
+  auto factory = *static_cast<std::shared_ptr<PeerConnectionFactory>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[0]))->Value());
+  auto sender = *static_cast<rtc::scoped_refptr<webrtc::RtpSenderInterface>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[1]))->Value());
+
+  _factory = std::move(factory);
+  _sender = std::move(sender);
 }
 
 RTCRtpSender::~RTCRtpSender() {
   wrap()->Release(this);
 }
 
-NAN_METHOD(RTCRtpSender::New) {
-  if (info.Length() != 2 || !info[0]->IsExternal() || !info[1]->IsExternal()) {
-    return Nan::ThrowTypeError("You cannot construct a RTCRtpSender");
-  }
-
-  auto factory = *static_cast<std::shared_ptr<PeerConnectionFactory>*>(v8::Local<v8::External>::Cast(info[0])->Value());
-  auto sender = *static_cast<rtc::scoped_refptr<webrtc::RtpSenderInterface>*>(v8::Local<v8::External>::Cast(info[1])->Value());
-
-  auto obj = new RTCRtpSender(std::move(factory), std::move(sender));
-  obj->Wrap(info.This());
-
-  info.GetReturnValue().Set(info.This());
-}
-
-NAN_GETTER(RTCRtpSender::GetTrack) {
-  (void) property;
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
-  v8::Local<v8::Value> result = Nan::Null();
-  auto track = self->_sender->track();
+Napi::Value RTCRtpSender::GetTrack(const Napi::CallbackInfo& info) {
+  Napi::Value result = info.Env().Null();
+  auto track = _sender->track();
   if (track) {
-    result = MediaStreamTrack::wrap()->GetOrCreate(self->_factory, track)->ToObject();
+    result = napi::UnsafeFromV8(info.Env(), MediaStreamTrack::wrap()->GetOrCreate(_factory, track)->ToObject());
   }
-  info.GetReturnValue().Set(result);
+  return result;
 }
 
-NAN_GETTER(RTCRtpSender::GetTransport) {
-  (void) property;
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
-  v8::Local<v8::Value> result = Nan::Null();
-  auto transport = self->_sender->dtls_transport();
+Napi::Value RTCRtpSender::GetTransport(const Napi::CallbackInfo& info) {
+  Napi::Value result = info.Env().Null();
+  auto transport = _sender->dtls_transport();
   if (transport) {
-    result = RTCDtlsTransport::wrap()->GetOrCreate(self->_factory, transport)->ToObject();
+    result = napi::UnsafeFromV8(info.Env(), RTCDtlsTransport::wrap()->GetOrCreate(_factory, transport)->ToObject());
   }
-  info.GetReturnValue().Set(result);
+  return result;
 }
 
-NAN_GETTER(RTCRtpSender::GetRtcpTransport) {
-  (void) property;
-  info.GetReturnValue().Set(Nan::Null());
+Napi::Value RTCRtpSender::GetRtcpTransport(const Napi::CallbackInfo& info) {
+  return info.Env().Null();
 }
 
-NAN_METHOD(RTCRtpSender::GetCapabilities) {
-  (void) info;
-  Nan::ThrowError("Not yet implemented; file a feature request against node-webrtc");
+Napi::Value RTCRtpSender::GetCapabilities(const Napi::CallbackInfo& info) {
+  Napi::Error::New(info.Env(), "Not yet implemented; file a feature request against node-webrtc").ThrowAsJavaScriptException();
+  return info.Env().Undefined();
 }
 
-NAN_METHOD(RTCRtpSender::GetParameters) {
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
-  auto parameters = self->_sender->GetParameters();
-  CONVERT_OR_THROW_AND_RETURN(parameters, result, v8::Local<v8::Value>)
-  info.GetReturnValue().Set(result);
+Napi::Value RTCRtpSender::GetParameters(const Napi::CallbackInfo& info) {
+  auto parameters = _sender->GetParameters();
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), parameters, result, Napi::Value)
+  return result;
 }
 
-NAN_METHOD(RTCRtpSender::SetParameters) {
-  RETURNS_PROMISE(resolver)
-  Reject(resolver, Nan::Error("Not yet implemented; file a feature request against node-webrtc"));
+Napi::Value RTCRtpSender::SetParameters(const Napi::CallbackInfo& info) {
+  CREATE_DEFERRED(info.Env(), deffered)
+  napi::Reject(deferred, Napi::Error::New(info.Env(), "Not yet implemented; file a feature request against node-webrtc"));
+  return deferred.Promise();
 }
 
-NAN_METHOD(RTCRtpSender::GetStats) {
-  RETURNS_PROMISE(resolver)
-  Reject(resolver, Nan::Error("Not yet implemented; file a feature request against node-webrtc"));
+Napi::Value RTCRtpSender::GetStats(const Napi::CallbackInfo& info) {
+  CREATE_DEFERRED(info.Env(), deffered)
+  napi::Reject(deferred, Napi::Error::New(info.Env(), "Not yet implemented; file a feature request against node-webrtc"));
+  return deferred.Promise();
 }
 
-NAN_METHOD(RTCRtpSender::ReplaceTrack) {
-  auto self = AsyncObjectWrap::Unwrap<RTCRtpSender>(info.Holder());
-  RETURNS_PROMISE(resolver)
-  CONVERT_ARGS_OR_REJECT_AND_RETURN(resolver, maybeTrack, Either<Null COMMA MediaStreamTrack*>)
+Napi::Value RTCRtpSender::ReplaceTrack(const Napi::CallbackInfo& info) {
+  CREATE_DEFERRED(info.Env(), deferred)
+  CONVERT_ARGS_OR_REJECT_AND_RETURN_NAPI(deferred, info, maybeTrack, Either<Null COMMA MediaStreamTrack*>)
   auto mediaStreamTrack = maybeTrack.FromEither<MediaStreamTrack*>([](auto) {
     return nullptr;
   }, [](auto track) {
     return track;
   });
   auto track = mediaStreamTrack ? mediaStreamTrack->track().get() : nullptr;
-  self->_sender->SetTrack(track)
-  ? Resolve(resolver, Nan::Undefined())
-  : Reject(resolver, Nan::Error("Failed to replaceTrack"));
+  _sender->SetTrack(track)
+  ? napi::Resolve(deferred, info.Env().Undefined())
+  : napi::Reject(deferred, Napi::Error::New(info.Env(), "Failed to replaceTrack"));
+  return deferred.Promise();
 }
 
 Wrap <
@@ -135,31 +118,61 @@ std::shared_ptr<PeerConnectionFactory>
 RTCRtpSender* RTCRtpSender::Create(
     std::shared_ptr<PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::RtpSenderInterface> sender) {
-  Nan::HandleScope scope;
-  v8::Local<v8::Value> cargv[2];
-  cargv[0] = Nan::New<v8::External>(static_cast<void*>(&factory));
-  cargv[1] = Nan::New<v8::External>(static_cast<void*>(&sender));
-  auto value = Nan::NewInstance(Nan::New(RTCRtpSender::constructor()), 2, cargv).ToLocalChecked();
-  return AsyncObjectWrapWithLoop<RTCRtpSender>::Unwrap(value);
+  auto env = constructor().Env();
+  Napi::HandleScope scope(env);
+
+  auto factoryExternal = Nan::New<v8::External>(static_cast<void*>(&factory));
+  auto senderExternal = Nan::New<v8::External>(static_cast<void*>(&sender));
+
+  auto object = constructor().New({
+    napi::UnsafeFromV8(env, factoryExternal),
+    napi::UnsafeFromV8(env, senderExternal)
+  });
+
+  return RTCRtpSender::Unwrap(object);
 }
 
-void RTCRtpSender::Init(v8::Handle<v8::Object> exports) {
-  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  RTCRtpSender::tpl().Reset(tpl);
-  tpl->SetClassName(Nan::New("RTCRtpSender").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("track").ToLocalChecked(), GetTrack, nullptr);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("transport").ToLocalChecked(), GetTransport, nullptr);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("rtcpTransport").ToLocalChecked(), GetRtcpTransport, nullptr);
-  Nan::SetMethod(tpl, "getCapabilities", GetCapabilities);
-  Nan::SetPrototypeMethod(tpl, "getParameters", GetParameters);
-  Nan::SetPrototypeMethod(tpl, "setParameters", SetParameters);
-  Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
-  Nan::SetPrototypeMethod(tpl, "replaceTrack", ReplaceTrack);
-  constructor().Reset(tpl->GetFunction());
-  exports->Set(Nan::New("RTCRtpSender").ToLocalChecked(), tpl->GetFunction());
+void RTCRtpSender::Init(Napi::Env env, Napi::Object exports) {
+  Napi::Function func = DefineClass(env, "RTCRtpSender", {
+    InstanceAccessor("track", &RTCRtpSender::GetTrack, nullptr),
+    InstanceAccessor("transport", &RTCRtpSender::GetTransport, nullptr),
+    InstanceAccessor("rtcpTransport", &RTCRtpSender::GetRtcpTransport, nullptr),
+    InstanceMethod("getParameters", &RTCRtpSender::GetParameters),
+    InstanceMethod("setParameters", &RTCRtpSender::SetParameters),
+    InstanceMethod("getStats", &RTCRtpSender::GetStats),
+    InstanceMethod("replaceTrack", &RTCRtpSender::ReplaceTrack),
+    StaticMethod("getCapabilities", &RTCRtpSender::GetCapabilities)
+  });
+
+  constructor() = Napi::Persistent(func);
+  constructor().SuppressDestruct();
+
+  exports.Set("RTCRtpSender", func);
 }
 
-CONVERT_INTERFACE_TO_AND_FROM_JS(RTCRtpSender, "RTCRtpSender", ToObject, AsyncObjectWrapWithLoop<RTCRtpSender>::Unwrap)
+FROM_NAPI_IMPL(RTCRtpSender*, value) {
+  return From<Napi::Object>(value).FlatMap<RTCRtpSender*>([](Napi::Object object) {
+    auto isRTCRtpSender = false;
+    napi_instanceof(object.Env(), object, RTCRtpSender::constructor().Value(), &isRTCRtpSender);
+    if (object.Env().IsExceptionPending()) {
+      return Validation<RTCRtpSender*>::Invalid(object.Env().GetAndClearPendingException().Message());
+    } else if (!isRTCRtpSender) {
+      return Validation<RTCRtpSender*>::Invalid("This is not an instance of RTCRtpSender");
+    }
+    return Pure(RTCRtpSender::Unwrap(object));
+  });
+}
+
+TO_NAPI_IMPL(RTCRtpSender*, pair) {
+  return Pure(pair.second->Value().As<Napi::Value>());
+}
+
+FROM_JS_IMPL(RTCRtpSender*, value) {
+  return From<RTCRtpSender*>(napi::UnsafeFromV8(RTCRtpSender::constructor().Env(), value));
+}
+
+TO_JS_IMPL(RTCRtpSender*, value) {
+  return Pure(napi::UnsafeToV8(value->Value()));
+}
 
 }  // namespace node_webrtc

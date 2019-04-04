@@ -66,7 +66,7 @@ NAN_GETTER(RTCRtpTransceiver::GetSender) {
   (void) property;
   auto self = AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
   auto sender = RTCRtpSender::wrap()->GetOrCreate(self->_factory, self->_transceiver->sender());
-  info.GetReturnValue().Set(sender->ToObject());
+  info.GetReturnValue().Set(napi::UnsafeToV8(sender->Value()));
 }
 
 NAN_GETTER(RTCRtpTransceiver::GetReceiver) {

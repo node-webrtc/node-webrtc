@@ -9,8 +9,10 @@
 
 #include <atomic>
 #include <mutex>
+#include <vector>
 
 #include <nan.h>
+#include <node-addon-api/napi.h>
 #include <v8.h>
 
 namespace node_webrtc {
@@ -83,5 +85,38 @@ class AsyncObjectWrap: private Nan::ObjectWrap {
    */
   void DestroyAsyncResource();
 };
+
+namespace napi {
+
+template <typename T>
+class AsyncObjectWrap
+  : public Napi::ObjectWrap<T>
+  , public Napi::AsyncContext {
+ public:
+  explicit AsyncObjectWrap(
+      const char* name,
+      const Napi::CallbackInfo& info):
+    Napi::ObjectWrap<T>(info),
+    Napi::AsyncContext(info.Env(), name, this->Value()) {}
+
+  void AddRef() {
+    this->Ref();
+  }
+
+  void RemoveRef() {
+    this->Unref();
+  }
+
+ protected:
+  void MakeCallback(const char* name, std::vector<Napi::Value> args) {
+    auto self = this->Value();
+    auto maybeFunction = self.Get(name);
+    if (maybeFunction.IsFunction()) {
+      maybeFunction.template As<Napi::Function>().Call(self, args);
+    }
+  }
+};
+
+}  // namespace napi
 
 }  // namespace node_webrtc
