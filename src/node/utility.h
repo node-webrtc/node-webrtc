@@ -74,7 +74,7 @@ bool Reject(Napi::Promise::Deferred deferred, T input) {
     deferred.Reject(maybeOutput.UnsafeFromValid());
     return true;
   }
-  deferred.Reject(Napi::Error::New(env, maybeOutput.ToErrors()[0]));
+  deferred.Reject(Napi::Error::New(env, maybeOutput.ToErrors()[0]).Value());
   return false;
 }
 

@@ -257,7 +257,7 @@ NAN_METHOD(RTCPeerConnection::AddTrack) {
   }
   auto rtpSender = result.value();
   auto sender = RTCRtpSender::wrap()->GetOrCreate(self->_factory, rtpSender);
-  info.GetReturnValue().Set(sender->ToObject());
+  info.GetReturnValue().Set(napi::UnsafeToV8(sender->Value()));
 }
 
 NAN_METHOD(RTCPeerConnection::AddTransceiver) {
