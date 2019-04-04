@@ -7,68 +7,72 @@
  */
 #include "src/interfaces/rtc_stats_response.h"
 
-#include <cstdint>
-
 #include <nan.h>
-#include <node-addon-api/napi.h>
 #include <v8.h>
 
 #include "src/converters/napi.h"
+#include "src/functional/validation.h"
 #include "src/interfaces/legacy_rtc_stats_report.h"
 
 namespace node_webrtc {
 
-Nan::Persistent<v8::Function>& RTCStatsResponse::constructor() {
-  static Nan::Persistent<v8::Function> constructor;
+Napi::FunctionReference& RTCStatsResponse::constructor() {
+  static Napi::FunctionReference constructor;
   return constructor;
 }
 
-NAN_METHOD(RTCStatsResponse::New) {
-  if (info.Length() != 2 || !info[0]->IsExternal() || !info[1]->IsExternal()) {
-    return Nan::ThrowTypeError("You cannot construct an RTCStatsResponse");
+RTCStatsResponse::RTCStatsResponse(const Napi::CallbackInfo& info): Napi::ObjectWrap<RTCStatsResponse>(info) {
+  auto env = info.Env();
+  Napi::HandleScope scope(env);
+
+  if (info.Length() != 2 || !info[0].IsExternal() || !info[1].IsExternal()) {
+    Napi::TypeError::New(env, "You cannot construct an RTCStatsResponse");
+    return;
   }
 
-  auto timestamp = static_cast<double*>(v8::Local<v8::External>::Cast(info[0])->Value());
-  auto reports = static_cast<std::vector<std::map<std::string, std::string>>*>(v8::Local<v8::External>::Cast(info[1])->Value());
+  auto timestamp = static_cast<double*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[0]))->Value());
+  auto reports = static_cast<std::vector<std::map<std::string, std::string>>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[1]))->Value());
 
-  auto obj = new RTCStatsResponse(*timestamp, *reports);
-  obj->Wrap(info.This());
-
-  info.GetReturnValue().Set(info.This());
+  _timestamp = *timestamp;
+  _reports = *reports;
 }
 
-NAN_METHOD(RTCStatsResponse::result) {
-  auto self = Nan::ObjectWrap::Unwrap<RTCStatsResponse>(info.This());
-  auto timestamp = self->_timestamp;
-  auto reports = Nan::New<v8::Array>(self->_reports.size());
-
-  uint32_t i = 0;
-  for (auto const& stats : self->_reports) {
-    auto report = LegacyStatsReport::Create(timestamp, stats);
-    reports->Set(i++, napi::UnsafeToV8(report->Value()));
+Napi::Value RTCStatsResponse::Result(const Napi::CallbackInfo& info) {
+  auto reports = std::vector<Napi::Value>();
+  reports.reserve(_reports.size());
+  for (auto const& stats : _reports) {
+    reports.push_back(LegacyStatsReport::Create(_timestamp, stats)->Value());
   }
-
-  info.GetReturnValue().Set(reports);
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), reports, result, Napi::Value)
+  return result;
 }
 
 RTCStatsResponse* RTCStatsResponse::Create(
     double timestamp,
     const std::vector<std::map<std::string, std::string>>& reports) {
-  Nan::HandleScope scope;
-  v8::Local<v8::Value> cargv[2];
-  cargv[0] = Nan::New<v8::External>(static_cast<void*>(&timestamp));
-  cargv[1] = Nan::New<v8::External>(const_cast<void*>(static_cast<const void*>(&reports)));
-  auto response = Nan::NewInstance(Nan::New(RTCStatsResponse::constructor()), 2, cargv).ToLocalChecked();
-  return Nan::ObjectWrap::Unwrap<RTCStatsResponse>(response);
+  auto env = RTCStatsResponse::constructor().Env();
+  Napi::HandleScope scope(env);
+
+  auto timestampExternal = Nan::New<v8::External>(static_cast<void*>(&timestamp));
+  auto reportsExternal = Nan::New<v8::External>(const_cast<void*>(static_cast<const void*>(&reports)));
+
+  auto response = RTCStatsResponse::constructor().New({
+    napi::UnsafeFromV8(env, timestampExternal),
+    napi::UnsafeFromV8(env, reportsExternal)
+  });
+
+  return RTCStatsResponse::Unwrap(response);
 }
 
-void RTCStatsResponse::Init(v8::Handle<v8::Object> exports) {
-  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate> (New);
-  tpl->SetClassName(Nan::New("RTCStatsResponse").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  Nan::SetPrototypeMethod(tpl, "result", result);
-  constructor().Reset(tpl->GetFunction());
-  exports->Set(Nan::New("RTCStatsResponse").ToLocalChecked(), tpl->GetFunction());
+void RTCStatsResponse::Init(Napi::Env env, Napi::Object exports) {
+  Napi::Function func = DefineClass(env, "RTCStatsResponse", {
+    InstanceMethod("result", &RTCStatsResponse::Result)
+  });
+
+  constructor() = Napi::Persistent(func);
+  constructor().SuppressDestruct();
+
+  exports.Set("RTCStatsResponse", func);
 }
 
 }  // namespace node_webrtc

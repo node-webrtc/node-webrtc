@@ -11,7 +11,7 @@ namespace node_webrtc {
 
 TO_JS_IMPL(RTCStatsResponseInit, init) {
   Nan::EscapableHandleScope scope;
-  return Pure(scope.Escape(RTCStatsResponse::Create(init.first, init.second)->handle().As<v8::Value>()));
+  return Pure(scope.Escape(napi::UnsafeToV8(RTCStatsResponse::Create(init.first, init.second)->Value())));
 }
 
 TO_NAPI_IMPL(RTCStatsResponseInit, pair) {

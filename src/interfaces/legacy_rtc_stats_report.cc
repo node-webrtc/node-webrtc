@@ -7,7 +7,6 @@
  */
 #include "src/interfaces/legacy_rtc_stats_report.h"
 
-#include <cstdint>
 #include <utility>
 #include <vector>
 
@@ -39,10 +38,10 @@ LegacyStatsReport::LegacyStatsReport(const Napi::CallbackInfo& info): Napi::Obje
 }
 
 Napi::Value LegacyStatsReport::Names(const Napi::CallbackInfo& info) {
-  auto names = std::vector<std::string>(_stats.size());
-  uint64_t i = 0;
+  auto names = std::vector<std::string>();
+  names.reserve(_stats.size());
   for (const auto& stat : _stats) {
-    names[i] = stat.first;
+    names.push_back(stat.first);
   }
   CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), names, result, Napi::Value)
   return result;

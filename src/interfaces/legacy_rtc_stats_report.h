@@ -20,16 +20,12 @@ class LegacyStatsReport
  public:
   explicit LegacyStatsReport(const Napi::CallbackInfo&);
 
-  ~LegacyStatsReport() = default;
-
   static void Init(Napi::Env, Napi::Object);
 
   static LegacyStatsReport* Create(double timestamp, const std::map<std::string, std::string>& stats);
 
  private:
   static Napi::FunctionReference& constructor();
-
-  Napi::Value New(const Napi::CallbackInfo&);
 
   Napi::Value Names(const Napi::CallbackInfo&);
   Napi::Value Stat(const Napi::CallbackInfo&);
