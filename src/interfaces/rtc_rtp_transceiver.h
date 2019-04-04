@@ -9,10 +9,10 @@
 
 #include <memory>
 
-#include <nan.h>
+#include <node-addon-api/napi.h>
 #include <webrtc/api/scoped_refptr.h>
-#include <v8.h>
 
+#include "src/converters/napi.h"
 #include "src/converters/napi.h"
 #include "src/converters/v8.h"
 #include "src/node/async_object_wrap.h"
@@ -24,16 +24,13 @@ namespace node_webrtc {
 
 class PeerConnectionFactory;
 
-class RTCRtpTransceiver: public AsyncObjectWrap {
+class RTCRtpTransceiver: public napi::AsyncObjectWrap<RTCRtpTransceiver> {
  public:
+  explicit RTCRtpTransceiver(const Napi::CallbackInfo&);
+
   ~RTCRtpTransceiver() override;
 
-  static void Init(v8::Handle<v8::Object> exports);
-
-  // NOTE(mroberts): Working around an MSVC bug.
-  static RTCRtpTransceiver* Unwrap(v8::Local<v8::Object> object) {
-    return AsyncObjectWrap::Unwrap<RTCRtpTransceiver>(object);
-  }
+  static void Init(Napi::Env, Napi::Object);
 
   static ::node_webrtc::Wrap <
   RTCRtpTransceiver*,
@@ -41,34 +38,27 @@ class RTCRtpTransceiver: public AsyncObjectWrap {
   std::shared_ptr<PeerConnectionFactory>
   > * wrap();
 
-  static Nan::Persistent<v8::FunctionTemplate>& tpl();
+  static Napi::FunctionReference& constructor();
 
  private:
-  RTCRtpTransceiver(
-      std::shared_ptr<PeerConnectionFactory>&& factory,
-      rtc::scoped_refptr<webrtc::RtpTransceiverInterface>&& transceiver);
 
   static RTCRtpTransceiver* Create(
       std::shared_ptr<PeerConnectionFactory>,
       rtc::scoped_refptr<webrtc::RtpTransceiverInterface>);
 
-  static Nan::Persistent<v8::Function>& constructor();
+  Napi::Value GetMid(const Napi::CallbackInfo&);
+  Napi::Value GetSender(const Napi::CallbackInfo&);
+  Napi::Value GetReceiver(const Napi::CallbackInfo&);
+  Napi::Value GetStopped(const Napi::CallbackInfo&);
+  Napi::Value GetDirection(const Napi::CallbackInfo&);
+  void SetDirection(const Napi::CallbackInfo&, const Napi::Value&);
+  Napi::Value GetCurrentDirection(const Napi::CallbackInfo&);
 
-  static NAN_METHOD(New);
+  Napi::Value Stop(const Napi::CallbackInfo&);
+  Napi::Value SetCodecPreferences(const Napi::CallbackInfo&);
 
-  static NAN_GETTER(GetMid);
-  static NAN_GETTER(GetSender);
-  static NAN_GETTER(GetReceiver);
-  static NAN_GETTER(GetStopped);
-  static NAN_GETTER(GetDirection);
-  static NAN_SETTER(SetDirection);
-  static NAN_GETTER(GetCurrentDirection);
-
-  static NAN_METHOD(Stop);
-  static NAN_METHOD(SetCodecPreferences);
-
-  const std::shared_ptr<PeerConnectionFactory> _factory;
-  const rtc::scoped_refptr<webrtc::RtpTransceiverInterface> _transceiver;
+  std::shared_ptr<PeerConnectionFactory> _factory;
+  rtc::scoped_refptr<webrtc::RtpTransceiverInterface> _transceiver;
 };
 
 DECLARE_TO_JS(RTCRtpTransceiver*)
