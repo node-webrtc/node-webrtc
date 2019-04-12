@@ -7,43 +7,36 @@
  */
 #pragma once
 
-#include <nan.h>
+#include <node-addon-api/napi.h>
 #include <webrtc/api/media_stream_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 #include <webrtc/api/video/video_sink_interface.h>
 
-#include "src/node/async_object_wrap_with_loop.h"
+#include "src/node/napi_async_object_wrap_with_loop.h"
 
-namespace v8 { class FunctionTemplate; }
-namespace v8 { class Object; }
-namespace v8 { template <class T> class Local; }
 namespace webrtc { class VideoFrame; }
 
 namespace node_webrtc {
 
 class RTCVideoSink
-  : public AsyncObjectWrapWithLoop<RTCVideoSink>
+  : public napi::AsyncObjectWrapWithLoop<RTCVideoSink>
   , public rtc::VideoSinkInterface<webrtc::VideoFrame> {
  public:
-  ~RTCVideoSink() override = default;
+  explicit RTCVideoSink(const Napi::CallbackInfo&);
 
-  static void Init(v8::Handle<v8::Object> exports);
+  static void Init(Napi::Env, Napi::Object);
 
   void OnFrame(const webrtc::VideoFrame& frame) override;
+
+  static Napi::FunctionReference& constructor();
 
  protected:
   void Stop() override;
 
  private:
-  explicit RTCVideoSink(rtc::scoped_refptr<webrtc::VideoTrackInterface>);
+  Napi::Value GetStopped(const Napi::CallbackInfo&);
 
-  static Nan::Persistent<v8::FunctionTemplate>& tpl();
-
-  static NAN_METHOD(New);
-
-  static NAN_GETTER(GetStopped);
-
-  static NAN_METHOD(JsStop);
+  Napi::Value JsStop(const Napi::CallbackInfo&);
 
   bool _stopped = false;
   rtc::scoped_refptr<webrtc::VideoTrackInterface> _track;
