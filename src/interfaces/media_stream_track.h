@@ -88,5 +88,7 @@ DECLARE_FROM_JS(rtc::scoped_refptr<webrtc::VideoTrackInterface>)
 DECLARE_TO_AND_FROM_JS(MediaStreamTrack*)
 
 DECLARE_TO_AND_FROM_NAPI(MediaStreamTrack*)
+DECLARE_FROM_NAPI(rtc::scoped_refptr<webrtc::AudioTrackInterface>)
+DECLARE_FROM_NAPI(rtc::scoped_refptr<webrtc::VideoTrackInterface>)
 
 }  // namespace node_webrtc

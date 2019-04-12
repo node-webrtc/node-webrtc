@@ -9,25 +9,21 @@
 
 #include <cstddef>
 
-#include <nan.h>
+#include <node-addon-api/napi.h>
 #include <webrtc/api/media_stream_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 
-#include "src/node/async_object_wrap_with_loop.h"
-
-namespace v8 { class FunctionTemplate; }
-namespace v8 { class Object; }
-namespace v8 { template <class T> class Local; }
+#include "src/node/napi_async_object_wrap_with_loop.h"
 
 namespace node_webrtc {
 
 class RTCAudioSink
-  : public AsyncObjectWrapWithLoop<RTCAudioSink>
+  : public napi::AsyncObjectWrapWithLoop<RTCAudioSink>
   , public webrtc::AudioTrackSinkInterface {
  public:
-  ~RTCAudioSink() override = default;
+  explicit RTCAudioSink(const Napi::CallbackInfo&);
 
-  static void Init(v8::Handle<v8::Object> exports);
+  static void Init(Napi::Env, Napi::Object);
 
   void OnData(
       const void* audio_data,
@@ -36,19 +32,15 @@ class RTCAudioSink
       size_t number_of_channels,
       size_t number_of_frames) override;
 
+  static Napi::FunctionReference& constructor();
+
  protected:
   void Stop() override;
 
  private:
-  explicit RTCAudioSink(rtc::scoped_refptr<webrtc::AudioTrackInterface>);
+  Napi::Value GetStopped(const Napi::CallbackInfo&);
 
-  static Nan::Persistent<v8::FunctionTemplate>& tpl();
-
-  static NAN_METHOD(New);
-
-  static NAN_GETTER(GetStopped);
-
-  static NAN_METHOD(JsStop);
+  Napi::Value JsStop(const Napi::CallbackInfo&);
 
   bool _stopped = false;
   rtc::scoped_refptr<webrtc::AudioTrackInterface> _track;

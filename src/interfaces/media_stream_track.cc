@@ -211,4 +211,7 @@ CONVERT_VIA(v8::Local<v8::Value>, MediaStreamTrack*, rtc::scoped_refptr<webrtc::
 
 CONVERT_INTERFACE_TO_AND_FROM_NAPI(MediaStreamTrack, "MediaStreamTrack")
 
+CONVERT_VIA(Napi::Value, MediaStreamTrack*, rtc::scoped_refptr<webrtc::AudioTrackInterface>)
+CONVERT_VIA(Napi::Value, MediaStreamTrack*, rtc::scoped_refptr<webrtc::VideoTrackInterface>)
+
 }  // namespace node_webrtc
