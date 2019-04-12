@@ -50,8 +50,6 @@ class EventQueue {
     return event;
   }
 
-  virtual ~EventQueue() = default;
-
  private:
   std::queue<std::unique_ptr<Event<T>>> _events;
   std::mutex _mutex{};

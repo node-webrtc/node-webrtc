@@ -8,7 +8,9 @@
 #include "src/interfaces/rtc_dtls_transport.h"
 
 #include <type_traits>
+#include <utility>
 
+#include <nan.h>
 #include <v8.h>
 #include <webrtc/api/peer_connection_interface.h>  // IWYU pragma: keep
 #include <webrtc/api/rtc_error.h>
@@ -16,7 +18,7 @@
 #include <webrtc/rtc_base/thread.h>
 
 #include "src/converters.h"
-#include "src/converters/v8.h"
+#include "src/converters/napi.h"
 #include "src/dictionaries/node_webrtc/some_error.h"
 #include "src/enums/webrtc/dtls_transport_state.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
@@ -25,22 +27,24 @@
 
 namespace node_webrtc {
 
-Nan::Persistent<v8::Function>& RTCDtlsTransport::constructor() {
-  static Nan::Persistent<v8::Function> constructor;
+Napi::FunctionReference& RTCDtlsTransport::constructor() {
+  static Napi::FunctionReference constructor;
   return constructor;
 }
 
-Nan::Persistent<v8::FunctionTemplate>& RTCDtlsTransport::tpl() {
-  static Nan::Persistent<v8::FunctionTemplate> tpl;
-  return tpl;
-}
+RTCDtlsTransport::RTCDtlsTransport(const Napi::CallbackInfo& info)
+  : napi::AsyncObjectWrapWithLoop<RTCDtlsTransport>("RTCDtlsTransport", *this, info) {
+  if (info.Length() != 2 || !info[0].IsExternal() || !info[1].IsExternal()) {
+    Napi::TypeError::New(info.Env(), "You cannot construct an RTCDtlsTransport").ThrowAsJavaScriptException();
+    return;
+  }
 
-RTCDtlsTransport::RTCDtlsTransport(
-    std::shared_ptr<PeerConnectionFactory> factory
-    , rtc::scoped_refptr<webrtc::DtlsTransportInterface> transport)
-  : AsyncObjectWrapWithLoop<RTCDtlsTransport>("RTCDtlsTransport", *this)
-  , _factory(std::move(factory))
-  , _transport(std::move(transport)) {
+  auto factory = *static_cast<std::shared_ptr<PeerConnectionFactory>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[0]))->Value());
+  auto transport = *static_cast<rtc::scoped_refptr<webrtc::DtlsTransportInterface>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[1]))->Value());
+
+  _factory = std::move(factory);
+  _transport = std::move(transport);
+
   _factory->_workerThread->Invoke<void>(RTC_FROM_HERE, [this]() {
     _transport->RegisterObserver(this);
     _state = _transport->Information().state();
@@ -52,7 +56,7 @@ RTCDtlsTransport::RTCDtlsTransport(
 
 void RTCDtlsTransport::Stop() {
   _transport->UnregisterObserver();
-  AsyncObjectWrapWithLoop<RTCDtlsTransport>::Stop();
+  napi::AsyncObjectWrapWithLoop<RTCDtlsTransport>::Stop();
 }
 
 void RTCDtlsTransport::OnStateChange(webrtc::DtlsTransportInformation information) {
@@ -62,10 +66,11 @@ void RTCDtlsTransport::OnStateChange(webrtc::DtlsTransportInformation informatio
   }
 
   Dispatch(CreateCallback<RTCDtlsTransport>([this]() {
-    Nan::HandleScope scope;
-    auto event = Nan::New<v8::Object>();
-    Nan::Set(event, Nan::New("type").ToLocalChecked(), Nan::New("statechange").ToLocalChecked());
-    MakeCallback("dispatchEvent", 1, reinterpret_cast<v8::Local<v8::Value>*>(&event));
+    auto env = Env();
+    Napi::HandleScope scope(env);
+    auto event = Napi::Object::New(env);
+    event.Set("type", Napi::String::New(env, "statechange"));
+    MakeCallback("dispatchEvent", { event });
   }));
 
   if (information.state() == webrtc::DtlsTransportState::kClosed) {
@@ -78,37 +83,24 @@ void RTCDtlsTransport::OnError(webrtc::RTCError rtcError) {
   if (maybeError.IsValid()) {
     auto error = maybeError.UnsafeFromValid();
     Dispatch(CreateCallback<RTCDtlsTransport>([this, error]() {
-      Nan::HandleScope scope;
-      auto maybeValue = From<v8::Local<v8::Value>>(error);
+      auto env = Env();
+      Napi::HandleScope scope(env);
+      auto maybeValue = From<Napi::Value>(std::make_pair(env, error));
       if (maybeValue.IsValid()) {
         auto value = maybeValue.UnsafeFromValid();
-        auto event = Nan::New<v8::Object>();
-        Nan::Set(event, Nan::New("type").ToLocalChecked(), Nan::New("error").ToLocalChecked());
-        Nan::Set(event, Nan::New("error").ToLocalChecked(), value);
-        MakeCallback("dispatchEvent", 1, reinterpret_cast<v8::Local<v8::Value> *>(&event));
+        auto event = Napi::Object::New(env);
+        event.Set("type", Napi::String::New(env, "error"));
+        event.Set("error", value);
+        MakeCallback("dispatchEvent", { event });
       }
     }));
   }
 }
 
-NAN_METHOD(RTCDtlsTransport::New) {
-  if (info.Length() != 2 || !info[0]->IsExternal() || !info[1]->IsExternal()) {
-    return Nan::ThrowTypeError("You cannot construct an RTCDtlsTransport");
-  }
-  auto factory = *static_cast<std::shared_ptr<PeerConnectionFactory>*>(v8::Local<v8::External>::Cast(info[0])->Value());
-  auto transport = *static_cast<rtc::scoped_refptr<webrtc::DtlsTransportInterface>*>(v8::Local<v8::External>::Cast(info[1])->Value());
-  auto object = new RTCDtlsTransport(std::move(factory), std::move(transport));
-  object->Wrap(info.This());
-  info.GetReturnValue().Set(info.This());
-}
-
-NAN_GETTER(RTCDtlsTransport::GetState) {
-  (void) property;
-  auto self = AsyncObjectWrapWithLoop<RTCDtlsTransport>::Unwrap(info.Holder());
-  std::lock_guard<std::mutex> lock(self->_mutex);
-  auto state = self->_state;
-  CONVERT_OR_THROW_AND_RETURN(state, result, v8::Local<v8::Value>)
-  info.GetReturnValue().Set(result);
+Napi::Value RTCDtlsTransport::GetState(const Napi::CallbackInfo& info) {
+  std::lock_guard<std::mutex> lock(_mutex);
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _state, result, Napi::Value)
+  return result;
 }
 
 Wrap <
@@ -127,22 +119,29 @@ std::shared_ptr<PeerConnectionFactory>
 RTCDtlsTransport* RTCDtlsTransport::Create(
     std::shared_ptr<PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::DtlsTransportInterface> transport) {
-  Nan::HandleScope scope;
-  v8::Local<v8::Value> cargv[2];
-  cargv[0] = Nan::New<v8::External>(static_cast<void*>(&factory));
-  cargv[1] = Nan::New<v8::External>(static_cast<void*>(&transport));
-  auto object = Nan::NewInstance(Nan::New(RTCDtlsTransport::constructor()), 2, cargv).ToLocalChecked();
-  return AsyncObjectWrapWithLoop<RTCDtlsTransport>::Unwrap(object);
+  auto env = constructor().Env();
+  Napi::HandleScope scope(env);
+
+  auto factoryExternal = Nan::New<v8::External>(static_cast<void*>(&factory));
+  auto transportExternal = Nan::New<v8::External>(static_cast<void*>(&transport));
+
+  auto object = constructor().New({
+    napi::UnsafeFromV8(env, factoryExternal),
+    napi::UnsafeFromV8(env, transportExternal)
+  });
+
+  return RTCDtlsTransport::Unwrap(object);
 }
 
-void RTCDtlsTransport::Init(v8::Handle<v8::Object> exports) {
-  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  RTCDtlsTransport::tpl().Reset(tpl);
-  tpl->SetClassName(Nan::New("RTCDtlsTransport").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("state").ToLocalChecked(), GetState, nullptr);
-  constructor().Reset(tpl->GetFunction());
-  exports->Set(Nan::New("RTCDtlsTransport").ToLocalChecked(), tpl->GetFunction());
+void RTCDtlsTransport::Init(Napi::Env env, Napi::Object exports) {
+  auto func = DefineClass(env, "RTCDtlsTransport", {
+    InstanceAccessor("state", &RTCDtlsTransport::GetState, nullptr)
+  });
+
+  constructor() = Napi::Persistent(func);
+  constructor().SuppressDestruct();
+
+  exports.Set("RTCDtlsTransport", func);
 }
 
 }  // namespace node_webrtc

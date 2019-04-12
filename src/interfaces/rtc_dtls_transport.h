@@ -10,17 +10,13 @@
 #include <memory>
 #include <mutex>
 
-#include <nan.h>
+#include <node-addon-api/napi.h>
 #include <webrtc/api/dtls_transport_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 
-#include "src/node/async_object_wrap_with_loop.h"
+#include "src/node/napi_async_object_wrap_with_loop.h"
 #include "src/node/wrap.h"
 
-namespace v8 { class Function; }
-namespace v8 { class FunctionTemplate; }
-namespace v8 { class Object; }
-namespace v8 { template <class T> class Local; }
 namespace webrtc { class RTCError; }
 
 namespace node_webrtc {
@@ -28,12 +24,12 @@ namespace node_webrtc {
 class PeerConnectionFactory;
 
 class RTCDtlsTransport
-  : public AsyncObjectWrapWithLoop<RTCDtlsTransport>
+  : public napi::AsyncObjectWrapWithLoop<RTCDtlsTransport>
   , public webrtc::DtlsTransportObserverInterface {
  public:
-  ~RTCDtlsTransport() override = default;
+  explicit RTCDtlsTransport(const Napi::CallbackInfo&);
 
-  static void Init(v8::Handle<v8::Object> exports);
+  static void Init(Napi::Env, Napi::Object);
 
   static ::node_webrtc::Wrap <
   RTCDtlsTransport*,
@@ -49,27 +45,19 @@ class RTCDtlsTransport
   void Stop() override;
 
  private:
-  explicit RTCDtlsTransport(
-      std::shared_ptr<PeerConnectionFactory>,
-      rtc::scoped_refptr<webrtc::DtlsTransportInterface>);
+  static Napi::FunctionReference& constructor();
 
-  static Nan::Persistent<v8::FunctionTemplate>& tpl();
-
-  static NAN_METHOD(New);
-
-  static NAN_GETTER(GetState);
+  Napi::Value GetState(const Napi::CallbackInfo&);
 
   static RTCDtlsTransport* Create(
       std::shared_ptr<PeerConnectionFactory>,
       rtc::scoped_refptr<webrtc::DtlsTransportInterface>);
 
-  static Nan::Persistent<v8::Function>& constructor();
-
   std::mutex _mutex;
   webrtc::DtlsTransportState _state;
 
-  const std::shared_ptr<PeerConnectionFactory> _factory;
-  const rtc::scoped_refptr<webrtc::DtlsTransportInterface> _transport;
+  std::shared_ptr<PeerConnectionFactory> _factory;
+  rtc::scoped_refptr<webrtc::DtlsTransportInterface> _transport;
 };
 
 }  // namespace node_webrtc
