@@ -34,7 +34,7 @@ RTCAudioSink::RTCAudioSink(const Napi::CallbackInfo& info)
   auto env = info.Env();
 
   if (!info.IsConstructCall()) {
-    Napi::TypeError::New(env, "Use the new operator to construct an RTCAudioSink.");
+    Napi::TypeError::New(env, "Use the new operator to construct an RTCAudioSink.").ThrowAsJavaScriptException();
     return;
   }
 

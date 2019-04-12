@@ -8,13 +8,13 @@
 #include "src/interfaces/rtc_video_sink.h"
 
 #include <type_traits>
+#include <utility>
 
-#include <v8.h>
-#include <webrtc/api/video/video_frame.h>
 #include <webrtc/api/video/video_source_interface.h>
 
 #include "src/converters.h"
 #include "src/converters/arguments.h"
+#include "src/converters/napi.h"
 #include "src/dictionaries/webrtc/video_frame.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
 #include "src/interfaces/media_stream_track.h"  // IWYU pragma: keep
@@ -22,32 +22,28 @@
 
 namespace node_webrtc {
 
-Nan::Persistent<v8::FunctionTemplate>& RTCVideoSink::tpl() {
-  static Nan::Persistent<v8::FunctionTemplate> tpl;
-  return tpl;
+Napi::FunctionReference& RTCVideoSink::constructor() {
+  static Napi::FunctionReference constructor;
+  return constructor;
 }
 
-RTCVideoSink::RTCVideoSink(rtc::scoped_refptr<webrtc::VideoTrackInterface> track)
-  : AsyncObjectWrapWithLoop<RTCVideoSink>("RTCVideoSink", *this)
-  , _track(std::move(track)) {
+RTCVideoSink::RTCVideoSink(const Napi::CallbackInfo& info)
+  : AsyncObjectWrapWithLoop<RTCVideoSink>("RTCVideoSink", *this, info) {
+  if (!info.IsConstructCall()) {
+    Napi::TypeError::New(info.Env(), "Use the new operator to construct an RTCVideoSink.").ThrowAsJavaScriptException();
+    return;
+  }
+  CONVERT_ARGS_OR_THROW_AND_RETURN_VOID_NAPI(info, track, rtc::scoped_refptr<webrtc::VideoTrackInterface>)
+
+  _track = std::move(track);
+
   rtc::VideoSinkWants wants;
   _track->AddOrUpdateSink(this, wants);
 }
 
-NAN_METHOD(RTCVideoSink::New) {
-  if (!info.IsConstructCall()) {
-    return Nan::ThrowTypeError("Use the new operator to construct an RTCVideoSink.");
-  }
-  CONVERT_ARGS_OR_THROW_AND_RETURN(track, rtc::scoped_refptr<webrtc::VideoTrackInterface>)
-  auto sink = new RTCVideoSink(track);
-  sink->Wrap(info.This());
-  info.GetReturnValue().Set(info.This());
-}
-
-NAN_GETTER(RTCVideoSink::GetStopped) {
-  (void) property;
-  auto self = AsyncObjectWrapWithLoop<RTCVideoSink>::Unwrap(info.Holder());
-  info.GetReturnValue().Set(self->_stopped);
+Napi::Value RTCVideoSink::GetStopped(const Napi::CallbackInfo& info) {
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _stopped, result, Napi::Value)
+  return result;
 }
 
 void RTCVideoSink::Stop() {
@@ -59,34 +55,34 @@ void RTCVideoSink::Stop() {
   AsyncObjectWrapWithLoop<RTCVideoSink>::Stop();
 }
 
-NAN_METHOD(RTCVideoSink::JsStop) {
-  auto self = AsyncObjectWrapWithLoop<RTCVideoSink>::Unwrap(info.Holder());
-  self->Stop();
+Napi::Value RTCVideoSink::JsStop(const Napi::CallbackInfo& info) {
+  Stop();
+  return info.Env().Undefined();
 }
 
 void RTCVideoSink::OnFrame(const webrtc::VideoFrame& frame) {
   Dispatch(CreateCallback<RTCVideoSink>([this, frame]() {
-    Nan::HandleScope scope;
-    auto maybeValue = From<v8::Local<v8::Value>>(frame);
+    auto env = Env();
+    Napi::HandleScope scope(env);
+    auto maybeValue = From<Napi::Value>(std::make_pair(env, frame));
     if (maybeValue.IsInvalid()) {
       // TODO(mroberts): Should raise an error; although this really shouldn't happen.
       return;
     }
-    auto value = maybeValue.UnsafeFromValid();
-    v8::Local<v8::Value> argv[1];
-    argv[0] = value;
-    MakeCallback("onframe", 1, argv);
+    MakeCallback("onframe", { maybeValue.UnsafeFromValid() });
   }));
 }
 
-void RTCVideoSink::Init(v8::Handle<v8::Object> exports) {
-  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  RTCVideoSink::tpl().Reset(tpl);
-  tpl->SetClassName(Nan::New("RTCVideoSink").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("stopped").ToLocalChecked(), GetStopped, nullptr);
-  Nan::SetPrototypeMethod(tpl, "stop", JsStop);
-  exports->Set(Nan::New("RTCVideoSink").ToLocalChecked(), tpl->GetFunction());
+void RTCVideoSink::Init(Napi::Env env, Napi::Object exports) {
+  auto func = DefineClass(env, "RTCVideoSink", {
+    InstanceAccessor("stopped", &RTCVideoSink::GetStopped, nullptr),
+    InstanceMethod("stop", &RTCVideoSink::JsStop)
+  });
+
+  constructor() = Napi::Persistent(func);
+  constructor().SuppressDestruct();
+
+  exports.Set("RTCVideoSink", func);
 }
 
 }  // namespace node_webrtc
