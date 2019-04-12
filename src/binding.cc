@@ -43,7 +43,6 @@ static void init(Napi::Env env, v8::Handle<v8::Object> exports, v8::Handle<v8::O
   node_webrtc::RTCPeerConnection::Init(exports);
   node_webrtc::RTCDataChannel::Init(exports);
   node_webrtc::MediaStreamTrack::Init(exports);
-  node_webrtc::RTCAudioSink::Init(exports);
   node_webrtc::RTCVideoSink::Init(exports);
 #ifdef DEBUG
   node_webrtc::Test::Init(exports);
@@ -57,6 +56,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
   node_webrtc::I420Helpers::Init(env, exports);
   node_webrtc::LegacyStatsReport::Init(env, exports);
   node_webrtc::MediaStream::Init(env, exports);
+  node_webrtc::RTCAudioSink::Init(env, exports);
   node_webrtc::RTCAudioSource::Init(env, exports);
   node_webrtc::RTCDtlsTransport::Init(env, exports);
   node_webrtc::RTCRtpReceiver::Init(env, exports);

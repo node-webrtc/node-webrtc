@@ -11,11 +11,11 @@
 #include <cstring>
 #include <memory>
 #include <type_traits>
-
-#include <v8.h>
+#include <utility>
 
 #include "src/converters.h"
 #include "src/converters/arguments.h"
+#include "src/converters/napi.h"
 #include "src/dictionaries/node_webrtc/rtc_on_data_event_dict.h"
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
@@ -24,31 +24,29 @@
 
 namespace node_webrtc {
 
-Nan::Persistent<v8::FunctionTemplate>& RTCAudioSink::tpl() {
-  static Nan::Persistent<v8::FunctionTemplate> tpl;
-  return tpl;
+Napi::FunctionReference& RTCAudioSink::constructor() {
+  static Napi::FunctionReference constructor;
+  return constructor;
 }
 
-RTCAudioSink::RTCAudioSink(rtc::scoped_refptr<webrtc::AudioTrackInterface> track)
-  : AsyncObjectWrapWithLoop<RTCAudioSink>("RTCAudioSink", *this)
-  , _track(std::move(track)) {
+RTCAudioSink::RTCAudioSink(const Napi::CallbackInfo& info)
+  : AsyncObjectWrapWithLoop<RTCAudioSink>("RTCAudioSink", *this, info) {
+  auto env = info.Env();
+
+  if (!info.IsConstructCall()) {
+    Napi::TypeError::New(env, "Use the new operator to construct an RTCAudioSink.");
+    return;
+  }
+
+  CONVERT_ARGS_OR_THROW_AND_RETURN_VOID_NAPI(info, track, rtc::scoped_refptr<webrtc::AudioTrackInterface>)
+
+  _track = std::move(track);
   _track->AddSink(this);
 }
 
-NAN_METHOD(RTCAudioSink::New) {
-  if (!info.IsConstructCall()) {
-    return Nan::ThrowTypeError("Use the new operator to construct an RTCAudioSink.");
-  }
-  CONVERT_ARGS_OR_THROW_AND_RETURN(track, rtc::scoped_refptr<webrtc::AudioTrackInterface>)
-  auto sink = new RTCAudioSink(track);
-  sink->Wrap(info.This());
-  info.GetReturnValue().Set(info.This());
-}
-
-NAN_GETTER(RTCAudioSink::GetStopped) {
-  (void) property;
-  auto self = AsyncObjectWrapWithLoop<RTCAudioSink>::Unwrap(info.Holder());
-  info.GetReturnValue().Set(self->_stopped);
+Napi::Value RTCAudioSink::GetStopped(const Napi::CallbackInfo& info) {
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _stopped, result, Napi::Value)
+  return result;
 }
 
 void RTCAudioSink::Stop() {
@@ -60,9 +58,9 @@ void RTCAudioSink::Stop() {
   AsyncObjectWrapWithLoop<RTCAudioSink>::Stop();
 }
 
-NAN_METHOD(RTCAudioSink::JsStop) {
-  auto self = AsyncObjectWrapWithLoop<RTCAudioSink>::Unwrap(info.Holder());
-  self->Stop();
+Napi::Value RTCAudioSink::JsStop(const Napi::CallbackInfo& info) {
+  Stop();
+  return info.Env().Undefined();
 }
 
 void RTCAudioSink::OnData(
@@ -95,29 +93,29 @@ void RTCAudioSink::OnData(
       MakeJust<uint16_t>(static_cast<uint16_t>(number_of_frames))
     });
 
-    Nan::HandleScope scope;
-    auto maybeValue = From<v8::Local<v8::Value>>(dict);
+    auto env = Env();
+    Napi::HandleScope scope(env);
+    auto maybeValue = From<Napi::Value>(std::make_pair(env, dict));
     if (maybeValue.IsInvalid()) {
       // TODO(mroberts): Should raise an error; although this really shouldn't happen.
       // HACK(mroberts): I'd rather we use a smart pointer.
       delete[] dict.samples;
       return;
     }
-    auto value = maybeValue.UnsafeFromValid();
-    v8::Local<v8::Value> argv[1];
-    argv[0] = value;
-    MakeCallback("ondata", 1, argv);
+    MakeCallback("ondata", { maybeValue.UnsafeFromValid() });
   }));
 }
 
-void RTCAudioSink::Init(v8::Handle<v8::Object> exports) {
-  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  RTCAudioSink::tpl().Reset(tpl);
-  tpl->SetClassName(Nan::New("RTCAudioSink").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("stopped").ToLocalChecked(), GetStopped, nullptr);
-  Nan::SetPrototypeMethod(tpl, "stop", JsStop);
-  exports->Set(Nan::New("RTCAudioSink").ToLocalChecked(), tpl->GetFunction());
+void RTCAudioSink::Init(Napi::Env env, Napi::Object exports) {
+  auto func = DefineClass(env, "RTCAudioSink", {
+    InstanceAccessor("stopped", &RTCAudioSink::GetStopped, nullptr),
+    InstanceMethod("stop", &RTCAudioSink::JsStop)
+  });
+
+  constructor() = Napi::Persistent(func);
+  constructor().SuppressDestruct();
+
+  exports.Set("RTCAudioSink", func);
 }
 
 }  // namespace node_webrtc
