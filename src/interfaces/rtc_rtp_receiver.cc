@@ -51,7 +51,7 @@ Napi::Value RTCRtpReceiver::GetTrack(const Napi::CallbackInfo& info) {
 Napi::Value RTCRtpReceiver::GetTransport(const Napi::CallbackInfo& info) {
   auto transport = _receiver->dtls_transport();
   return transport
-      ? napi::UnsafeFromV8(info.Env(), RTCDtlsTransport::wrap()->GetOrCreate(_factory, transport)->ToObject())
+      ? RTCDtlsTransport::wrap()->GetOrCreate(_factory, transport)->Value()
       : info.Env().Null();
 }
 

@@ -52,12 +52,10 @@ Napi::Value RTCRtpSender::GetTrack(const Napi::CallbackInfo& info) {
 }
 
 Napi::Value RTCRtpSender::GetTransport(const Napi::CallbackInfo& info) {
-  Napi::Value result = info.Env().Null();
   auto transport = _sender->dtls_transport();
-  if (transport) {
-    result = napi::UnsafeFromV8(info.Env(), RTCDtlsTransport::wrap()->GetOrCreate(_factory, transport)->ToObject());
-  }
-  return result;
+  return transport
+      ? RTCDtlsTransport::wrap()->GetOrCreate(_factory, transport)->Value()
+      : info.Env().Null();
 }
 
 Napi::Value RTCRtpSender::GetRtcpTransport(const Napi::CallbackInfo& info) {

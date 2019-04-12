@@ -26,6 +26,8 @@ namespace node_webrtc {
 template <typename T>
 class EventLoop: private EventQueue<T> {
  public:
+  virtual ~EventLoop() = default;
+
   /**
    * Dispatch an event to the EventLoop.
    * @param event the event to dispatch

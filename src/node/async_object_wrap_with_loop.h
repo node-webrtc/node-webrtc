@@ -32,8 +32,6 @@ class AsyncObjectWrapWithLoop
    */
   AsyncObjectWrapWithLoop(const char* name, T& target): AsyncObjectWrap(name), PromiseFulfillingEventLoop<T>(target) {}
 
-  ~AsyncObjectWrapWithLoop() override = default;
-
   /**
    * Dispatch an event to the AsyncObjectWrapWithLoop.
    * @param event the event to dispatch
