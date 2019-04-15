@@ -16,6 +16,7 @@
 
 #include "src/enums/node_webrtc/binary_type.h"
 #include "src/enums/webrtc/data_state.h"
+#include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
 #include "src/node/error_factory.h"
 #include "src/node/events.h"
 
@@ -26,12 +27,18 @@ Napi::FunctionReference& RTCDataChannel::constructor() {
   return constructor;
 }
 
-DataChannelObserver::DataChannelObserver(std::shared_ptr<PeerConnectionFactory> factory,
-    rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel):
-  _factory(std::move(factory))
+DataChannelObserver::DataChannelObserver(PeerConnectionFactory* factory,
+    rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel)
+  : _factory(factory)
   , _jingleDataChannel(std::move(jingleDataChannel)) {
+  _factory->Ref();
   _jingleDataChannel->RegisterObserver(this);
 }
+
+DataChannelObserver::~DataChannelObserver() {
+  _factory->Unref();
+  _factory = nullptr;
+}  // NOLINT
 
 void DataChannelObserver::OnStateChange() {
   auto state = _jingleDataChannel->state();
@@ -66,6 +73,8 @@ RTCDataChannel::RTCDataChannel(const Napi::CallbackInfo& info)
   auto observer = static_cast<node_webrtc::DataChannelObserver*>(_observer->Value());
 
   _factory = observer->_factory;
+  _factory->Ref();
+
   _jingleDataChannel = observer->_jingleDataChannel;
   _jingleDataChannel->RegisterObserver(this);
 
@@ -84,8 +93,11 @@ RTCDataChannel::RTCDataChannel(const Napi::CallbackInfo& info)
 }
 
 RTCDataChannel::~RTCDataChannel() {
+  _factory->Unref();
+  _factory = nullptr;
+
   wrap()->Release(this);
-}
+}  // NOLINT
 
 void RTCDataChannel::CleanupInternals() {
   if (_jingleDataChannel == nullptr) {

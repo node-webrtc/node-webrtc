@@ -15,6 +15,7 @@
 #include "src/dictionaries/webrtc/rtp_parameters.h"
 #include "src/interfaces/media_stream_track.h"
 #include "src/interfaces/rtc_dtls_transport.h"
+#include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
 #include "src/node/utility.h"
 
 namespace node_webrtc {
@@ -26,19 +27,24 @@ Napi::FunctionReference& RTCRtpSender::constructor() {
 
 RTCRtpSender::RTCRtpSender(const Napi::CallbackInfo& info)
   : napi::AsyncObjectWrap<RTCRtpSender>("RTCRtpSender", info) {
-  if (info.Length() != 2 || !info[0].IsExternal() || !info[1].IsExternal()) {
+  if (info.Length() != 2 || !info[0].IsObject() || !info[1].IsExternal()) {
     Napi::TypeError::New(info.Env(), "You cannot construct a RTCRtpSender").ThrowAsJavaScriptException();
     return;
   }
 
-  auto factory = *static_cast<std::shared_ptr<PeerConnectionFactory>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[0]))->Value());
+  auto factory = PeerConnectionFactory::Unwrap(info[0].ToObject());
   auto sender = *static_cast<rtc::scoped_refptr<webrtc::RtpSenderInterface>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[1]))->Value());
 
-  _factory = std::move(factory);
+  _factory = factory;
+  _factory->Ref();
+
   _sender = std::move(sender);
 }
 
 RTCRtpSender::~RTCRtpSender() {
+  _factory->Unref();
+  _factory = nullptr;
+
   wrap()->Release(this);
 }
 
@@ -103,27 +109,26 @@ Napi::Value RTCRtpSender::ReplaceTrack(const Napi::CallbackInfo& info) {
 Wrap <
 RTCRtpSender*,
 rtc::scoped_refptr<webrtc::RtpSenderInterface>,
-std::shared_ptr<PeerConnectionFactory>
+PeerConnectionFactory*
 > * RTCRtpSender::wrap() {
   static auto wrap = new node_webrtc::Wrap <
   RTCRtpSender*,
   rtc::scoped_refptr<webrtc::RtpSenderInterface>,
-  std::shared_ptr<PeerConnectionFactory>
+  PeerConnectionFactory*
   > (RTCRtpSender::Create);
   return wrap;
 }
 
 RTCRtpSender* RTCRtpSender::Create(
-    std::shared_ptr<PeerConnectionFactory> factory,
+    PeerConnectionFactory* factory,
     rtc::scoped_refptr<webrtc::RtpSenderInterface> sender) {
   auto env = constructor().Env();
   Napi::HandleScope scope(env);
 
-  auto factoryExternal = Nan::New<v8::External>(static_cast<void*>(&factory));
   auto senderExternal = Nan::New<v8::External>(static_cast<void*>(&sender));
 
   auto object = constructor().New({
-    napi::UnsafeFromV8(env, factoryExternal),
+    factory->Value(),
     napi::UnsafeFromV8(env, senderExternal)
   });
 

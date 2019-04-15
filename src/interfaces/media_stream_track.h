@@ -39,13 +39,13 @@ class MediaStreamTrack
   void OnPeerConnectionClosed();
 
   bool active() { return _ended ? false : _track->state() == webrtc::MediaStreamTrackInterface::TrackState::kLive; }
-  std::shared_ptr<PeerConnectionFactory> factory() { return _factory; }
+  PeerConnectionFactory* factory() { return _factory; }
   rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track() { return _track; }
 
   static ::node_webrtc::Wrap <
   MediaStreamTrack*,
   rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>,
-  std::shared_ptr<PeerConnectionFactory>
+  PeerConnectionFactory*
   > * wrap();
 
   static Napi::FunctionReference& constructor();
@@ -55,7 +55,7 @@ class MediaStreamTrack
 
  private:
   static MediaStreamTrack* Create(
-      std::shared_ptr<PeerConnectionFactory>,
+      PeerConnectionFactory*,
       rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>);
 
   Napi::Value GetEnabled(const Napi::CallbackInfo&);
@@ -70,7 +70,7 @@ class MediaStreamTrack
 
   bool _ended = false;
   bool _enabled;
-  std::shared_ptr<PeerConnectionFactory> _factory;
+  PeerConnectionFactory* _factory;
   rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> _track;
 };
 

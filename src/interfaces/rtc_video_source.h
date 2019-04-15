@@ -25,12 +25,19 @@ namespace node_webrtc {
 class RTCVideoTrackSource : public rtc::AdaptedVideoTrackSource {
  public:
   RTCVideoTrackSource()
-    : rtc::AdaptedVideoTrackSource(), _is_screencast(false) {}
+    : rtc::AdaptedVideoTrackSource(), _is_screencast(false) {
+    _factory->Ref();
+  }
 
   RTCVideoTrackSource(const bool is_screencast, const absl::optional<bool> needs_denoising)
-    : rtc::AdaptedVideoTrackSource(), _is_screencast(is_screencast), _needs_denoising(needs_denoising) {}
+    : rtc::AdaptedVideoTrackSource(), _is_screencast(is_screencast), _needs_denoising(needs_denoising) {
+    _factory->Ref();
+  }
 
-  ~RTCVideoTrackSource() override = default;
+  ~RTCVideoTrackSource() override {
+    _factory->Unref();
+    _factory = nullptr;
+  }
 
   SourceState state() const override {
     return webrtc::MediaSourceInterface::SourceState::kLive;
@@ -53,7 +60,7 @@ class RTCVideoTrackSource : public rtc::AdaptedVideoTrackSource {
   }
 
  private:
-  const std::shared_ptr<PeerConnectionFactory> _factory = PeerConnectionFactory::GetOrCreateDefault();
+  PeerConnectionFactory* _factory = PeerConnectionFactory::GetOrCreateDefault();
   const bool _is_screencast;
   const absl::optional<bool> _needs_denoising;
 };

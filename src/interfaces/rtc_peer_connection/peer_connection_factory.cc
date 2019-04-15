@@ -30,16 +30,27 @@
 
 namespace node_webrtc {
 
-Nan::Persistent<v8::Function>& PeerConnectionFactory::constructor() {
-  static Nan::Persistent<v8::Function> constructor;
+Napi::FunctionReference& PeerConnectionFactory::constructor() {
+  static Napi::FunctionReference constructor;
   return constructor;
 }
 
-std::shared_ptr<PeerConnectionFactory> PeerConnectionFactory::_default;  // NOLINT
+PeerConnectionFactory* PeerConnectionFactory::_default = nullptr;
 std::mutex PeerConnectionFactory::_mutex{};  // NOLINT
 int PeerConnectionFactory::_references = 0;
 
-PeerConnectionFactory::PeerConnectionFactory(Maybe<webrtc::AudioDeviceModule::AudioLayer> audioLayer) {
+PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo& info)
+  : Napi::ObjectWrap<PeerConnectionFactory>(info) {
+  auto env = info.Env();
+
+  if (!info.IsConstructCall()) {
+    Napi::TypeError::New(env, "Use the new operator to construct a PeerConnectionFactory.").ThrowAsJavaScriptException();
+    return;
+  }
+
+  // TODO(mroberts): Read `audioLayer` from some PeerConnectionFactoryOptions?
+  auto audioLayer = MakeNothing<webrtc::AudioDeviceModule::AudioLayer>();
+
   _workerThread = std::make_unique<rtc::Thread>();
   assert(_workerThread);
 
@@ -96,23 +107,16 @@ PeerConnectionFactory::~PeerConnectionFactory() {
   _socketFactory = nullptr;
 }
 
-NAN_METHOD(PeerConnectionFactory::New) {
-  if (!info.IsConstructCall()) {
-    return Nan::ThrowTypeError("Use the new operator to construct a PeerConnectionFactory.");
-  }
-
-  // TODO(mroberts): Read `audioLayer` from some PeerConnectionFactoryOptions?
-  auto peerConnectionFactory = new PeerConnectionFactory();
-  peerConnectionFactory->Wrap(info.This());
-
-  info.GetReturnValue().Set(info.This());
-}
-
-std::shared_ptr<PeerConnectionFactory> PeerConnectionFactory::GetOrCreateDefault() {
+PeerConnectionFactory* PeerConnectionFactory::GetOrCreateDefault() {
   _mutex.lock();
   _references++;
   if (_references == 1) {
-    _default = std::make_shared<PeerConnectionFactory>();
+    auto env = constructor().Env();
+    Napi::HandleScope scope(env);
+    auto object = constructor().New({});
+    auto factory = Unwrap(object);
+    factory->Ref();
+    _default = factory;
   }
   _mutex.unlock();
   return _default;
@@ -123,6 +127,7 @@ void PeerConnectionFactory::Release() {
   _references--;
   assert(_references >= 0);
   if (!_references) {
+    _default->Unref();
     _default = nullptr;
   }
   _mutex.unlock();
@@ -132,19 +137,19 @@ void PeerConnectionFactory::Dispose() {
   rtc::CleanupSSL();
 }
 
-void PeerConnectionFactory::Init(v8::Handle<v8::Object> exports) {
+void PeerConnectionFactory::Init(Napi::Env env, Napi::Object exports) {
   bool result;
   (void) result;
 
   result = rtc::InitializeSSL();
   assert(result);
 
-  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-  tpl->SetClassName(Nan::New("PeerConnectionFactory").ToLocalChecked());
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+  auto func = DefineClass(env, "RTCPeerConnectionFactory", {});
 
-  constructor().Reset(tpl->GetFunction());
-  exports->Set(Nan::New("PeerConnectionFactory").ToLocalChecked(), tpl->GetFunction());
+  constructor() = Napi::Persistent(func);
+  constructor().SuppressDestruct();
+
+  exports.Set("RTCPeerConnectionFactory", func);
 }
 
 }  // namespace node_webrtc

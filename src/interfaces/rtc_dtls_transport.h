@@ -7,7 +7,6 @@
  */
 #pragma once
 
-#include <memory>
 #include <mutex>
 
 #include <node-addon-api/napi.h>
@@ -29,12 +28,14 @@ class RTCDtlsTransport
  public:
   explicit RTCDtlsTransport(const Napi::CallbackInfo&);
 
+  ~RTCDtlsTransport() override;
+
   static void Init(Napi::Env, Napi::Object);
 
   static ::node_webrtc::Wrap <
   RTCDtlsTransport*,
   rtc::scoped_refptr<webrtc::DtlsTransportInterface>,
-  std::shared_ptr<PeerConnectionFactory>
+  PeerConnectionFactory*
   > * wrap();
 
   void OnStateChange(webrtc::DtlsTransportInformation) override;
@@ -50,13 +51,13 @@ class RTCDtlsTransport
   Napi::Value GetState(const Napi::CallbackInfo&);
 
   static RTCDtlsTransport* Create(
-      std::shared_ptr<PeerConnectionFactory>,
+      PeerConnectionFactory*,
       rtc::scoped_refptr<webrtc::DtlsTransportInterface>);
 
   std::mutex _mutex;
   webrtc::DtlsTransportState _state;
 
-  std::shared_ptr<PeerConnectionFactory> _factory;
+  PeerConnectionFactory* _factory;
   rtc::scoped_refptr<webrtc::DtlsTransportInterface> _transport;
 };
 
