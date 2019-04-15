@@ -46,7 +46,7 @@ Napi::Value RTCRtpSender::GetTrack(const Napi::CallbackInfo& info) {
   Napi::Value result = info.Env().Null();
   auto track = _sender->track();
   if (track) {
-    result = napi::UnsafeFromV8(info.Env(), MediaStreamTrack::wrap()->GetOrCreate(_factory, track)->ToObject());
+    result = MediaStreamTrack::wrap()->GetOrCreate(_factory, track)->Value();
   }
   return result;
 }

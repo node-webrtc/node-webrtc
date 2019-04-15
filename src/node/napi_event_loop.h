@@ -41,13 +41,13 @@ class EventLoop: private EventQueue<T> {
       NAPI_THROW_IF_FAILED_VOID(_env, status)
     }
     status = napi_create_async_work(
-              _env,
-              nullptr,
-              resource_id,
-              DoNothing,
-              CallRun,
-              this,
-              &_work);
+            _env,
+            nullptr,
+            resource_id,
+            DoNothing,
+            CallRun,
+            this,
+            &_work);
     {
       using Napi::Error;
       NAPI_THROW_IF_FAILED_VOID(_env, status)
@@ -59,22 +59,22 @@ class EventLoop: private EventQueue<T> {
   }
 
   virtual void Run() {
-      if (!_should_stop) {
-          while (auto event = this->Dequeue()) {
-              event->Dispatch(_target);
-              if (_should_stop) {
-                  break;
-              }
-          }
-          if (_should_stop) {
-              _work_mutex.lock();
-              napi_delete_async_work(_env, _work);
-              _work = nullptr;
-              _work_mutex.unlock();
-              DidStop();
-          }
+    if (!_should_stop) {
+      while (auto event = this->Dequeue()) {
+        event->Dispatch(_target);
+        if (_should_stop) {
+          break;
+        }
       }
-      _run_mutex.unlock();
+    }
+    if (_should_stop) {
+      _work_mutex.lock();
+      napi_delete_async_work(_env, _work);
+      _work = nullptr;
+      _work_mutex.unlock();
+      DidStop();
+    }
+    _run_mutex.unlock();
   }
 
   virtual void Stop() {

@@ -44,8 +44,8 @@ RTCRtpReceiver::~RTCRtpReceiver() {
   wrap()->Release(this);
 }
 
-Napi::Value RTCRtpReceiver::GetTrack(const Napi::CallbackInfo& info) {
-  return napi::UnsafeFromV8(info.Env(), MediaStreamTrack::wrap()->GetOrCreate(_factory, _receiver->track())->ToObject());
+Napi::Value RTCRtpReceiver::GetTrack(const Napi::CallbackInfo&) {
+  return MediaStreamTrack::wrap()->GetOrCreate(_factory, _receiver->track())->Value();
 }
 
 Napi::Value RTCRtpReceiver::GetTransport(const Napi::CallbackInfo& info) {

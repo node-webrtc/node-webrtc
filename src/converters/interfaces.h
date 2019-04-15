@@ -32,18 +32,23 @@ namespace node_webrtc {
   CONVERT_INTERFACE_TO_JS(IFACE, NAME, TO_FN) \
   CONVERT_INTERFACE_FROM_JS(IFACE, NAME, FROM_FN)
 
-// FIXME(mroberts): This is defined in terms of v8 for now.
 #define CONVERT_INTERFACE_TO_NAPI(IFACE, NAME) \
   TO_NAPI_IMPL(IFACE*, pair) { \
-    return From<v8::Local<v8::Value>>(pair.second).Map([env = pair.first](auto value) { \
-      return napi::UnsafeFromV8(env, value); \
-    }); \
+    return Pure(pair.second->Value().As<Napi::Value>()); \
   }
 
-// FIXME(mroberts): This is defined in terms of v8 for now.
 #define CONVERT_INTERFACE_FROM_NAPI(IFACE, NAME) \
   FROM_NAPI_IMPL(IFACE*, value) { \
-    return From<IFACE*>(napi::UnsafeToV8(value)); \
+    return From<Napi::Object>(value).FlatMap<IFACE*>([](auto object) { \
+      auto isInstance = false; \
+      napi_instanceof(object.Env(), object, IFACE::constructor().Value(), &isInstance); \
+      if (object.Env().IsExceptionPending()) { \
+        return Validation<IFACE*>::Invalid(object.Env().GetAndClearPendingException().Message()); \
+      } else if (!isInstance) { \
+        return Validation<IFACE*>::Invalid("This is not an instance of " NAME); \
+      } \
+      return Pure(IFACE::Unwrap(object)); \
+    }); \
   }
 
 #define CONVERT_INTERFACE_TO_AND_FROM_NAPI(IFACE, NAME) \
