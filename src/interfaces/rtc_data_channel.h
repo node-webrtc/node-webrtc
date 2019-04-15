@@ -10,14 +10,12 @@
 #include <iosfwd>
 #include <memory>
 
-#include <nan.h>
 #include <webrtc/api/data_channel_interface.h>
 #include <webrtc/api/scoped_refptr.h>
-#include <v8.h>
 
 #include "src/enums/node_webrtc/binary_type.h"
-#include "src/node/async_object_wrap_with_loop.h"
 #include "src/node/event_queue.h"
+#include "src/node/napi_async_object_wrap_with_loop.h"
 #include "src/node/wrap.h"
 
 namespace node_webrtc {
@@ -26,19 +24,17 @@ class DataChannelObserver;
 class PeerConnectionFactory;
 
 class RTCDataChannel
-  : public AsyncObjectWrapWithLoop<RTCDataChannel>
+  : public napi::AsyncObjectWrapWithLoop<RTCDataChannel>
   , public webrtc::DataChannelObserver {
   friend class node_webrtc::DataChannelObserver;
  public:
-  RTCDataChannel() = delete;
-
-  RTCDataChannel(RTCDataChannel const&) = delete;
-
-  RTCDataChannel& operator=(RTCDataChannel const&) = delete;
+  explicit RTCDataChannel(const Napi::CallbackInfo&);
 
   ~RTCDataChannel() override;
 
-  static void Init(v8::Handle<v8::Object> exports);
+  static Napi::FunctionReference& constructor();
+
+  static void Init(Napi::Env, Napi::Object);
 
   //
   // DataChannelObserver implementation.
@@ -55,34 +51,28 @@ class RTCDataChannel
   > * wrap();
 
  private:
-  explicit RTCDataChannel(node_webrtc::DataChannelObserver* observer);
-
   static RTCDataChannel* Create(
       node_webrtc::DataChannelObserver*,
       rtc::scoped_refptr<webrtc::DataChannelInterface>);
 
-  static Nan::Persistent<v8::Function>& constructor();
-
   static void HandleStateChange(RTCDataChannel&, webrtc::DataChannelInterface::DataState);
   static void HandleMessage(RTCDataChannel&, const webrtc::DataBuffer& buffer);
 
-  static NAN_METHOD(New);
+  Napi::Value Send(const Napi::CallbackInfo&);
+  Napi::Value Close(const Napi::CallbackInfo&);
 
-  static NAN_METHOD(Send);
-  static NAN_METHOD(Close);
-
-  static NAN_GETTER(GetBufferedAmount);
-  static NAN_GETTER(GetId);
-  static NAN_GETTER(GetLabel);
-  static NAN_GETTER(GetMaxPacketLifeTime);
-  static NAN_GETTER(GetMaxRetransmits);
-  static NAN_GETTER(GetNegotiated);
-  static NAN_GETTER(GetOrdered);
-  static NAN_GETTER(GetPriority);
-  static NAN_GETTER(GetProtocol);
-  static NAN_GETTER(GetBinaryType);
-  static NAN_GETTER(GetReadyState);
-  static NAN_SETTER(SetBinaryType);
+  Napi::Value GetBufferedAmount(const Napi::CallbackInfo&);
+  Napi::Value GetId(const Napi::CallbackInfo&);
+  Napi::Value GetLabel(const Napi::CallbackInfo&);
+  Napi::Value GetMaxPacketLifeTime(const Napi::CallbackInfo&);
+  Napi::Value GetMaxRetransmits(const Napi::CallbackInfo&);
+  Napi::Value GetNegotiated(const Napi::CallbackInfo&);
+  Napi::Value GetOrdered(const Napi::CallbackInfo&);
+  Napi::Value GetPriority(const Napi::CallbackInfo&);
+  Napi::Value GetProtocol(const Napi::CallbackInfo&);
+  Napi::Value GetBinaryType(const Napi::CallbackInfo&);
+  Napi::Value GetReadyState(const Napi::CallbackInfo&);
+  void SetBinaryType(const Napi::CallbackInfo&, const Napi::Value&);
 
   void CleanupInternals();
 
