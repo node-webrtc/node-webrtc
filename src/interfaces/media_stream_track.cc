@@ -27,17 +27,19 @@ MediaStreamTrack::MediaStreamTrack(const Napi::CallbackInfo& info)
   : AsyncObjectWrapWithLoop<MediaStreamTrack>("MediaStreamTrack", *this, info) {
   auto env = info.Env();
 
-  if (info.Length() != 2 || !info[0].IsExternal() || !info[1].IsExternal()) {
+  if (info.Length() != 2 || !info[0].IsObject() || !info[1].IsExternal()) {
     Napi::TypeError::New(env, "You cannot construct a MediaStreamTrack").ThrowAsJavaScriptException();
     return;
   }
 
-  auto factory = *static_cast<std::shared_ptr<PeerConnectionFactory>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[0]))->Value());
+  // FIXME(mroberts): There is a safer conversion here.
+  auto factory = PeerConnectionFactory::Unwrap(info[0].ToObject());
   auto track = *static_cast<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[1]))->Value());
 
-  _factory = std::move(factory);
-  _track = std::move(track);
+  _factory = factory;
+  _factory->Ref();
 
+  _track = std::move(track);
   _track->RegisterObserver(this);
 
   // NOTE(mroberts): This doesn't actually matter yet.
@@ -45,9 +47,14 @@ MediaStreamTrack::MediaStreamTrack(const Napi::CallbackInfo& info)
 }
 
 MediaStreamTrack::~MediaStreamTrack() {
+  _factory->Unref();
+  _factory = nullptr;
+
   _track->UnregisterObserver(this);
+  _track = nullptr;
+
   wrap()->Release(this);
-}
+}  // NOLINT
 
 void MediaStreamTrack::Stop() {
   _ended = true;
@@ -132,27 +139,26 @@ Napi::Value MediaStreamTrack::JsStop(const Napi::CallbackInfo& info) {
 Wrap <
 MediaStreamTrack*,
 rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>,
-std::shared_ptr<PeerConnectionFactory>
+PeerConnectionFactory*
 > * MediaStreamTrack::wrap() {
   static auto wrap = new node_webrtc::Wrap <
   MediaStreamTrack*,
   rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>,
-  std::shared_ptr<PeerConnectionFactory>
+  PeerConnectionFactory*
   > (MediaStreamTrack::Create);
   return wrap;
 }
 
 MediaStreamTrack* MediaStreamTrack::Create(
-    std::shared_ptr<PeerConnectionFactory> factory,
+    PeerConnectionFactory* factory,
     rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) {
   auto env = constructor().Env();
   Napi::HandleScope scope(env);
 
-  auto factoryExternal = Nan::New<v8::External>(static_cast<void*>(&factory));
   auto trackExternal = Nan::New<v8::External>(static_cast<void*>(&track));
 
   auto mediaStreamTrack = constructor().New({
-    napi::UnsafeFromV8(env, factoryExternal),
+    factory->Value(),
     napi::UnsafeFromV8(env, trackExternal)
   });
 

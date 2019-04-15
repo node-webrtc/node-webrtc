@@ -110,7 +110,7 @@ class RTCPeerConnection
   ExtendedRTCConfiguration _cached_configuration;
   rtc::scoped_refptr<webrtc::PeerConnectionInterface> _jinglePeerConnection;
 
-  std::shared_ptr<PeerConnectionFactory> _factory;
+  PeerConnectionFactory* _factory;
   bool _shouldReleaseFactory;
 
   std::vector<RTCDataChannel*> _channels;

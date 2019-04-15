@@ -14,6 +14,7 @@
 #include "src/converters/arguments.h"
 #include "src/converters/interfaces.h"
 #include "src/enums/webrtc/rtp_transceiver_direction.h"
+#include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
 #include "src/interfaces/rtc_rtp_receiver.h"
 #include "src/interfaces/rtc_rtp_sender.h"
 
@@ -27,19 +28,24 @@ Napi::FunctionReference& RTCRtpTransceiver::constructor() {
 RTCRtpTransceiver::RTCRtpTransceiver(
     const Napi::CallbackInfo& info):
   napi::AsyncObjectWrap<RTCRtpTransceiver>("RTCRtpTransceiver", info) {
-  if (info.Length() != 2 || !info[0].IsExternal() || !info[1].IsExternal()) {
+  if (info.Length() != 2 || !info[0].IsObject() || !info[1].IsExternal()) {
     Napi::TypeError::New(info.Env(), "You cannot construct a RTCRtpTransceiver").ThrowAsJavaScriptException();
     return;
   }
 
-  auto factory = *static_cast<std::shared_ptr<PeerConnectionFactory>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[0]))->Value());
+  auto factory = PeerConnectionFactory::Unwrap(info[0].ToObject());
   auto transceiver = *static_cast<rtc::scoped_refptr<webrtc::RtpTransceiverInterface>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[1]))->Value());
 
-  _factory = std::move(factory);
+  _factory = factory;
+  _factory->Ref();
+
   _transceiver = std::move(transceiver);
 }
 
 RTCRtpTransceiver::~RTCRtpTransceiver() {
+  _factory->Unref();
+  _factory = nullptr;
+
   wrap()->Release(this);
 }
 
@@ -93,27 +99,26 @@ Napi::Value RTCRtpTransceiver::SetCodecPreferences(const Napi::CallbackInfo& inf
 Wrap <
 RTCRtpTransceiver*,
 rtc::scoped_refptr<webrtc::RtpTransceiverInterface>,
-std::shared_ptr<PeerConnectionFactory>
+PeerConnectionFactory*
 > * RTCRtpTransceiver::wrap() {
   static auto wrap = new node_webrtc::Wrap <
   RTCRtpTransceiver*,
   rtc::scoped_refptr<webrtc::RtpTransceiverInterface>,
-  std::shared_ptr<PeerConnectionFactory>
+  PeerConnectionFactory*
   > (RTCRtpTransceiver::Create);
   return wrap;
 }
 
 RTCRtpTransceiver* RTCRtpTransceiver::Create(
-    std::shared_ptr<PeerConnectionFactory> factory,
+    PeerConnectionFactory* factory,
     rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
   auto env = constructor().Env();
   Napi::HandleScope scope(env);
 
-  auto factoryExternal = Nan::New<v8::External>(static_cast<void*>(&factory));
   auto transceiverExternal = Nan::New<v8::External>(static_cast<void*>(&transceiver));
 
   auto object = constructor().New({
-    napi::UnsafeFromV8(env, factoryExternal),
+    factory->Value(),
     napi::UnsafeFromV8(env, transceiverExternal)
   });
 

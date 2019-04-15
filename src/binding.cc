@@ -7,9 +7,7 @@
  */
 #include <node-addon-api/napi.h>
 #include <node.h>
-#include <v8.h>
 
-#include "src/converters/napi.h"
 #include "src/interfaces/legacy_rtc_stats_report.h"
 #include "src/interfaces/media_stream.h"
 #include "src/interfaces/media_stream_track.h"
@@ -37,12 +35,6 @@ static void dispose(void*) {
   node_webrtc::PeerConnectionFactory::Dispose();
 }
 
-static void init(Napi::Env env, v8::Handle<v8::Object> exports, v8::Handle<v8::Object>) {
-  (void) env;
-  node_webrtc::PeerConnectionFactory::Init(exports);
-  node::AtExit(dispose);
-}
-
 static Napi::Object Init(Napi::Env env, Napi::Object exports) {
   node_webrtc::ErrorFactory::Init(env, exports);
   node_webrtc::GetUserMedia::Init(env, exports);
@@ -50,6 +42,7 @@ static Napi::Object Init(Napi::Env env, Napi::Object exports) {
   node_webrtc::LegacyStatsReport::Init(env, exports);
   node_webrtc::MediaStream::Init(env, exports);
   node_webrtc::MediaStreamTrack::Init(env, exports);
+  node_webrtc::PeerConnectionFactory::Init(env, exports);
   node_webrtc::RTCAudioSink::Init(env, exports);
   node_webrtc::RTCAudioSource::Init(env, exports);
   node_webrtc::RTCDataChannel::Init(env, exports);
@@ -65,8 +58,7 @@ static Napi::Object Init(Napi::Env env, Napi::Object exports) {
   node_webrtc::Test::Init(env, exports);
 #endif
 
-  auto v8_exports = node_webrtc::napi::UnsafeToV8(exports).As<v8::Object>();
-  init(env, v8_exports, v8_exports);
+  node::AtExit(dispose);
 
   return exports;
 }

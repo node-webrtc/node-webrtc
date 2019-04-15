@@ -35,7 +35,7 @@ class RTCRtpTransceiver: public napi::AsyncObjectWrap<RTCRtpTransceiver> {
   static ::node_webrtc::Wrap <
   RTCRtpTransceiver*,
   rtc::scoped_refptr<webrtc::RtpTransceiverInterface>,
-  std::shared_ptr<PeerConnectionFactory>
+  PeerConnectionFactory*
   > * wrap();
 
   static Napi::FunctionReference& constructor();
@@ -43,7 +43,7 @@ class RTCRtpTransceiver: public napi::AsyncObjectWrap<RTCRtpTransceiver> {
  private:
 
   static RTCRtpTransceiver* Create(
-      std::shared_ptr<PeerConnectionFactory>,
+      PeerConnectionFactory*,
       rtc::scoped_refptr<webrtc::RtpTransceiverInterface>);
 
   Napi::Value GetMid(const Napi::CallbackInfo&);
@@ -57,7 +57,7 @@ class RTCRtpTransceiver: public napi::AsyncObjectWrap<RTCRtpTransceiver> {
   Napi::Value Stop(const Napi::CallbackInfo&);
   Napi::Value SetCodecPreferences(const Napi::CallbackInfo&);
 
-  std::shared_ptr<PeerConnectionFactory> _factory;
+  PeerConnectionFactory* _factory;
   rtc::scoped_refptr<webrtc::RtpTransceiverInterface> _transceiver;
 };
 

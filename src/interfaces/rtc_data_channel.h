@@ -85,7 +85,7 @@ class RTCDataChannel
   bool _cached_ordered;
   std::string _cached_protocol;
   uint64_t _cached_buffered_amount;
-  std::shared_ptr<PeerConnectionFactory> _factory;
+  PeerConnectionFactory* _factory;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
 };
 
@@ -94,8 +94,11 @@ class DataChannelObserver
   , public webrtc::DataChannelObserver {
   friend class RTCDataChannel;
  public:
-  explicit DataChannelObserver(std::shared_ptr<PeerConnectionFactory> factory,
+  DataChannelObserver(
+      PeerConnectionFactory* factory,
       rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel);
+
+  ~DataChannelObserver() override;
 
   void OnStateChange() override;
   void OnMessage(const webrtc::DataBuffer& buffer) override;
@@ -103,7 +106,7 @@ class DataChannelObserver
   rtc::scoped_refptr<webrtc::DataChannelInterface> channel() { return _jingleDataChannel; }
 
  private:
-  std::shared_ptr<PeerConnectionFactory> _factory;
+  PeerConnectionFactory* _factory;
   rtc::scoped_refptr<webrtc::DataChannelInterface> _jingleDataChannel;
 };
 

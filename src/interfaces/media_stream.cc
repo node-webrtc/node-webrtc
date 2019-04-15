@@ -28,13 +28,13 @@ Napi::FunctionReference& MediaStream::constructor() {
   return constructor;
 }
 
-MediaStream::Impl::Impl(std::shared_ptr<PeerConnectionFactory>&& factory)
+MediaStream::Impl::Impl(PeerConnectionFactory* factory)
   : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault())
   , _stream(_factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid()))
   , _shouldReleaseFactory(!factory) {
 }
 
-MediaStream::Impl::Impl(std::vector<MediaStreamTrack*>&& tracks, std::shared_ptr<PeerConnectionFactory>&& factory)
+MediaStream::Impl::Impl(std::vector<MediaStreamTrack*>&& tracks, PeerConnectionFactory* factory)
   : _factory(factory ? factory : tracks.empty() ? PeerConnectionFactory::GetOrCreateDefault() : tracks[0]->factory())
   , _stream(_factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid()))
   , _shouldReleaseFactory(!factory && tracks.empty()) {
@@ -51,13 +51,17 @@ MediaStream::Impl::Impl(std::vector<MediaStreamTrack*>&& tracks, std::shared_ptr
 
 MediaStream::Impl::Impl(
     rtc::scoped_refptr<webrtc::MediaStreamInterface>&& stream,
-    std::shared_ptr<PeerConnectionFactory>&& factory)
+    PeerConnectionFactory* factory)
   : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault())
   , _stream(stream)
   , _shouldReleaseFactory(!factory) {
 }
 
 MediaStream::Impl::~Impl() {
+  if (_factory) {
+    _factory->Unref();  // NOLINT
+    _factory = nullptr;
+  }
   if (_shouldReleaseFactory) {
     PeerConnectionFactory::Release();
   }
@@ -79,7 +83,7 @@ rtc::scoped_refptr<webrtc::MediaStreamInterface> MediaStream::stream() {
 }
 
 MediaStream::MediaStream(const Napi::CallbackInfo& info): Napi::ObjectWrap<MediaStream>(info) {
-  auto maybeEither = From<Either<std::tuple<v8::Local<v8::External> COMMA v8::Local<v8::External>> COMMA Either<std::vector<MediaStreamTrack*> COMMA Maybe<MediaStream*>>>>(napi::Arguments(info));
+  auto maybeEither = From<Either<std::tuple<Napi::Object COMMA v8::Local<v8::External>> COMMA Either<std::vector<MediaStreamTrack*> COMMA Maybe<MediaStream*>>>>(napi::Arguments(info));
   if (maybeEither.IsInvalid()) {
     Napi::TypeError::New(info.Env(), maybeEither.ToErrors()[0]).ThrowAsJavaScriptException();
     return;
@@ -89,9 +93,10 @@ MediaStream::MediaStream(const Napi::CallbackInfo& info): Napi::ObjectWrap<Media
   if (eithers.IsLeft()) {
     // 1. Remote MediaStream
     auto pair = eithers.UnsafeFromLeft();
-    auto factory = *static_cast<std::shared_ptr<PeerConnectionFactory>*>(v8::Local<v8::External>::Cast(std::get<0>(pair))->Value());
+    // FIXME(mroberts): There is a safer way to do this.
+    auto factory = PeerConnectionFactory::Unwrap(std::get<0>(pair));
     auto stream = *static_cast<rtc::scoped_refptr<webrtc::MediaStreamInterface>*>(v8::Local<v8::External>::Cast(std::get<1>(pair))->Value());
-    _impl = MediaStream::Impl(std::move(stream), std::move(factory));
+    _impl = MediaStream::Impl(std::move(stream), factory);
   } else {
     auto either = eithers.UnsafeFromRight();
     if (either.IsLeft()) {
@@ -108,7 +113,7 @@ MediaStream::MediaStream(const Napi::CallbackInfo& info): Napi::ObjectWrap<Media
         for (auto const& track : existingStream->tracks()) {
           tracks.push_back(MediaStreamTrack::wrap()->GetOrCreate(factory, track));
         }
-        _impl = MediaStream::Impl(std::move(tracks), std::move(factory));
+        _impl = MediaStream::Impl(std::move(tracks), factory);
       } else {
         // 4. Local MediaStream
         _impl = MediaStream::Impl();
@@ -226,27 +231,26 @@ Napi::Value MediaStream::Clone(const Napi::CallbackInfo& info) {
 Wrap <
 MediaStream*,
 rtc::scoped_refptr<webrtc::MediaStreamInterface>,
-std::shared_ptr<PeerConnectionFactory>
+PeerConnectionFactory*
 > * MediaStream::wrap() {
   static auto wrap = new node_webrtc::Wrap <
   MediaStream*,
   rtc::scoped_refptr<webrtc::MediaStreamInterface>,
-  std::shared_ptr<PeerConnectionFactory>
+  PeerConnectionFactory*
   > (MediaStream::Create);
   return wrap;
 }
 
 MediaStream* MediaStream::Create(
-    std::shared_ptr<PeerConnectionFactory> factory,
+    PeerConnectionFactory* factory,
     rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) {
   auto env = MediaStream::constructor().Env();
   Napi::HandleScope scope(env);
 
-  auto factoryExternal = Nan::New<v8::External>(static_cast<void*>(&factory));
   auto streamExternal = Nan::New<v8::External>(static_cast<void*>(&stream));
 
   auto object = MediaStream::constructor().New({
-    napi::UnsafeFromV8(env, factoryExternal),
+    factory->Value(),
     napi::UnsafeFromV8(env, streamExternal)
   });
 

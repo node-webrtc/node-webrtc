@@ -7,6 +7,7 @@
  */
 #include "src/interfaces/rtc_dtls_transport.h"
 
+#include <memory>
 #include <type_traits>
 #include <utility>
 
@@ -34,15 +35,17 @@ Napi::FunctionReference& RTCDtlsTransport::constructor() {
 
 RTCDtlsTransport::RTCDtlsTransport(const Napi::CallbackInfo& info)
   : napi::AsyncObjectWrapWithLoop<RTCDtlsTransport>("RTCDtlsTransport", *this, info) {
-  if (info.Length() != 2 || !info[0].IsExternal() || !info[1].IsExternal()) {
+  if (info.Length() != 2 || !info[0].IsObject() || !info[1].IsExternal()) {
     Napi::TypeError::New(info.Env(), "You cannot construct an RTCDtlsTransport").ThrowAsJavaScriptException();
     return;
   }
 
-  auto factory = *static_cast<std::shared_ptr<PeerConnectionFactory>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[0]))->Value());
+  auto factory = PeerConnectionFactory::Unwrap(info[0].ToObject());
   auto transport = *static_cast<rtc::scoped_refptr<webrtc::DtlsTransportInterface>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[1]))->Value());
 
-  _factory = std::move(factory);
+  _factory = factory;
+  _factory->Ref();
+
   _transport = std::move(transport);
 
   _factory->_workerThread->Invoke<void>(RTC_FROM_HERE, [this]() {
@@ -53,6 +56,11 @@ RTCDtlsTransport::RTCDtlsTransport(const Napi::CallbackInfo& info)
     }
   });
 }
+
+RTCDtlsTransport::~RTCDtlsTransport() {
+  _factory->Unref();
+  _factory = nullptr;
+}  // NOLINT
 
 void RTCDtlsTransport::Stop() {
   _transport->UnregisterObserver();
@@ -106,27 +114,26 @@ Napi::Value RTCDtlsTransport::GetState(const Napi::CallbackInfo& info) {
 Wrap <
 RTCDtlsTransport*,
 rtc::scoped_refptr<webrtc::DtlsTransportInterface>,
-std::shared_ptr<PeerConnectionFactory>
+PeerConnectionFactory*
 > * RTCDtlsTransport::wrap() {
   static auto wrap = new node_webrtc::Wrap <
   RTCDtlsTransport*,
   rtc::scoped_refptr<webrtc::DtlsTransportInterface>,
-  std::shared_ptr<PeerConnectionFactory>
+  PeerConnectionFactory*
   > (RTCDtlsTransport::Create);
   return wrap;
 }
 
 RTCDtlsTransport* RTCDtlsTransport::Create(
-    std::shared_ptr<PeerConnectionFactory> factory,
+    PeerConnectionFactory* factory,
     rtc::scoped_refptr<webrtc::DtlsTransportInterface> transport) {
   auto env = constructor().Env();
   Napi::HandleScope scope(env);
 
-  auto factoryExternal = Nan::New<v8::External>(static_cast<void*>(&factory));
   auto transportExternal = Nan::New<v8::External>(static_cast<void*>(&transport));
 
   auto object = constructor().New({
-    napi::UnsafeFromV8(env, factoryExternal),
+    factory->Value(),
     napi::UnsafeFromV8(env, transportExternal)
   });
 
