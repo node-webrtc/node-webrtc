@@ -40,12 +40,10 @@ static void dispose(void*) {
 static void init(Napi::Env env, v8::Handle<v8::Object> exports, v8::Handle<v8::Object>) {
   (void) env;
   node_webrtc::PeerConnectionFactory::Init(exports);
-  node_webrtc::RTCPeerConnection::Init(exports);
   node::AtExit(dispose);
 }
 
 static Napi::Object Init(Napi::Env env, Napi::Object exports) {
-  node_webrtc::RTCDataChannel::Init(env, exports);
   node_webrtc::ErrorFactory::Init(env, exports);
   node_webrtc::GetUserMedia::Init(env, exports);
   node_webrtc::I420Helpers::Init(env, exports);
@@ -54,7 +52,9 @@ static Napi::Object Init(Napi::Env env, Napi::Object exports) {
   node_webrtc::MediaStreamTrack::Init(env, exports);
   node_webrtc::RTCAudioSink::Init(env, exports);
   node_webrtc::RTCAudioSource::Init(env, exports);
+  node_webrtc::RTCDataChannel::Init(env, exports);
   node_webrtc::RTCDtlsTransport::Init(env, exports);
+  node_webrtc::RTCPeerConnection::Init(env, exports);
   node_webrtc::RTCRtpReceiver::Init(env, exports);
   node_webrtc::RTCRtpSender::Init(env, exports);
   node_webrtc::RTCRtpTransceiver::Init(env, exports);

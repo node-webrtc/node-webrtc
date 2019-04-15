@@ -25,8 +25,8 @@ class SetSessionDescriptionObserver
  public:
   SetSessionDescriptionObserver(
       RTCPeerConnection* peer_connection,
-      v8::Local<v8::Promise::Resolver> resolver)
-    : PromiseCreator<RTCPeerConnection>(peer_connection, resolver) {}
+      Napi::Promise::Deferred deferred)
+    : PromiseCreator<RTCPeerConnection>(peer_connection, deferred) {}
 
   void OnSuccess() override;
 

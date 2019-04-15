@@ -10,8 +10,7 @@
 #include <memory>
 #include <type_traits>
 
-#include <nan.h>
-#include <v8.h>
+#include <node-addon-api/napi.h>
 
 #include "events.h"
 #include "utility.h"
@@ -22,31 +21,23 @@ template <typename T, typename F>
 class Promise: public Event<T> {
  public:
   Promise(
-      const std::shared_ptr<Nan::Persistent<v8::Promise::Resolver>>& resolver,
+      Napi::Promise::Deferred& deferred,
       F callback)
     : _callback(callback),
-      _resolver(resolver) {}
+      _deferred(deferred) {}
 
   void Dispatch(T&) override {
-    _callback(resolver());
+    _callback(_deferred);
   }
 
  private:
-  v8::Local<v8::Promise::Resolver> resolver() {
-    Nan::EscapableHandleScope scope;
-    v8::Local<v8::Promise::Resolver> resolver = Nan::New(*_resolver);
-    return scope.Escape(resolver);
-  }
-
   F _callback;
-  std::shared_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
+  Napi::Promise::Deferred _deferred;
 };
 
 template <typename T, typename F>
-std::unique_ptr<Promise<T, F>> CreatePromise(v8::Local<v8::Promise::Resolver> resolver, F callback) {
-  return std::make_unique<Promise<T, F>>(
-          std::make_shared<Nan::Persistent<v8::Promise::Resolver>>(resolver),
-          callback);
+std::unique_ptr<Promise<T, F>> CreatePromise(Napi::Promise::Deferred deferred, F callback) {
+  return std::make_unique<Promise<T, F>>(deferred, callback);
 }
 
 template <typename T>
@@ -54,32 +45,32 @@ class PromiseCreator {
  public:
   PromiseCreator(
       T* target,
-      v8::Local<v8::Promise::Resolver> resolver)
+      Napi::Promise::Deferred deferred)
     : _target(target)
-    , _resolver(std::make_shared<Nan::Persistent<v8::Promise::Resolver>>(resolver)) {}
+    , _deferred(deferred) {}
 
   template <typename F>
   void Dispatch(F callback) {
-    _target->Dispatch(std::make_unique<Promise<T, F>>(std::move(_resolver), callback));
+    _target->Dispatch(std::make_unique<Promise<T, F>>(_deferred, callback));
   }
 
   template <typename F>
   void Resolve(F value) {
-    Dispatch([value](auto resolver) {
-      node_webrtc::Resolve(resolver, value);
+    Dispatch([value](auto deferred) {
+      node_webrtc::napi::Resolve(deferred, value);
     });
   }
 
   template <typename F>
   void Reject(F value) {
-    Dispatch([value](auto resolver) {
-      node_webrtc::Reject(resolver, value);
+    Dispatch([value](auto deferred) {
+      node_webrtc::napi::Reject(deferred, value);
     });
   }
 
  private:
   T* _target;
-  std::shared_ptr<Nan::Persistent<v8::Promise::Resolver>> _resolver;
+  Napi::Promise::Deferred _deferred;
 };
 
 }  // namespace node_webrtc

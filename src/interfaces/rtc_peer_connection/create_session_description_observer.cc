@@ -12,7 +12,7 @@
 #include <nan.h>
 #include <webrtc/api/rtc_error.h>
 
-#include "src/converters/v8.h"
+#include "src/converters/napi.h"
 #include "src/dictionaries/node_webrtc/some_error.h"
 
 void node_webrtc::CreateSessionDescriptionObserver::OnSuccess(webrtc::SessionDescriptionInterface* description) {

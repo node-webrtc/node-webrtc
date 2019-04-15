@@ -11,8 +11,8 @@
 #include <webrtc/api/rtc_error.h>
 
 #include "src/converters.h"
+#include "src/converters/napi.h"
 #include "src/converters/undefined.h"
-#include "src/converters/v8.h"
 #include "src/dictionaries/node_webrtc/some_error.h"
 #include "src/functional/either.h"
 #include "src/node/error_factory.h"

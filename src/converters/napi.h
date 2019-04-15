@@ -37,7 +37,7 @@
   auto NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(std::make_pair(D.Env(), I)); \
   if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
     auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
-    D.Reject(Napi::TypeError::New(D.Env(), error)); \
+    D.Reject(Napi::TypeError::New(D.Env(), error).Value()); \
     return D.Env().Undefined(); \
   } \
   auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
