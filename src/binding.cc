@@ -41,9 +41,6 @@ static void init(Napi::Env env, v8::Handle<v8::Object> exports, v8::Handle<v8::O
   (void) env;
   node_webrtc::PeerConnectionFactory::Init(exports);
   node_webrtc::RTCPeerConnection::Init(exports);
-#ifdef DEBUG
-  node_webrtc::Test::Init(exports);
-#endif
   node::AtExit(dispose);
 }
 
@@ -64,6 +61,9 @@ static Napi::Object Init(Napi::Env env, Napi::Object exports) {
   node_webrtc::RTCStatsResponse::Init(env, exports);
   node_webrtc::RTCVideoSink::Init(env, exports);
   node_webrtc::RTCVideoSource::Init(env, exports);
+#ifdef DEBUG
+  node_webrtc::Test::Init(env, exports);
+#endif
 
   auto v8_exports = node_webrtc::napi::UnsafeToV8(exports).As<v8::Object>();
   init(env, v8_exports, v8_exports);

@@ -13,30 +13,32 @@
 #include <catch2/catch.hpp>
 
 #include "src/converters.h"
-#include "src/converters/v8.h"
+#include "src/converters/napi.h"
 
 TEST_CASE("converting booleans", "[converting-booleans]") {
+  auto env = *node_webrtc::Test::env;
+
   SECTION("from JavaScript") {  // NOLINT
     SECTION("works for") {
       SECTION("true") {
-        v8::Local<v8::Value> True = Nan::True();
+        Napi::Value True = Napi::Boolean::New(env, true);
         REQUIRE(node_webrtc::From<bool>(True) == node_webrtc::Pure(true));
       }
 
       SECTION("false") {
-        v8::Local<v8::Value> False = Nan::False();
+        Napi::Value False = Napi::Boolean::New(env, false);
         REQUIRE(node_webrtc::From<bool>(False) == node_webrtc::Pure(false));
       }
 
       // NOTE(mroberts): Not sure if we should fail or not.
       SECTION("null") {
-        v8::Local<v8::Value> Null = Nan::Null();
+        Napi::Value Null = env.Null();
         REQUIRE(node_webrtc::From<bool>(Null) == node_webrtc::Pure(false));
       }
 
       // NOTE(mroberts): Not sure if we should fail or not.
       SECTION("undefined") {
-        v8::Local<v8::Value> Undefined = Nan::Undefined();
+        Napi::Value Undefined = env.Undefined();
         REQUIRE(node_webrtc::From<bool>(Undefined) == node_webrtc::Pure(false));
       }
     }
@@ -44,71 +46,81 @@ TEST_CASE("converting booleans", "[converting-booleans]") {
 }
 
 TEST_CASE("converting objects", "[converting-objects]") {
+  auto env = *node_webrtc::Test::env;
+
   SECTION("from JavaScript") {
     SECTION("works for") {
       SECTION("objects") {
-        v8::Local<v8::Object> object = Nan::New<v8::Object>();
-        REQUIRE(node_webrtc::From<v8::Local<v8::Object>>(object.As<v8::Value>()) == node_webrtc::Pure(object));
+        Napi::Object object = Napi::Object::New(env);
+        REQUIRE(node_webrtc::From<Napi::Object>(object.As<Napi::Value>()) == node_webrtc::Pure(object));
       }
     }
 
     SECTION("fails for") {
       SECTION("null") {
-        v8::Local<v8::Value> Null = Nan::Null();
-        REQUIRE(node_webrtc::From<v8::Local<v8::Object>>(Null).IsInvalid());
+        Napi::Value Null = env.Null();
+        REQUIRE(node_webrtc::From<Napi::Object>(Null).IsInvalid());
       }
 
       SECTION("undefined") {
-        v8::Local<v8::Value> Undefined = Nan::Undefined();
-        REQUIRE(node_webrtc::From<v8::Local<v8::Object>>(Undefined).IsInvalid());
+        Napi::Value Undefined = env.Undefined();
+        REQUIRE(node_webrtc::From<Napi::Object>(Undefined).IsInvalid());
       }
     }
   }
 }
 
 TEST_CASE("converting arrays", "[converting-arrays]") {
+  auto env = *node_webrtc::Test::env;
+
   SECTION("from JavaScript") {
     SECTION("works for") {
       SECTION("empty arrays") {
-        v8::Local<v8::Array> array = Nan::New<v8::Array>();
-        v8::Local<v8::Value> value = array;
-        REQUIRE(node_webrtc::From<v8::Local<v8::Array>>(value) == node_webrtc::Pure(array));
+        Napi::Array array = Napi::Array::New(env);
+        Napi::Value value = array;
+        REQUIRE(node_webrtc::From<Napi::Array>(value) == node_webrtc::Pure(array));
       }
 
       SECTION("arrays of objects") {
-        v8::Local<v8::Object> object1 = Nan::New<v8::Object>();
-        v8::Local<v8::Object> object2 = Nan::New<v8::Object>();
-        std::vector<v8::Local<v8::Object>> expected = {object1, object2};
+        Napi::Object object1 = Napi::Object::New(env);
+        Napi::Object object2 = Napi::Object::New(env);
+        std::vector<Napi::Object> expected = {object1, object2};
 
-        v8::Local<v8::Array> array = Nan::New<v8::Array>();
-        array->Set(0, object1);
-        array->Set(1, object2);
+        Napi::Array array = Napi::Array::New(env);
+        array.Set(static_cast<uint32_t>(0), object1);
+        array.Set(1, object2);
 
-        REQUIRE(node_webrtc::From<std::vector<v8::Local<v8::Object>>>(array.As<v8::Value>()) == node_webrtc::Pure(expected));
+        REQUIRE(node_webrtc::From<std::vector<Napi::Object>>(array.As<Napi::Value>()) == node_webrtc::Pure(expected));
       }
     }
 
     SECTION("fails for") {
       SECTION("null") {
-        v8::Local<v8::Value> Null = Nan::Null();
-        REQUIRE(node_webrtc::From<v8::Local<v8::Array>>(Null).IsInvalid());
+        Napi::Value Null = env.Null();
+        REQUIRE(node_webrtc::From<Napi::Array>(Null).IsInvalid());
       }
 
       SECTION("undefined") {
-        v8::Local<v8::Value> Undefined = Nan::Undefined();
-        REQUIRE(node_webrtc::From<v8::Local<v8::Array>>(Undefined).IsInvalid());
+        Napi::Value Undefined = env.Undefined();
+        REQUIRE(node_webrtc::From<Napi::Array>(Undefined).IsInvalid());
       }
     }
   }
 }
 
-NAN_METHOD(node_webrtc::Test::TestImpl) {
+Napi::Env* node_webrtc::Test::env = nullptr;
+
+Napi::Value node_webrtc::Test::TestImpl(const Napi::CallbackInfo& info) {
+  auto env = info.Env();
+  Test::env = &env;
   auto result = Catch::Session().run();
-  info.GetReturnValue().Set(result);
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), result, value, Napi::Value)
+  return value;
 }
 
-void node_webrtc::Test::Init(v8::Handle<v8::Object> exports) {
-  Nan::SetMethod(exports, "test", TestImpl);
+void node_webrtc::Test::Init(Napi::Env env, Napi::Object exports) {
+  auto func = Napi::Function::New(env, TestImpl);
+  exports.Set("test", func);
 }
 
 #endif  // DEBUG
