@@ -50,12 +50,11 @@ Napi::Value RTCVideoSource::New(const Napi::CallbackInfo& info) {
   return info.Env().Undefined();
 }
 
-Napi::Value RTCVideoSource::CreateTrack(const Napi::CallbackInfo& info) {
+Napi::Value RTCVideoSource::CreateTrack(const Napi::CallbackInfo&) {
   // TODO(mroberts): Again, we have some implicit factory we are threading around. How to handle?
   auto factory = PeerConnectionFactory::GetOrCreateDefault();
   auto track = factory->factory()->CreateVideoTrack(rtc::CreateRandomUuid(), _source);
-  auto result = MediaStreamTrack::wrap()->GetOrCreate(factory, track);
-  return napi::UnsafeFromV8(info.Env(), result->ToObject());
+  return MediaStreamTrack::wrap()->GetOrCreate(factory, track)->Value();
 }
 
 Napi::Value RTCVideoSource::OnFrame(const Napi::CallbackInfo& info) {

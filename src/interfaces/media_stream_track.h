@@ -9,15 +9,14 @@
 
 #include <memory>
 
-#include <nan.h>
+#include <node-addon-api/napi.h>
 #include <webrtc/api/media_stream_interface.h>
 #include <webrtc/api/scoped_refptr.h>
-#include <v8.h>
 
 #include "src/converters.h"
 #include "src/converters/napi.h"
 #include "src/converters/v8.h"
-#include "src/node/async_object_wrap_with_loop.h"
+#include "src/node/napi_async_object_wrap_with_loop.h"
 #include "src/node/wrap.h"
 
 namespace node_webrtc {
@@ -25,12 +24,14 @@ namespace node_webrtc {
 class PeerConnectionFactory;
 
 class MediaStreamTrack
-  : public AsyncObjectWrapWithLoop<MediaStreamTrack>
+  : public napi::AsyncObjectWrapWithLoop<MediaStreamTrack>
   , public webrtc::ObserverInterface {
  public:
+  explicit MediaStreamTrack(const Napi::CallbackInfo&);
+
   ~MediaStreamTrack() override;
 
-  static void Init(v8::Handle<v8::Object> exports);
+  static void Init(Napi::Env, Napi::Object);
 
   // ObserverInterface
   void OnChanged() override;
@@ -47,38 +48,30 @@ class MediaStreamTrack
   std::shared_ptr<PeerConnectionFactory>
   > * wrap();
 
-  static Nan::Persistent<v8::FunctionTemplate>& tpl();
+  static Napi::FunctionReference& constructor();
 
  protected:
   void Stop() override;
 
  private:
-  MediaStreamTrack(
-      std::shared_ptr<PeerConnectionFactory>&& factory,
-      rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>&& track);
-
   static MediaStreamTrack* Create(
       std::shared_ptr<PeerConnectionFactory>,
       rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>);
 
-  static Nan::Persistent<v8::Function>& constructor();
+  Napi::Value GetEnabled(const Napi::CallbackInfo&);
+  void SetEnabled(const Napi::CallbackInfo&, const Napi::Value&);
+  Napi::Value GetId(const Napi::CallbackInfo&);
+  Napi::Value GetKind(const Napi::CallbackInfo&);
+  Napi::Value GetReadyState(const Napi::CallbackInfo&);
+  Napi::Value GetMuted(const Napi::CallbackInfo&);
 
-  static NAN_METHOD(New);
-
-  static NAN_GETTER(GetEnabled);
-  static NAN_SETTER(SetEnabled);
-  static NAN_GETTER(GetId);
-  static NAN_GETTER(GetKind);
-  static NAN_GETTER(GetReadyState);
-  static NAN_GETTER(GetMuted);
-
-  static NAN_METHOD(Clone);
-  static NAN_METHOD(JsStop);
+  Napi::Value Clone(const Napi::CallbackInfo&);
+  Napi::Value JsStop(const Napi::CallbackInfo&);
 
   bool _ended = false;
   bool _enabled;
-  const std::shared_ptr<PeerConnectionFactory> _factory;
-  const rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> _track;
+  std::shared_ptr<PeerConnectionFactory> _factory;
+  rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> _track;
 };
 
 DECLARE_CONVERTER(MediaStreamTrack*, rtc::scoped_refptr<webrtc::AudioTrackInterface>)

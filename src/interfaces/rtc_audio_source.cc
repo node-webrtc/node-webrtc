@@ -27,12 +27,11 @@ RTCAudioSource::RTCAudioSource(const Napi::CallbackInfo& info)
   _source = new rtc::RefCountedObject<RTCAudioTrackSource>();
 }
 
-Napi::Value RTCAudioSource::CreateTrack(const Napi::CallbackInfo& info) {
+Napi::Value RTCAudioSource::CreateTrack(const Napi::CallbackInfo&) {
   // TODO(mroberts): Again, we have some implicit factory we are threading around. How to handle?
   auto factory = PeerConnectionFactory::GetOrCreateDefault();
   auto track = factory->factory()->CreateAudioTrack(rtc::CreateRandomUuid(), _source);
-  auto result = MediaStreamTrack::wrap()->GetOrCreate(factory, track);
-  return napi::UnsafeFromV8(info.Env(), result->ToObject());
+  return MediaStreamTrack::wrap()->GetOrCreate(factory, track)->Value();
 }
 
 Napi::Value RTCAudioSource::OnData(const Napi::CallbackInfo& info) {
