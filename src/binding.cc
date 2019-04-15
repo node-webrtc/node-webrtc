@@ -41,7 +41,6 @@ static void init(Napi::Env env, v8::Handle<v8::Object> exports, v8::Handle<v8::O
   (void) env;
   node_webrtc::PeerConnectionFactory::Init(exports);
   node_webrtc::RTCPeerConnection::Init(exports);
-  node_webrtc::RTCDataChannel::Init(exports);
 #ifdef DEBUG
   node_webrtc::Test::Init(exports);
 #endif
@@ -49,6 +48,7 @@ static void init(Napi::Env env, v8::Handle<v8::Object> exports, v8::Handle<v8::O
 }
 
 static Napi::Object Init(Napi::Env env, Napi::Object exports) {
+  node_webrtc::RTCDataChannel::Init(env, exports);
   node_webrtc::ErrorFactory::Init(env, exports);
   node_webrtc::GetUserMedia::Init(env, exports);
   node_webrtc::I420Helpers::Init(env, exports);

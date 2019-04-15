@@ -160,7 +160,7 @@ void RTCPeerConnection::OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInte
   Dispatch(CreateCallback<RTCPeerConnection>([this, observer]() {
     Nan::HandleScope scope;
     auto channel = RTCDataChannel::wrap()->GetOrCreate(observer, observer->channel());
-    v8::Local<v8::Value> argv = channel->ToObject();
+    v8::Local<v8::Value> argv = napi::UnsafeToV8(channel->Value());
     MakeCallback("ondatachannel", 1, &argv);
   }));
 }
@@ -444,7 +444,7 @@ NAN_METHOD(RTCPeerConnection::CreateDataChannel) {
   auto channel = RTCDataChannel::wrap()->GetOrCreate(observer, observer->channel());
   self->_channels.push_back(channel);
 
-  info.GetReturnValue().Set(channel->ToObject());
+  info.GetReturnValue().Set(napi::UnsafeToV8(channel->Value()));
 }
 
 NAN_METHOD(RTCPeerConnection::GetConfiguration) {
