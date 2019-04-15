@@ -50,6 +50,10 @@ TO_JS_IMPL(webrtc::IceCandidateInterface*, value) {
 
 CONVERT_VIA(v8::Local<v8::Value>, webrtc::IceCandidateInterface*, std::shared_ptr<webrtc::IceCandidateInterface>)
 
+FROM_NAPI_IMPL(std::shared_ptr<webrtc::IceCandidateInterface>, napi_value) {
+  return From<std::shared_ptr<webrtc::IceCandidateInterface>>(napi::UnsafeToV8(napi_value));
+}
+
 TO_NAPI_IMPL(webrtc::IceCandidateInterface*, pair) {
   auto env = pair.first;
   Napi::EscapableHandleScope scope(env);

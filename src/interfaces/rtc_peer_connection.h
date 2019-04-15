@@ -10,12 +10,11 @@
 #include <memory>
 #include <vector>
 
-#include <nan.h>
+#include <node-addon-api/napi.h>
 #include <webrtc/api/peer_connection_interface.h>
 #include <webrtc/api/scoped_refptr.h>
-#include <v8.h>
 
-#include "src/node/async_object_wrap_with_loop.h"
+#include "src/node/napi_async_object_wrap_with_loop.h"
 #include "src/dictionaries/node_webrtc/extended_rtc_configuration.h"
 #include "src/dictionaries/node_webrtc/rtc_session_description_init.h"
 
@@ -35,9 +34,11 @@ class RTCDataChannel;
 class PeerConnectionFactory;
 
 class RTCPeerConnection
-  : public AsyncObjectWrapWithLoop<RTCPeerConnection>
+  : public napi::AsyncObjectWrapWithLoop<RTCPeerConnection>
   , public webrtc::PeerConnectionObserver {
  public:
+  explicit RTCPeerConnection(const Napi::CallbackInfo&);
+
   ~RTCPeerConnection() override;
 
   //
@@ -58,58 +59,50 @@ class RTCPeerConnection
       const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>& streams) override;
   void OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) override;
 
-  //
-  // Nodejs wrapping.
-  //
-  static void Init(v8::Handle<v8::Object> exports);
+  static void Init(Napi::Env, Napi::Object);
+
+  static Napi::FunctionReference& constructor();
 
   void SaveLastSdp(const RTCSessionDescriptionInit& lastSdp);
 
  private:
-  explicit RTCPeerConnection(const ExtendedRTCConfiguration&);
-
-  static Nan::Persistent<v8::Function>& constructor();
-
-  static NAN_METHOD(New);
-
-  static NAN_METHOD(AddTrack);
-  static NAN_METHOD(AddTransceiver);
-  static NAN_METHOD(RemoveTrack);
-  static NAN_METHOD(CreateOffer);
-  static NAN_METHOD(CreateAnswer);
-  static NAN_METHOD(SetLocalDescription);
-  static NAN_METHOD(SetRemoteDescription);
-  static NAN_METHOD(UpdateIce);
-  static NAN_METHOD(AddIceCandidate);
-  static NAN_METHOD(CreateDataChannel);
+  Napi::Value AddTrack(const Napi::CallbackInfo&);
+  Napi::Value AddTransceiver(const Napi::CallbackInfo&);
+  Napi::Value RemoveTrack(const Napi::CallbackInfo&);
+  Napi::Value CreateOffer(const Napi::CallbackInfo&);
+  Napi::Value CreateAnswer(const Napi::CallbackInfo&);
+  Napi::Value SetLocalDescription(const Napi::CallbackInfo&);
+  Napi::Value SetRemoteDescription(const Napi::CallbackInfo&);
+  Napi::Value UpdateIce(const Napi::CallbackInfo&);
+  Napi::Value AddIceCandidate(const Napi::CallbackInfo&);
+  Napi::Value CreateDataChannel(const Napi::CallbackInfo&);
   /*
-  static NAN_METHOD(GetLocalStreams);
-  static NAN_METHOD(GetRemoteStreams);
-  static NAN_METHOD(GetStreamById);
-  static NAN_METHOD(AddStream);
-  static NAN_METHOD(RemoveStream);
+  Napi::Value GetLocalStreams(const Napi::CallbackInfo&);
+  Napi::Value GetRemoteStreams(const Napi::CallbackInfo&);
+  Napi::Value GetStreamById(const Napi::CallbackInfo&);
+  Napi::Value AddStream(const Napi::CallbackInfo&);
+  Napi::Value RemoveStream(const Napi::CallbackInfo&);
   */
-  static NAN_METHOD(GetConfiguration);
-  static NAN_METHOD(SetConfiguration);
-  static NAN_METHOD(GetReceivers);
-  static NAN_METHOD(GetSenders);
-  static NAN_METHOD(GetStats);
-  static NAN_METHOD(LegacyGetStats);
-  static NAN_METHOD(GetTransceivers);
-  static NAN_METHOD(Close);
+  Napi::Value GetConfiguration(const Napi::CallbackInfo&);
+  Napi::Value SetConfiguration(const Napi::CallbackInfo&);
+  Napi::Value GetReceivers(const Napi::CallbackInfo&);
+  Napi::Value GetSenders(const Napi::CallbackInfo&);
+  Napi::Value GetStats(const Napi::CallbackInfo&);
+  Napi::Value LegacyGetStats(const Napi::CallbackInfo&);
+  Napi::Value GetTransceivers(const Napi::CallbackInfo&);
+  Napi::Value Close(const Napi::CallbackInfo&);
 
-  static NAN_GETTER(GetCanTrickleIceCandidates);
-  static NAN_GETTER(GetConnectionState);
-  static NAN_GETTER(GetCurrentLocalDescription);
-  static NAN_GETTER(GetLocalDescription);
-  static NAN_GETTER(GetPendingLocalDescription);
-  static NAN_GETTER(GetCurrentRemoteDescription);
-  static NAN_GETTER(GetRemoteDescription);
-  static NAN_GETTER(GetPendingRemoteDescription);
-  static NAN_GETTER(GetIceConnectionState);
-  static NAN_GETTER(GetSignalingState);
-  static NAN_GETTER(GetIceGatheringState);
-  static NAN_SETTER(ReadOnly);
+  Napi::Value GetCanTrickleIceCandidates(const Napi::CallbackInfo&);
+  Napi::Value GetConnectionState(const Napi::CallbackInfo&);
+  Napi::Value GetCurrentLocalDescription(const Napi::CallbackInfo&);
+  Napi::Value GetLocalDescription(const Napi::CallbackInfo&);
+  Napi::Value GetPendingLocalDescription(const Napi::CallbackInfo&);
+  Napi::Value GetCurrentRemoteDescription(const Napi::CallbackInfo&);
+  Napi::Value GetRemoteDescription(const Napi::CallbackInfo&);
+  Napi::Value GetPendingRemoteDescription(const Napi::CallbackInfo&);
+  Napi::Value GetIceConnectionState(const Napi::CallbackInfo&);
+  Napi::Value GetSignalingState(const Napi::CallbackInfo&);
+  Napi::Value GetIceGatheringState(const Napi::CallbackInfo&);
 
   RTCSessionDescriptionInit _lastSdp;
 

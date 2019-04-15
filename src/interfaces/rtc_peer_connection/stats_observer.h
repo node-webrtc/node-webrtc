@@ -7,9 +7,9 @@
  */
 #pragma once
 
+#include <node-addon-api/napi.h>
 #include <webrtc/api/peer_connection_interface.h>
 #include <webrtc/api/stats_types.h>
-#include <v8.h>
 
 #include "src/interfaces/rtc_peer_connection.h"  // IWYU pragma: keep
 #include "src/node/promise.h"
@@ -22,8 +22,8 @@ class StatsObserver
  public:
   StatsObserver(
       RTCPeerConnection* peer_connection,
-      v8::Local<v8::Promise::Resolver> resolver)
-    : PromiseCreator(peer_connection, resolver) {}
+      Napi::Promise::Deferred deferred)
+    : PromiseCreator(peer_connection, deferred) {}
 
   void OnComplete(const webrtc::StatsReports&) override;
 };
