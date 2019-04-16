@@ -26,7 +26,7 @@ RTCStatsResponse::RTCStatsResponse(const Napi::CallbackInfo& info): Napi::Object
   Napi::HandleScope scope(env);
 
   if (info.Length() != 2 || !info[0].IsExternal() || !info[1].IsExternal()) {
-    Napi::TypeError::New(env, "You cannot construct an RTCStatsResponse");
+    Napi::TypeError::New(env, "You cannot construct an RTCStatsResponse").ThrowAsJavaScriptException();
     return;
   }
 

@@ -235,9 +235,7 @@ Napi::Value RTCPeerConnection::AddTrack(const Napi::CallbackInfo& info) {
   auto result = _jinglePeerConnection->AddTrack(mediaStreamTrack->track(), streams);
   if (!result.ok()) {
     CONVERT_OR_THROW_AND_RETURN_NAPI(env, &result.error(), error, Napi::Value)
-    // FIXME(mroberts): How to throw this?
-    // Napi::Error::New(env, error).ThrowAsJavaScriptException();
-    return env.Undefined();
+    throw Napi::Error(env, error);
   }
   auto rtpSender = result.value();
   return RTCRtpSender::wrap()->GetOrCreate(_factory, rtpSender)->Value();
@@ -264,9 +262,7 @@ Napi::Value RTCPeerConnection::AddTransceiver(const Napi::CallbackInfo& info) {
       : _jinglePeerConnection->AddTransceiver(kindOrTrack.UnsafeFromRight()->track(), maybeInit.UnsafeFromJust());
   if (!result.ok()) {
     CONVERT_OR_THROW_AND_RETURN_NAPI(env, &result.error(), error, Napi::Value)
-    // FIXME(mroberts): How to throw this?
-    // Napi::ThrowError(error);
-    return env.Undefined();
+    throw Napi::Error(env, error);
   }
   auto rtpTransceiver = result.value();
   return RTCRtpTransceiver::wrap()->GetOrCreate(_factory, rtpTransceiver)->Value();
@@ -275,21 +271,15 @@ Napi::Value RTCPeerConnection::AddTransceiver(const Napi::CallbackInfo& info) {
 Napi::Value RTCPeerConnection::RemoveTrack(const Napi::CallbackInfo& info) {
   auto env = info.Env();
   if (!_jinglePeerConnection) {
-    // FIXME(mroberts): How to throw this?
-    ErrorFactory::napi::CreateInvalidStateError(env, "Cannot removeTrack; RTCPeerConnection is closed");
-    return env.Undefined();
+    throw Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "Cannot removeTrack; RTCPeerConnection is closed"));
   }
   CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, sender, RTCRtpSender*)
   auto senders = _jinglePeerConnection->GetSenders();
   if (std::find(senders.begin(), senders.end(), sender->sender()) == senders.end()) {
-    // FIXME(mroberts): How to throw this?
-    ErrorFactory::napi::CreateInvalidAccessError(env, "Cannot removeTrack");
-    return env.Undefined();
+    throw Napi::Error(env, ErrorFactory::napi::CreateInvalidAccessError(env, "Cannot removeTrack"));
   }
   if (!_jinglePeerConnection->RemoveTrack(sender->sender())) {
-    // FIXME(mroberts): How to throw this?
-    ErrorFactory::napi::CreateInvalidAccessError(env, "Cannot removeTrack");
-    return env.Undefined();
+    throw Napi::Error(env, ErrorFactory::napi::CreateInvalidAccessError(env, "Cannot removeTrack"));
   }
   return env.Undefined();
 }
@@ -422,11 +412,9 @@ Napi::Value RTCPeerConnection::AddIceCandidate(const Napi::CallbackInfo& info) {
 Napi::Value RTCPeerConnection::CreateDataChannel(const Napi::CallbackInfo& info) {
   auto env = info.Env();
   if (_jinglePeerConnection == nullptr) {
-    // FIXME(mroberts): How to throw this?
-    ErrorFactory::napi::CreateInvalidStateError(env,
-        "Failed to execute 'createDataChannel' on 'RTCPeerConnection': "
-        "The RTCPeerConnection's signalingState is 'closed'.");
-    return env.Undefined();
+    throw Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env,
+            "Failed to execute 'createDataChannel' on 'RTCPeerConnection': "
+            "The RTCPeerConnection's signalingState is 'closed'."));
   }
 
   CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, args, std::tuple<std::string COMMA Maybe<webrtc::DataChannelInit>>)
@@ -438,9 +426,7 @@ Napi::Value RTCPeerConnection::CreateDataChannel(const Napi::CallbackInfo& info)
       _jinglePeerConnection->CreateDataChannel(label, &dataChannelInit);
 
   if (!data_channel_interface) {
-    // FIXME(mroberts): How to throw this?
-    ErrorFactory::napi::CreateInvalidStateError(env, "'createDataChannel' failed");
-    return env.Undefined();
+    throw Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "'createDataChannel' failed"));
   }
 
   auto observer = new DataChannelObserver(_factory, data_channel_interface);
@@ -464,17 +450,13 @@ Napi::Value RTCPeerConnection::SetConfiguration(const Napi::CallbackInfo& info) 
   CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, configuration, webrtc::PeerConnectionInterface::RTCConfiguration)
 
   if (!_jinglePeerConnection) {
-    // FIXME(mroberts): How to throw?
-    ErrorFactory::napi::CreateInvalidStateError(env, "RTCPeerConnection is closed");
-    return env.Undefined();
+    throw Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "RTCPeerConnection is closed"));
   }
 
   webrtc::RTCError rtcError;
   if (!_jinglePeerConnection->SetConfiguration(configuration, &rtcError)) {
     CONVERT_OR_THROW_AND_RETURN_NAPI(env, &rtcError, error, Napi::Value)
-    // FIXME(mroberts): How to throw?
-    // Nan::ThrowError(error);
-    return env.Undefined();
+    throw Napi::Error(env, error);
   }
 
   return env.Undefined();
