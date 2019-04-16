@@ -34,7 +34,7 @@ RTCRtpTransceiver::RTCRtpTransceiver(
   }
 
   auto factory = PeerConnectionFactory::Unwrap(info[0].ToObject());
-  auto transceiver = *static_cast<rtc::scoped_refptr<webrtc::RtpTransceiverInterface>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[1]))->Value());
+  auto transceiver = *info[1].As<Napi::External<rtc::scoped_refptr<webrtc::RtpTransceiverInterface>>>().Data();
 
   _factory = factory;
   _factory->Ref();
@@ -115,11 +115,9 @@ RTCRtpTransceiver* RTCRtpTransceiver::Create(
   auto env = constructor().Env();
   Napi::HandleScope scope(env);
 
-  auto transceiverExternal = Nan::New<v8::External>(static_cast<void*>(&transceiver));
-
   auto object = constructor().New({
     factory->Value(),
-    napi::UnsafeFromV8(env, transceiverExternal)
+    Napi::External<rtc::scoped_refptr<webrtc::RtpTransceiverInterface>>::New(env, &transceiver)
   });
 
   return Unwrap(object);

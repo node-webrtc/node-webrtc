@@ -7,8 +7,7 @@
  */
 #include "src/interfaces/rtc_stats_response.h"
 
-#include <nan.h>
-#include <v8.h>
+#include <node-addon-api/napi.h>
 
 #include "src/converters/napi.h"
 #include "src/functional/validation.h"
@@ -30,8 +29,8 @@ RTCStatsResponse::RTCStatsResponse(const Napi::CallbackInfo& info): Napi::Object
     return;
   }
 
-  auto timestamp = static_cast<double*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[0]))->Value());
-  auto reports = static_cast<std::vector<std::map<std::string, std::string>>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[1]))->Value());
+  auto timestamp = info[0].As<Napi::External<double>>().Data();
+  auto reports = info[1].As<Napi::External<const std::vector<std::map<std::string, std::string>>>>().Data();
 
   _timestamp = *timestamp;
   _reports = *reports;
@@ -53,12 +52,9 @@ RTCStatsResponse* RTCStatsResponse::Create(
   auto env = RTCStatsResponse::constructor().Env();
   Napi::HandleScope scope(env);
 
-  auto timestampExternal = Nan::New<v8::External>(static_cast<void*>(&timestamp));
-  auto reportsExternal = Nan::New<v8::External>(const_cast<void*>(static_cast<const void*>(&reports)));
-
   auto response = RTCStatsResponse::constructor().New({
-    napi::UnsafeFromV8(env, timestampExternal),
-    napi::UnsafeFromV8(env, reportsExternal)
+    Napi::External<double>::New(env, &timestamp),
+    Napi::External<std::vector<std::map<std::string, std::string>>>::New(env, const_cast<std::vector<std::map<std::string, std::string>>*>(&reports))
   });
 
   return RTCStatsResponse::Unwrap(response);

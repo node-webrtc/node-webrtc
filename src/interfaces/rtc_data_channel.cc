@@ -64,13 +64,12 @@ RTCDataChannel::RTCDataChannel(const Napi::CallbackInfo& info)
   , _binaryType(BinaryType::kArrayBuffer) {
   auto env = info.Env();
 
-  if (!info.IsConstructCall()) {
+  if (!info.IsConstructCall() || !info[0].IsExternal()) {
     Napi::TypeError::New(env, "Use the new operator to construct the RTCDataChannel.").ThrowAsJavaScriptException();
     return;
   }
 
-  auto _observer = v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[0]));
-  auto observer = static_cast<node_webrtc::DataChannelObserver*>(_observer->Value());
+  auto observer = info[0].As<Napi::External<node_webrtc::DataChannelObserver>>().Data();
 
   _factory = observer->_factory;
   _factory->Ref();
@@ -340,10 +339,8 @@ RTCDataChannel* RTCDataChannel::Create(
   auto env = constructor().Env();
   Napi::HandleScope scope(env);
 
-  auto observerExternal = Nan::New<v8::External>(static_cast<void*>(observer));
-
   auto object = constructor().New({
-    napi::UnsafeFromV8(env, observerExternal)
+    Napi::External<node_webrtc::DataChannelObserver>::New(env, observer)
   });
 
   return Unwrap(object);
