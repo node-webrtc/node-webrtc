@@ -10,8 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include <nan.h>
-#include <v8.h>
+#include <node-addon-api/napi.h>
 
 #include "src/converters/arguments.h"
 #include "src/converters/napi.h"
@@ -30,8 +29,8 @@ LegacyStatsReport::LegacyStatsReport(const Napi::CallbackInfo& info): Napi::Obje
     return;
   }
 
-  auto timestamp = static_cast<double*>(napi::UnsafeToV8(info[0]).As<v8::External>()->Value());
-  auto stats = static_cast<std::map<std::string, std::string>*>(napi::UnsafeToV8(info[1]).As<v8::External>()->Value());
+  auto timestamp = info[0].As<Napi::External<double>>().Data();
+  auto stats = info[1].As<Napi::External<const std::map<std::string, std::string>>>().Data();
 
   _timestamp = *timestamp;
   _stats = *stats;
@@ -76,12 +75,9 @@ LegacyStatsReport* LegacyStatsReport::Create(double timestamp, const std::map<st
   auto env = LegacyStatsReport::constructor().Env();
   Napi::HandleScope scope(env);
 
-  auto timestampExternal = Nan::New<v8::External>(static_cast<void*>(&timestamp));
-  auto statsExternal = Nan::New<v8::External>(const_cast<void*>(static_cast<const void*>(&stats)));
-
   auto object = LegacyStatsReport::constructor().New({
-    napi::UnsafeFromV8(env, timestampExternal),
-    napi::UnsafeFromV8(env, statsExternal)
+    Napi::External<double>::New(env, &timestamp),
+    Napi::External<std::map<std::string, std::string>>::New(env, const_cast<std::map<std::string, std::string>*>(&stats))
   });
 
   return LegacyStatsReport::Unwrap(object);

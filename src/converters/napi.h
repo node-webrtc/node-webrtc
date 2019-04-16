@@ -170,4 +170,13 @@ struct Converter<std::pair<Napi::Env, std::vector<T>>, Napi::Value> {
   }
 };
 
+template <typename T>
+struct Converter<Napi::Value, Napi::External<T>> {
+  static Validation<Napi::External<T>> Convert(Napi::Value value) {
+    return value.IsExternal()
+        ? Pure(value.As<Napi::External<T>>())
+        : Validation<Napi::External<T>>::Invalid("Expected an external");
+  }
+};
+
 }  // namespace node_webrtc

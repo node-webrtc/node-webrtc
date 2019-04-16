@@ -11,8 +11,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <nan.h>
-#include <v8.h>
+#include <node-addon-api/napi.h>
 #include <webrtc/api/peer_connection_interface.h>  // IWYU pragma: keep
 #include <webrtc/api/rtc_error.h>
 #include <webrtc/rtc_base/location.h>
@@ -41,7 +40,7 @@ RTCDtlsTransport::RTCDtlsTransport(const Napi::CallbackInfo& info)
   }
 
   auto factory = PeerConnectionFactory::Unwrap(info[0].ToObject());
-  auto transport = *static_cast<rtc::scoped_refptr<webrtc::DtlsTransportInterface>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[1]))->Value());
+  auto transport = *info[1].As<Napi::External<rtc::scoped_refptr<webrtc::DtlsTransportInterface>>>().Data();
 
   _factory = factory;
   _factory->Ref();
@@ -130,11 +129,9 @@ RTCDtlsTransport* RTCDtlsTransport::Create(
   auto env = constructor().Env();
   Napi::HandleScope scope(env);
 
-  auto transportExternal = Nan::New<v8::External>(static_cast<void*>(&transport));
-
   auto object = constructor().New({
     factory->Value(),
-    napi::UnsafeFromV8(env, transportExternal)
+    Napi::External<rtc::scoped_refptr<webrtc::DtlsTransportInterface>>::New(env, &transport)
   });
 
   return RTCDtlsTransport::Unwrap(object);

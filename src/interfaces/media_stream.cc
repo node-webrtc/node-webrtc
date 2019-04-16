@@ -83,7 +83,7 @@ rtc::scoped_refptr<webrtc::MediaStreamInterface> MediaStream::stream() {
 }
 
 MediaStream::MediaStream(const Napi::CallbackInfo& info): Napi::ObjectWrap<MediaStream>(info) {
-  auto maybeEither = From<Either<std::tuple<Napi::Object COMMA v8::Local<v8::External>> COMMA Either<std::vector<MediaStreamTrack*> COMMA Maybe<MediaStream*>>>>(napi::Arguments(info));
+  auto maybeEither = From<Either<std::tuple<Napi::Object COMMA Napi::External<rtc::scoped_refptr<webrtc::MediaStreamInterface>>> COMMA Either<std::vector<MediaStreamTrack*> COMMA Maybe<MediaStream*>>>>(napi::Arguments(info));
   if (maybeEither.IsInvalid()) {
     Napi::TypeError::New(info.Env(), maybeEither.ToErrors()[0]).ThrowAsJavaScriptException();
     return;
@@ -95,7 +95,7 @@ MediaStream::MediaStream(const Napi::CallbackInfo& info): Napi::ObjectWrap<Media
     auto pair = eithers.UnsafeFromLeft();
     // FIXME(mroberts): There is a safer way to do this.
     auto factory = PeerConnectionFactory::Unwrap(std::get<0>(pair));
-    auto stream = *static_cast<rtc::scoped_refptr<webrtc::MediaStreamInterface>*>(v8::Local<v8::External>::Cast(std::get<1>(pair))->Value());
+    auto stream = *std::get<1>(pair).Data();
     _impl = MediaStream::Impl(std::move(stream), factory);
   } else {
     auto either = eithers.UnsafeFromRight();
@@ -247,11 +247,9 @@ MediaStream* MediaStream::Create(
   auto env = MediaStream::constructor().Env();
   Napi::HandleScope scope(env);
 
-  auto streamExternal = Nan::New<v8::External>(static_cast<void*>(&stream));
-
   auto object = MediaStream::constructor().New({
     factory->Value(),
-    napi::UnsafeFromV8(env, streamExternal)
+    Napi::External<rtc::scoped_refptr<webrtc::MediaStreamInterface>>::New(env, &stream)
   });
 
   return MediaStream::Unwrap(object);

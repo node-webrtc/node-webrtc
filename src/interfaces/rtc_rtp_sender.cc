@@ -33,7 +33,7 @@ RTCRtpSender::RTCRtpSender(const Napi::CallbackInfo& info)
   }
 
   auto factory = PeerConnectionFactory::Unwrap(info[0].ToObject());
-  auto sender = *static_cast<rtc::scoped_refptr<webrtc::RtpSenderInterface>*>(v8::Local<v8::External>::Cast(napi::UnsafeToV8(info[1]))->Value());
+  auto sender = *info[1].As<Napi::External<rtc::scoped_refptr<webrtc::RtpSenderInterface>>>().Data();
 
   _factory = factory;
   _factory->Ref();
@@ -125,11 +125,9 @@ RTCRtpSender* RTCRtpSender::Create(
   auto env = constructor().Env();
   Napi::HandleScope scope(env);
 
-  auto senderExternal = Nan::New<v8::External>(static_cast<void*>(&sender));
-
   auto object = constructor().New({
     factory->Value(),
-    napi::UnsafeFromV8(env, senderExternal)
+    Napi::External<rtc::scoped_refptr<webrtc::RtpSenderInterface>>::New(env, &sender)
   });
 
   return RTCRtpSender::Unwrap(object);
