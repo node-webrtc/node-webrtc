@@ -178,9 +178,7 @@ Napi::Value RTCDataChannel::Send(const Napi::CallbackInfo& info) {
   auto env = info.Env();
   if (_jingleDataChannel != nullptr) {
     if (_jingleDataChannel->state() != webrtc::DataChannelInterface::DataState::kOpen) {
-      // FIXME(mroberts): How to throw this?
-      ErrorFactory::napi::CreateInvalidStateError(env, "RTCDataChannel.readyState is not 'open'");
-      return info.Env().Undefined();
+      throw Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "RTCDataChannel.readyState is not 'open'"));
     }
     if (info[0].IsString()) {
       auto str = info[0].ToString();
@@ -218,9 +216,7 @@ Napi::Value RTCDataChannel::Send(const Napi::CallbackInfo& info) {
       _jingleDataChannel->Send(data_buffer);
     }
   } else {
-    // FIXME(mroberts): How to throw this?
-    ErrorFactory::napi::CreateInvalidStateError(env, "RTCDataChannel.readyState is not 'open'");
-    return env.Undefined();
+    throw Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "RTCDataChannel.readyState is not 'open'"));
   }
 
   return env.Undefined();
