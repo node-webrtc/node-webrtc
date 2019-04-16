@@ -145,8 +145,4 @@ TO_NAPI_IMPL(RTCRtpTransceiver*, pair) {
   return Pure(pair.second->Value().As<Napi::Value>());
 }
 
-TO_JS_IMPL(RTCRtpTransceiver*, value) {
-  return Pure(napi::UnsafeToV8(value->Value()));
-}
-
 }  // namespace node_webrtc

@@ -47,34 +47,6 @@ CONVERTER_IMPL(const webrtc::RTCError*, SomeError, error) {
   return Pure(SomeError(error->message(), type));
 }
 
-TO_JS_IMPL(SomeError, someError) {
-  Nan::EscapableHandleScope scope;
-  auto message = someError.message();
-  return Pure(scope.Escape(someError.name().FromEither<v8::Local<v8::Value>>([message](auto name) {
-    switch (name) {
-      case ErrorFactory::DOMExceptionName::kInvalidAccessError:
-        return ErrorFactory::CreateInvalidAccessError(message);
-      case ErrorFactory::DOMExceptionName::kInvalidModificationError:
-        return ErrorFactory::CreateInvalidModificationError(message);
-      case ErrorFactory::DOMExceptionName::kInvalidStateError:
-        return ErrorFactory::CreateInvalidStateError(message);
-      case ErrorFactory::DOMExceptionName::kNetworkError:
-        return ErrorFactory::CreateNetworkError(message);
-      case ErrorFactory::DOMExceptionName::kOperationError:
-        return ErrorFactory::CreateOperationError(message);
-    }
-  }, [message](auto name) {
-    switch (name) {
-      case ErrorFactory::ErrorName::kError:
-        return ErrorFactory::CreateError(message);
-      case ErrorFactory::ErrorName::kRangeError:
-        return ErrorFactory::CreateRangeError(message);
-      case ErrorFactory::ErrorName::kSyntaxError:
-        return ErrorFactory::CreateSyntaxError(message);
-    }
-  })));
-}
-
 TO_NAPI_IMPL(SomeError, pair) {
   auto env = pair.first;
   Napi::EscapableHandleScope scope(pair.first);

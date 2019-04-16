@@ -14,7 +14,6 @@
 
 #include <tuple>
 
-#include <nan.h>
 #include <node-addon-api/napi.h>
 
 #include "src/converters.h"
@@ -25,39 +24,6 @@
 #include "src/functional/validation.h"
 
 namespace node_webrtc {
-
-#define CONVERT_ARGS_OR_THROW_AND_RETURN(O, T) \
-  auto NODE_WEBRTC_UNIQUE_NAME(validation) = Validation<detail::argument_type<void(T)>::type>::Invalid(std::vector<Error>()); \
-  { \
-    Nan::TryCatch tc; \
-    NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(Arguments(info)); \
-    if (tc.HasCaught()) { \
-      tc.ReThrow(); \
-      return; \
-    } \
-  } \
-  if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
-    auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
-    return Nan::ThrowTypeError(Nan::New(error).ToLocalChecked()); \
-  } \
-  auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
-
-#define CONVERT_ARGS_OR_REJECT_AND_RETURN(R, O, T) \
-  auto NODE_WEBRTC_UNIQUE_NAME(validation) = Validation<detail::argument_type<void(T)>::type>::Invalid(std::vector<Error>()); \
-  { \
-    Nan::TryCatch tc; \
-    NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(Arguments(info)); \
-    if (tc.HasCaught()) { \
-      R->Resolve(Nan::GetCurrentContext(), tc.Exception()).IsNothing(); \
-      return; \
-    } \
-  } \
-  if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
-    auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
-    R->Reject(Nan::GetCurrentContext(), Nan::TypeError(Nan::New(error).ToLocalChecked())).IsNothing(); \
-    return; \
-  } \
-  auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
 
 #define CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(I, O, T) \
   auto NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(napi::Arguments(I)); \
@@ -86,11 +52,6 @@ namespace node_webrtc {
   } \
   auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
 
-struct Arguments {
-  Nan::NAN_METHOD_ARGS_TYPE info;
-  explicit Arguments(Nan::NAN_METHOD_ARGS_TYPE info): info(info) {}
-};
-
 namespace napi {
 
 struct Arguments {
@@ -101,24 +62,9 @@ struct Arguments {
 }  // namespace napi
 
 template <typename A>
-struct Converter<Arguments, A> {
-  static Validation<A> Convert(Arguments args) {
-    return From<A>(args.info[0]);
-  }
-};
-
-template <typename A>
 struct Converter<napi::Arguments, A> {
   static Validation<A> Convert(napi::Arguments args) {
     return From<A>(args.info[0]);
-  }
-};
-
-template <typename L, typename R>
-struct Converter<Arguments, Either<L, R>> {
-  static Validation<Either<L, R>> Convert(Arguments args) {
-    return From<L>(args).Map(&Either<L, R>::Left)
-        | (From<R>(args).Map(&Either<L, R>::Right));
   }
 };
 
@@ -136,15 +82,6 @@ static std::tuple<A, B> Make2Tuple(A a, B b) {
 }
 
 template <typename A, typename B>
-struct Converter<Arguments, std::tuple<A, B>> {
-  static Validation<std::tuple<A, B>> Convert(Arguments args) {
-    return curry(Make2Tuple<A, B>)
-        % From<A>(args.info[0])
-        * From<B>(args.info[1]);
-  }
-};
-
-template <typename A, typename B>
 struct Converter<napi::Arguments, std::tuple<A, B>> {
   static Validation<std::tuple<A, B>> Convert(napi::Arguments args) {
     return curry(Make2Tuple<A, B>)
@@ -157,16 +94,6 @@ template <typename A, typename B, typename C>
 static std::tuple<A, B> Make3Tuple(A a, B b, C c) {
   return std::make_tuple(a, b, c);
 }
-
-template <typename A, typename B, typename C>
-struct Converter<Arguments, std::tuple<A, B, C>> {
-  static Validation<std::tuple<A, B, C>> Convert(Arguments args) {
-    return curry(Make3Tuple<A, B, C>)
-        % From<A>(args.info[0])
-        * From<B>(args.info[1])
-        * From<C>(args.info[2]);
-  }
-};
 
 template <typename A, typename B, typename C>
 struct Converter<napi::Arguments, std::tuple<A, B, C>> {

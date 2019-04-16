@@ -20,18 +20,6 @@ static Validation<RTC_SESSION_DESCRIPTION_INIT> RTC_SESSION_DESCRIPTION_INIT_FN(
   return Pure(CreateRTCSessionDescriptionInit(type, sdp));
 }
 
-TO_JS_IMPL(RTCSessionDescriptionInit, init) {
-  Nan::EscapableHandleScope scope;
-  auto maybeType = From<std::string>(init.type);
-  if (maybeType.IsInvalid()) {
-    return Validation<v8::Local<v8::Value>>::Invalid(maybeType.ToErrors()[0]);
-  }
-  auto object = Nan::New<v8::Object>();
-  object->Set(Nan::New("sdp").ToLocalChecked(), Nan::New(init.sdp).ToLocalChecked());
-  object->Set(Nan::New("type").ToLocalChecked(), Nan::New(maybeType.UnsafeFromValid()).ToLocalChecked());
-  return Pure(scope.Escape(object.As<v8::Value>()));
-}
-
 TO_NAPI_IMPL(RTCSessionDescriptionInit, pair) {
   auto env = pair.first;
   Napi::EscapableHandleScope scope(env);
@@ -78,33 +66,9 @@ CONVERTER_IMPL(const webrtc::SessionDescriptionInterface*, RTCSessionDescription
       * Pure(sdp);
 }
 
-FROM_JS_IMPL(webrtc::SessionDescriptionInterface*, value) {
-  return From<RTCSessionDescriptionInit>(value)
-      .FlatMap<webrtc::SessionDescriptionInterface*>(Converter<RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*>::Convert);
-}
-
 FROM_NAPI_IMPL(webrtc::SessionDescriptionInterface*, pair) {
   return From<RTCSessionDescriptionInit>(pair)
       .FlatMap<webrtc::SessionDescriptionInterface*>(Converter<RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*>::Convert);
-}
-
-TO_JS_IMPL(const webrtc::SessionDescriptionInterface*, value) {
-  Nan::EscapableHandleScope scope;
-
-  if (!value) {
-    return Validation<v8::Local<v8::Value>>::Invalid("RTCSessionDescription is null");
-  }
-
-  std::string sdp;
-  if (!value->ToString(&sdp)) {
-    return Validation<v8::Local<v8::Value>>::Invalid("Failed to print the SDP. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc");
-  }
-
-  auto object = Nan::New<v8::Object>();
-  object->Set(Nan::New("sdp").ToLocalChecked(), Nan::New(sdp).ToLocalChecked());
-  object->Set(Nan::New("type").ToLocalChecked(), Nan::New(value->type()).ToLocalChecked());
-
-  return Pure(scope.Escape(object.As<v8::Value>()));
 }
 
 TO_NAPI_IMPL(const webrtc::SessionDescriptionInterface*, pair) {

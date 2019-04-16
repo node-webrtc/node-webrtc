@@ -1,18 +1,10 @@
 #include "src/dictionaries/node_webrtc/rtc_stats_response_init.h"
 
-#include <nan.h>
 #include <node-addon-api/napi.h>
-#include <v8.h>
 
 #include "src/functional/validation.h"
-#include "src/interfaces/rtc_stats_response.h"
 
 namespace node_webrtc {
-
-TO_JS_IMPL(RTCStatsResponseInit, init) {
-  Nan::EscapableHandleScope scope;
-  return Pure(scope.Escape(napi::UnsafeToV8(RTCStatsResponse::Create(init.first, init.second)->Value())));
-}
 
 TO_NAPI_IMPL(RTCStatsResponseInit, pair) {
   (void) pair;

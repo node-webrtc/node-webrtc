@@ -4,7 +4,6 @@
 #include <string>
 
 #include "src/converters.h"
-#include "src/converters/v8.h"
 #include "src/enums/node_webrtc/rtc_sdp_type.h"
 
 namespace webrtc { class SessionDescriptionInterface; }
@@ -32,9 +31,6 @@ static inline RTC_SESSION_DESCRIPTION_INIT CreateRTCSessionDescriptionInit(
 
 DECLARE_CONVERTER(RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*)
 DECLARE_CONVERTER(const webrtc::SessionDescriptionInterface*, RTCSessionDescriptionInit)
-
-DECLARE_FROM_JS(webrtc::SessionDescriptionInterface*)
-DECLARE_TO_JS(const webrtc::SessionDescriptionInterface*)
 
 DECLARE_FROM_NAPI(webrtc::SessionDescriptionInterface*)
 DECLARE_TO_NAPI(const webrtc::SessionDescriptionInterface*)

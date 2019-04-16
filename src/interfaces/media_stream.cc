@@ -7,7 +7,6 @@
  */
 #include "src/interfaces/media_stream.h"
 
-#include <v8.h>
 #include <webrtc/api/peer_connection_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 
@@ -15,7 +14,6 @@
 #include "src/converters/arguments.h"
 #include "src/converters/interfaces.h"
 #include "src/converters/napi.h"
-#include "src/converters/v8.h"
 #include "src/functional/either.h"
 #include "src/functional/maybe.h"
 #include "src/interfaces/media_stream_track.h"
@@ -291,14 +289,6 @@ FROM_NAPI_IMPL(MediaStream*, value) {
 
 TO_NAPI_IMPL(MediaStream*, pair) {
   return Pure(pair.second->Value().As<Napi::Value>());
-}
-
-FROM_JS_IMPL(MediaStream*, value) {
-  return From<MediaStream*>(napi::UnsafeFromV8(MediaStream::constructor().Env(), value));
-}
-
-TO_JS_IMPL(MediaStream*, value) {
-  return Pure(napi::UnsafeToV8(value->Value()));
 }
 
 }  // namespace node_webrtc

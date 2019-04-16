@@ -7,7 +7,6 @@
  */
 #include "src/interfaces/rtc_peer_connection/set_session_description_observer.h"
 
-#include <nan.h>
 #include <webrtc/api/rtc_error.h>
 
 #include "src/converters.h"

@@ -3,11 +3,9 @@
 #include <utility>
 
 #include <node-addon-api/napi.h>
-#include <v8.h>
 
 #include "src/converters.h"
 #include "src/converters/napi.h"
-#include "src/converters/v8.h"
 
 namespace node_webrtc {
 
@@ -25,7 +23,6 @@ CONVERTER_IMPL(ENUM(), std::string, value) {
   }
 }
 
-CONVERT_VIA(v8::Local<v8::Value>, std::string, ENUM())
 CONVERT_VIA(Napi::Value, std::string, ENUM())
 
 #undef ENUM_SUPPORTED
@@ -45,8 +42,6 @@ CONVERTER_IMPL(std::string, ENUM(), value) {
   ENUM(_LIST)
   return Validation<ENUM()>::Invalid("Invalid " ENUM(_NAME));
 }
-
-CONVERT_VIA(ENUM(), std::string, v8::Local<v8::Value>)
 
 TO_NAPI_IMPL(ENUM(), pair) {
   return From<std::string>(pair.second).FlatMap<Napi::Value>([env = pair.first](auto value) {

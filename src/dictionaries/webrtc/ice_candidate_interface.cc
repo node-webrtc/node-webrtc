@@ -1,9 +1,14 @@
 #include "src/dictionaries/webrtc/ice_candidate_interface.h"
 
+#include <iosfwd>
+#include <utility>
+
+#include <node-addon-api/napi.h>
 #include <webrtc/api/jsep.h>
 
+#include "src/converters.h"
 #include "src/dictionaries/macros/napi.h"
-#include "src/functional/maybe.h"
+#include "src/functional/maybe.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
 
 namespace node_webrtc {
@@ -28,30 +33,10 @@ static Validation<webrtc::IceCandidateInterface*> ICE_CANDIDATE_INTERFACE_FN(
   return Pure(candidate_);
 }
 
-TO_JS_IMPL(webrtc::IceCandidateInterface*, value) {
-  Nan::EscapableHandleScope scope;
-
-  if (!value) {
-    return Validation<v8::Local<v8::Value>>::Invalid("RTCIceCandidate is null");
-  }
-
-  std::string candidate;
-  if (!value->ToString(&candidate)) {
-    return Validation<v8::Local<v8::Value>>::Invalid("Failed to print the candidate string. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc");
-  }
-
-  auto object = Nan::New<v8::Object>();
-  object->Set(Nan::New("candidate").ToLocalChecked(), Nan::New(candidate).ToLocalChecked());
-  object->Set(Nan::New("sdpMid").ToLocalChecked(), Nan::New(value->sdp_mid()).ToLocalChecked());
-  object->Set(Nan::New("sdpMLineIndex").ToLocalChecked(), Nan::New(value->sdp_mline_index()));
-
-  return Pure(scope.Escape(object.As<v8::Value>()));
-}
-
-CONVERT_VIA(v8::Local<v8::Value>, webrtc::IceCandidateInterface*, std::shared_ptr<webrtc::IceCandidateInterface>)
-
 FROM_NAPI_IMPL(std::shared_ptr<webrtc::IceCandidateInterface>, napi_value) {
-  return From<std::shared_ptr<webrtc::IceCandidateInterface>>(napi::UnsafeToV8(napi_value));
+  return From<webrtc::IceCandidateInterface*>(napi_value).Map([](auto candidate) {
+    return std::shared_ptr<webrtc::IceCandidateInterface>(candidate);
+  });
 }
 
 TO_NAPI_IMPL(webrtc::IceCandidateInterface*, pair) {

@@ -7,8 +7,6 @@
  */
 #pragma once
 
-#include <nan.h>
-
 #include "src/utilities/bidi_map.h"
 
 namespace node_webrtc {
