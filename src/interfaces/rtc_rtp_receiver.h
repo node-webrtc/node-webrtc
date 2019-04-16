@@ -9,13 +9,10 @@
 
 #include <memory>
 
-#include <nan.h>
 #include <node-addon-api/napi.h>
 #include <webrtc/api/scoped_refptr.h>
-#include <v8.h>
 
 #include "src/converters/napi.h"
-#include "src/converters/v8.h"
 #include "src/node/napi_async_object_wrap.h"
 #include "src/node/wrap.h"
 
@@ -61,7 +58,6 @@ class RTCRtpReceiver: public napi::AsyncObjectWrap<RTCRtpReceiver> {
   rtc::scoped_refptr<webrtc::RtpReceiverInterface> _receiver;
 };
 
-DECLARE_TO_JS(RTCRtpReceiver*)
 DECLARE_TO_AND_FROM_NAPI(RTCRtpReceiver*)
 
 }  // namespace node_webrtc

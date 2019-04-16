@@ -11,7 +11,6 @@
 #include "src/converters/arguments.h"
 #include "src/converters/interfaces.h"
 #include "src/converters/null.h"
-#include "src/converters/v8.h"
 #include "src/dictionaries/webrtc/rtp_parameters.h"
 #include "src/interfaces/media_stream_track.h"
 #include "src/interfaces/rtc_dtls_transport.h"
@@ -166,14 +165,6 @@ FROM_NAPI_IMPL(RTCRtpSender*, value) {
 
 TO_NAPI_IMPL(RTCRtpSender*, pair) {
   return Pure(pair.second->Value().As<Napi::Value>());
-}
-
-FROM_JS_IMPL(RTCRtpSender*, value) {
-  return From<RTCRtpSender*>(napi::UnsafeFromV8(RTCRtpSender::constructor().Env(), value));
-}
-
-TO_JS_IMPL(RTCRtpSender*, value) {
-  return Pure(napi::UnsafeToV8(value->Value()));
 }
 
 }  // namespace node_webrtc

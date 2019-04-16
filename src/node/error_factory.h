@@ -9,9 +9,7 @@
 
 #include <iosfwd>
 
-#include <nan.h>
 #include <node-addon-api/napi.h>
-#include <v8.h>
 
 namespace node_webrtc {
 
@@ -33,15 +31,6 @@ class ErrorFactory {
 
   static void Init(Napi::Env, Napi::Object);
 
-  static v8::Local<v8::Value> CreateError(std::string message);
-  static v8::Local<v8::Value> CreateInvalidAccessError(std::string message);
-  static v8::Local<v8::Value> CreateInvalidModificationError(std::string message);
-  static v8::Local<v8::Value> CreateInvalidStateError(std::string message);
-  static v8::Local<v8::Value> CreateNetworkError(std::string message);
-  static v8::Local<v8::Value> CreateOperationError(std::string message);
-  static v8::Local<v8::Value> CreateRangeError(std::string message);
-  static v8::Local<v8::Value> CreateSyntaxError(std::string message);
-
   class napi {
    public:
     static Napi::Value CreateError(Napi::Env, std::string);
@@ -57,11 +46,7 @@ class ErrorFactory {
  private:
   static Napi::Value SetDOMException(const Napi::CallbackInfo&);
 
-  static Nan::Persistent<v8::Function> DOMException;
-
   static const char* DOMExceptionNameToString(DOMExceptionName name);
-
-  static v8::Local<v8::Value> CreateDOMException(std::string message, DOMExceptionName name);
 };
 
 }  // namespace node_webrtc

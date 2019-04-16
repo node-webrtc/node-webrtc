@@ -12,7 +12,6 @@
 
 #include "src/converters.h"
 #include "src/converters/interfaces.h"
-#include "src/converters/v8.h"
 #include "src/enums/webrtc/track_state.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
 
@@ -180,12 +179,6 @@ void MediaStreamTrack::Init(Napi::Env env, Napi::Object exports) {
   exports.Set("MediaStreamTrack", func);
 }
 
-CONVERTER_IMPL(v8::Local<v8::Value>, MediaStreamTrack*, v8_value) {
-  auto env = MediaStreamTrack::constructor().Env();
-  auto napi_value = napi::UnsafeFromV8(env, v8_value);
-  return From<MediaStreamTrack*>(napi_value);
-}
-
 CONVERTER_IMPL(MediaStreamTrack*, rtc::scoped_refptr<webrtc::AudioTrackInterface>, mediaStreamTrack) {
   auto track = mediaStreamTrack->track();
   if (track->kind() != webrtc::MediaStreamTrackInterface::kAudioKind) {
@@ -205,9 +198,6 @@ CONVERTER_IMPL(MediaStreamTrack*, rtc::scoped_refptr<webrtc::VideoTrackInterface
   rtc::scoped_refptr<webrtc::VideoTrackInterface> videoTrack(static_cast<webrtc::VideoTrackInterface*>(track.get()));
   return Pure(videoTrack);
 }
-
-CONVERT_VIA(v8::Local<v8::Value>, MediaStreamTrack*, rtc::scoped_refptr<webrtc::AudioTrackInterface>)
-CONVERT_VIA(v8::Local<v8::Value>, MediaStreamTrack*, rtc::scoped_refptr<webrtc::VideoTrackInterface>)
 
 CONVERT_INTERFACE_TO_AND_FROM_NAPI(MediaStreamTrack, "MediaStreamTrack")
 

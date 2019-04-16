@@ -15,7 +15,6 @@
 
 #include "src/converters.h"
 #include "src/converters/napi.h"
-#include "src/converters/v8.h"
 #include "src/node/napi_async_object_wrap_with_loop.h"
 #include "src/node/wrap.h"
 
@@ -76,9 +75,6 @@ class MediaStreamTrack
 
 DECLARE_CONVERTER(MediaStreamTrack*, rtc::scoped_refptr<webrtc::AudioTrackInterface>)
 DECLARE_CONVERTER(MediaStreamTrack*, rtc::scoped_refptr<webrtc::VideoTrackInterface>)
-DECLARE_FROM_JS(rtc::scoped_refptr<webrtc::AudioTrackInterface>)
-DECLARE_FROM_JS(rtc::scoped_refptr<webrtc::VideoTrackInterface>)
-DECLARE_TO_AND_FROM_JS(MediaStreamTrack*)
 
 DECLARE_TO_AND_FROM_NAPI(MediaStreamTrack*)
 DECLARE_FROM_NAPI(rtc::scoped_refptr<webrtc::AudioTrackInterface>)

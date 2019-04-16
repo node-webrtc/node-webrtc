@@ -13,7 +13,6 @@
 #include <webrtc/api/scoped_refptr.h>
 
 #include "src/converters/napi.h"
-#include "src/converters/v8.h"
 #include "src/node/wrap.h"
 
 namespace webrtc { class MediaStreamInterface; }
@@ -90,7 +89,6 @@ class MediaStream
   Impl _impl;
 };
 
-DECLARE_TO_AND_FROM_JS(MediaStream*)
 DECLARE_TO_AND_FROM_NAPI(MediaStream*)
 
 }  // namespace node_webrtc

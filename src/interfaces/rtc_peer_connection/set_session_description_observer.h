@@ -10,7 +10,6 @@
 #include <memory>
 
 #include <webrtc/api/jsep.h>
-#include <v8.h>
 
 #include "src/interfaces/rtc_peer_connection.h"
 #include "src/node/promise.h"

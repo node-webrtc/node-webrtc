@@ -3,12 +3,10 @@
 #include <cstdint>
 #include <iosfwd>
 #include <string>
-#include <string.h>
 #include <vector>
 #include <utility>
 
 #include <node-addon-api/napi.h>
-#include <v8.h>
 
 #include "src/converters.h"
 #include "src/converters/macros.h"
@@ -44,20 +42,6 @@
 
 namespace node_webrtc {
 
-namespace napi {
-
-static inline Napi::Value UnsafeFromV8(const Napi::Env env, v8::Local<v8::Value> value) {
-  return {env, reinterpret_cast<napi_value>(*value)};
-}
-
-static inline v8::Local<v8::Value> UnsafeToV8(napi_value value) {
-  v8::Local<v8::Value> local;
-  memcpy(&local, &value, sizeof(value));
-  return local;
-}
-
-}  // namespace napi
-
 #define DECLARE_TO_NAPI(T) DECLARE_CONVERTER(std::pair<Napi::Env COMMA T>, Napi::Value)
 
 #define DECLARE_FROM_NAPI(T) DECLARE_CONVERTER(Napi::Value, T)
@@ -87,9 +71,6 @@ DECLARE_FROM_NAPI(Napi::Object)
 DECLARE_TO_NAPI(Napi::Value)
 DECLARE_TO_NAPI(std::vector<bool>)
 DECLARE_FROM_NAPI(Napi::ArrayBuffer)
-
-// FIXME(mroberts): Remove me later...
-DECLARE_FROM_NAPI(v8::Local<v8::External>)
 
 template <typename T>
 struct Converter<Napi::Value, Maybe<T>> {

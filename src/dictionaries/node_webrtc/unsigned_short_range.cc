@@ -2,12 +2,9 @@
 
 #include <utility>
 
-#include <nan.h>
 #include <node-addon-api/napi.h>
-#include <v8.h>
 
 #include "src/converters/napi.h"
-#include "src/converters/v8.h"
 #include "src/dictionaries/macros/napi.h"
 #include "src/functional/maybe.h"
 #include "src/functional/validation.h"
@@ -25,18 +22,6 @@ static Validation<UNSIGNED_SHORT_RANGE> UNSIGNED_SHORT_RANGE_FN(
     return Validation<UNSIGNED_SHORT_RANGE>::Invalid("Expected min to be less than max");
   }
   return Pure<UNSIGNED_SHORT_RANGE>({maybeMin, maybeMax});
-}
-
-TO_JS_IMPL(UNSIGNED_SHORT_RANGE, value) {
-  Nan::EscapableHandleScope scope;
-  auto object = Nan::New<v8::Object>();
-  if (value.min.IsJust()) {
-    object->Set(Nan::New("min").ToLocalChecked(), Nan::New(value.min.UnsafeFromJust()));
-  }
-  if (value.max.IsJust()) {
-    object->Set(Nan::New("max").ToLocalChecked(), Nan::New(value.max.UnsafeFromJust()));
-  }
-  return Pure(scope.Escape(object.As<v8::Value>()));
 }
 
 TO_NAPI_IMPL(UNSIGNED_SHORT_RANGE, pair) {

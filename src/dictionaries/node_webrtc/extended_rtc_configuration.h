@@ -3,7 +3,6 @@
 #include <webrtc/api/peer_connection_interface.h>
 
 #include "src/converters/napi.h"
-#include "src/converters/v8.h"
 #include "src/dictionaries/node_webrtc/unsigned_short_range.h"
 
 namespace node_webrtc {
@@ -23,7 +22,6 @@ struct ExtendedRTCConfiguration {
   UnsignedShortRange portRange;
 };
 
-DECLARE_TO_AND_FROM_JS(ExtendedRTCConfiguration)
 DECLARE_TO_AND_FROM_NAPI(ExtendedRTCConfiguration)
 
 }  // namespace node_webrtc

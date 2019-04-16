@@ -4,7 +4,6 @@
 
 #include "src/converters.h"
 #include "src/converters/napi.h"
-#include "src/converters/v8.h"
 #include "src/node/error_factory.h"
 #include "src/functional/either.h"
 
@@ -44,7 +43,6 @@ class SomeError {
 
 DECLARE_CONVERTER(webrtc::RTCError*, SomeError)
 DECLARE_CONVERTER(const webrtc::RTCError*, SomeError)
-DECLARE_TO_JS(SomeError)
 DECLARE_TO_NAPI(SomeError)
 
 }  // namespace node_webrtc

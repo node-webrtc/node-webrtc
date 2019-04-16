@@ -7,7 +7,6 @@
  */
 #pragma once
 
-#include <memory>
 #include <vector>
 
 #include <node-addon-api/napi.h>

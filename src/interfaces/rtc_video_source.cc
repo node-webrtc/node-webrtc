@@ -33,8 +33,10 @@ RTCVideoSource::RTCVideoSource(const Napi::CallbackInfo& info)
 }
 
 Napi::Value RTCVideoSource::New(const Napi::CallbackInfo& info) {
+  auto env = info.Env();
+
   if (!info.IsConstructCall()) {
-    Nan::ThrowTypeError("Use the new operator to construct an RTCVideoSource.");
+    Napi::TypeError::New(env, "Use the new operator to construct an RTCVideoSource.").ThrowAsJavaScriptException();
     return info.Env().Undefined();
   }
 

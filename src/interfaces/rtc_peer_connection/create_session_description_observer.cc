@@ -9,7 +9,6 @@
 
 #include <type_traits>
 
-#include <nan.h>
 #include <webrtc/api/rtc_error.h>
 
 #include "src/converters/napi.h"

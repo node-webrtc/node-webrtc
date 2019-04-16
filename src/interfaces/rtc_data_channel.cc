@@ -9,7 +9,6 @@
 
 #include <utility>
 
-#include <v8.h>
 #include <webrtc/api/data_channel_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 #include <webrtc/rtc_base/copy_on_write_buffer.h>
