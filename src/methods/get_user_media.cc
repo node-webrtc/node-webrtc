@@ -44,8 +44,8 @@ struct node_webrtc::Converter<Napi::Value, MediaTrackConstraintSet> {
   static node_webrtc::Validation<MediaTrackConstraintSet> Convert(const Napi::Value value) {
     return node_webrtc::From<Napi::Object>(value).FlatMap<MediaTrackConstraintSet>([](auto object) {
       return curry(MediaTrackConstraintSet::Create)
-          % node_webrtc::napi::GetOptional<uint16_t>(object, "width")
-          * node_webrtc::napi::GetOptional<uint16_t>(object, "height");
+          % node_webrtc::GetOptional<uint16_t>(object, "width")
+          * node_webrtc::GetOptional<uint16_t>(object, "height");
     });
   }
 };
@@ -71,7 +71,7 @@ struct node_webrtc::Converter<Napi::Value, MediaTrackConstraints> {
     return node_webrtc::From<Napi::Object>(value).FlatMap<MediaTrackConstraints>([&value](auto object) {
       return curry(MediaTrackConstraints::Create)
           % node_webrtc::From<MediaTrackConstraintSet>(value)
-          * node_webrtc::napi::GetOptional<std::vector<MediaTrackConstraintSet>>(object, "advanced", std::vector<MediaTrackConstraintSet>());
+          * node_webrtc::GetOptional<std::vector<MediaTrackConstraintSet>>(object, "advanced", std::vector<MediaTrackConstraintSet>());
     });
   }
 };
@@ -96,8 +96,8 @@ struct node_webrtc::Converter<Napi::Value, MediaStreamConstraints> {
   static node_webrtc::Validation<MediaStreamConstraints> Convert(const Napi::Value value) {
     return node_webrtc::From<Napi::Object>(value).FlatMap<MediaStreamConstraints>([](auto object) {
       return node_webrtc::Validation<MediaStreamConstraints>::Join(curry(MediaStreamConstraints::Create)
-              % node_webrtc::napi::GetOptional<node_webrtc::Either<bool, MediaTrackConstraints>>(object, "audio")
-              * node_webrtc::napi::GetOptional<node_webrtc::Either<bool, MediaTrackConstraints>>(object, "video"));
+              % node_webrtc::GetOptional<node_webrtc::Either<bool, MediaTrackConstraints>>(object, "audio")
+              * node_webrtc::GetOptional<node_webrtc::Either<bool, MediaTrackConstraints>>(object, "video"));
     });
   }
 };
@@ -131,7 +131,7 @@ Napi::Value node_webrtc::GetUserMedia::GetUserMediaImpl(const Napi::CallbackInfo
     stream->AddTrack(track);
   }
 
-  node_webrtc::napi::Resolve(deferred, MediaStream::wrap()->GetOrCreate(factory, stream));
+  node_webrtc::Resolve(deferred, MediaStream::wrap()->GetOrCreate(factory, stream));
   return deferred.Promise();
 }
 

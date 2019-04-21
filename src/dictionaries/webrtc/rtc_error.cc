@@ -25,23 +25,23 @@ TO_NAPI_IMPL(const webrtc::RTCError*, pair) {
       return Validation<Napi::Value>::Invalid("No error? Please file a bug on https://github.com/js-platform/node-webrtc");
     case webrtc::RTCErrorType::UNSUPPORTED_PARAMETER:
     case webrtc::RTCErrorType::INVALID_PARAMETER:
-      return Pure(scope.Escape(ErrorFactory::napi::CreateInvalidAccessError(env, error->message())));
+      return Pure(scope.Escape(ErrorFactory::CreateInvalidAccessError(env, error->message())));
     case webrtc::RTCErrorType::INVALID_RANGE:
-      return Pure(scope.Escape(ErrorFactory::napi::CreateRangeError(env, error->message())));
+      return Pure(scope.Escape(ErrorFactory::CreateRangeError(env, error->message())));
     case webrtc::RTCErrorType::SYNTAX_ERROR:
-      return Pure(scope.Escape(ErrorFactory::napi::CreateSyntaxError(env, error->message())));
+      return Pure(scope.Escape(ErrorFactory::CreateSyntaxError(env, error->message())));
     case webrtc::RTCErrorType::INVALID_STATE:
-      return Pure(scope.Escape(ErrorFactory::napi::CreateInvalidStateError(env, error->message())));
+      return Pure(scope.Escape(ErrorFactory::CreateInvalidStateError(env, error->message())));
     case webrtc::RTCErrorType::INVALID_MODIFICATION:
-      return Pure(scope.Escape(ErrorFactory::napi::CreateInvalidModificationError(env, error->message())));
+      return Pure(scope.Escape(ErrorFactory::CreateInvalidModificationError(env, error->message())));
     case webrtc::RTCErrorType::NETWORK_ERROR:
-      return Pure(scope.Escape(ErrorFactory::napi::CreateNetworkError(env, error->message())));
+      return Pure(scope.Escape(ErrorFactory::CreateNetworkError(env, error->message())));
     // NOTE(mroberts): SetLocalDescription in the wrong state can throw this.
     case webrtc::RTCErrorType::INTERNAL_ERROR:
-      return Pure(scope.Escape(ErrorFactory::napi::CreateInvalidStateError(env, error->message())));
+      return Pure(scope.Escape(ErrorFactory::CreateInvalidStateError(env, error->message())));
     case webrtc::RTCErrorType::UNSUPPORTED_OPERATION:
     case webrtc::RTCErrorType::RESOURCE_EXHAUSTED:
-      return Pure(scope.Escape(ErrorFactory::napi::CreateOperationError(env, error->message())));
+      return Pure(scope.Escape(ErrorFactory::CreateOperationError(env, error->message())));
   }
 }
 

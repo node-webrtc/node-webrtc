@@ -22,11 +22,10 @@ FROM_NAPI_IMPL(ExtendedRTCConfiguration, value) {
   return From<Napi::Object>(value).FlatMap<ExtendedRTCConfiguration>([value](auto object) {
     return curry(CreateExtendedRTCConfiguration)
         % From<webrtc::PeerConnectionInterface::RTCConfiguration>(value)
-        * napi::GetOptional<UnsignedShortRange>(object, "portRange", UnsignedShortRange());
+        * GetOptional<UnsignedShortRange>(object, "portRange", UnsignedShortRange());
   });
 }
 
-namespace napi {
 static Validation<Napi::Value> ExtendedRTCConfigurationToJavaScript(
     const Napi::Value iceServers,
     const Napi::Value iceTransportPolicy,
@@ -48,10 +47,8 @@ static Validation<Napi::Value> ExtendedRTCConfigurationToJavaScript(
   return Pure(scope.Escape(object));
 }
 
-}  // namespace napi
-
 TO_NAPI_IMPL(ExtendedRTCConfiguration, pair) {
-  return Validation<Napi::Value>::Join(curry(napi::ExtendedRTCConfigurationToJavaScript)
+  return Validation<Napi::Value>::Join(curry(ExtendedRTCConfigurationToJavaScript)
           % From<Napi::Value>(std::make_pair(pair.first, pair.second.configuration.servers))
           * From<Napi::Value>(std::make_pair(pair.first, pair.second.configuration.type))
           * From<Napi::Value>(std::make_pair(pair.first, pair.second.configuration.bundle_policy))

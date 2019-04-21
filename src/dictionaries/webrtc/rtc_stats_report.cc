@@ -11,7 +11,7 @@
 namespace node_webrtc {
 
 static Validation<Napi::Object> CreateMap(Napi::Env env) {
-  return napi::GetRequired<Napi::Function>(env.Global(), "Map").FlatMap<Napi::Object>([](auto mapConstructor) {
+  return GetRequired<Napi::Function>(env.Global(), "Map").FlatMap<Napi::Object>([](auto mapConstructor) {
     auto env = mapConstructor.Env();
     Napi::EscapableHandleScope scope(env);
     auto map = mapConstructor.New({});
@@ -23,9 +23,9 @@ static Validation<Napi::Object> CreateMap(Napi::Env env) {
 }
 
 static Maybe<Errors> SetMap(Napi::Object map, Napi::Value key, Napi::Value value) {
-  return napi::GetRequired<Napi::Function>(map.Env().Global(), "Map")
-  .FlatMap<Napi::Object>([](auto mapConstructor) { return napi::GetRequired<Napi::Object>(mapConstructor, "prototype"); })
-  .FlatMap<Napi::Function>([](auto mapPrototype) { return napi::GetRequired<Napi::Function>(mapPrototype, "set"); })
+  return GetRequired<Napi::Function>(map.Env().Global(), "Map")
+  .FlatMap<Napi::Object>([](auto mapConstructor) { return GetRequired<Napi::Object>(mapConstructor, "prototype"); })
+  .FlatMap<Napi::Function>([](auto mapPrototype) { return GetRequired<Napi::Function>(mapPrototype, "set"); })
   .FlatMap<Maybe<Errors>>([map, key, value](auto set) {
     auto env = map.Env();
     Napi::HandleScope scope(env);

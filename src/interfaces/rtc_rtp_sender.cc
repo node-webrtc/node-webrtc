@@ -25,7 +25,7 @@ Napi::FunctionReference& RTCRtpSender::constructor() {
 }
 
 RTCRtpSender::RTCRtpSender(const Napi::CallbackInfo& info)
-  : napi::AsyncObjectWrap<RTCRtpSender>("RTCRtpSender", info) {
+  : AsyncObjectWrap<RTCRtpSender>("RTCRtpSender", info) {
   if (info.Length() != 2 || !info[0].IsObject() || !info[1].IsExternal()) {
     Napi::TypeError::New(info.Env(), "You cannot construct a RTCRtpSender").ThrowAsJavaScriptException();
     return;
@@ -81,13 +81,13 @@ Napi::Value RTCRtpSender::GetParameters(const Napi::CallbackInfo& info) {
 
 Napi::Value RTCRtpSender::SetParameters(const Napi::CallbackInfo& info) {
   CREATE_DEFERRED(info.Env(), deffered)
-  napi::Reject(deferred, Napi::Error::New(info.Env(), "Not yet implemented; file a feature request against node-webrtc"));
+  Reject(deferred, Napi::Error::New(info.Env(), "Not yet implemented; file a feature request against node-webrtc"));
   return deferred.Promise();
 }
 
 Napi::Value RTCRtpSender::GetStats(const Napi::CallbackInfo& info) {
   CREATE_DEFERRED(info.Env(), deffered)
-  napi::Reject(deferred, Napi::Error::New(info.Env(), "Not yet implemented; file a feature request against node-webrtc"));
+  Reject(deferred, Napi::Error::New(info.Env(), "Not yet implemented; file a feature request against node-webrtc"));
   return deferred.Promise();
 }
 
@@ -101,8 +101,8 @@ Napi::Value RTCRtpSender::ReplaceTrack(const Napi::CallbackInfo& info) {
   });
   auto track = mediaStreamTrack ? mediaStreamTrack->track().get() : nullptr;
   _sender->SetTrack(track)
-  ? napi::Resolve(deferred, info.Env().Undefined())
-  : napi::Reject(deferred, Napi::Error::New(info.Env(), "Failed to replaceTrack"));
+  ? Resolve(deferred, info.Env().Undefined())
+  : Reject(deferred, Napi::Error::New(info.Env(), "Failed to replaceTrack"));
   return deferred.Promise();
 }
 

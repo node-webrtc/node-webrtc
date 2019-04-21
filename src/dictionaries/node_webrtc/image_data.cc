@@ -15,9 +15,9 @@ DECLARE_FROM_NAPI(ImageData)
 FROM_NAPI_IMPL(ImageData, value) {
   return From<Napi::Object>(value).FlatMap<ImageData>([](auto object) {
     return curry(ImageData::Create)
-        % napi::GetRequired<int>(object, "width")
-        * napi::GetRequired<int>(object, "height")
-        * napi::GetRequired<Napi::ArrayBuffer>(object, "data");
+        % GetRequired<int>(object, "width")
+        * GetRequired<int>(object, "height")
+        * GetRequired<Napi::ArrayBuffer>(object, "data");
   });
 }
 

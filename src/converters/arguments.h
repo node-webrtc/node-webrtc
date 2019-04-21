@@ -26,7 +26,7 @@
 namespace node_webrtc {
 
 #define CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(I, O, T) \
-  auto NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(napi::Arguments(I)); \
+  auto NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(Arguments(I)); \
   if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
     auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
     Napi::TypeError::New(I.Env(), error).ThrowAsJavaScriptException(); \
@@ -35,7 +35,7 @@ namespace node_webrtc {
   auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
 
 #define CONVERT_ARGS_OR_THROW_AND_RETURN_VOID_NAPI(I, O, T) \
-  auto NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(napi::Arguments(I)); \
+  auto NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(Arguments(I)); \
   if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
     auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
     Napi::TypeError::New(I.Env(), error).ThrowAsJavaScriptException(); \
@@ -44,7 +44,7 @@ namespace node_webrtc {
   auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
 
 #define CONVERT_ARGS_OR_REJECT_AND_RETURN_NAPI(D, I, O, T) \
-  auto NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(napi::Arguments(I)); \
+  auto NODE_WEBRTC_UNIQUE_NAME(validation) = From<detail::argument_type<void(T)>::type>(Arguments(I)); \
   if (NODE_WEBRTC_UNIQUE_NAME(validation).IsInvalid()) { \
     auto error = NODE_WEBRTC_UNIQUE_NAME(validation).ToErrors()[0]; \
     D.Reject(Napi::TypeError::New(D.Env(), error).Value()); \
@@ -52,25 +52,21 @@ namespace node_webrtc {
   } \
   auto O = NODE_WEBRTC_UNIQUE_NAME(validation).UnsafeFromValid();
 
-namespace napi {
-
 struct Arguments {
   const Napi::CallbackInfo& info;
   explicit Arguments(const Napi::CallbackInfo& info): info(info) {}
 };
 
-}  // namespace napi
-
 template <typename A>
-struct Converter<napi::Arguments, A> {
-  static Validation<A> Convert(napi::Arguments args) {
+struct Converter<Arguments, A> {
+  static Validation<A> Convert(Arguments args) {
     return From<A>(args.info[0]);
   }
 };
 
 template <typename L, typename R>
-struct Converter<napi::Arguments, Either<L, R>> {
-  static Validation<Either<L, R>> Convert(napi::Arguments args) {
+struct Converter<Arguments, Either<L, R>> {
+  static Validation<Either<L, R>> Convert(Arguments args) {
     return From<L>(args).Map(&MakeLeft<R, L>)
         | (From<R>(args).Map(&MakeRight<L, R>));
   }
@@ -82,8 +78,8 @@ static std::tuple<A, B> Make2Tuple(A a, B b) {
 }
 
 template <typename A, typename B>
-struct Converter<napi::Arguments, std::tuple<A, B>> {
-  static Validation<std::tuple<A, B>> Convert(napi::Arguments args) {
+struct Converter<Arguments, std::tuple<A, B>> {
+  static Validation<std::tuple<A, B>> Convert(Arguments args) {
     return curry(Make2Tuple<A, B>)
         % From<A>(args.info[0])
         * From<B>(args.info[1]);
@@ -96,8 +92,8 @@ static std::tuple<A, B> Make3Tuple(A a, B b, C c) {
 }
 
 template <typename A, typename B, typename C>
-struct Converter<napi::Arguments, std::tuple<A, B, C>> {
-  static Validation<std::tuple<A, B, C>> Convert(napi::Arguments args) {
+struct Converter<Arguments, std::tuple<A, B, C>> {
+  static Validation<std::tuple<A, B, C>> Convert(Arguments args) {
     return curry(Make3Tuple<A, B, C>)
         % From<A>(args.info[0])
         * From<B>(args.info[1])

@@ -12,8 +12,6 @@
 
 namespace node_webrtc {
 
-namespace napi {
-
 static Validation<Napi::Value> CreateRtpParameters(Napi::Value headerExtensions, Napi::Value codecs, Napi::Value rtcp) {
   auto env = headerExtensions.Env();
   Napi::EscapableHandleScope scope(env);
@@ -26,10 +24,8 @@ static Validation<Napi::Value> CreateRtpParameters(Napi::Value headerExtensions,
   return Pure(scope.Escape(object));
 }
 
-}  // namespace napi
-
 TO_NAPI_IMPL(webrtc::RtpParameters, pair) {
-  return Validation<Napi::Value>::Join(curry(napi::CreateRtpParameters)
+  return Validation<Napi::Value>::Join(curry(CreateRtpParameters)
           % From<Napi::Value>(std::make_pair(pair.first, pair.second.header_extensions))
           * From<Napi::Value>(std::make_pair(pair.first, pair.second.codecs))
           * From<Napi::Value>(std::make_pair(pair.first, pair.second.rtcp)));

@@ -13,12 +13,12 @@
 #include <webrtc/api/media_stream_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 
-#include "src/node/napi_async_object_wrap_with_loop.h"
+#include "src/node/async_object_wrap_with_loop.h"
 
 namespace node_webrtc {
 
 class RTCAudioSink
-  : public napi::AsyncObjectWrapWithLoop<RTCAudioSink>
+  : public AsyncObjectWrapWithLoop<RTCAudioSink>
   , public webrtc::AudioTrackSinkInterface {
  public:
   explicit RTCAudioSink(const Napi::CallbackInfo&);

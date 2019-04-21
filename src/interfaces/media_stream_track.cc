@@ -49,10 +49,7 @@ MediaStreamTrack::~MediaStreamTrack() {
   _track = nullptr;
 
   Napi::HandleScope scope(PeerConnectionFactory::constructor().Env());
-  napi_ref ref = *_factory;
-  if (ref) {
-    _factory->Unref();
-  }
+  _factory->Unref();
   _factory = nullptr;
 
   wrap()->Release(this);
@@ -62,7 +59,7 @@ void MediaStreamTrack::Stop() {
   _track->UnregisterObserver(this);
   _ended = true;
   _enabled = _track->enabled();
-  napi::AsyncObjectWrapWithLoop<MediaStreamTrack>::Stop();
+  AsyncObjectWrapWithLoop<MediaStreamTrack>::Stop();
 }
 
 void MediaStreamTrack::OnChanged() {

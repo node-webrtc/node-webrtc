@@ -33,7 +33,7 @@ Napi::FunctionReference& RTCDtlsTransport::constructor() {
 }
 
 RTCDtlsTransport::RTCDtlsTransport(const Napi::CallbackInfo& info)
-  : napi::AsyncObjectWrapWithLoop<RTCDtlsTransport>("RTCDtlsTransport", *this, info) {
+  : AsyncObjectWrapWithLoop<RTCDtlsTransport>("RTCDtlsTransport", *this, info) {
   if (info.Length() != 2 || !info[0].IsObject() || !info[1].IsExternal()) {
     Napi::TypeError::New(info.Env(), "You cannot construct an RTCDtlsTransport").ThrowAsJavaScriptException();
     return;
@@ -57,13 +57,14 @@ RTCDtlsTransport::RTCDtlsTransport(const Napi::CallbackInfo& info)
 }
 
 RTCDtlsTransport::~RTCDtlsTransport() {
+  Napi::HandleScope scope(PeerConnectionFactory::constructor().Env());
   _factory->Unref();
   _factory = nullptr;
 }  // NOLINT
 
 void RTCDtlsTransport::Stop() {
   _transport->UnregisterObserver();
-  napi::AsyncObjectWrapWithLoop<RTCDtlsTransport>::Stop();
+  AsyncObjectWrapWithLoop<RTCDtlsTransport>::Stop();
 }
 
 void RTCDtlsTransport::OnStateChange(webrtc::DtlsTransportInformation information) {

@@ -13,7 +13,3 @@ FROM_NAPI_IMPL(Null, value) {
 }
 
 }  // namespace node_webrtc
-
-
-
-

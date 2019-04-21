@@ -22,43 +22,43 @@ void node_webrtc::ErrorFactory::Init(Napi::Env env, Napi::Object exports) {
   exports.Set("setDOMException", Napi::Function::New(env, SetDOMException));
 }
 
-Napi::Value node_webrtc::ErrorFactory::napi::CreateError(const Napi::Env env, const std::string message) {
+Napi::Value node_webrtc::ErrorFactory::CreateError(const Napi::Env env, const std::string message) {
   Napi::EscapableHandleScope scope(env);
   return scope.Escape(Napi::Error::New(env, message).Value());
 }
 
-Napi::Value node_webrtc::ErrorFactory::napi::CreateInvalidAccessError(const Napi::Env env, const std::string message) {
+Napi::Value node_webrtc::ErrorFactory::CreateInvalidAccessError(const Napi::Env env, const std::string message) {
   Napi::EscapableHandleScope scope(env);
   return scope.Escape(CreateDOMException(env, message, DOMExceptionName::kInvalidAccessError));
 }
 
-Napi::Value node_webrtc::ErrorFactory::napi::CreateInvalidModificationError(const Napi::Env env, const std::string message) {
+Napi::Value node_webrtc::ErrorFactory::CreateInvalidModificationError(const Napi::Env env, const std::string message) {
   Napi::EscapableHandleScope scope(env);
   return scope.Escape(CreateDOMException(env, message, DOMExceptionName::kInvalidModificationError));
 }
 
-Napi::Value node_webrtc::ErrorFactory::napi::CreateInvalidStateError(const Napi::Env env, const std::string message) {
+Napi::Value node_webrtc::ErrorFactory::CreateInvalidStateError(const Napi::Env env, const std::string message) {
   Napi::EscapableHandleScope scope(env);
   return scope.Escape(CreateDOMException(env, message, DOMExceptionName::kInvalidStateError));
 }
 
-Napi::Value node_webrtc::ErrorFactory::napi::CreateNetworkError(const Napi::Env env, const std::string message) {
+Napi::Value node_webrtc::ErrorFactory::CreateNetworkError(const Napi::Env env, const std::string message) {
   Napi::EscapableHandleScope scope(env);
   return scope.Escape(CreateDOMException(env, message, DOMExceptionName::kNetworkError));
 }
 
-Napi::Value node_webrtc::ErrorFactory::napi::CreateOperationError(const Napi::Env env, const std::string message) {
+Napi::Value node_webrtc::ErrorFactory::CreateOperationError(const Napi::Env env, const std::string message) {
   Napi::EscapableHandleScope scope(env);
   return scope.Escape(CreateDOMException(env, message, DOMExceptionName::kOperationError));
 }
 
-Napi::Value node_webrtc::ErrorFactory::napi::CreateRangeError(const Napi::Env env, const std::string message) {
+Napi::Value node_webrtc::ErrorFactory::CreateRangeError(const Napi::Env env, const std::string message) {
   Napi::EscapableHandleScope scope(env);
   return scope.Escape(Napi::RangeError::New(env, message).Value());
 }
 
 // FIXME(mroberts): Actually implement this.
-Napi::Value node_webrtc::ErrorFactory::napi::CreateSyntaxError(const Napi::Env env, const std::string message) {
+Napi::Value node_webrtc::ErrorFactory::CreateSyntaxError(const Napi::Env env, const std::string message) {
   Napi::EscapableHandleScope scope(env);
   return scope.Escape(Napi::Error::New(env, message).Value());
 }

@@ -7,8 +7,6 @@
 
 namespace node_webrtc {
 
-namespace napi {
-
 template <typename T>
 class AsyncObjectWrap: public Napi::ObjectWrap<T> {
  private:
@@ -55,7 +53,5 @@ class AsyncObjectWrap: public Napi::ObjectWrap<T> {
     }
   }
 };
-
-}  // namespace napi
 
 }  // namespace node_webrtc
