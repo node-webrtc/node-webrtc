@@ -151,7 +151,7 @@ void RTCPeerConnection::OnIceCandidate(const webrtc::IceCandidateInterface* ice_
 
   Dispatch(CreateCallback<RTCPeerConnection>([this, candidate, error]() {
     if (error.empty()) {
-      auto env = constructor().Env();
+      auto env = Env();
       auto maybeCandidate = From<Napi::Value>(std::make_pair(env, candidate.get()));
       if (maybeCandidate.IsValid()) {
         MakeCallback("onicecandidate", { maybeCandidate.UnsafeFromValid() });
@@ -182,11 +182,11 @@ void RTCPeerConnection::OnAddTrack(rtc::scoped_refptr<webrtc::RtpReceiverInterfa
       auto mediaStream = MediaStream::wrap()->GetOrCreate(_factory, stream);
       mediaStreams.push_back(mediaStream);
     }
-    CONVERT_OR_THROW_AND_RETURN_VOID_NAPI(constructor().Env(), mediaStreams, streamArray, Napi::Value)
+    CONVERT_OR_THROW_AND_RETURN_VOID_NAPI(Env(), mediaStreams, streamArray, Napi::Value)
     MakeCallback("ontrack", {
       RTCRtpReceiver::wrap()->GetOrCreate(_factory, receiver)->Value(),
       streamArray,
-      constructor().Env().Null()
+      Env().Null()
     });
   }));
 }
@@ -200,7 +200,7 @@ void RTCPeerConnection::OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterfa
       auto mediaStream = MediaStream::wrap()->GetOrCreate(_factory, stream);
       mediaStreams.push_back(mediaStream);
     }
-    CONVERT_OR_THROW_AND_RETURN_VOID_NAPI(constructor().Env(), mediaStreams, streamArray, Napi::Value)
+    CONVERT_OR_THROW_AND_RETURN_VOID_NAPI(Env(), mediaStreams, streamArray, Napi::Value)
     MakeCallback("ontrack", {
       RTCRtpReceiver::wrap()->GetOrCreate(_factory, receiver)->Value(),
       streamArray,
@@ -234,7 +234,8 @@ Napi::Value RTCPeerConnection::AddTrack(const Napi::CallbackInfo& info) {
   auto result = _jinglePeerConnection->AddTrack(mediaStreamTrack->track(), streams);
   if (!result.ok()) {
     CONVERT_OR_THROW_AND_RETURN_NAPI(env, &result.error(), error, Napi::Value)
-    throw Napi::Error(env, error);
+    Napi::Error(env, error).ThrowAsJavaScriptException();
+    return env.Undefined();
   }
   auto rtpSender = result.value();
   return RTCRtpSender::wrap()->GetOrCreate(_factory, rtpSender)->Value();
@@ -261,7 +262,8 @@ Napi::Value RTCPeerConnection::AddTransceiver(const Napi::CallbackInfo& info) {
       : _jinglePeerConnection->AddTransceiver(kindOrTrack.UnsafeFromRight()->track(), maybeInit.UnsafeFromJust());
   if (!result.ok()) {
     CONVERT_OR_THROW_AND_RETURN_NAPI(env, &result.error(), error, Napi::Value)
-    throw Napi::Error(env, error);
+    Napi::Error(env, error).ThrowAsJavaScriptException();
+    return env.Undefined();
   }
   auto rtpTransceiver = result.value();
   return RTCRtpTransceiver::wrap()->GetOrCreate(_factory, rtpTransceiver)->Value();
@@ -270,15 +272,18 @@ Napi::Value RTCPeerConnection::AddTransceiver(const Napi::CallbackInfo& info) {
 Napi::Value RTCPeerConnection::RemoveTrack(const Napi::CallbackInfo& info) {
   auto env = info.Env();
   if (!_jinglePeerConnection) {
-    throw Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "Cannot removeTrack; RTCPeerConnection is closed"));
+    Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "Cannot removeTrack; RTCPeerConnection is closed")).ThrowAsJavaScriptException();
+    return env.Undefined();
   }
   CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, sender, RTCRtpSender*)
   auto senders = _jinglePeerConnection->GetSenders();
   if (std::find(senders.begin(), senders.end(), sender->sender()) == senders.end()) {
-    throw Napi::Error(env, ErrorFactory::napi::CreateInvalidAccessError(env, "Cannot removeTrack"));
+    Napi::Error(env, ErrorFactory::napi::CreateInvalidAccessError(env, "Cannot removeTrack")).ThrowAsJavaScriptException();
+    return env.Undefined();
   }
   if (!_jinglePeerConnection->RemoveTrack(sender->sender())) {
-    throw Napi::Error(env, ErrorFactory::napi::CreateInvalidAccessError(env, "Cannot removeTrack"));
+    Napi::Error(env, ErrorFactory::napi::CreateInvalidAccessError(env, "Cannot removeTrack")).ThrowAsJavaScriptException();
+    return env.Undefined();
   }
   return env.Undefined();
 }
@@ -393,7 +398,7 @@ Napi::Value RTCPeerConnection::AddIceCandidate(const Napi::CallbackInfo& info) {
     if (_jinglePeerConnection
         && _jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed
         && _jinglePeerConnection->AddIceCandidate(candidate.get())) {
-      napi::Resolve(deferred, constructor().Env().Undefined());
+      napi::Resolve(deferred, Env().Undefined());
     } else {
       std::string error = std::string("Failed to set ICE candidate");
       if (!_jinglePeerConnection
@@ -411,9 +416,10 @@ Napi::Value RTCPeerConnection::AddIceCandidate(const Napi::CallbackInfo& info) {
 Napi::Value RTCPeerConnection::CreateDataChannel(const Napi::CallbackInfo& info) {
   auto env = info.Env();
   if (_jinglePeerConnection == nullptr) {
-    throw Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env,
+    Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env,
             "Failed to execute 'createDataChannel' on 'RTCPeerConnection': "
-            "The RTCPeerConnection's signalingState is 'closed'."));
+            "The RTCPeerConnection's signalingState is 'closed'.")).ThrowAsJavaScriptException();
+    return env.Undefined();
   }
 
   CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, args, std::tuple<std::string COMMA Maybe<webrtc::DataChannelInit>>)
@@ -425,7 +431,8 @@ Napi::Value RTCPeerConnection::CreateDataChannel(const Napi::CallbackInfo& info)
       _jinglePeerConnection->CreateDataChannel(label, &dataChannelInit);
 
   if (!data_channel_interface) {
-    throw Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "'createDataChannel' failed"));
+    Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "'createDataChannel' failed")).ThrowAsJavaScriptException();
+    return env.Undefined();
   }
 
   auto observer = new DataChannelObserver(_factory, data_channel_interface);
@@ -449,13 +456,15 @@ Napi::Value RTCPeerConnection::SetConfiguration(const Napi::CallbackInfo& info) 
   CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, configuration, webrtc::PeerConnectionInterface::RTCConfiguration)
 
   if (!_jinglePeerConnection) {
-    throw Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "RTCPeerConnection is closed"));
+    Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "RTCPeerConnection is closed")).ThrowAsJavaScriptException();
+    return env.Undefined();
   }
 
   webrtc::RTCError rtcError;
   if (!_jinglePeerConnection->SetConfiguration(configuration, &rtcError)) {
     CONVERT_OR_THROW_AND_RETURN_NAPI(env, &rtcError, error, Napi::Value)
-    throw Napi::Error(env, error);
+    Napi::Error(env, error).ThrowAsJavaScriptException();
+    return env.Undefined();
   }
 
   return env.Undefined();

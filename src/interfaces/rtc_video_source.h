@@ -25,17 +25,13 @@ namespace node_webrtc {
 class RTCVideoTrackSource : public rtc::AdaptedVideoTrackSource {
  public:
   RTCVideoTrackSource()
-    : rtc::AdaptedVideoTrackSource(), _is_screencast(false) {
-    _factory->Ref();
-  }
+    : rtc::AdaptedVideoTrackSource(), _is_screencast(false) {}
 
   RTCVideoTrackSource(const bool is_screencast, const absl::optional<bool> needs_denoising)
-    : rtc::AdaptedVideoTrackSource(), _is_screencast(is_screencast), _needs_denoising(needs_denoising) {
-    _factory->Ref();
-  }
+    : rtc::AdaptedVideoTrackSource(), _is_screencast(is_screencast), _needs_denoising(needs_denoising) {}
 
   ~RTCVideoTrackSource() override {
-    _factory->Unref();
+    PeerConnectionFactory::Release();
     _factory = nullptr;
   }
 

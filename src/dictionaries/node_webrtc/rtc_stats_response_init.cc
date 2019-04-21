@@ -3,12 +3,13 @@
 #include <node-addon-api/napi.h>
 
 #include "src/functional/validation.h"
+#include "src/interfaces/rtc_stats_response.h"
 
 namespace node_webrtc {
 
 TO_NAPI_IMPL(RTCStatsResponseInit, pair) {
-  (void) pair;
-  return Validation<Napi::Value>::Invalid("// FIXME(mroberts): Implement me.");
+  Napi::EscapableHandleScope scope(pair.first);
+  return Pure(scope.Escape(RTCStatsResponse::Create(pair.second.first, pair.second.second)->Value()));
 }
 
 }  // namespace node_webrtc

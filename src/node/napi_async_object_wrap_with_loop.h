@@ -22,7 +22,7 @@ class AsyncObjectWrapWithLoop
       T& target,
       const Napi::CallbackInfo& info) :
     AsyncObjectWrap<T>(name, info),
-    EventLoop<T>(info.Env(), name, target) {
+    EventLoop<T>(info.Env(), this->context(), target) {
     this->Ref();
   }
 

@@ -46,23 +46,27 @@ MediaStreamTrack::MediaStreamTrack(const Napi::CallbackInfo& info)
 }
 
 MediaStreamTrack::~MediaStreamTrack() {
-  _factory->Unref();
-  _factory = nullptr;
-
-  _track->UnregisterObserver(this);
   _track = nullptr;
+
+  Napi::HandleScope scope(PeerConnectionFactory::constructor().Env());
+  napi_ref ref = *_factory;
+  if (ref) {
+    _factory->Unref();
+  }
+  _factory = nullptr;
 
   wrap()->Release(this);
 }  // NOLINT
 
 void MediaStreamTrack::Stop() {
+  _track->UnregisterObserver(this);
   _ended = true;
   _enabled = _track->enabled();
   napi::AsyncObjectWrapWithLoop<MediaStreamTrack>::Stop();
 }
 
 void MediaStreamTrack::OnChanged() {
-  if (this->_track->state() == webrtc::MediaStreamTrackInterface::TrackState::kEnded) {
+  if (_track->state() == webrtc::MediaStreamTrackInterface::TrackState::kEnded) {
     Stop();
   }
 }

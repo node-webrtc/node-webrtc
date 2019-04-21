@@ -298,7 +298,7 @@ test('data channel connectivity', function(t) {
   });
 });
 
-test('getStats', function(t) {
+test('getStats (legacy)', function(t) {
   t.plan(2);
 
   function getStats(peer, callback) {
@@ -316,6 +316,32 @@ test('getStats', function(t) {
         return obj;
       }));
     }, function(error) {
+      callback(error);
+    });
+  }
+
+  function done(error, reports) {
+    if (error) {
+      t.fail(error);
+      return;
+    }
+    // eslint-disable-next-line no-console
+    console.log(reports);
+    t.pass('successfully called getStats (legacy)');
+  }
+
+  peers.forEach(function(peer) {
+    getStats(peer, done);
+  });
+});
+
+test('getStats', function(t) {
+  t.plan(2);
+
+  function getStats(peer, callback) {
+    peer.getStats().then(response => {
+      callback(null, response);
+    }, error => {
       callback(error);
     });
   }

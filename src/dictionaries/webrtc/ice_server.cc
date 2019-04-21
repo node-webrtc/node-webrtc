@@ -8,7 +8,6 @@
 #include <node-addon-api/napi.h>
 #include <webrtc/api/peer_connection_interface.h>
 
-#include "src/converters.h"
 #include "src/converters/napi.h"
 #include "src/dictionaries/macros/napi.h"
 #include "src/dictionaries/node_webrtc/rtc_outh_credential.h"
@@ -58,7 +57,7 @@ TO_NAPI_IMPL(webrtc::PeerConnectionInterface::IceServer, pair) {
     NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "urls", iceServer.urls)
   }
   if (!iceServer.username.empty()) {
-    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "username", iceServer)
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "username", iceServer.username)
   }
   if (!iceServer.password.empty()) {
     NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "credential", iceServer.password)
