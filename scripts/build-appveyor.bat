@@ -20,7 +20,7 @@ CALL npm test
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO npm run test:browsers
-IF NOT "%nodejs_version%" == "6" (CALL npm run test:browsers)
+CALL npm run test:browsers
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO node-pre-gyp package

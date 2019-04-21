@@ -6,7 +6,7 @@
     "p2p",
     "peer"
   ],
-  "version": "0.3.8-dev",
+  "version": "0.4.0-dev",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "http://js-platform.github.io/node-webrtc/",
   "bugs": "https://github.com/js-platform/node-webrtc/issues",
@@ -25,7 +25,7 @@
     "host": "https://node-webrtc.s3.amazonaws.com"
   },
   "engines": {
-    "node": "6.x || 8.x || 10.x || 11.x"
+    "node": "8.x || 10.x || 11.x"
   },
   "dependencies": {
     "nan": "^2.3.2",

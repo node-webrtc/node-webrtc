@@ -12,7 +12,7 @@ aliases:
       command: |
         npm run lint
 
-        if [[ "$TARGET_ARCH" != arm* && "$NODE_VERSION" != 6 ]]; then
+        if [[ "$TARGET_ARCH" != arm* ]]; then
           cd example
           npm run lint
         fi
@@ -34,10 +34,8 @@ aliases:
 
           npm test
 
-          if [[ "$NODE_VERSION" != v6* ]]; then
-            cd example
-            npm test
-          fi
+          cd example
+          npm test
         fi
 
   prepare-for-web-platform-tests: &prepare-for-web-platform-tests
@@ -71,11 +69,8 @@ aliases:
           exit 0
         fi
 
-        # NOTE(mroberts): web-platform-tests use syntax incompatible with Node 6.
-        if [[ ! $(node -v) =~ "v6" ]]; then
-          npm run wpt:init
-          npm run wpt:test
-        fi
+        npm run wpt:init
+        npm run wpt:test
 
   test-browsers: &test-browsers
     run:
@@ -86,9 +81,7 @@ aliases:
           exit 0
         fi
 
-        if [[ ! $(node -v) =~ "v6" ]]; then
-          npm run test:browsers
-        fi
+        npm run test:browsers
 
   publish-binary: &publish-binary
     run:
@@ -238,7 +231,7 @@ aliases:
             # as root.
             npm install --unsafe-perm
 
-            if [[ "$TARGET_ARCH" != arm* && "$NODE_VERSION" != 6 ]]; then
+            if [[ "$TARGET_ARCH" != arm* ]]; then
               npm run install-example
             fi
 
@@ -408,9 +401,7 @@ aliases:
 
             npm install
 
-            if [[ "$NODE_VERSION" != 6 ]]; then
-              npm run install-example
-            fi
+            npm run install-example
 
       - <<: *save-cache
 
@@ -569,54 +560,6 @@ jobs:
     environment:
       NODE_VERSION: 8
 
-  linux-x86_64-node-6-debug:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 6
-      DEBUG: true
-
-  linux-x86_64-node-6-release:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 6
-
-  linux-armv7l-node-6-debug:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 6
-      DEBUG: true
-      TARGET_ARCH: arm
-
-  linux-armv7l-node-6-release:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 6
-      TARGET_ARCH: arm
-
-  linux-arm64-node-6-debug:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 6
-      DEBUG: true
-      TARGET_ARCH: arm64
-
-  linux-arm64-node-6-release:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 6
-      TARGET_ARCH: arm64
-
-  darwin-x86_64-node-6-debug:
-    <<: *darwin-x86_64
-    environment:
-      NODE_VERSION: 6
-      DEBUG: true
-
-  darwin-x86_64-node-6-release:
-    <<: *darwin-x86_64
-    environment:
-      NODE_VERSION: 6
-
 workflows:
   version: 2
   build:
@@ -645,11 +588,3 @@ workflows:
       - linux-arm64-node-8-release
       - darwin-x86_64-node-8-debug
       - darwin-x86_64-node-8-release
-      - linux-x86_64-node-6-debug
-      - linux-x86_64-node-6-release
-      - linux-armv7l-node-6-debug
-      - linux-armv7l-node-6-release
-      - linux-arm64-node-6-debug
-      - linux-arm64-node-6-release
-      - darwin-x86_64-node-6-debug
-      - darwin-x86_64-node-6-release
