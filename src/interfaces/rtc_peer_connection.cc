@@ -221,7 +221,7 @@ void RTCPeerConnection::OnRenegotiationNeeded() {
 Napi::Value RTCPeerConnection::AddTrack(const Napi::CallbackInfo& info) {
   auto env = info.Env();
   if (!_jinglePeerConnection) {
-    Napi::Error::New(env, "Cannot addTrack; RTCPeerConnection is closed").ThrowAsJavaScriptException();
+    Napi::Error(env, ErrorFactory::CreateInvalidStateError(env, "Cannot addTrack; RTCPeerConnection is closed")).ThrowAsJavaScriptException();
     return env.Undefined();
   }
   CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, pair, std::tuple<MediaStreamTrack* COMMA Maybe<MediaStream*>>)
@@ -398,7 +398,7 @@ Napi::Value RTCPeerConnection::AddIceCandidate(const Napi::CallbackInfo& info) {
     if (_jinglePeerConnection
         && _jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed
         && _jinglePeerConnection->AddIceCandidate(candidate.get())) {
-      Resolve(deferred, Env().Undefined());
+      Resolve(deferred, this->Env().Undefined());
     } else {
       std::string error = std::string("Failed to set ICE candidate");
       if (!_jinglePeerConnection
