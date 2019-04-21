@@ -1,3 +1,15 @@
+0.4.0
+=====
+
+node-webrtc is now implemented using N-API, which is ABI stable across Node
+releases. This means we can now ship fewer binaries while supporting a
+potentially greater number of Node releases.
+
+Breaking Changes
+----------------
+
+- Dropped support for Node 6.
+
 0.3.7
 =====
 
