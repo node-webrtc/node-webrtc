@@ -86,7 +86,10 @@ PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo& info)
   assert(_factory);
 
   _networkManager = std::unique_ptr<rtc::NetworkManager>(new rtc::BasicNetworkManager());
+  assert(_networkManager != nullptr);
+
   _socketFactory = std::unique_ptr<rtc::PacketSocketFactory>(new rtc::BasicPacketSocketFactory(_workerThread.get()));
+  assert(_socketFactory != nullptr);
 }
 
 PeerConnectionFactory::~PeerConnectionFactory() {
@@ -110,12 +113,13 @@ PeerConnectionFactory* PeerConnectionFactory::GetOrCreateDefault() {
   _mutex.lock();
   _references++;
   if (_references == 1) {
+    assert(_default == nullptr);
     auto env = constructor().Env();
     Napi::HandleScope scope(env);
     auto object = constructor().New({});
     auto factory = Unwrap(object);
-    factory->Ref();
     _default = factory;
+    _default->Ref();
   }
   _mutex.unlock();
   return _default;
@@ -126,6 +130,7 @@ void PeerConnectionFactory::Release() {
   _references--;
   assert(_references >= 0);
   if (!_references) {
+    assert(_default != nullptr);
     _default->Unref();
     _default = nullptr;
   }

@@ -22,12 +22,10 @@ namespace node_webrtc {
 
 class RTCAudioTrackSource : public webrtc::LocalAudioSource {
  public:
-  RTCAudioTrackSource() {
-    _factory->Ref();
-  }
+  RTCAudioTrackSource() {}
 
   ~RTCAudioTrackSource() override {
-    _factory->Unref();
+    PeerConnectionFactory::Release();
     _factory = nullptr;
   }
 

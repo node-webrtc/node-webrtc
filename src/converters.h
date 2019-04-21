@@ -59,8 +59,6 @@ namespace node_webrtc {
     return Converter<I, M>::Convert(value).FlatMap<O>(Converter<M, O>::Convert); \
   }
 
-// TODO(mroberts): This stuff is not so general as to warrant inclusion in converters.h.
-
 /**
  * A Converter converts values from some "source" type S to values of some
  * "target" type T.

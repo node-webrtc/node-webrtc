@@ -30,12 +30,14 @@ MediaStream::Impl::Impl(PeerConnectionFactory* factory)
   : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault())
   , _stream(_factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid()))
   , _shouldReleaseFactory(!factory) {
+  _factory->Ref();
 }
 
 MediaStream::Impl::Impl(std::vector<MediaStreamTrack*>&& tracks, PeerConnectionFactory* factory)
   : _factory(factory ? factory : tracks.empty() ? PeerConnectionFactory::GetOrCreateDefault() : tracks[0]->factory())
   , _stream(_factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid()))
   , _shouldReleaseFactory(!factory && tracks.empty()) {
+  _factory->Ref();
   for (auto const& track : tracks) {
     if (track->track()->kind() == track->track()->kAudioKind) {
       auto audioTrack = static_cast<webrtc::AudioTrackInterface*>(track->track().get());
@@ -53,6 +55,7 @@ MediaStream::Impl::Impl(
   : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault())
   , _stream(stream)
   , _shouldReleaseFactory(!factory) {
+  _factory->Ref();
 }
 
 MediaStream::Impl::~Impl() {

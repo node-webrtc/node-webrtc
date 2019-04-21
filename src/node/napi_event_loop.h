@@ -3,6 +3,9 @@
 #include <atomic>
 #include <mutex>
 
+#include <node-addon-api/napi.h>
+#include <uv.h>
+
 #include "src/node/event_queue.h"
 #include "src/node/events.h"
 
@@ -17,11 +20,11 @@ class EventLoop: private EventQueue<T> {
 
   void Dispatch(std::unique_ptr<Event<T>> event) {
     this->Enqueue(std::move(event));
-    _work_mutex.lock();
-    if (_work && _run_mutex.try_lock()) {
-      napi_queue_async_work(_env, _work);
+    _lock.lock();
+    if (!uv_is_closing(reinterpret_cast<uv_handle_t*>(&_async))) {
+      uv_async_send(&_async);
     }
-    _work_mutex.unlock();
+    _lock.unlock();
   }
 
   bool should_stop() const {
@@ -29,29 +32,20 @@ class EventLoop: private EventQueue<T> {
   }
 
  protected:
-  EventLoop(Napi::Env env, const char* name, T& target): _env(env), _target(target) {
-    napi_value resource_id;
-    napi_status status = napi_create_string_latin1(
-            _env,
-            name,
-            NAPI_AUTO_LENGTH,
-            &resource_id);
+  EventLoop(Napi::Env env, Napi::AsyncContext* context, T& target): _env(env), _context(context), _target(target) {
+    uv_loop_t* loop;
+    auto status = napi_get_uv_event_loop(_env, &loop);
     {
       using Napi::Error;
-      NAPI_THROW_IF_FAILED_VOID(_env, status)
+      NAPI_THROW_IF_FAILED_VOID(_env, status);
     }
-    status = napi_create_async_work(
-            _env,
-            nullptr,
-            resource_id,
-            DoNothing,
-            CallRun,
-            this,
-            &_work);
-    {
-      using Napi::Error;
-      NAPI_THROW_IF_FAILED_VOID(_env, status)
-    }
+
+    uv_async_init(loop, &_async, [](auto handle) {
+      auto self = static_cast<EventLoop<T>*>(handle->data);
+      self->Run();
+    });
+
+    _async.data = this;
   }
 
   virtual void DidStop() {
@@ -59,8 +53,10 @@ class EventLoop: private EventQueue<T> {
   }
 
   virtual void Run() {
+    Napi::HandleScope scope(_env);
     if (!_should_stop) {
       while (auto event = this->Dequeue()) {
+        Napi::CallbackScope callbackScope(_env, *_context);
         event->Dispatch(_target);
         if (_should_stop) {
           break;
@@ -68,13 +64,13 @@ class EventLoop: private EventQueue<T> {
       }
     }
     if (_should_stop) {
-      _work_mutex.lock();
-      napi_delete_async_work(_env, _work);
-      _work = nullptr;
-      _work_mutex.unlock();
-      DidStop();
+      _lock.lock();
+      uv_close(reinterpret_cast<uv_handle_t*>(&_async), [](auto handle) {
+        auto self = static_cast<EventLoop<T>*>(handle->data);
+        self->DidStop();
+      });
+      _lock.unlock();
     }
-    _run_mutex.unlock();
   }
 
   virtual void Stop() {
@@ -83,24 +79,12 @@ class EventLoop: private EventQueue<T> {
   }
 
  private:
-  static void DoNothing(napi_env env, void* self) {
-    (void) env;
-    (void) self;
-    // Do nothing.
-  }
-
-  static void CallRun(napi_env env, napi_status status, void* self) {
-    (void) env;
-    (void) status;
-    static_cast<EventLoop<T>*>(self)->Run();
-  }
-
-  napi_env _env;
-  std::mutex _run_mutex{};
+  uv_async_t _async{};
+  Napi::AsyncContext* _context;
+  Napi::Env _env;
+  std::mutex _lock{};
   std::atomic<bool> _should_stop = {false};
   T& _target;
-  napi_async_work _work;
-  std::mutex _work_mutex{};
 };
 
 }  // namespace napi

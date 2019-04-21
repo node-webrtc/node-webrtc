@@ -41,6 +41,7 @@ RTCRtpSender::RTCRtpSender(const Napi::CallbackInfo& info)
 }
 
 RTCRtpSender::~RTCRtpSender() {
+  Napi::HandleScope scope(PeerConnectionFactory::constructor().Env());
   _factory->Unref();
   _factory = nullptr;
 

@@ -14,11 +14,11 @@ class AsyncObjectWrap: public Napi::ObjectWrap<T> {
  private:
   Napi::AsyncContext* _async_context;
   std::mutex _async_context_mutex;
-  std::atomic_int _reference_count = {0};
 
   void DestroyAsyncContext() {
     _async_context_mutex.lock();
     if (_async_context) {
+      Napi::HandleScope scope(this->Env());
       delete _async_context;
       _async_context = nullptr;
     }
@@ -37,16 +37,8 @@ class AsyncObjectWrap: public Napi::ObjectWrap<T> {
     DestroyAsyncContext();
   }
 
-  void Ref() {
-    if (_reference_count.fetch_add(1) == 0) {
-      Napi::ObjectWrap<T>::Ref();
-    }
-  }
-
-  void Unref() {
-    if (_reference_count.fetch_sub(1) == 1) {
-      Napi::ObjectWrap<T>::Unref();
-    }
+  Napi::AsyncContext* context() {
+    return _async_context;
   }
 
  protected:

@@ -7,6 +7,7 @@
  */
 #include "src/interfaces/rtc_data_channel.h"
 
+#include <iostream>
 #include <utility>
 
 #include <webrtc/api/data_channel_interface.h>
@@ -35,6 +36,7 @@ DataChannelObserver::DataChannelObserver(PeerConnectionFactory* factory,
 }
 
 DataChannelObserver::~DataChannelObserver() {
+  Napi::HandleScope scope(PeerConnectionFactory::constructor().Env());
   _factory->Unref();
   _factory = nullptr;
 }  // NOLINT
@@ -131,7 +133,7 @@ void RTCDataChannel::OnStateChange() {
 }
 
 void RTCDataChannel::HandleStateChange(RTCDataChannel& channel, webrtc::DataChannelInterface::DataState state) {
-  auto env = constructor().Env();
+  auto env = channel.Env();
   Napi::HandleScope scope(env);
   if (state == webrtc::DataChannelInterface::kClosed) {
     auto value = Napi::String::New(env, "closed");
@@ -154,19 +156,19 @@ void RTCDataChannel::OnMessage(const webrtc::DataBuffer& buffer) {
 void RTCDataChannel::HandleMessage(RTCDataChannel& channel, const webrtc::DataBuffer& buffer) {
   bool binary = buffer.binary;
   size_t size = buffer.size();
-  std::unique_ptr<char[]> message = std::unique_ptr<char[]>(new char[size]);
-  memcpy(reinterpret_cast<void*>(message.get()), reinterpret_cast<const void*>(buffer.data.data()), size);
+  char* message = new char[size];
+  memcpy(reinterpret_cast<void*>(message), reinterpret_cast<const void*>(buffer.data.data()), size);
 
-  auto env = constructor().Env();
+  auto env = channel.Env();
   Napi::HandleScope scope(env);
   Napi::Value value;
   if (binary) {
-    auto array = Napi::ArrayBuffer::New(env, message.release(), size, [](void* buffer, void*) {
-      delete static_cast<char*>(buffer);
+    auto array = Napi::ArrayBuffer::New(env, message, size, [](Napi::Env, void* buffer) {
+      delete[] static_cast<char*>(buffer);
     });
     value = array;  // NOLINT
   } else {
-    auto str = Napi::String::New(env, message.get());
+    auto str = Napi::String::New(env, message, size);
     value = str;
   }
   channel.MakeCallback("onmessage", { value });
@@ -176,7 +178,8 @@ Napi::Value RTCDataChannel::Send(const Napi::CallbackInfo& info) {
   auto env = info.Env();
   if (_jingleDataChannel != nullptr) {
     if (_jingleDataChannel->state() != webrtc::DataChannelInterface::DataState::kOpen) {
-      throw Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "RTCDataChannel.readyState is not 'open'"));
+      Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "RTCDataChannel.readyState is not 'open'")).ThrowAsJavaScriptException();
+      return env.Undefined();
     }
     if (info[0].IsString()) {
       auto str = info[0].ToString();
@@ -214,7 +217,8 @@ Napi::Value RTCDataChannel::Send(const Napi::CallbackInfo& info) {
       _jingleDataChannel->Send(data_buffer);
     }
   } else {
-    throw Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "RTCDataChannel.readyState is not 'open'"));
+    Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "RTCDataChannel.readyState is not 'open'")).ThrowAsJavaScriptException();
+    return env.Undefined();
   }
 
   return env.Undefined();
