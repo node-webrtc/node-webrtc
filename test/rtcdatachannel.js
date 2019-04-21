@@ -3,8 +3,7 @@
 const tape = require('tape');
 const { RTCPeerConnection } = require('..');
 
-// FIXME(mroberts): ...
-tape.skip('Calling .send(message) when .readyState is "closed" throws InvalidStateError', t => {
+tape('Calling .send(message) when .readyState is "closed" throws InvalidStateError', t => {
   const pc = new RTCPeerConnection();
   const dc = pc.createDataChannel('hello');
   pc.close();
