@@ -15,6 +15,7 @@
 #include "src/interfaces/media_stream_track.h"
 #include "src/interfaces/rtc_dtls_transport.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
+#include "src/node/error_factory.h"
 #include "src/node/utility.h"
 
 namespace node_webrtc {
@@ -100,9 +101,18 @@ Napi::Value RTCRtpSender::ReplaceTrack(const Napi::CallbackInfo& info) {
     return track;
   });
   auto track = mediaStreamTrack ? mediaStreamTrack->track().get() : nullptr;
+  if (track) {
+    auto expectedMediaType = track->kind() == webrtc::MediaStreamTrackInterface::kAudioKind
+        ? cricket::MediaType::MEDIA_TYPE_AUDIO
+        : cricket::MediaType::MEDIA_TYPE_VIDEO;
+    if (_sender->media_type() != expectedMediaType) {
+      Reject(deferred, Napi::TypeError::New(info.Env(), "Kind does not match").Value().As<Napi::Value>());
+      return deferred.Promise();
+    }
+  }
   _sender->SetTrack(track)
   ? Resolve(deferred, info.Env().Undefined())
-  : Reject(deferred, Napi::Error::New(info.Env(), "Failed to replaceTrack"));
+  : Reject(deferred, ErrorFactory::CreateInvalidStateError(info.Env(), "Failed to replaceTrack"));
   return deferred.Promise();
 }
 
