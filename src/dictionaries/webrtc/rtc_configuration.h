@@ -7,8 +7,6 @@
 
 namespace node_webrtc {
 
-namespace napi {
-
 static inline webrtc::PeerConnectionInterface::RTCConfiguration CreateRTCConfiguration(
     const std::vector<webrtc::PeerConnectionInterface::IceServer>& iceServers,
     const webrtc::PeerConnectionInterface::IceTransportsType iceTransportsPolicy,
@@ -27,8 +25,6 @@ static inline webrtc::PeerConnectionInterface::RTCConfiguration CreateRTCConfigu
   configuration.sdp_semantics = sdpSemantics;
   return configuration;
 }
-
-}  // namespace napi
 
 DECLARE_FROM_NAPI(webrtc::PeerConnectionInterface::RTCConfiguration)
 

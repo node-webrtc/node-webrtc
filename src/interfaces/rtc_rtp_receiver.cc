@@ -27,7 +27,7 @@ Napi::FunctionReference& RTCRtpReceiver::constructor() {
 }
 
 RTCRtpReceiver::RTCRtpReceiver(const Napi::CallbackInfo& info)
-  : napi::AsyncObjectWrap<RTCRtpReceiver>("RTCRtpReceiver", info) {
+  : AsyncObjectWrap<RTCRtpReceiver>("RTCRtpReceiver", info) {
   if (info.Length() != 2 || !info[0].IsObject() || !info[1].IsExternal()) {
     Napi::TypeError::New(info.Env(), "You cannot construct a RTCRtpReceiver").ThrowAsJavaScriptException();
     return;
@@ -102,7 +102,7 @@ Napi::Value RTCRtpReceiver::GetSynchronizationSources(const Napi::CallbackInfo& 
 
 Napi::Value RTCRtpReceiver::GetStats(const Napi::CallbackInfo& info) {
   CREATE_DEFERRED(info.Env(), deferred)
-  napi::Reject(deferred, Napi::Error::New(info.Env(), "Not yet implemented; file a feature request against node-webrtc"));
+  Reject(deferred, Napi::Error::New(info.Env(), "Not yet implemented; file a feature request against node-webrtc"));
   return deferred.Promise();
 }
 

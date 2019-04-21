@@ -10,8 +10,6 @@
 
 namespace node_webrtc {
 
-namespace napi {
-
 static Validation<RTC_ON_DATA_EVENT_DICT> CreateRTCOnDataEventDict(
     Napi::ArrayBuffer samples,
     uint8_t bitsPerSample,
@@ -57,16 +55,14 @@ static Validation<RTC_ON_DATA_EVENT_DICT> CreateRTCOnDataEventDict(
   return Pure(dict);
 }
 
-}  // namespace napi
-
 FROM_NAPI_IMPL(RTC_ON_DATA_EVENT_DICT, value) {
   return From<Napi::Object>(value).FlatMap<RTC_ON_DATA_EVENT_DICT>([](auto object) {
-    return Validation<RTC_ON_DATA_EVENT_DICT>::Join(curry(napi::CreateRTCOnDataEventDict)
-            % napi::GetRequired<Napi::ArrayBuffer>(object, "samples")
-            * napi::GetOptional<uint8_t>(object, "bitsPerSample", 16)
-            * napi::GetRequired<uint16_t>(object, "sampleRate")
-            * napi::GetOptional<uint8_t>(object, "channelCount", 1)
-            * napi::GetOptional<uint16_t>(object, "numberOfFrames"));
+    return Validation<RTC_ON_DATA_EVENT_DICT>::Join(curry(CreateRTCOnDataEventDict)
+            % GetRequired<Napi::ArrayBuffer>(object, "samples")
+            * GetOptional<uint8_t>(object, "bitsPerSample", 16)
+            * GetRequired<uint16_t>(object, "sampleRate")
+            * GetOptional<uint8_t>(object, "channelCount", 1)
+            * GetOptional<uint16_t>(object, "numberOfFrames"));
   });
 }
 

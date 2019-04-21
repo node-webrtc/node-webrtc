@@ -27,7 +27,7 @@ Napi::FunctionReference& RTCRtpTransceiver::constructor() {
 
 RTCRtpTransceiver::RTCRtpTransceiver(
     const Napi::CallbackInfo& info):
-  napi::AsyncObjectWrap<RTCRtpTransceiver>("RTCRtpTransceiver", info) {
+  AsyncObjectWrap<RTCRtpTransceiver>("RTCRtpTransceiver", info) {
   if (info.Length() != 2 || !info[0].IsObject() || !info[1].IsExternal()) {
     Napi::TypeError::New(info.Env(), "You cannot construct a RTCRtpTransceiver").ThrowAsJavaScriptException();
     return;
@@ -43,6 +43,7 @@ RTCRtpTransceiver::RTCRtpTransceiver(
 }
 
 RTCRtpTransceiver::~RTCRtpTransceiver() {
+  Napi::HandleScope scope(PeerConnectionFactory::constructor().Env());
   _factory->Unref();
   _factory = nullptr;
 

@@ -57,14 +57,14 @@ class PromiseCreator {
   template <typename F>
   void Resolve(F value) {
     Dispatch([value](auto deferred) {
-      node_webrtc::napi::Resolve(deferred, value);
+      node_webrtc::Resolve(deferred, value);
     });
   }
 
   template <typename F>
   void Reject(F value) {
     Dispatch([value](auto deferred) {
-      node_webrtc::napi::Reject(deferred, value);
+      node_webrtc::Reject(deferred, value);
     });
   }
 

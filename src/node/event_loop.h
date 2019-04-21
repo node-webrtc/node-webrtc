@@ -11,8 +11,6 @@
 
 namespace node_webrtc {
 
-namespace napi {
-
 template <typename T>
 class EventLoop: private EventQueue<T> {
  public:
@@ -32,7 +30,7 @@ class EventLoop: private EventQueue<T> {
   }
 
  protected:
-  EventLoop(Napi::Env env, Napi::AsyncContext* context, T& target): _env(env), _context(context), _target(target) {
+  EventLoop(Napi::Env env, Napi::AsyncContext* context, T& target): _context(context), _env(env), _target(target) {
     uv_loop_t* loop;
     auto status = napi_get_uv_event_loop(_env, &loop);
     {
@@ -86,7 +84,5 @@ class EventLoop: private EventQueue<T> {
   std::atomic<bool> _should_stop = {false};
   T& _target;
 };
-
-}  // namespace napi
 
 }  // namespace node_webrtc

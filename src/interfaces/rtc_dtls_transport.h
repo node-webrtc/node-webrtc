@@ -13,7 +13,7 @@
 #include <webrtc/api/dtls_transport_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 
-#include "src/node/napi_async_object_wrap_with_loop.h"
+#include "src/node/async_object_wrap_with_loop.h"
 #include "src/node/wrap.h"
 
 namespace webrtc { class RTCError; }
@@ -23,7 +23,7 @@ namespace node_webrtc {
 class PeerConnectionFactory;
 
 class RTCDtlsTransport
-  : public napi::AsyncObjectWrapWithLoop<RTCDtlsTransport>
+  : public AsyncObjectWrapWithLoop<RTCDtlsTransport>
   , public webrtc::DtlsTransportObserverInterface {
  public:
   explicit RTCDtlsTransport(const Napi::CallbackInfo&);

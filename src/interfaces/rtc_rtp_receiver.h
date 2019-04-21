@@ -13,7 +13,7 @@
 #include <webrtc/api/scoped_refptr.h>
 
 #include "src/converters/napi.h"
-#include "src/node/napi_async_object_wrap.h"
+#include "src/node/async_object_wrap.h"
 #include "src/node/wrap.h"
 
 namespace webrtc { class RtpReceiverInterface; }
@@ -22,7 +22,7 @@ namespace node_webrtc {
 
 class PeerConnectionFactory;
 
-class RTCRtpReceiver: public napi::AsyncObjectWrap<RTCRtpReceiver> {
+class RTCRtpReceiver: public AsyncObjectWrap<RTCRtpReceiver> {
  public:
   explicit RTCRtpReceiver(const Napi::CallbackInfo&);
 

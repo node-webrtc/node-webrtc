@@ -15,7 +15,7 @@
 
 #include "src/converters.h"
 #include "src/converters/napi.h"
-#include "src/node/napi_async_object_wrap_with_loop.h"
+#include "src/node/async_object_wrap_with_loop.h"
 #include "src/node/wrap.h"
 
 namespace node_webrtc {
@@ -23,7 +23,7 @@ namespace node_webrtc {
 class PeerConnectionFactory;
 
 class MediaStreamTrack
-  : public napi::AsyncObjectWrapWithLoop<MediaStreamTrack>
+  : public AsyncObjectWrapWithLoop<MediaStreamTrack>
   , public webrtc::ObserverInterface {
  public:
   explicit MediaStreamTrack(const Napi::CallbackInfo&);

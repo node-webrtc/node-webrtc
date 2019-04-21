@@ -5,12 +5,10 @@
 
 #include <node-addon-api/napi.h>
 
-#include "src/node/napi_async_object_wrap.h"
-#include "src/node/napi_event_loop.h"
+#include "src/node/async_object_wrap.h"
+#include "src/node/event_loop.h"
 
 namespace node_webrtc {
-
-namespace napi {
 
 template <typename T>
 class AsyncObjectWrapWithLoop
@@ -34,7 +32,5 @@ class AsyncObjectWrapWithLoop
     this->Unref();
   }
 };
-
-}  // namespace napi
 
 }  // namespace node_webrtc

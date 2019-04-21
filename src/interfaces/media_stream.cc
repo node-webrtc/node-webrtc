@@ -59,6 +59,7 @@ MediaStream::Impl::Impl(
 }
 
 MediaStream::Impl::~Impl() {
+  Napi::HandleScope scope(PeerConnectionFactory::constructor().Env());
   if (_factory) {
     _factory->Unref();  // NOLINT
     _factory = nullptr;
@@ -84,7 +85,7 @@ rtc::scoped_refptr<webrtc::MediaStreamInterface> MediaStream::stream() {
 }
 
 MediaStream::MediaStream(const Napi::CallbackInfo& info): Napi::ObjectWrap<MediaStream>(info) {
-  auto maybeEither = From<Either<std::tuple<Napi::Object COMMA Napi::External<rtc::scoped_refptr<webrtc::MediaStreamInterface>>> COMMA Either<std::vector<MediaStreamTrack*> COMMA Maybe<MediaStream*>>>>(napi::Arguments(info));
+  auto maybeEither = From<Either<std::tuple<Napi::Object COMMA Napi::External<rtc::scoped_refptr<webrtc::MediaStreamInterface>>> COMMA Either<std::vector<MediaStreamTrack*> COMMA Maybe<MediaStream*>>>>(Arguments(info));
   if (maybeEither.IsInvalid()) {
     Napi::TypeError::New(info.Env(), maybeEither.ToErrors()[0]).ThrowAsJavaScriptException();
     return;

@@ -11,9 +11,9 @@
 
 namespace node_webrtc {
 
-#define DICT_REQUIRED(type, memberName, stringValue) * napi::GetRequired<type>(object, stringValue)
-#define DICT_OPTIONAL(type, memberName, stringValue) * napi::GetOptional<type>(object, stringValue)
-#define DICT_DEFAULT(type, memberName, stringValue, defaultValue) * napi::GetOptional<type>(object, stringValue, defaultValue)
+#define DICT_REQUIRED(type, memberName, stringValue) * GetRequired<type>(object, stringValue)
+#define DICT_OPTIONAL(type, memberName, stringValue) * GetOptional<type>(object, stringValue)
+#define DICT_DEFAULT(type, memberName, stringValue, defaultValue) * GetOptional<type>(object, stringValue, defaultValue)
 
 FROM_NAPI_IMPL(DICT(), value) {
   return From<Napi::Object>(value).FlatMap<DICT()>([](auto object) {

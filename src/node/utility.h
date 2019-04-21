@@ -19,8 +19,6 @@
 
 namespace node_webrtc {
 
-namespace napi {
-
 template <typename T>
 bool Resolve(Napi::Promise::Deferred deferred, T input) {
   auto env = deferred.Env();
@@ -44,7 +42,5 @@ bool Reject(Napi::Promise::Deferred deferred, T input) {
   deferred.Reject(Napi::Error::New(env, maybeOutput.ToErrors()[0]).Value());
   return false;
 }
-
-}  // namepsace napi
 
 }  // namespace node_webrtc

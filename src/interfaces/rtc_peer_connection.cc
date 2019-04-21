@@ -64,7 +64,7 @@ Napi::FunctionReference& RTCPeerConnection::constructor() {
 //
 
 RTCPeerConnection::RTCPeerConnection(const Napi::CallbackInfo& info)
-  : napi::AsyncObjectWrapWithLoop<RTCPeerConnection>("RTCPeerConnection", *this, info) {
+  : AsyncObjectWrapWithLoop<RTCPeerConnection>("RTCPeerConnection", *this, info) {
   auto env = info.Env();
 
   if (!info.IsConstructCall()) {
@@ -272,17 +272,17 @@ Napi::Value RTCPeerConnection::AddTransceiver(const Napi::CallbackInfo& info) {
 Napi::Value RTCPeerConnection::RemoveTrack(const Napi::CallbackInfo& info) {
   auto env = info.Env();
   if (!_jinglePeerConnection) {
-    Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "Cannot removeTrack; RTCPeerConnection is closed")).ThrowAsJavaScriptException();
+    Napi::Error(env, ErrorFactory::CreateInvalidStateError(env, "Cannot removeTrack; RTCPeerConnection is closed")).ThrowAsJavaScriptException();
     return env.Undefined();
   }
   CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, sender, RTCRtpSender*)
   auto senders = _jinglePeerConnection->GetSenders();
   if (std::find(senders.begin(), senders.end(), sender->sender()) == senders.end()) {
-    Napi::Error(env, ErrorFactory::napi::CreateInvalidAccessError(env, "Cannot removeTrack")).ThrowAsJavaScriptException();
+    Napi::Error(env, ErrorFactory::CreateInvalidAccessError(env, "Cannot removeTrack")).ThrowAsJavaScriptException();
     return env.Undefined();
   }
   if (!_jinglePeerConnection->RemoveTrack(sender->sender())) {
-    Napi::Error(env, ErrorFactory::napi::CreateInvalidAccessError(env, "Cannot removeTrack")).ThrowAsJavaScriptException();
+    Napi::Error(env, ErrorFactory::CreateInvalidAccessError(env, "Cannot removeTrack")).ThrowAsJavaScriptException();
     return env.Undefined();
   }
   return env.Undefined();
@@ -292,16 +292,16 @@ Napi::Value RTCPeerConnection::CreateOffer(const Napi::CallbackInfo& info) {
   auto env = info.Env();
   CREATE_DEFERRED(env, deferred)
 
-  auto maybeOptions = From<Maybe<RTCOfferOptions>>(napi::Arguments(info)).Map([](auto maybeOptions) {
+  auto maybeOptions = From<Maybe<RTCOfferOptions>>(Arguments(info)).Map([](auto maybeOptions) {
     return maybeOptions.FromMaybe(RTCOfferOptions());
   });
   if (maybeOptions.IsInvalid()) {
-    napi::Reject(deferred, SomeError(maybeOptions.ToErrors()[0]));
+    Reject(deferred, SomeError(maybeOptions.ToErrors()[0]));
     return deferred.Promise();
   }
 
   if (!_jinglePeerConnection || _jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
-    napi::Reject(deferred, ErrorFactory::napi::CreateInvalidStateError(env,
+    Reject(deferred, ErrorFactory::CreateInvalidStateError(env,
             "Failed to execute 'createOffer' on 'RTCPeerConnection': "
             "The RTCPeerConnection's signalingState is 'closed'."));
     return deferred.Promise();
@@ -317,16 +317,16 @@ Napi::Value RTCPeerConnection::CreateAnswer(const Napi::CallbackInfo& info) {
   auto env = info.Env();
   CREATE_DEFERRED(env, deferred)
 
-  auto maybeOptions = From<Maybe<RTCAnswerOptions>>(napi::Arguments(info)).Map([](auto maybeOptions) {
+  auto maybeOptions = From<Maybe<RTCAnswerOptions>>(Arguments(info)).Map([](auto maybeOptions) {
     return maybeOptions.FromMaybe(RTCAnswerOptions());
   });
   if (maybeOptions.IsInvalid()) {
-    napi::Reject(deferred, SomeError(maybeOptions.ToErrors()[0]));
+    Reject(deferred, SomeError(maybeOptions.ToErrors()[0]));
     return deferred.Promise();
   }
 
   if (!_jinglePeerConnection || _jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
-    napi::Reject(deferred, ErrorFactory::napi::CreateInvalidStateError(env,
+    Reject(deferred, ErrorFactory::CreateInvalidStateError(env,
             "Failed to execute 'createAnswer' on 'RTCPeerConnection': "
             "The RTCPeerConnection's signalingState is 'closed'."));
     return deferred.Promise();
@@ -349,14 +349,14 @@ Napi::Value RTCPeerConnection::SetLocalDescription(const Napi::CallbackInfo& inf
 
   auto maybeRawDescription = From<webrtc::SessionDescriptionInterface*>(descriptionInit);
   if (maybeRawDescription.IsInvalid()) {
-    napi::Reject(deferred, maybeRawDescription.ToErrors()[0]);
+    Reject(deferred, maybeRawDescription.ToErrors()[0]);
     return deferred.Promise();
   }
   auto rawDescription = maybeRawDescription.UnsafeFromValid();
   std::unique_ptr<webrtc::SessionDescriptionInterface> description(rawDescription);
 
   if (!_jinglePeerConnection || _jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
-    napi::Reject(deferred, ErrorFactory::napi::CreateInvalidStateError(env,
+    Reject(deferred, ErrorFactory::CreateInvalidStateError(env,
             "Failed to execute 'setLocalDescription' on 'RTCPeerConnection': "
             "The RTCPeerConnection's signalingState is 'closed'."));
     return deferred.Promise();
@@ -376,7 +376,7 @@ Napi::Value RTCPeerConnection::SetRemoteDescription(const Napi::CallbackInfo& in
   std::unique_ptr<webrtc::SessionDescriptionInterface> description(rawDescription);
 
   if (!_jinglePeerConnection || _jinglePeerConnection->signaling_state() == webrtc::PeerConnectionInterface::SignalingState::kClosed) {
-    napi::Reject(deferred, ErrorFactory::napi::CreateInvalidStateError(env,
+    Reject(deferred, ErrorFactory::CreateInvalidStateError(env,
             "Failed to execute 'setRemoteDescription' on 'RTCPeerConnection': "
             "The RTCPeerConnection's signalingState is 'closed'."));
     return deferred.Promise();
@@ -398,7 +398,7 @@ Napi::Value RTCPeerConnection::AddIceCandidate(const Napi::CallbackInfo& info) {
     if (_jinglePeerConnection
         && _jinglePeerConnection->signaling_state() != webrtc::PeerConnectionInterface::SignalingState::kClosed
         && _jinglePeerConnection->AddIceCandidate(candidate.get())) {
-      napi::Resolve(deferred, Env().Undefined());
+      Resolve(deferred, Env().Undefined());
     } else {
       std::string error = std::string("Failed to set ICE candidate");
       if (!_jinglePeerConnection
@@ -406,7 +406,7 @@ Napi::Value RTCPeerConnection::AddIceCandidate(const Napi::CallbackInfo& info) {
         error += "; RTCPeerConnection is closed";
       }
       error += ".";
-      napi::Reject(deferred, SomeError(error));
+      Reject(deferred, SomeError(error));
     }
   }));
 
@@ -416,7 +416,7 @@ Napi::Value RTCPeerConnection::AddIceCandidate(const Napi::CallbackInfo& info) {
 Napi::Value RTCPeerConnection::CreateDataChannel(const Napi::CallbackInfo& info) {
   auto env = info.Env();
   if (_jinglePeerConnection == nullptr) {
-    Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env,
+    Napi::Error(env, ErrorFactory::CreateInvalidStateError(env,
             "Failed to execute 'createDataChannel' on 'RTCPeerConnection': "
             "The RTCPeerConnection's signalingState is 'closed'.")).ThrowAsJavaScriptException();
     return env.Undefined();
@@ -431,7 +431,7 @@ Napi::Value RTCPeerConnection::CreateDataChannel(const Napi::CallbackInfo& info)
       _jinglePeerConnection->CreateDataChannel(label, &dataChannelInit);
 
   if (!data_channel_interface) {
-    Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "'createDataChannel' failed")).ThrowAsJavaScriptException();
+    Napi::Error(env, ErrorFactory::CreateInvalidStateError(env, "'createDataChannel' failed")).ThrowAsJavaScriptException();
     return env.Undefined();
   }
 
@@ -456,7 +456,7 @@ Napi::Value RTCPeerConnection::SetConfiguration(const Napi::CallbackInfo& info) 
   CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, configuration, webrtc::PeerConnectionInterface::RTCConfiguration)
 
   if (!_jinglePeerConnection) {
-    Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "RTCPeerConnection is closed")).ThrowAsJavaScriptException();
+    Napi::Error(env, ErrorFactory::CreateInvalidStateError(env, "RTCPeerConnection is closed")).ThrowAsJavaScriptException();
     return env.Undefined();
   }
 
@@ -498,7 +498,7 @@ Napi::Value RTCPeerConnection::GetStats(const Napi::CallbackInfo& info) {
   CREATE_DEFERRED(env, deferred)
 
   if (!_jinglePeerConnection) {
-    napi::Reject(deferred, ErrorFactory::napi::CreateError(env, "RTCPeerConnection is closed"));
+    Reject(deferred, ErrorFactory::CreateError(env, "RTCPeerConnection is closed"));
     return deferred.Promise();
   }
 
@@ -514,14 +514,14 @@ Napi::Value RTCPeerConnection::LegacyGetStats(const Napi::CallbackInfo& info) {
   CREATE_DEFERRED(env, deferred)
 
   if (!_jinglePeerConnection) {
-    napi::Reject(deferred, Napi::Error::New(env, "RTCPeerConnection is closed"));
+    Reject(deferred, Napi::Error::New(env, "RTCPeerConnection is closed"));
     return deferred.Promise();
   }
 
   auto statsObserver = new rtc::RefCountedObject<StatsObserver>(this, deferred);
   if (!_jinglePeerConnection->GetStats(statsObserver, nullptr,
           webrtc::PeerConnectionInterface::kStatsOutputLevelStandard)) {
-    napi::Reject(deferred, Napi::Error::New(env, "Failed to execute getStats"));
+    Reject(deferred, Napi::Error::New(env, "Failed to execute getStats"));
     return deferred.Promise();
   }
 

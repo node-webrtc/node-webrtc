@@ -15,7 +15,7 @@
 
 #include "src/enums/node_webrtc/binary_type.h"
 #include "src/node/event_queue.h"
-#include "src/node/napi_async_object_wrap_with_loop.h"
+#include "src/node/async_object_wrap_with_loop.h"
 #include "src/node/wrap.h"
 
 namespace node_webrtc {
@@ -24,7 +24,7 @@ class DataChannelObserver;
 class PeerConnectionFactory;
 
 class RTCDataChannel
-  : public napi::AsyncObjectWrapWithLoop<RTCDataChannel>
+  : public AsyncObjectWrapWithLoop<RTCDataChannel>
   , public webrtc::DataChannelObserver {
   friend class node_webrtc::DataChannelObserver;
  public:

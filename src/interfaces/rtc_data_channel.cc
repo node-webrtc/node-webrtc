@@ -61,7 +61,7 @@ static void requeue(DataChannelObserver& observer, RTCDataChannel& channel) {
 }
 
 RTCDataChannel::RTCDataChannel(const Napi::CallbackInfo& info)
-  : napi::AsyncObjectWrapWithLoop<RTCDataChannel>("RTCDataChannel", *this, info)
+  : AsyncObjectWrapWithLoop<RTCDataChannel>("RTCDataChannel", *this, info)
   , _binaryType(BinaryType::kArrayBuffer) {
   auto env = info.Env();
 
@@ -168,7 +168,7 @@ void RTCDataChannel::HandleMessage(RTCDataChannel& channel, const webrtc::DataBu
     });
     value = array;  // NOLINT
   } else {
-    auto str = Napi::String::New(env, message, size);
+    auto str = Napi::String::New(env, message, size);  // NOLINT
     value = str;
   }
   channel.MakeCallback("onmessage", { value });
@@ -178,7 +178,7 @@ Napi::Value RTCDataChannel::Send(const Napi::CallbackInfo& info) {
   auto env = info.Env();
   if (_jingleDataChannel != nullptr) {
     if (_jingleDataChannel->state() != webrtc::DataChannelInterface::DataState::kOpen) {
-      Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "RTCDataChannel.readyState is not 'open'")).ThrowAsJavaScriptException();
+      Napi::Error(env, ErrorFactory::CreateInvalidStateError(env, "RTCDataChannel.readyState is not 'open'")).ThrowAsJavaScriptException();
       return env.Undefined();
     }
     if (info[0].IsString()) {
@@ -217,7 +217,7 @@ Napi::Value RTCDataChannel::Send(const Napi::CallbackInfo& info) {
       _jingleDataChannel->Send(data_buffer);
     }
   } else {
-    Napi::Error(env, ErrorFactory::napi::CreateInvalidStateError(env, "RTCDataChannel.readyState is not 'open'")).ThrowAsJavaScriptException();
+    Napi::Error(env, ErrorFactory::CreateInvalidStateError(env, "RTCDataChannel.readyState is not 'open'")).ThrowAsJavaScriptException();
     return env.Undefined();
   }
 

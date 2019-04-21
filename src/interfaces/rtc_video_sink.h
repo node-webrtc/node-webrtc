@@ -12,14 +12,14 @@
 #include <webrtc/api/scoped_refptr.h>
 #include <webrtc/api/video/video_sink_interface.h>
 
-#include "src/node/napi_async_object_wrap_with_loop.h"
+#include "src/node/async_object_wrap_with_loop.h"
 
 namespace webrtc { class VideoFrame; }
 
 namespace node_webrtc {
 
 class RTCVideoSink
-  : public napi::AsyncObjectWrapWithLoop<RTCVideoSink>
+  : public AsyncObjectWrapWithLoop<RTCVideoSink>
   , public rtc::VideoSinkInterface<webrtc::VideoFrame> {
  public:
   explicit RTCVideoSink(const Napi::CallbackInfo&);

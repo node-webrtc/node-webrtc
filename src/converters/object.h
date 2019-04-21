@@ -15,8 +15,6 @@
 
 namespace node_webrtc {
 
-namespace napi {
-
 template <typename T>
 static Validation<T> GetRequired(const Napi::Object object, const std::string& property) {
   auto maybeValue = object.Get(property);
@@ -45,7 +43,5 @@ static Validation<T> GetOptional(
     return maybeT.FromMaybe(default_value);
   });
 }
-
-}  // namespace napi
 
 }  // namespace node_webrtc
