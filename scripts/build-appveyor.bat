@@ -2,7 +2,7 @@
 SETLOCAL
 SET EL=0
 
-IF /I "%platform%"=="x64" powershell Install-Product node $env:nodejs_version x64
+powershell Install-Product node $env:nodejs_version x64
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO npm install
@@ -10,17 +10,23 @@ SET SKIP_DOWNLOAD=true
 CALL npm install
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-:CHECK_NPM_TEST_ERRORLEVEL
 ECHO npm run lint
 CALL npm run lint
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-ECHO npm test
-CALL npm test
+ECHO Test using Node 11
+SET nodejs_version=11
+CALL scripts\run-tests.bat
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-ECHO npm run test:browsers
-CALL npm run test:browsers
+ECHO Test using Node 10
+SET nodejs_version=10
+CALL scripts\run-tests.bat
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+ECHO Test using Node 8
+SET nodejs_version=8
+CALL scripts\run-tests.bat
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO node-pre-gyp package

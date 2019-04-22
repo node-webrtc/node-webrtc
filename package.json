@@ -21,8 +21,9 @@
     "module_name": "wrtc",
     "module_path": "./build/{configuration}/",
     "remote_path": "./{module_name}/v{version}/{configuration}/",
-    "package_name": "{node_abi}-{platform}-{arch}.tar.gz",
-    "host": "https://node-webrtc.s3.amazonaws.com"
+    "package_name": "{platform}-{arch}-napi-v{napi_build_version}.tar.gz",
+    "host": "https://node-webrtc.s3.amazonaws.com",
+    "napi_versions": [3]
   },
   "engines": {
     "node": "^8.11.2 || ^10.0.0 || ^11.0.0"
