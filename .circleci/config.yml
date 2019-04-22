@@ -1,21 +1,32 @@
 version: 2
 
 aliases:
-  npm-version: &npm-version
-    run:
-      name: npm version
-      command: npm version
+  node-8-release: &node-8-release { environment: { NODE_VERSION: 8 } }
+  node-8-arm-release: &node-8-arm-release { environment: { NODE_VERSION: 8, TARGET_ARCH: arm } }
+  node-8-arm64-release: &node-8-arm64-release { environment: { NODE_VERSION: 8, TARGET_ARCH: arm64 } }
+  node-8-debug: &node-8-debug { environment: { NODE_VERSION: 8, DEBUG: true } }
+  node-8-arm-debug: &node-8-arm-debug { environment: { NODE_VERSION: 8, TARGET_ARCH: arm, DEBUG: true } }
+  node-8-arm64-debug: &node-8-arm64-debug { environment: { NODE_VERSION: 8, TARGET_ARCH: arm64, DEBUG: true } }
+
+  node-10-release: &node-10-release { environment: { NODE_VERSION: 10 } }
+  node-10-arm-release: &node-10-arm-release { environment: { NODE_VERSION: 10, TARGET_ARCH: arm } }
+  node-10-arm64-release: &node-10-arm64-release { environment: { NODE_VERSION: 10, TARGET_ARCH: arm64 } }
+  node-10-debug: &node-10-debug { environment: { NODE_VERSION: 10, DEBUG: true } }
+  node-10-arm-debug: &node-10-arm-debug { environment: { NODE_VERSION: 10, TARGET_ARCH: arm, DEBUG: true } }
+  node-10-arm64-debug: &node-10-arm64-debug { environment: { NODE_VERSION: 10, TARGET_ARCH: arm64, DEBUG: true } }
+
+  node-11-release: &node-11-release { environment: { NODE_VERSION: 11 } }
+  node-11-arm-release: &node-11-arm-release { environment: { NODE_VERSION: 11, TARGET_ARCH: arm } }
+  node-11-arm64-release: &node-11-arm64-release { environment: { NODE_VERSION: 11, TARGET_ARCH: arm64 } }
+  node-11-debug: &node-11-debug { environment: { NODE_VERSION: 11, DEBUG: true } }
+  node-11-arm-debug: &node-11-arm-debug { environment: { NODE_VERSION: 11, TARGET_ARCH: arm, DEBUG: true } }
+  node-11-arm64-debug: &node-11-arm64-debug { environment: { NODE_VERSION: 11, TARGET_ARCH: arm64, DEBUG: true } }
 
   lint-javascript: &lint-javascript
     run:
       name: Lint JavaScript
       command: |
         npm run lint
-
-        if [[ "$TARGET_ARCH" != arm* ]]; then
-          cd example
-          npm run lint
-        fi
 
   test-javascript: &test-javascript
     run:
@@ -127,40 +138,99 @@ aliases:
       name: After save cache...
       command: rm CACHE_KEY
 
-  linux-x86_64: &linux-x86_64
+  before-save-workspace: &before-save-workspace
+    run:
+      name: Before save workspace...
+      command: |
+        export PLATFORM=$(uname | tr '[:upper:]' '[:lower:]')
+
+        if [ -z "TARGET_ARCH" ]; then
+          export TARGET_ARCH=x86_64
+        fi
+
+        if [ -z "$DEBUG" ]; then
+          export BUILD_TYPE=Release
+        else
+          export BUILD_TYPE=Debug
+        fi
+
+        mkdir -p /tmp/workspace/$PLATFORM-$TARGET_ARCH-$BUILD_TYPE
+        cd /tmp/workspace/$PLATFORM-$TARGET_ARCH-$BUILD_TYPE
+
+        cp ~/node-webrtc/build/$BUILD_TYPE/wrtc.node wrtc.node
+        cp -R ~/node-webrtc/example example || true
+        cp -R ~/node-webrtc/node_modules node_modules
+
+  save-workspace: &save-workspace
+    persist_to_workspace:
+      root: /tmp/workspace
+      paths:
+        - "*"
+
+  restore-workspace: &restore-workspace
+    attach_workspace:
+      at: /tmp/workspace
+
+  after-restore-workspace: &after-restore-workspace
+    run:
+      name: After resore workspace...
+      command: |
+        export PLATFORM=$(uname | tr '[:upper:]' '[:lower:]')
+
+        if [ -z "TARGET_ARCH" ]; then
+          export TARGET_ARCH=x86_64
+        fi
+
+        if [ -z "$DEBUG" ]; then
+          export BUILD_TYPE=Release
+        else
+          export BUILD_TYPE=Debug
+        fi
+
+        cd /tmp/workspace/$PLATFORM-$TARGET_ARCH-$BUILD_TYPE
+
+        mkdir -p ~/node-webrtc/build/$BUILD_TYPE
+        cp wrtc.node ~/node-webrtc/build/$BUILD_TYPE/wrtc.node
+        cp -R example ~/node-webrtc/example || true
+        cp -R node_modules ~/node-webrtc/node_modules
+
+  linux: &linux
     working_directory: ~/node-webrtc
 
     docker:
       - image: buildpack-deps:xenial
 
+  install-node-linux: &install-node-linux
+    run:
+      name: Install Node
+      command: |
+        apt-get update
+        apt-get install -y sudo
+
+        cd ~
+        curl -sL https://deb.nodesource.com/setup_$NODE_VERSION.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+
+        if [[ "$TARGET_ARCH" == arm* ]]; then
+          export NODE_VERSION=$(node -v | tr -d '\n')
+
+          if [ "$TARGET_ARCH" == "arm" ]; then
+            export TARGET=armv7l
+          else
+            export TARGET=arm64
+          fi
+
+          wget https://nodejs.org/dist/$NODE_VERSION/node-$NODE_VERSION-linux-$TARGET.tar.xz
+          tar xf node-$NODE_VERSION-linux-$TARGET.tar.xz
+        fi
+
+        npm version
+
+  build-linux-x86_64: &build-linux-x86_64
+    <<: *linux
+
     steps:
-      - run:
-          name: Install sudo
-          command: |
-            apt-get update
-            apt-get install -y sudo
-
-      - run:
-          name: Install Node
-          command: |
-            cd ~
-            curl -sL https://deb.nodesource.com/setup_$NODE_VERSION.x | sudo -E bash -
-            sudo apt-get install -y nodejs
-
-            if [[ "$TARGET_ARCH" == arm* ]]; then
-              export NODE_VERSION=$(node -v | tr -d '\n')
-
-              if [ "$TARGET_ARCH" == "arm" ]; then
-                export TARGET=armv7l
-              else
-                export TARGET=arm64
-              fi
-
-              wget https://nodejs.org/dist/$NODE_VERSION/node-$NODE_VERSION-linux-$TARGET.tar.xz
-              tar xf node-$NODE_VERSION-linux-$TARGET.tar.xz
-            fi
-
-      - <<: *npm-version
+      - <<: *install-node-linux
 
       - run:
           name: Check Compiler Versions
@@ -254,6 +324,22 @@ aliases:
               exit -1
             fi
 
+      - <<: *before-save-workspace
+
+      - <<: *save-workspace
+
+  test-linux-x86_64: &test-linux-x86_64
+    <<: *linux
+
+    steps:
+      - <<: *install-node-linux
+
+      - checkout
+
+      - <<: *restore-workspace
+
+      - <<: *after-restore-workspace
+
       - run:
           name: Install qemu (armv7l-, arm64-only)
           command: |
@@ -345,36 +431,52 @@ aliases:
 
       - <<: *test-browsers
 
+  publish-linux-x86_64: &publish-linux-x86_64
+    <<: *linux
+
+    steps:
+      - <<: *install-node-linux
+
+      - checkout
+
+      - <<: *restore-workspace
+
+      - <<: *after-restore-workspace
+
       - <<: *publish-binary
 
-  darwin-x86_64: &darwin-x86_64
+  darwin: &darwin
     working_directory: ~/node-webrtc
 
     macos:
       xcode: "9.0"
 
+  install-node-darwin: &install-node-darwin
+    run:
+      name: Install Node
+      command: |
+        curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+
+        # NOTE(mroberts): Needed for macOS.
+        if ! [ -x "$(command -v nvm)" ]; then
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+          echo >> $BASH_ENV 'export NVM_DIR="$HOME/.nvm"'
+          echo >> $BASH_ENV '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
+        fi
+
+        nvm install $NODE_VERSION
+        nvm use $NODE_VERSION
+        echo >> $BASH_ENV "nvm use $NODE_VERSION"
+
+        npm version
+
+  build-darwin-x86_64: &build-darwin-x86_64
+    <<: *darwin
+
     steps:
-      - run:
-          name: Install nvm
-          command: curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
-
-      - run:
-          name: Install Node
-          command: |
-            # NOTE(mroberts): Needed for macOS.
-            if ! [ -x "$(command -v nvm)" ]; then
-              export NVM_DIR="$HOME/.nvm"
-              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
-              echo >> $BASH_ENV 'export NVM_DIR="$HOME/.nvm"'
-              echo >> $BASH_ENV '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
-            fi
-
-            nvm install $NODE_VERSION
-            nvm use $NODE_VERSION
-            echo >> $BASH_ENV "nvm use $NODE_VERSION"
-
-      - <<: *npm-version
+      - <<: *install-node-darwin
 
       - run:
           name: Install CMake
@@ -407,184 +509,287 @@ aliases:
 
       - <<: *lint-javascript
 
+      - <<: *before-save-workspace
+
+      - <<: *save-workspace
+
+  test-darwin-x86_64: &test-darwin-x86_64
+    <<: *darwin
+
+    steps:
+      - <<: *install-node-darwin
+
+      - checkout
+
+      - <<: *restore-workspace
+
+      - <<: *after-restore-workspace
+
       - <<: *test-javascript
 
       - <<: *prepare-for-web-platform-tests
 
       - <<: *web-platform-tests
 
+  publish-darwin-x86_64: &publish-darwin-x86_64
+    <<: *darwin
+
+    steps:
+      - <<: *install-node-darwin
+
+      - checkout
+
+      - <<: *restore-workspace
+
+      - <<: *after-restore-workspace
+
       - <<: *publish-binary
 
 jobs:
-  linux-x86_64-node-11-debug:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 11
-      DEBUG: true
+  build-linux-x86_64-node-8-debug:
+    <<: *build-linux-x86_64
+    <<: *node-8-debug
 
-  linux-x86_64-node-11-release:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 11
+  build-linux-x86_64-node-8-release:
+    <<: *build-linux-x86_64
+    <<: *node-8-release
 
-  linux-armv7l-node-11-debug:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 11
-      DEBUG: true
-      TARGET_ARCH: arm
+  build-linux-armv7l-node-8-debug:
+    <<: *build-linux-x86_64
+    <<: *node-8-arm-debug
 
-  linux-armv7l-node-11-release:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 11
-      TARGET_ARCH: arm
+  build-linux-armv7l-node-8-release:
+    <<: *build-linux-x86_64
+    <<: *node-8-arm-release
 
-  linux-arm64-node-11-debug:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 11
-      DEBUG: true
-      TARGET_ARCH: arm64
+  build-linux-arm64-node-8-debug:
+    <<: *build-linux-x86_64
+    <<: *node-8-arm64-debug
 
-  linux-arm64-node-11-release:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 11
-      TARGET_ARCH: arm64
+  build-linux-arm64-node-8-release:
+    <<: *build-linux-x86_64
+    <<: *node-8-arm64-release
 
-  darwin-x86_64-node-11-debug:
-    <<: *darwin-x86_64
-    environment:
-      NODE_VERSION: 11
-      DEBUG: true
+  build-darwin-x86_64-node-8-debug:
+    <<: *build-darwin-x86_64
+    <<: *node-8-debug
 
-  darwin-x86_64-node-11-release:
-    <<: *darwin-x86_64
-    environment:
-      NODE_VERSION: 11
+  build-darwin-x86_64-node-8-release:
+    <<: *build-darwin-x86_64
+    <<: *node-8-release
 
-  linux-x86_64-node-10-debug:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 10
-      DEBUG: true
+  test-linux-x86_64-node-8-debug:
+    <<: *test-linux-x86_64
+    <<: *node-8-debug
 
-  linux-x86_64-node-10-release:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 10
+  test-linux-x86_64-node-8-release:
+    <<: *test-linux-x86_64
+    <<: *node-8-release
 
-  linux-armv7l-node-10-debug:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 10
-      DEBUG: true
-      TARGET_ARCH: arm
+  test-linux-armv7l-node-8-debug:
+    <<: *test-linux-x86_64
+    <<: *node-8-arm-debug
 
-  linux-armv7l-node-10-release:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 10
-      TARGET_ARCH: arm
+  test-linux-armv7l-node-8-release:
+    <<: *test-linux-x86_64
+    <<: *node-8-arm-release
 
-  linux-arm64-node-10-debug:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 10
-      DEBUG: true
-      TARGET_ARCH: arm64
+  test-linux-arm64-node-8-debug:
+    <<: *test-linux-x86_64
+    <<: *node-8-arm64-debug
 
-  linux-arm64-node-10-release:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 10
-      TARGET_ARCH: arm64
+  test-linux-arm64-node-8-release:
+    <<: *test-linux-x86_64
+    <<: *node-8-arm64-release
 
-  darwin-x86_64-node-10-debug:
-    <<: *darwin-x86_64
-    environment:
-      NODE_VERSION: 10
-      DEBUG: true
+  test-darwin-x86_64-node-8-debug:
+    <<: *test-darwin-x86_64
+    <<: *node-8-debug
 
-  darwin-x86_64-node-10-release:
-    <<: *darwin-x86_64
-    environment:
-      NODE_VERSION: 10
+  test-darwin-x86_64-node-8-release:
+    <<: *test-darwin-x86_64
+    <<: *node-8-release
 
-  linux-x86_64-node-8-debug:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 8
-      DEBUG: true
+  test-linux-x86_64-node-10-debug:
+    <<: *test-linux-x86_64
+    <<: *node-10-debug
 
-  linux-x86_64-node-8-release:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 8
+  test-linux-x86_64-node-10-release:
+    <<: *test-linux-x86_64
+    <<: *node-10-release
 
-  linux-armv7l-node-8-debug:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 8
-      DEBUG: true
-      TARGET_ARCH: arm
+  test-linux-armv7l-node-10-debug:
+    <<: *test-linux-x86_64
+    <<: *node-10-arm-debug
 
-  linux-armv7l-node-8-release:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 8
-      TARGET_ARCH: arm
+  test-linux-armv7l-node-10-release:
+    <<: *test-linux-x86_64
+    <<: *node-10-arm-release
 
-  linux-arm64-node-8-debug:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 8
-      DEBUG: true
-      TARGET_ARCH: arm64
+  test-linux-arm64-node-10-debug:
+    <<: *test-linux-x86_64
+    <<: *node-10-arm64-debug
 
-  linux-arm64-node-8-release:
-    <<: *linux-x86_64
-    environment:
-      NODE_VERSION: 8
-      TARGET_ARCH: arm64
+  test-linux-arm64-node-10-release:
+    <<: *test-linux-x86_64
+    <<: *node-10-arm64-release
 
-  darwin-x86_64-node-8-debug:
-    <<: *darwin-x86_64
-    environment:
-      NODE_VERSION: 8
-      DEBUG: true
+  test-darwin-x86_64-node-10-debug:
+    <<: *test-darwin-x86_64
+    <<: *node-10-debug
 
-  darwin-x86_64-node-8-release:
-    <<: *darwin-x86_64
-    environment:
-      NODE_VERSION: 8
+  test-darwin-x86_64-node-10-release:
+    <<: *test-darwin-x86_64
+    <<: *node-10-release
+
+  test-linux-x86_64-node-11-debug:
+    <<: *test-linux-x86_64
+    <<: *node-11-debug
+
+  test-linux-x86_64-node-11-release:
+    <<: *test-linux-x86_64
+    <<: *node-11-release
+
+  test-linux-armv7l-node-11-debug:
+    <<: *test-linux-x86_64
+    <<: *node-11-arm-debug
+
+  test-linux-armv7l-node-11-release:
+    <<: *test-linux-x86_64
+    <<: *node-11-arm-release
+
+  test-linux-arm64-node-11-debug:
+    <<: *test-linux-x86_64
+    <<: *node-11-arm64-debug
+
+  test-linux-arm64-node-11-release:
+    <<: *test-linux-x86_64
+    <<: *node-11-arm64-release
+
+  test-darwin-x86_64-node-11-debug:
+    <<: *test-darwin-x86_64
+    <<: *node-11-debug
+
+  test-darwin-x86_64-node-11-release:
+    <<: *test-darwin-x86_64
+    <<: *node-11-release
+
+  publish-linux-x86_64-node-8-debug:
+    <<: *publish-linux-x86_64
+    <<: *node-8-debug
+
+  publish-linux-x86_64-node-8-release:
+    <<: *publish-linux-x86_64
+    <<: *node-8-release
+
+  publish-linux-armv7l-node-8-debug:
+    <<: *publish-linux-x86_64
+    <<: *node-8-arm-debug
+
+  publish-linux-armv7l-node-8-release:
+    <<: *publish-linux-x86_64
+    <<: *node-8-arm-release
+
+  publish-linux-arm64-node-8-debug:
+    <<: *publish-linux-x86_64
+    <<: *node-8-arm64-debug
+
+  publish-linux-arm64-node-8-release:
+    <<: *publish-linux-x86_64
+    <<: *node-8-arm64-release
+
+  publish-darwin-x86_64-node-8-debug:
+    <<: *publish-darwin-x86_64
+    <<: *node-8-debug
+
+  publish-darwin-x86_64-node-8-release:
+    <<: *publish-darwin-x86_64
+    <<: *node-8-release
 
 workflows:
   version: 2
   build:
     jobs:
-      - linux-x86_64-node-11-debug
-      - linux-x86_64-node-11-release
-      - linux-armv7l-node-11-debug
-      - linux-armv7l-node-11-release
-      - linux-arm64-node-11-debug
-      - linux-arm64-node-11-release
-      - darwin-x86_64-node-11-debug
-      - darwin-x86_64-node-11-release
-      - linux-x86_64-node-10-debug
-      - linux-x86_64-node-10-release
-      - linux-armv7l-node-10-debug
-      - linux-armv7l-node-10-release
-      - linux-arm64-node-10-debug
-      - linux-arm64-node-10-release
-      - darwin-x86_64-node-10-debug
-      - darwin-x86_64-node-10-release
-      - linux-x86_64-node-8-debug
-      - linux-x86_64-node-8-release
-      - linux-armv7l-node-8-debug
-      - linux-armv7l-node-8-release
-      - linux-arm64-node-8-debug
-      - linux-arm64-node-8-release
-      - darwin-x86_64-node-8-debug
-      - darwin-x86_64-node-8-release
+      - build-linux-x86_64-node-8-debug
+      - build-linux-x86_64-node-8-release
+      - build-linux-armv7l-node-8-debug
+      - build-linux-armv7l-node-8-release
+      - build-linux-arm64-node-8-debug
+      - build-linux-arm64-node-8-release
+      - build-darwin-x86_64-node-8-debug
+      - build-darwin-x86_64-node-8-release
+
+      - test-linux-x86_64-node-8-debug:    { requires: [build-linux-x86_64-node-8-debug] }
+      - test-linux-x86_64-node-8-release:  { requires: [build-linux-x86_64-node-8-release] }
+      - test-linux-armv7l-node-8-debug:    { requires: [build-linux-armv7l-node-8-debug] }
+      - test-linux-armv7l-node-8-release:  { requires: [build-linux-armv7l-node-8-release] }
+      - test-linux-arm64-node-8-debug:     { requires: [build-linux-arm64-node-8-debug] }
+      - test-linux-arm64-node-8-release:   { requires: [build-linux-arm64-node-8-release] }
+      - test-darwin-x86_64-node-8-debug:   { requires: [build-darwin-x86_64-node-8-debug] }
+      - test-darwin-x86_64-node-8-release: { requires: [build-darwin-x86_64-node-8-release] }
+
+      - test-linux-x86_64-node-10-debug:    { requires: [build-linux-x86_64-node-8-debug] }
+      - test-linux-x86_64-node-10-release:  { requires: [build-linux-x86_64-node-8-release] }
+      - test-linux-armv7l-node-10-debug:    { requires: [build-linux-armv7l-node-8-debug] }
+      - test-linux-armv7l-node-10-release:  { requires: [build-linux-armv7l-node-8-release] }
+      - test-linux-arm64-node-10-debug:     { requires: [build-linux-arm64-node-8-debug] }
+      - test-linux-arm64-node-10-release:   { requires: [build-linux-arm64-node-8-release] }
+      - test-darwin-x86_64-node-10-debug:   { requires: [build-darwin-x86_64-node-8-debug] }
+      - test-darwin-x86_64-node-10-release: { requires: [build-darwin-x86_64-node-8-release] }
+
+      - test-linux-x86_64-node-11-debug:    { requires: [build-linux-x86_64-node-8-debug] }
+      - test-linux-x86_64-node-11-release:  { requires: [build-linux-x86_64-node-8-release] }
+      - test-linux-armv7l-node-11-debug:    { requires: [build-linux-armv7l-node-8-debug] }
+      - test-linux-armv7l-node-11-release:  { requires: [build-linux-armv7l-node-8-release] }
+      - test-linux-arm64-node-11-debug:     { requires: [build-linux-arm64-node-8-debug] }
+      - test-linux-arm64-node-11-release:   { requires: [build-linux-arm64-node-8-release] }
+      - test-darwin-x86_64-node-11-debug:   { requires: [build-darwin-x86_64-node-8-debug] }
+      - test-darwin-x86_64-node-11-release: { requires: [build-darwin-x86_64-node-8-release] }
+
+      - publish-linux-x86_64-node-8-debug:
+          requires:
+            - test-linux-x86_64-node-8-debug
+            - test-linux-x86_64-node-10-debug
+            - test-linux-x86_64-node-11-debug
+
+      - publish-linux-x86_64-node-8-release:
+          requires:
+            - test-linux-x86_64-node-8-release
+            - test-linux-x86_64-node-10-release
+            - test-linux-x86_64-node-11-release
+
+      - publish-linux-armv7l-node-8-debug:
+          requires:
+            - test-linux-armv7l-node-8-debug
+            - test-linux-armv7l-node-10-debug
+            - test-linux-armv7l-node-11-debug
+
+      - publish-linux-armv7l-node-8-release:
+          requires:
+            - test-linux-armv7l-node-8-release
+            - test-linux-armv7l-node-10-release
+            - test-linux-armv7l-node-11-release
+
+      - publish-linux-arm64-node-8-debug:
+          requires:
+            - test-linux-arm64-node-8-debug
+            - test-linux-arm64-node-10-debug
+            - test-linux-arm64-node-11-debug
+
+      - publish-linux-arm64-node-8-release:
+          requires:
+            - test-linux-arm64-node-8-release
+            - test-linux-arm64-node-10-release
+            - test-linux-arm64-node-11-release
+
+      - publish-darwin-x86_64-node-8-debug:
+          requires:
+            - test-darwin-x86_64-node-8-debug
+            - test-darwin-x86_64-node-10-debug
+            - test-darwin-x86_64-node-11-debug
+
+      - publish-darwin-x86_64-node-8-release:
+          requires:
+            - test-darwin-x86_64-node-8-release
+            - test-darwin-x86_64-node-10-release
+            - test-darwin-x86_64-node-11-release
