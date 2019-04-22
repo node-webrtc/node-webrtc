@@ -14,8 +14,8 @@ ECHO npm run lint
 CALL npm run lint
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-ECHO Test using Node 11
-SET nodejs_version=11
+ECHO Test using Node 8
+SET nodejs_version=8
 CALL scripts\run-tests.bat
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
@@ -24,8 +24,8 @@ SET nodejs_version=10
 CALL scripts\run-tests.bat
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-ECHO Test using Node 8
-SET nodejs_version=8
+ECHO Test using Node 11
+SET nodejs_version=11
 CALL scripts\run-tests.bat
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
