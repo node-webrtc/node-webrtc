@@ -160,6 +160,8 @@ aliases:
         cp ~/node-webrtc/build/$BUILD_TYPE/wrtc.node wrtc.node
         cp -R ~/node-webrtc/example example || true
         cp -R ~/node-webrtc/node_modules node_modules
+        cp -R ~/node-webrtc/build/external/libwebrtc/download/src/build/linux/debian_sid_arm-sysroot debian_sid_arm-sysroot || true
+        cp -R ~/node-webrtc/build/external/libwebrtc/download/src/build/linux/debian_sid_arm64-sysroot debian_sid_arm64-sysroot || true
 
   save-workspace: &save-workspace
     persist_to_workspace:
@@ -190,9 +192,12 @@ aliases:
         cd /tmp/workspace/$PLATFORM-$TARGET_ARCH-$BUILD_TYPE
 
         mkdir -p ~/node-webrtc/build/$BUILD_TYPE
+        mkdir -p ~/node-webrtc/build/external/libwebrtc/download/src/build/linux
         cp wrtc.node ~/node-webrtc/build/$BUILD_TYPE/wrtc.node
         cp -R example ~/node-webrtc/example || true
         cp -R node_modules ~/node-webrtc/node_modules
+        cp -R debian_sid_arm-sysroot ~/node-webrtc/build/external/libwebrtc/download/src/build/linux/debian_sid_arm-sysroot || true
+        cp -R debian_sid_arm64-sysroot ~/node-webrtc/build/external/libwebrtc/download/src/build/linux/debian_sid_arm64-sysroot || true
 
   linux: &linux
     working_directory: ~/node-webrtc
