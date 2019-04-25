@@ -2,14 +2,16 @@ pool:
   vmImage: vs2017-win2016
 
 steps:
+- script: choco install nvm
+  displayName: choco install nvm
+
 - script: |
-    choco install nvm
     nvm install 8
     nvm install 10
     nvm install 11
     nvm use 8
     nvm on
-  displayName: Setup NVM
+  displayName: Install Node 8, 10, and 11
 
 - script: |
     set SKIP_DOWNLOAD=true
