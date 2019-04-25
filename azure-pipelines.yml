@@ -1,17 +1,10 @@
 pool:
   vmImage: vs2017-win2016
 
-steps:
-- script: choco install nvm
-  displayName: choco install nvm
-
-- script: |
-    nvm install 8
-    nvm install 10
-    nvm install 11
-    nvm use 8
-    nvm on
-  displayName: Install Node 8, 10, and 11
+- task: NodeTool@0
+  inputs:
+    versionSpec: 8.x
+  displayName: Install Node 8
 
 - script: |
     set SKIP_DOWNLOAD=true
@@ -26,14 +19,22 @@ steps:
     npm run test:browsers
   displayName: Test with Node 8
 
+- task: NodeTool@0
+  inputs:
+    versionSpec: 10.x
+  displayName: Install Node 10
+
 - script: |
-    nvm use 10
     npm test
     npm run test:browsers
   displayName: Test with Node 10
 
+- task: NodeTool@0
+  inputs:
+    versionSpec: 11.x
+  displayName: Install Node 11
+
 - script: |
-    nvm use 11
     npm test
     npm run test:browsers
   displayName: Test with Node 11
