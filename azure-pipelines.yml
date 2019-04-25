@@ -1,0 +1,43 @@
+pool:
+  vmImage: vs2017-win2016
+
+steps:
+- script: |
+    choco install nvm
+    nvm install 8
+    nvm install 10
+    nvm install 11
+    nvm use 8
+    nvm on
+  displayName: Setup NVM
+
+- script: |
+    set SKIP_DOWNLOAD=true
+    npm install
+  displayName: npm install  
+
+- script: npm run lint
+  displayName: npm run lint
+
+- script: |
+    npm test
+    npm run test:browsers
+  displayName: Test with Node 8
+
+- script: |
+    nvm use 10
+    npm test
+    npm run test:browsers
+  displayName: Test with Node 10
+
+- script: |
+    nvm use 11
+    npm test
+    npm run test:browsers
+  displayName: Test with Node 11
+
+- script: .\node_modules\.bin\node-pre-gyp package
+  displayName: node-pre-gyp package
+
+- script: if not "%BUILD_SOURCEVERSIONMESSAGE% == "%BUILD_SOURCEVERSIONMESSAGE:[publish binary]=%" call node_modules\.bin\node-pre-gyp --msvs_version=2017 publish
+  displayName: node-pre-gyp publish (optional)
