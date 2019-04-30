@@ -8,12 +8,12 @@
   ],
   "version": "0.4.0-dev",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
-  "homepage": "http://js-platform.github.io/node-webrtc/",
-  "bugs": "https://github.com/js-platform/node-webrtc/issues",
+  "homepage": "https://github.com/node-webrtc/node-webrtc",
+  "bugs": "https://github.com/node-webrtc/node-webrtc/issues",
   "license": "BSD-2-Clause",
   "repository": {
     "type": "git",
-    "url": "http://github.com/js-platform/node-webrtc.git"
+    "url": "http://github.com/node-webrtc/node-webrtc.git"
   },
   "main": "lib/index.js",
   "browser": "lib/browser.js",

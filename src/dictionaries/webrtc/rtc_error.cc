@@ -18,11 +18,11 @@ TO_NAPI_IMPL(const webrtc::RTCError*, pair) {
   Napi::EscapableHandleScope scope(env);
   auto error = pair.second;
   if (!error) {
-    return Validation<Napi::Value>::Invalid("No error? Please file a bug on https://github.com/js-platform/node-webrtc");
+    return Validation<Napi::Value>::Invalid("No error? Please file a bug on https://github.com/node-webrtc/node-webrtc");
   }
   switch (error->type()) {
     case webrtc::RTCErrorType::NONE:
-      return Validation<Napi::Value>::Invalid("No error? Please file a bug on https://github.com/js-platform/node-webrtc");
+      return Validation<Napi::Value>::Invalid("No error? Please file a bug on https://github.com/node-webrtc/node-webrtc");
     case webrtc::RTCErrorType::UNSUPPORTED_PARAMETER:
     case webrtc::RTCErrorType::INVALID_PARAMETER:
       return Pure(scope.Escape(ErrorFactory::CreateInvalidAccessError(env, error->message())));

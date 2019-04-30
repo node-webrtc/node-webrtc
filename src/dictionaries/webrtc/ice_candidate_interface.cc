@@ -50,7 +50,7 @@ TO_NAPI_IMPL(webrtc::IceCandidateInterface*, pair) {
 
   std::string candidate;
   if (!value->ToString(&candidate)) {
-    return Validation<Napi::Value>::Invalid("Failed to print the candidate string. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc");
+    return Validation<Napi::Value>::Invalid("Failed to print the candidate string. This is pretty weird. File a bug on https://github.com/node-webrtc/node-webrtc");
   }
 
   NODE_WEBRTC_CREATE_OBJECT_OR_RETURN(env, object)
