@@ -2,7 +2,6 @@
 
 #include <mutex>
 
-#include <node_api.h>
 #include <node-addon-api/napi.h>
 
 namespace node_webrtc {

@@ -4,7 +4,6 @@
 #include <mutex>
 
 #include <node-addon-api/napi.h>
-#include <v8.h>
 
 #include "src/node/async_context_releaser.h"
 
