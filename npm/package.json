@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "node-pre-gyp": "^0.13.0"
+  },
+  "scripts": {
+    "install": "node scripts/download-prebuilt.js"
+  }
+}
