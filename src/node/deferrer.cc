@@ -1,5 +1,7 @@
 #include "src/node/deferrer.h"
 
+#include <node_api.h>
+
 namespace node_webrtc {
 
 Deferrer::Deferrer(Napi::Env env): _env(env) {
