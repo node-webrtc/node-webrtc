@@ -3,14 +3,26 @@
 
 node-webrtc is now implemented using N-API, which is ABI stable across Node
 releases. This means we can now ship fewer binaries while supporting a
-potentially greater number of Node releases.
+potentially greater number of Node releases. As of 0.4.0, node-webrtc targets
+N-API version 3.
+
+New Features
+------------
+
+- Added support for Node 12.
+- Added support for Electron 5.
+
+Bug Fixes
+---------
+
+- Avoid crashing when `createDataChannel` fails. (#508)
 
 Breaking Changes
 ----------------
 
 - Dropped support for Node 6.
-- NPM install only downloads pre-built binaries. If you wish to build from
-  source, install from the source repository. (#200)
+- Installing from NPM only downloads pre-built binaries. If you wish to build
+  from source, install from the source repository. (#200)
 
 0.3.7
 =====
