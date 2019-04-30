@@ -9,6 +9,8 @@ Breaking Changes
 ----------------
 
 - Dropped support for Node 6.
+- NPM install only downloads pre-built binaries. If you wish to build from
+  source, install from the source repository. (#200)
 
 0.3.7
 =====
