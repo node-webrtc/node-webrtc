@@ -41,7 +41,7 @@ npm install wrtc
 If you want to work from source, run
 
 ```
-git clone https://github.com/js-platform/node-webrtc.git
+git clone https://github.com/node-webrtc/node-webrtc.git
 cd node-webrtc
 npm install
 ```

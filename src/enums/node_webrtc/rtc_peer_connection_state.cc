@@ -22,7 +22,7 @@ CONVERTER_IMPL(webrtc::PeerConnectionInterface::IceConnectionState, RTCPeerConne
     case webrtc::PeerConnectionInterface::IceConnectionState::kIceConnectionMax:
       return Validation<node_webrtc::RTCPeerConnectionState>::Invalid(
               "WebRTC\'s RTCPeerConnection has an ICE connection state \"max\", but I have no idea"
-              "what this means. If you see this error, file a bug on https://github.com/js-platform/node-webrtc");
+              "what this means. If you see this error, file a bug on https://github.com/node-webrtc/node-webrtc");
   }
 }
 }  // namespace node_webrtc

@@ -10,12 +10,12 @@ CONVERTER_IMPL(webrtc::RTCError*, SomeError, error) {
 
 CONVERTER_IMPL(const webrtc::RTCError*, SomeError, error) {
   if (!error) {
-    return Validation<SomeError>::Invalid("No error? Please file a bug on https://github.com/js-platform/node-webrtc");
+    return Validation<SomeError>::Invalid("No error? Please file a bug on https://github.com/node-webrtc/node-webrtc");
   }
   auto type = MakeRight<ErrorFactory::DOMExceptionName>(ErrorFactory::ErrorName::kError);
   switch (error->type()) {
     case webrtc::RTCErrorType::NONE:
-      return Validation<SomeError>::Invalid("No error? Please file a bug on https://github.com/js-platform/node-webrtc");
+      return Validation<SomeError>::Invalid("No error? Please file a bug on https://github.com/node-webrtc/node-webrtc");
     case webrtc::RTCErrorType::UNSUPPORTED_PARAMETER:
     case webrtc::RTCErrorType::INVALID_PARAMETER:
       type = MakeLeft<ErrorFactory::ErrorName>(ErrorFactory::DOMExceptionName::kInvalidAccessError);

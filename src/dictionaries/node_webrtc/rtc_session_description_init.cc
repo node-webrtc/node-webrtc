@@ -59,7 +59,7 @@ CONVERTER_IMPL(const webrtc::SessionDescriptionInterface*, RTCSessionDescription
   std::string sdp;
   if (!description->ToString(&sdp)) {
     return Validation<RTCSessionDescriptionInit>::Invalid(
-            "Failed to print the SDP. This is pretty weird. File a bug on https://github.com/js-platform/node-webrtc");
+            "Failed to print the SDP. This is pretty weird. File a bug on https://github.com/node-webrtc/node-webrtc");
   }
   return curry(CreateRTCSessionDescriptionInit)
       % From<RTCSdpType>(description->type())
