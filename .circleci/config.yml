@@ -103,7 +103,12 @@ aliases:
           exit 0
         fi
 
-        npm run test:electron
+        if [[ "$(uname)" == Linux ]]; then
+          sudo apt-get install -y xvfb
+          xvfb-run ./node_modules/.bin/electron test/electron --no-sandbox
+        else
+          npm run test:electron
+        fi
 
   publish-binary: &publish-binary
     run:
