@@ -6,7 +6,6 @@ powershell Install-Product node $env:nodejs_version x64
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO npm install
-SET SKIP_DOWNLOAD=true
 CALL npm install
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 

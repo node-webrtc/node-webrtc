@@ -46,10 +46,9 @@ cd node-webrtc
 npm install
 ```
 
-Depending on what you checkout, `npm install` will either download a
-pre-compiled binary or attempt to build from source. Set `SKIP_DOWNLOAD=true` to
-always build from source. See below for more information on building from
-source.
+Installing from NPM will always attempt to download a pre-compiled binary,
+whereas installing from GitHub will always attempt to build from source. See
+below for more information on building from source.
 
 ## Build
 
@@ -83,7 +82,7 @@ In order to cross-compile for armv7l on Linux,
 ```
 wget https://releases.linaro.org/components/toolchain/binaries/7.3-2018.05/arm-linux-gnueabihf/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
 tar xf gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
-SKIP_DOWNLOAD=true TARGET_ARCH=arm ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf npm install
+TARGET_ARCH=arm ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf npm install
 ```
 
 ##### arm64
@@ -97,7 +96,7 @@ In order to cross-compile for arm64 on Linux,
 ```
 wget https://releases.linaro.org/components/toolchain/binaries/7.3-2018.05/aarch64-linux-gnu/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu.tar.xz
 tar xf gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu.tar.xz
-SKIP_DOWNLOAD=true TARGET_ARCH=arm64 ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu npm install
+TARGET_ARCH=arm64 ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu npm install
 ```
 
 #### macOS
