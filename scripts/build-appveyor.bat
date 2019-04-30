@@ -29,6 +29,10 @@ SET nodejs_version=11
 CALL scripts\run-tests.bat
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
+ECHO Test Electron
+CALL npm run test:electron
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
 ECHO node-pre-gyp package
 CALL node_modules\.bin\node-pre-gyp package
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR

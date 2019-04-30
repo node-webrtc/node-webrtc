@@ -94,6 +94,17 @@ aliases:
 
         npm run test:browsers
 
+  test-electron: &test-electron
+    run:
+      name: Test Electron (x86_64-only)
+      command: |
+        if [[ "$TARGET_ARCH" == arm* ]]; then
+          echo "Skipping..."
+          exit 0
+        fi
+
+        npm run test:electron
+
   publish-binary: &publish-binary
     run:
       name: Publish Binary (arm64-, x86_64-only)
@@ -436,6 +447,8 @@ aliases:
 
       - <<: *test-browsers
 
+      - <<: *test-electron
+
   publish-linux-x86_64: &publish-linux-x86_64
     <<: *linux
 
@@ -535,6 +548,8 @@ aliases:
       - <<: *prepare-for-web-platform-tests
 
       - <<: *web-platform-tests
+
+      - <<: *test-electron
 
   publish-darwin-x86_64: &publish-darwin-x86_64
     <<: *darwin
