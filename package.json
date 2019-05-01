@@ -73,7 +73,7 @@
     "ws": "^5.2.0"
   },
   "scripts": {
-    "install": "node scripts/build-from-source.js",
+    "install": "node scripts/download-prebuilt-or-build-from-source.js",
     "install-example": "node scripts/install-example.js",
     "lint": "eslint lib/*.js lib/**/*.js test/*.js test/**/*.js karma/*.js scripts/*.js",
     "publish-binary": "node scripts/publish.js",

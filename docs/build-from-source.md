@@ -15,16 +15,16 @@ required by node-cmake, you will need
 
 ## Install
 
-Once you have the prerequisites, clone the repository and run `npm install`.
-This `npm install` will trigger the initial build. Just like when installing
-prebuilt binaries, you can set the `TARGET_ARCH` environment variable to "arm"
-or "arm64" to build for armv7l or arm64, respectively. Linux and macOS users can
-also set the `DEBUG` environment variable for debug builds.
+Once you have the prerequisites, clone the repository, set the `SKIP_DOWNLOAD`
+environment variable to "true", and run `npm install`. Just like when
+installing prebuilt binaries, you can set the `TARGET_ARCH` environment
+variable to "arm" or "arm64" to build for armv7l or arm64, respectively. Linux
+and macOS users can also set the `DEBUG` environment variable for debug builds.
 
 ```
 git clone https://github.com/node-webrtc/node-webrtc.git
 cd node-webrtc
-npm install
+SKIP_DOWNLOAD=true npm install
 ```
 
 ## Subsequent Builds
@@ -59,7 +59,7 @@ In order to cross-compile for armv7l on Linux,
 ```
 wget https://releases.linaro.org/components/toolchain/binaries/7.3-2018.05/arm-linux-gnueabihf/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
 tar xf gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
-TARGET_ARCH=arm ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf npm install
+SKIP_DOWNLOAD=true TARGET_ARCH=arm ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf npm install
 ```
 
 #### arm64
@@ -73,7 +73,7 @@ In order to cross-compile for arm64 on Linux,
 ```
 wget https://releases.linaro.org/components/toolchain/binaries/7.3-2018.05/aarch64-linux-gnu/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu.tar.xz
 tar xf gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu.tar.xz
-TARGET_ARCH=arm64 ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu npm install
+SKIP_DOWNLOAD=true TARGET_ARCH=arm64 ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu npm install
 ```
 
 ### macOS
