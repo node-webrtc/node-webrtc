@@ -15,6 +15,7 @@ const paths = [
   'lib',
   'scripts/download-prebuilt.js',
   'LICENSE.md',
+  'README.md',
   'THIRD_PARTY_LICENSES.md'
 ];
 
