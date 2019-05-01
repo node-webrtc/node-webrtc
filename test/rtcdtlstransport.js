@@ -8,9 +8,8 @@ const {
 } = require('..');
 
 function createRTCPeerConnections() {
-  const configuration = { sdpSemantics: 'unified-plan' };
-  const pc1 = new RTCPeerConnection(configuration);
-  const pc2 = new RTCPeerConnection(configuration);
+  const pc1 = new RTCPeerConnection();
+  const pc2 = new RTCPeerConnection();
   return [pc1, pc2];
 }
 
