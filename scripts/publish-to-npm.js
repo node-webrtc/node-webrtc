@@ -2,7 +2,7 @@
 'use strict';
 
 const { spawnSync } = require('child_process');
-const { writeFileSync } = require('fs');
+const { readFileSync, writeFileSync } = require('fs');
 const { join } = require('path');
 const copy = require('recursive-copy');
 const temp = require('temp');
@@ -10,6 +10,8 @@ const temp = require('temp');
 const rootPackageJson = require('../package.json');
 
 temp.track();
+
+const githubUrl = 'https://github.com/node-webrtc/node-webrtc/blob/v' + rootPackageJson.version;
 
 const paths = [
   'lib',
@@ -35,6 +37,11 @@ const jsonFields = [
   'engines',
   'optionalDependencies',
   'bundledDependencies'
+];
+
+const relativeLinks = [
+  'docs/build-from-source.md',
+  'docs/nonstandard-apis.md'
 ];
 
 function mkTmpDir(dir) {
@@ -66,6 +73,16 @@ async function main() {
   writeFileSync(
     join(tmpDir, 'package.json'),
     JSON.stringify(packageJson, null, 2)
+  );
+
+  const readme = relativeLinks.reduce((readme, relativeLink) => {
+    const regexp = new RegExp('(' + relativeLink.replace(/\./g, '\\.') + ')', 'g');
+    return readme.replace(regexp, githubUrl + '/$1');
+  }, readFileSync(join(__dirname, '..', 'README.md')).toString());
+
+  writeFileSync(
+    join(tmpDir, 'README.md'),
+    readme
   );
 
   const { status } = spawnSync('npm', ['publish'], {
