@@ -78,9 +78,9 @@ TARGET_ARCH=arm64 ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-
 
 ### macOS
 
-On macOS, we compile WebRTC sources with the version of Clang downloaded as part
-of WebRTC's build process, but we compile node-webrtc sources using the system
-Clang.
+On macOS, we statically link libc++ and libc++abi. Also, we compile WebRTC
+sources with the version of Clang downloaded as part of WebRTC's build process,
+but we compile node-webrtc sources using the system Clang.
 
 ### Windows
 

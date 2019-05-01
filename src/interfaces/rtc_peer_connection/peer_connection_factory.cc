@@ -58,7 +58,7 @@ PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo& info)
 
   _audioDeviceModule = _workerThread->Invoke<rtc::scoped_refptr<webrtc::AudioDeviceModule>>(RTC_FROM_HERE, [audioLayer]() {
     return audioLayer.Map([](auto audioLayer) {
-      return webrtc::AudioDeviceModule::Create(0, audioLayer);
+      return webrtc::AudioDeviceModule::Create(audioLayer);
     }).Or([]() {
       return TestAudioDeviceModule::CreateTestAudioDeviceModule(
               ZeroCapturer::Create(48000),

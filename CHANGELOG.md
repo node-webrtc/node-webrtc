@@ -9,6 +9,7 @@ N-API version 3.
 New Features
 ------------
 
+- Updated to WebRTC M74.
 - Added support for Node 12.
 - Added support for Electron 5.
 
