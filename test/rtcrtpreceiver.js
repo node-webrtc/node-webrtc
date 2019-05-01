@@ -233,7 +233,7 @@ tape('applying a remote offer and then applying a local answer causes .getParame
 });
 
 tape('negotiating MediaStreamTracks and then renegotiating without them', function(t) {
-  var pc = new RTCPeerConnection();
+  var pc = new RTCPeerConnection({ sdpSemantics: 'plan-b' });
   var offer1 = new RTCSessionDescription({ type: 'offer', sdp: sdp1 });
   t.equal(pc.getReceivers().length, 0, 'initially, .getReceivers() returns nothing');
   return pc.setRemoteDescription(offer1).then(function() {

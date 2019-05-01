@@ -12,7 +12,7 @@ test('getConfiguration', function(t) {
     rtcpMuxPolicy: 'require',
     iceCandidatePoolSize: 0,
     portRange: {},
-    sdpSemantics: 'plan-b'
+    sdpSemantics: 'unified-plan'
   };
 
   t.test('before calling close, with defaults', function(t) {

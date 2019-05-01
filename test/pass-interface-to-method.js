@@ -5,7 +5,7 @@ const test = require('tape');
 const RTCPeerConnection = require('..').RTCPeerConnection;
 
 test('passing something that\'s not a MediaStream fails', t => {
-  const pc = new RTCPeerConnection({ sdpSemantics: 'unified-plan' });
+  const pc = new RTCPeerConnection();
   t.throws(() => pc.addTransceiver('audio', { streams: [{}] }), / This is not an instance of MediaStream/);
   pc.close();
   t.end();
