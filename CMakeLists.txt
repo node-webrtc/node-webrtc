@@ -33,7 +33,7 @@ set(depot_tools_install_dir ${SOURCE_DIR})
 # libwebrtc
 # -----------------------------------------------------------------------------
 
-set(WEBRTC_REVISION branch-heads/m73)
+set(WEBRTC_REVISION branch-heads/m74)
 
 list(APPEND GN_GEN_ARGS
   rtc_build_examples=false
@@ -346,9 +346,30 @@ if(WIN32)
     -DWEBRTC_WIN
   )
 else()
+  # NOTE(mroberts): Workaround for
+  #
+  #   https://gitlab.kitware.com/cmake/cmake/issues/15052
+  #
+  # is to include all the header files here.
+  target_include_directories(${MODULE} SYSTEM PRIVATE
+    ${libc++_include_dir}
+    ${libc++abi_include_dir}
+  )
+
+  # NOTE(mroberts): On Linux and macOS, we statically link the same libc++ and
+  # libc++abi libraries that libwebrtc builds against.
+  target_link_libraries(${MODULE} PRIVATE
+    -lc
+    -lm
+    libc++
+    libc++abi
+  )
+
   target_compile_options(${MODULE} PRIVATE
     -fno-rtti
     -fvisibility=hidden
+    -nostdinc++
+    -nodefaultlibs
     -Wall
     -Wextra
     -Wno-missing-field-initializers
@@ -359,6 +380,7 @@ else()
   )
 
   target_compile_definitions(${MODULE} PRIVATE
+    -D_LIBCPP_ABI_UNSTABLE
     -DWEBRTC_POSIX=1
   )
 
@@ -397,38 +419,17 @@ else()
     )
 
     target_compile_definitions(${MODULE} PRIVATE
+      -D_LIBCPP_ABI_UNSTABLE
       -DWEBRTC_MAC
       -DWEBRTC_IOS
     )
   else()
-    # NOTE(mroberts): Workaround for
-    #
-    #   https://gitlab.kitware.com/cmake/cmake/issues/15052
-    #
-    # is to include all the header files here.
-    target_include_directories(${MODULE} SYSTEM PRIVATE
-      ${libc++_include_dir}
-      ${libc++abi_include_dir}
-    )
-
-    # NOTE(mroberts): On Linux, we statically link the same libc++ and libc++abi
-    # libraries that libwebrtc builds against.
-    target_link_libraries(${MODULE} PRIVATE
-      -lc
-      -lm
-      libc++
-      libc++abi
-    )
-
     target_compile_definitions(${MODULE} PRIVATE
-      -D_LIBCPP_ABI_UNSTABLE
       -DWEBRTC_LINUX
     )
 
     target_compile_options(${MODULE} PRIVATE
       -fpermissive
-      -nostdinc++
-      -nodefaultlibs
     )
 
     if ("$ENV{TARGET_ARCH}" STREQUAL "arm" OR "$ENV{TARGET_ARCH}" STREQUAL "arm64")
