@@ -17,7 +17,7 @@ FROM_NAPI_IMPL(webrtc::PeerConnectionInterface::RTCConfiguration, value) {
   // Makes web-platform-tests easier to run.
   auto sdp_semantics_env = std::getenv("SDP_SEMANTICS");
   auto sdp_semantics_str = sdp_semantics_env ? std::string(sdp_semantics_env) : std::string();
-  auto sdp_semantics = From<webrtc::SdpSemantics>(sdp_semantics_str).FromValidation(webrtc::SdpSemantics::kPlanB);
+  auto sdp_semantics = From<webrtc::SdpSemantics>(sdp_semantics_str).FromValidation(webrtc::SdpSemantics::kUnifiedPlan);
   return From<Napi::Object>(value).FlatMap<webrtc::PeerConnectionInterface::RTCConfiguration>([sdp_semantics](auto object) {
     return curry(CreateRTCConfiguration)
         % GetOptional<std::vector<webrtc::PeerConnectionInterface::IceServer>>(object, "iceServers", std::vector<webrtc::PeerConnectionInterface::IceServer>())

@@ -24,21 +24,21 @@ const pc = new RTCPeerConnection({
 ### `sdpSemantics`
 
 RTCConfiguration accepts a nonstandard property, `sdpSemantics`. When set to
-"unified-plan", this property enables RTCRtpTransceivers and Unified Plan format
+"plan-b", this property disables RTCRtpTransceivers and enables Plan B format
 SDPs for a particular RTCPeerConnection. If unset, `sdpSemantics` defaults to
 the value of the `SDP_SEMANTICS` environment variable. If `SDP_SEMANTICS` is
-unset, `sdpSemantics` defaults to "plan-b".
+unset, `sdpSemantics` defaults to "unified-plan".
 
 ```js
 const { RTCPeerConnection } = require('wrtc');
 
 const pc = new RTCPeerConnection({
-  sdpSemantics: 'unified-plan'  // default is "plan-b"
+  sdpSemantics: 'plan-b'  // default is "unified-plan"
 });
 ```
 
 ```
-SDP_SEMANTICS=unified-plan node app.js
+SDP_SEMANTICS=plan-b node app.js
 ```
 
 Programmatic Audio
