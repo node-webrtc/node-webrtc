@@ -25,9 +25,9 @@ const pc = new RTCPeerConnection({
 
 RTCConfiguration accepts a nonstandard property, `sdpSemantics`. When set to
 "plan-b", this property disables RTCRtpTransceivers and enables Plan B format
-SDPs for a particular RTCPeerConnection. If unset, `sdpSemantics` defaults to
-the value of the `SDP_SEMANTICS` environment variable. If `SDP_SEMANTICS` is
-unset, `sdpSemantics` defaults to "unified-plan".
+SDPs for a particular RTCPeerConnection. `sdpSemantics` defaults to the value
+of the `SDP_SEMANTICS` environment variable. If `SDP_SEMANTICS` is unset, the
+default is "unified-plan".
 
 ```js
 const { RTCPeerConnection } = require('wrtc');
@@ -45,8 +45,7 @@ Programmatic Audio
 ------------------
 
 node-webrtc includes nonstandard, programmatic audio APIs in the form of
-RTCAudioSource and RTCAudioSink. These APIs are similar to the previously added
-RTCVideoSource and RTCVideoSink APIs. With these APIs, you can
+RTCAudioSource and RTCAudioSink. With these APIs, you can
 
  * Pass audio samples to RTCAudioSource via the `onData` method. Then use the
    RTCAudioSource's `createTrack` method to create a local audio
@@ -55,8 +54,7 @@ RTCVideoSource and RTCVideoSink APIs. With these APIs, you can
    RTCAudioSink will emit a "data" event every time audio samples are received.
    When you're finished, stop the RTCAudioSink by calling `stop`.
 
-Because these APIs are non-standard, they are exposed via a `nonstandard`
-property on node-webrtc's exports object. For example,
+For example,
 
 ```js
 const { RTCAudioSource, RTCAudioSink } = require('wrtc').nonstandard;
@@ -129,7 +127,7 @@ interface RTCAudioSink: EventTarget {
    are stopped, the RTCAudioSink will raise a "data" event any time
    RTCAudioData is received.
  * The "data" event has all the properties of RTCAudioData.
- * RTCAudioSink must be stopped by calling stop.
+ * RTCAudioSink must be stopped by calling `stop`.
 
 Programmatic Video
 ------------------
@@ -144,8 +142,7 @@ RTCVideoSource and RTCVideoSink. With these APIs, you can
    RTCVideoSink will emit a "frame" event every time an I420 frame is received.
    When you're finished, stop the RTCVideoSink by calling `stop`.
 
-Because these APIs are nonstandard, they are exposed via a `nonstandard`
-property on node-webrtc's exports object. For example,
+For example,
 
 ```js
 const { RTCVideoSource, RTCVideoSink } = require('wrtc').nonstandard;
