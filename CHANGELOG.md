@@ -23,6 +23,9 @@ Breaking Changes
 - Dropped support for Node 6.
 - Installing from NPM only downloads pre-built binaries. If you wish to build
   from source, install from the source repository. (#200)
+- Unified Plan is now the default. For Plan B behavior, set the `sdpSemantics`
+  RTCConfiguration property or the `SDP_SEMANTICS` environment variable to
+  "plan-b".
 
 0.3.7
 =====
