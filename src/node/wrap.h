@@ -28,6 +28,10 @@ class Wrap {
     });
   }
 
+  T Get(U key) {
+    return _map.get(key).FromMaybe(nullptr);
+  }
+
   void Release(T value) {
     _map.reverseRemove(value);
   }
