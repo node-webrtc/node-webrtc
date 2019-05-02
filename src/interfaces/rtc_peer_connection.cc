@@ -29,10 +29,10 @@
 #include "src/dictionaries/webrtc/rtc_configuration.h"
 #include "src/dictionaries/webrtc/rtc_error.h"
 #include "src/dictionaries/webrtc/rtp_transceiver_init.h"
-#include "src/enums/node_webrtc/rtc_peer_connection_state.h"
 #include "src/enums/webrtc/ice_connection_state.h"
 #include "src/enums/webrtc/ice_gathering_state.h"
 #include "src/enums/webrtc/media_type.h"
+#include "src/enums/webrtc/peer_connection_state.h"
 #include "src/enums/webrtc/signaling_state.h"
 #include "src/functional/either.h"
 #include "src/functional/maybe.h"
@@ -582,16 +582,9 @@ Napi::Value RTCPeerConnection::GetCanTrickleIceCandidates(const Napi::CallbackIn
 Napi::Value RTCPeerConnection::GetConnectionState(const Napi::CallbackInfo& info) {
   auto env = info.Env();
 
-  auto iceConnectionState = _jinglePeerConnection
-      ? _jinglePeerConnection->ice_connection_state()
-      : webrtc::PeerConnectionInterface::IceConnectionState::kIceConnectionClosed;
-
-  auto maybeConnectionState = From<RTCPeerConnectionState>(iceConnectionState);
-  if (maybeConnectionState.IsInvalid()) {
-    Napi::TypeError::New(env, maybeConnectionState.ToErrors()[0]).ThrowAsJavaScriptException();
-    return env.Undefined();
-  }
-  auto connectionState = maybeConnectionState.UnsafeFromValid();
+  auto connectionState = _jinglePeerConnection
+      ? _jinglePeerConnection->peer_connection_state()
+      : webrtc::PeerConnectionInterface::PeerConnectionState::kClosed;
 
   CONVERT_OR_THROW_AND_RETURN_NAPI(env, connectionState, result, Napi::Value)
   return result;
@@ -667,7 +660,7 @@ Napi::Value RTCPeerConnection::GetSignalingState(const Napi::CallbackInfo& info)
 
 Napi::Value RTCPeerConnection::GetIceConnectionState(const Napi::CallbackInfo& info) {
   auto iceConnectionState = _jinglePeerConnection
-      ? _jinglePeerConnection->ice_connection_state()
+      ? _jinglePeerConnection->standardized_ice_connection_state()
       : webrtc::PeerConnectionInterface::IceConnectionState::kIceConnectionClosed;
   CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), iceConnectionState, result, Napi::Value)
   return result;
