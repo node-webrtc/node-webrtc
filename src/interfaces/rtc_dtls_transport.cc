@@ -48,6 +48,9 @@ RTCDtlsTransport::RTCDtlsTransport(const Napi::CallbackInfo& info)
 
   _transport = std::move(transport);
 
+  // NOTE(mroberts): Ensure we create this.
+  RTCIceTransport::wrap()->GetOrCreate(_factory, _transport->ice_transport());
+
   _factory->_workerThread->Invoke<void>(RTC_FROM_HERE, [this]() {
     _transport->RegisterObserver(this);
     _state = _transport->Information().state();
@@ -65,8 +68,10 @@ RTCDtlsTransport::~RTCDtlsTransport() {
 
 void RTCDtlsTransport::Stop() {
   _transport->UnregisterObserver();
-  auto ice_transport = RTCIceTransport::wrap()->GetOrCreate(_factory, _transport->ice_transport());
-  ice_transport->OnRTCDtlsTransportStopped();
+  auto ice_transport = RTCIceTransport::wrap()->Get(_transport->ice_transport());
+  if (ice_transport) {
+    ice_transport->OnRTCDtlsTransportStopped();
+  }
   AsyncObjectWrapWithLoop<RTCDtlsTransport>::Stop();
 }
 
