@@ -1,75 +1,84 @@
 'use strict';
 
-var tape = require('tape');
+const tape = require('tape');
 
-var RTCPeerConnection = require('..').RTCPeerConnection;
+const { RTCPeerConnection } = require('..');
 
-tape('receiving two ArrayBuffers works', function(t) {
-  var pc1 = new RTCPeerConnection();
-  var pc2 = new RTCPeerConnection();
-  [[pc1, pc2], [pc2, pc1]].forEach(function(pcs) {
-    var pc1 = pcs[0];
-    var pc2 = pcs[1];
-    pc1.onicecandidate = function(event) {
-      if (event.candidate) {
-        pc2.addIceCandidate(event.candidate);
+// NOTE(mroberts): These limits were tested on macOS.
+const maxOrderedAndReliableSize = 262528;
+const maxUnorderedAndUnreliableSize = 196896;
+
+async function test(t, size, options) {
+  const pc1 = new RTCPeerConnection();
+  const pc2 = new RTCPeerConnection();
+  [[pc1, pc2], [pc2, pc1]].forEach(([pc1, pc2]) => {
+    pc1.onicecandidate = ({ candidate }) => {
+      if (candidate) {
+        pc2.addIceCandidate(candidate);
       }
     };
   });
-  var dc1 = pc1.createDataChannel('test');
-  var dc2Promise = new Promise(function(resolve) {
-    pc2.ondatachannel = function(event) {
-      resolve(event.channel);
-    };
+
+  const dc1 = pc1.createDataChannel('test', options);
+  const dc2Promise = new Promise(resolve => {
+    pc2.ondatachannel = ({ channel }) => resolve(channel);
   });
-  return pc1.createOffer().then(function(offer) {
-    return Promise.all([
-      pc1.setLocalDescription(offer),
-      pc2.setRemoteDescription(offer)
-    ]);
-  }).then(function() {
-    return pc2.createAnswer();
-  }).then(function(answer) {
-    return Promise.all([
-      pc2.setLocalDescription(answer),
-      pc1.setRemoteDescription(answer)
-    ]);
-  }).then(function() {
-    return dc2Promise;
-  }).then(function(dc2) {
-    var buf1Promise = new Promise(function(resolve) {
-      dc2.onmessage = function(event) {
-        resolve(event.data);
-      };
-    });
-    var buf1 = Buffer.alloc(1024, 0);
-    dc1.send(buf1);
-    return buf1Promise.then(function(remoteBuf1) {
-      remoteBuf1 = new Uint8Array(remoteBuf1);
-      var buf2Promise = new Promise(function(resolve) {
-        dc2.onmessage = function(event) {
-          resolve(event.data);
-        };
-      });
-      var buf2 = Buffer.alloc(1024, 1);
-      dc1.send(buf2);
-      return buf2Promise.then(function(remoteBuf2) {
-        remoteBuf2 = new Uint8Array(remoteBuf2);
-        t.ok(remoteBuf1.every(function(x) {
-          return x === 0;
-        }), 'every element of the first ArrayBuffer is zero');
-        t.ok(remoteBuf2.every(function(x) {
-          return x === 1;
-        }), 'every element of the second ArrayBuffer is one');
-        t.end();
-      });
-    });
-  }).then(function() {
-    pc1.close();
-    pc2.close();
-  }, function(error) {
-    pc1.close();
-    pc2.close();
-    throw error;
+
+  const offer = await pc1.createOffer();
+  await Promise.all([
+    pc1.setLocalDescription(offer),
+    pc2.setRemoteDescription(offer)
+  ]);
+
+  const answer = await pc2.createAnswer();
+  await Promise.all([
+    pc2.setLocalDescription(answer),
+    pc1.setRemoteDescription(answer)
+  ]);
+
+  const dc2 = await dc2Promise;
+
+  const remoteBuf1Promise = new Promise(resolve => {
+    dc2.onmessage = ({ data }) => resolve(data);
   });
+  const buf1 = new Uint8Array(size);
+  buf1.forEach((x, i) => { buf1[i] = Math.random() * 255; });
+  dc1.send(buf1);
+  const remoteBuf1 = new Uint8Array(await remoteBuf1Promise);
+
+  const remoteBuf2Promise = new Promise(resolve => {
+    dc2.onmessage = ({ data }) => resolve(data);
+  });
+  const buf2 = new Uint8Array(size);
+  buf2.forEach((x, i) => { buf2[i] = Math.random() * 255; });
+  dc1.send(buf2);
+  const remoteBuf2 = new Uint8Array(await remoteBuf2Promise);
+
+  t.deepEqual(remoteBuf1.size, buf1.size);
+  t.ok(remoteBuf1.every(function(x, i) {
+    return x === buf1[i];
+  }), 'every element of the first ArrayBuffer is zero');
+
+  t.deepEqual(remoteBuf2.size, buf2.size);
+  t.ok(remoteBuf2.every(function(x, i) {
+    return x === buf2[i];
+  }), 'every element of the second ArrayBuffer is one');
+
+  t.end();
+
+  pc1.close();
+  pc2.close();
+}
+
+tape('receiving two ArrayBuffers works (ordered, reliable)', t => {
+  test(t, maxOrderedAndReliableSize, {});
 });
+
+if (process.platform !== 'win32') {
+  tape('receiving two ArrayBuffers works (unordered, unreliable)', t => {
+    test(t, maxUnorderedAndUnreliableSize, {
+      ordered: false,
+      maxRetransmits: 0
+    });
+  });
+}
