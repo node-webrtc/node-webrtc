@@ -22,6 +22,7 @@
 #include "src/dictionaries/node_webrtc/some_error.h"
 #include "src/enums/webrtc/dtls_transport_state.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
+#include "src/interfaces/rtc_ice_transport.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
 #include "src/node/events.h"
 
@@ -64,6 +65,8 @@ RTCDtlsTransport::~RTCDtlsTransport() {
 
 void RTCDtlsTransport::Stop() {
   _transport->UnregisterObserver();
+  auto ice_transport = RTCIceTransport::wrap()->GetOrCreate(_factory, _transport->ice_transport());
+  ice_transport->OnRTCDtlsTransportStopped();
   AsyncObjectWrapWithLoop<RTCDtlsTransport>::Stop();
 }
 
@@ -105,6 +108,10 @@ void RTCDtlsTransport::OnError(webrtc::RTCError rtcError) {
   }
 }
 
+Napi::Value RTCDtlsTransport::GetIceTransport(const Napi::CallbackInfo&) {
+  return RTCIceTransport::wrap()->GetOrCreate(_factory, _transport->ice_transport())->Value();
+}
+
 Napi::Value RTCDtlsTransport::GetState(const Napi::CallbackInfo& info) {
   std::lock_guard<std::mutex> lock(_mutex);
   CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _state, result, Napi::Value)
@@ -140,6 +147,7 @@ RTCDtlsTransport* RTCDtlsTransport::Create(
 
 void RTCDtlsTransport::Init(Napi::Env env, Napi::Object exports) {
   auto func = DefineClass(env, "RTCDtlsTransport", {
+    InstanceAccessor("iceTransport", &RTCDtlsTransport::GetIceTransport, nullptr),
     InstanceAccessor("state", &RTCDtlsTransport::GetState, nullptr)
   });
 
