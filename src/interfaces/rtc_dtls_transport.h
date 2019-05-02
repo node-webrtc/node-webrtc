@@ -48,6 +48,7 @@ class RTCDtlsTransport
  private:
   static Napi::FunctionReference& constructor();
 
+  Napi::Value GetIceTransport(const Napi::CallbackInfo&);
   Napi::Value GetState(const Napi::CallbackInfo&);
 
   static RTCDtlsTransport* Create(
