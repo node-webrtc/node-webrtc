@@ -4,10 +4,14 @@
 #include <utility>
 
 #include <node-addon-api/napi.h>
+#include <webrtc/api/candidate.h>
 #include <webrtc/api/jsep.h>
+#include <webrtc/p2p/base/port.h>
 
 #include "src/converters.h"
 #include "src/dictionaries/macros/napi.h"
+#include "src/enums/node_webrtc/rtc_ice_candidate_type.h"
+#include "src/enums/node_webrtc/rtc_ice_component.h"
 #include "src/functional/maybe.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
 
@@ -48,15 +52,67 @@ TO_NAPI_IMPL(webrtc::IceCandidateInterface*, pair) {
     return Validation<Napi::Value>::Invalid("RTCIceCandidate is null");
   }
 
-  std::string candidate;
-  if (!value->ToString(&candidate)) {
+  std::string candidate_string;
+  if (!value->ToString(&candidate_string)) {
     return Validation<Napi::Value>::Invalid("Failed to print the candidate string. This is pretty weird. File a bug on https://github.com/node-webrtc/node-webrtc");
   }
 
+  auto candidate = value->candidate();
+  auto component = candidate.component() == 1 ? RTCIceComponent::kRtp : RTCIceComponent::kRtcp;
+
+  const auto& candidate_type = candidate.type();
+  auto type = RTCIceCandidateType::kHost;
+  if (candidate_type == cricket::LOCAL_PORT_TYPE) {
+    type = RTCIceCandidateType::kHost;
+  } else if (candidate_type == cricket::STUN_PORT_TYPE) {
+    type = RTCIceCandidateType::kSrflx;
+  } else if (candidate_type == cricket::RELAY_PORT_TYPE) {
+    type = RTCIceCandidateType::kRelay;
+  } else if (candidate_type == cricket::PRFLX_PORT_TYPE) {
+    type = RTCIceCandidateType::kPrflx;
+  }
+
   NODE_WEBRTC_CREATE_OBJECT_OR_RETURN(env, object)
-  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "candidate", candidate)
-  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "sdpMid", value->sdp_mid())
-  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "sdpMLineIndex", value->sdp_mline_index())
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "candidate", candidate_string)
+
+  const auto& mid = value->sdp_mid();
+  if (mid.empty()) {
+    object.Set("sdpMid", env.Null());
+  } else {
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "sdpMid", mid)
+  }
+
+  auto mLineIndex = value->sdp_mline_index();
+  if (mLineIndex < 0) {
+    object.Set("sdpMLineIndex", env.Null());
+  } else {
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "sdpMLineIndex", mLineIndex)
+  }
+
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "foundation", candidate.foundation())
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "component", component)
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "priority", candidate.priority())
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "address", candidate.address().hostname())
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "protocol", candidate.protocol())
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "port", candidate.address().port())
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "type", type)
+
+  const auto& tcpType = candidate.tcptype();
+  if (tcpType.empty()) {
+    object.Set("tcpType", env.Null());
+  } else {
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "tcpType", candidate.tcptype())
+  }
+
+  if (type == RTCIceCandidateType::kHost) {
+    object.Set("relatedAddress", env.Null());
+    object.Set("relatedPort", env.Null());
+  } else {
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "relatedAddress", candidate.related_address().hostname())
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "relatedPort", candidate.related_address().port())
+  }
+
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "usernameFragment", candidate.username())
 
   return Pure(scope.Escape(object));
 }
