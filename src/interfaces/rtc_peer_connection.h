@@ -100,6 +100,7 @@ class RTCPeerConnection
   Napi::Value GetRemoteDescription(const Napi::CallbackInfo&);
   Napi::Value GetPendingRemoteDescription(const Napi::CallbackInfo&);
   Napi::Value GetIceConnectionState(const Napi::CallbackInfo&);
+  Napi::Value GetSctp(const Napi::CallbackInfo&);
   Napi::Value GetSignalingState(const Napi::CallbackInfo&);
   Napi::Value GetIceGatheringState(const Napi::CallbackInfo&);
 
