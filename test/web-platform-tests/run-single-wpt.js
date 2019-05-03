@@ -7,6 +7,7 @@ const { inBrowserContext } = require('./util.js');
 const { JSDOM, VirtualConsole } = require('jsdom/lib/api.js');
 const ResourceLoader = require('jsdom/lib/jsdom/browser/resources/resource-loader');
 const wrtc = require('../..');
+const fetch = require('node-fetch');
 
 const reporterPathname = '/resources/testharnessreport.js';
 
@@ -88,9 +89,21 @@ function createJSDOM(urlPrefix, testPath, expectFail) {
 
       // NOTE(mroberts): Here is where we inject node-webrtc.
       Object.assign(window, wrtc);
+
       window.navigator.mediaDevices = Object.assign({}, window.navigator.mediaDevices, {
         getUserMedia: wrtc.getUserMedia
       });
+
+      window.fetch = function safeFetch() {
+        const args = [].slice.call(arguments);
+        const url = args[0];
+        try {
+          new window.URL(url);
+        } catch (error) {
+          args[0] = window.location.protocol + '//' + window.location.host + url;
+        }
+        return fetch.apply(null, args);
+      };
 
       return new Promise((resolve, reject) => {
         const errors = [];
