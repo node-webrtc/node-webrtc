@@ -59,6 +59,7 @@
     "minimist": "0.0.8",
     "mocha": "^5.2.0",
     "mocha-sugar-free": "^1.4.0",
+    "node-fetch": "^2.5.0",
     "q": "^1.5.1",
     "recursive-copy": "^2.0.10",
     "request": "^2.88.0",
