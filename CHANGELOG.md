@@ -13,6 +13,7 @@ New Features
 - Added support for Node 12.
 - Added support for Electron 5.
 - Added initial RTCIceTransport support (see below).
+- Added initial RTCSctpTransport support (see below).
 - Expanded RTCIceCandidate support (see below).
 
 Bug Fixes
@@ -44,8 +45,25 @@ The following attributes are supported:
 
 The following events are supported:
 
-- "onstatechange"
-- "ongatheringstatechange"
+- "statechange"
+- "gatheringstatechange"
+
+RTCSctpTransport
+----------------
+
+RTCPeerConnection now exposes RTCSctpTransport under the `sctp` property.
+
+The following attributes are supported:
+
+- `transport`
+- `state`
+
+The following attributes are partially supported:
+
+- `maxMessageSize` (always `null`)
+- `maxChannels` (always `null`)
+
+The "statechange" event is also supported.
 
 RTCIceCandidate
 ---------------

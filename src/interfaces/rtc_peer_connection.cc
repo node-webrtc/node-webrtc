@@ -47,6 +47,7 @@
 #include "src/interfaces/rtc_rtp_receiver.h"
 #include "src/interfaces/rtc_rtp_sender.h"
 #include "src/interfaces/rtc_rtp_transceiver.h"
+#include "src/interfaces/rtc_sctp_transport.h"
 #include "src/node/error_factory.h"
 #include "src/node/events.h"
 #include "src/node/promise.h"
@@ -650,6 +651,12 @@ Napi::Value RTCPeerConnection::GetPendingRemoteDescription(const Napi::CallbackI
   return result;
 }
 
+Napi::Value RTCPeerConnection::GetSctp(const Napi::CallbackInfo& info) {
+  return _jinglePeerConnection && _jinglePeerConnection->GetSctpTransport()
+      ? RTCSctpTransport::wrap()->GetOrCreate(_factory, _jinglePeerConnection->GetSctpTransport())->Value()
+      : info.Env().Null();
+}
+
 Napi::Value RTCPeerConnection::GetSignalingState(const Napi::CallbackInfo& info) {
   auto signalingState = _jinglePeerConnection
       ? _jinglePeerConnection->signaling_state()
@@ -706,6 +713,7 @@ void RTCPeerConnection::Init(Napi::Env env, Napi::Object exports) {
     InstanceAccessor("currentRemoteDescription", &RTCPeerConnection::GetCurrentRemoteDescription, nullptr),
     InstanceAccessor("remoteDescription", &RTCPeerConnection::GetRemoteDescription, nullptr),
     InstanceAccessor("pendingRemoteDescription", &RTCPeerConnection::GetPendingRemoteDescription, nullptr),
+    InstanceAccessor("sctp", &RTCPeerConnection::GetSctp, nullptr),
     InstanceAccessor("signalingState", &RTCPeerConnection::GetSignalingState, nullptr),
     InstanceAccessor("iceConnectionState", &RTCPeerConnection::GetIceConnectionState, nullptr),
     InstanceAccessor("iceGatheringState", &RTCPeerConnection::GetIceGatheringState, nullptr)
