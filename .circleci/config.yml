@@ -130,6 +130,10 @@ aliases:
           exit 0
         fi
 
+        if [[ "$(uname)" == Linux ]]; then
+          sudo apt-get install --reinstall python-pkg-resources
+        fi
+
         npm run wpt:init
         npm run wpt:test
 
