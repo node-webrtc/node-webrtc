@@ -2,17 +2,23 @@
 
 const { RTCPeerConnection } = require('../..');
 
-function createRTCPeerConnections(configuration1 = {}, configuration2 = {}) {
+function createRTCPeerConnections(configuration1 = {}, configuration2 = {}, options = {}) {
+  options = {
+    handleIce: true,
+    ...options
+  };
   const pc1 = new RTCPeerConnection(configuration1);
   try {
     const pc2 = new RTCPeerConnection(configuration2);
-    [[pc1, pc2], [pc2, pc1]].forEach(([pcA, pcB]) => {
-      pcA.addEventListener('icecandidate', ({ candidate }) => {
-        if (candidate) {
-          pcB.addIceCandidate(candidate);
-        }
+    if (options.handleIce) {
+      [[pc1, pc2], [pc2, pc1]].forEach(([pcA, pcB]) => {
+        pcA.addEventListener('icecandidate', ({ candidate }) => {
+          if (candidate) {
+            pcB.addIceCandidate(candidate);
+          }
+        });
       });
-    });
+    }
     return [pc1, pc2];
   } catch (error) {
     pc1.close();
@@ -87,10 +93,46 @@ async function confirmSentFrameDimensions(source, track, pc, frame) {
   });
 }
 
-exports.confirmSentFrameDimensions = confirmSentFrameDimensions;
-exports.createRTCPeerConnections = createRTCPeerConnections;
-exports.getLocalTrackStats = getLocalTrackStats;
-exports.doAnswer = doAnswer;
-exports.doOffer = doOffer;
-exports.negotiate = negotiate;
-exports.negotiateRTCPeerConnections = negotiateRTCPeerConnections;
+function waitForStateChange(target, state, options = {}) {
+  options = {
+    event: 'statechange',
+    property: 'state',
+    ...options
+  };
+  return new Promise(resolve => {
+    target.addEventListener(options.event, function listener() {
+      if (target[options.property] === state) {
+        target.removeEventListener(options.event, listener);
+        resolve();
+      }
+    });
+  });
+}
+
+function gatherCandidates(pc) {
+  const candidates = [];
+  return new Promise(resolve => {
+    if (pc.iceGatheringState === 'complete') {
+      resolve(candidates);
+    }
+    pc.addEventListener('icecandidate', ({ candidate }) => {
+      if (!candidate) {
+        resolve(candidates);
+        return;
+      }
+      candidates.push(candidate);
+    });
+  });
+}
+
+module.exports = {
+  confirmSentFrameDimensions,
+  createRTCPeerConnections,
+  gatherCandidates,
+  getLocalTrackStats,
+  doAnswer,
+  doOffer,
+  negotiate,
+  negotiateRTCPeerConnections,
+  waitForStateChange
+};

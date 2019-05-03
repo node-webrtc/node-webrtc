@@ -4,92 +4,65 @@ const test = require('tape');
 
 const {
   RTCDtlsTransport,
-  RTCPeerConnection
+  RTCIceTransport
 } = require('..');
 
-function createRTCPeerConnections() {
-  const pc1 = new RTCPeerConnection();
-  const pc2 = new RTCPeerConnection();
-  return [pc1, pc2];
-}
+const {
+  createRTCPeerConnections,
+  gatherCandidates,
+  negotiate,
+  waitForStateChange
+} = require('./lib/pc');
 
-function negotiate(offerer, answerer) {
-  return offerer.createOffer().then(offer => {
-    return Promise.all([
-      offerer.setLocalDescription(offer),
-      answerer.setRemoteDescription(offer)
-    ]);
-  }).then(() => {
-    return answerer.createAnswer();
-  }).then(answer => {
-    return Promise.all([
-      answerer.setLocalDescription(answer),
-      offerer.setRemoteDescription(answer)
-    ]);
-  }).then(() => {});
-}
-
-function waitForStateChange(transport, state) {
-  return new Promise(resolve => {
-    transport.onstatechange = () => {
-      if (transport.state === state) {
-        resolve();
-      }
-    };
-  });
-}
-
-function gatherCandidates(pc) {
-  const candidates = [];
-  return new Promise(resolve => {
-    if (pc.iceGatheringState === 'complete') {
-      resolve(candidates);
-    }
-    pc.addEventListener('icecandidate', ({ candidate }) => {
-      if (!candidate) {
-        resolve(candidates);
-        return;
-      }
-      candidates.push(candidate);
-    });
-  });
-}
-
-function testDtlsTransport(t, createSenderOrReceiver) {
-  const [pc1, pc2] = createRTCPeerConnections();
+async function testDtlsTransport(t, createSenderOrReceiver) {
+  const [pc1, pc2] = createRTCPeerConnections({}, {}, { handleIce: false });
   const senderOrReceiver = createSenderOrReceiver(pc1);
   t.equal(senderOrReceiver.transport, null, 'transport is initially null');
 
   const candidates1Promise = gatherCandidates(pc1);
   const candidates2Promise = gatherCandidates(pc2);
 
-  return negotiate(pc1, pc2).then(() => {
-    const { transport } = senderOrReceiver;
-    t.ok(transport instanceof RTCDtlsTransport, 'transport is no longer null');
-    t.equal(transport.state, 'new', '.state is initially "new"');
+  await negotiate(pc1, pc2);
 
-    const connectedPromise = waitForStateChange(transport, 'connected');
+  const { transport } = senderOrReceiver;
+  t.ok(transport instanceof RTCDtlsTransport, 'transport is no longer null');
+  t.equal(transport.state, 'new', '.state is initially "new"');
+  t.ok(transport.iceTransport instanceof RTCIceTransport, '.iceTransport is not null');
+  t.equal(transport.iceTransport.state, 'new', '.iceTransport.state is also "new"');
+  t.equal(transport.iceTransport.component, 'rtp', '.iceTransport.component is "rtp"');
+  t.equal(transport.iceTransport.role, 'controlling', '.iceTransport.role is "controlling"');
 
-    return Promise.all([candidates1Promise, candidates2Promise]).then(candidates => {
-      return Promise.all(
-        candidates[0].map(candidate => pc2.addIceCandidate(candidate)).concat(
-        candidates[1].map(candidate => pc1.addIceCandidate(candidate)))
-      );
-    }).then(() => {
-      return connectedPromise;
-    }).then(() => {
-      t.pass('"statechange" fires in state "connected"');
-      t.equal(transport.state, 'connected', '.state is still "connected"');
+  const connectingPromise = waitForStateChange(transport, 'connecting');
+  const connectedPromise = waitForStateChange(transport, 'connected');
 
-      pc1.close();
-      pc2.close();
+  const candidates = await Promise.all([candidates1Promise, candidates2Promise]);
 
-      t.equal(senderOrReceiver.transport, transport, 'transport is still not null');
-      t.equal(transport.state, 'closed', '.state is finally "closed"');
+  await Promise.all(
+    candidates[0].map(candidate => pc2.addIceCandidate(candidate)).concat(
+    candidates[1].map(candidate => pc1.addIceCandidate(candidate)))
+  );
 
-      t.end();
-    });
-  });
+  await connectingPromise;
+  t.equal(transport.state, 'connecting', '.state transitions to "connecting"');
+  t.equal(transport.iceTransport.state, 'checking', '.state transitions to "checking"');
+
+  await connectedPromise;
+
+  t.pass('"statechange" fires in state "connected"');
+  t.equal(transport.state, 'connected', '.state is "connected"');
+  t.equal(transport.iceTransport.state, 'connected', '.iceTransport.state is also "connected"');
+
+  pc1.close();
+  pc2.close();
+
+  t.equal(senderOrReceiver.transport, transport, 'transport is still not null');
+  t.equal(transport.state, 'closed', '.state is finally "closed"');
+  t.ok(transport.iceTransport instanceof RTCIceTransport, '.iceTransport is still not null');
+  t.equal(transport.iceTransport.state, 'closed', '.iceTransport.state is "closed"');
+  t.equal(transport.iceTransport.component, 'rtp', '.iceTransport.component is still "rtp"');
+  t.equal(transport.iceTransport.role, 'controlling', '.iceTransport.role is still "controlling"');
+
+  t.end();
 }
 
 test('RTCDtlsTransport', t => {
