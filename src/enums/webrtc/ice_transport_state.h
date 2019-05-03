@@ -9,7 +9,7 @@
 #define ICE_TRANSPORT_STATE_LIST \
   ENUM_SUPPORTED(ICE_TRANSPORT_STATE::kNew, "new") \
   ENUM_SUPPORTED(ICE_TRANSPORT_STATE::kChecking, "checking") \
-  ENUM_SUPPORTED(ICE_TRANSPORT_STATE::kConnected, "connecting") \
+  ENUM_SUPPORTED(ICE_TRANSPORT_STATE::kConnected, "connected") \
   ENUM_SUPPORTED(ICE_TRANSPORT_STATE::kCompleted, "completed") \
   ENUM_SUPPORTED(ICE_TRANSPORT_STATE::kFailed, "failed") \
   ENUM_SUPPORTED(ICE_TRANSPORT_STATE::kDisconnected, "disconnected") \
