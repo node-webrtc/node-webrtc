@@ -7,16 +7,18 @@ const { describe, specify, before } = require('mocha-sugar-free');
 const { readManifest, getPossibleTestFilePaths, stripPrefix } = require('./wpt-manifest-utils.js');
 const startWPTServer = require('./start-wpt-server.js');
 
-const validReasons = new Set(['fail', 'timeout', 'flaky', 'mutates-globals', 'needs-await', 'needs-node8']);
+const validReasons = new Set([
+  'fail',
+  'fail-slow',
+  'timeout',
+  'flaky',
+  'mutates-globals',
+  'needs-node10',
+  'needs-node11'
+]);
 
-let supportsAwait = true;
-try {
-  eval('async () => { await 0; }'); // eslint-disable-line no-eval
-} catch (e) {
-  supportsAwait = false;
-}
-
-const hasNode8 = Number(process.versions.node.split('.')[0]) >= 8;
+const hasNode10 = Number(process.versions.node.split('.')[0]) >= 10;
+const hasNode11 = Number(process.versions.node.split('.')[0]) >= 11;
 
 const manifestFilename = path.resolve(__dirname, 'wpt-manifest.json');
 const manifest = readManifest(manifestFilename);
@@ -50,12 +52,17 @@ describe('web-platform-tests', () => {
 
           const testFile = stripPrefix(testFilePath, toRunDoc.DIR + '/');
           const reason = matchingPattern && toRunDoc[matchingPattern][0];
-          const shouldRunAnyway = (reason === 'needs-await' && supportsAwait) ||
-                                  (reason === 'needs-node8' && hasNode8);
-          if (matchingPattern && !shouldRunAnyway) {
+          const shouldSkip = ['fail-slow', 'timeout', 'flaky', 'mutates-globals'].includes(reason);
+          const expectFail = (reason === 'fail') ||
+                             (reason === 'needs-node10' && !hasNode10) ||
+                             (reason === 'needs-node11' && !hasNode11);
+
+          if (matchingPattern && shouldSkip) {
             specify.skip(`[${reason}] ${testFile}`);
+          } else if (expectFail) {
+            runSingleWPT(testFilePath, `[expected fail] ${testFile}`, expectFail);
           } else {
-            runSingleWPT(testFilePath, testFile);
+            runSingleWPT(testFilePath, testFile, expectFail);
           }
         }
       }
@@ -71,6 +78,10 @@ function checkToRun() {
     }
     if (doc.DIR.endsWith('/')) {
       throw new Error(`DIR entries must not end with a slash: saw "${doc.DIR}"`);
+    }
+
+    if (!fs.existsSync(path.resolve(__dirname, 'tests', doc.DIR))) {
+      throw new Error(`The directory "${doc.DIR}" does not exist`);
     }
 
     if (doc.DIR < lastDir) {

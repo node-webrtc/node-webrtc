@@ -1,7 +1,7 @@
 'use strict';
 const fs = require('fs');
 
-const EXPECTED_MANIFEST_VERSION = 5;
+const EXPECTED_MANIFEST_VERSION = 6;
 
 exports.getPossibleTestFilePaths = manifest => {
   const testharnessTests = manifest.items.testharness;
@@ -11,17 +11,13 @@ exports.getPossibleTestFilePaths = manifest => {
     const testFilePaths = testharnessTests[containerPath].map(value => value[[0]]);
     for (const testFilePath of testFilePaths) {
       // Globally disable worker tests
-      if (testFilePath.endsWith('.worker.html')) {
+      if (testFilePath.endsWith('.worker.html') ||
+          testFilePath.endsWith('.serviceworker.html') ||
+          testFilePath.endsWith('.sharedworker.html')) {
         continue;
       }
 
-      // We don't have support for .svg documents in general, much less running scripts in them.
-      // See https://github.com/w3c/web-platform-tests/issues/7313 for confirmation this is our bug, not WPT's.
-      if (testFilePath.endsWith('.svg')) {
-        continue;
-      }
-
-      allPaths.push(exports.stripPrefix(testFilePath, '/'));
+      allPaths.push(exports.stripPrefix(testFilePath, ''));
     }
   }
 
