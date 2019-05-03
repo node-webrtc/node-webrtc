@@ -12,6 +12,8 @@ New Features
 - Updated to WebRTC M74.
 - Added support for Node 12.
 - Added support for Electron 5.
+- Added initial RTCIceTransport support (see below).
+- Expanded RTCIceCandidate support (see below).
 
 Bug Fixes
 ---------
@@ -27,6 +29,40 @@ Breaking Changes
 - Unified Plan is now the default. For Plan B behavior, set the `sdpSemantics`
   RTCConfiguration property or the `SDP_SEMANTICS` environment variable to
   "plan-b".
+
+RTCIceTransport
+---------------
+
+RTCDtlsTransport now exposes RTCIceTransport under the `iceTransport` property.
+
+The following attributes are supported:
+
+- `role`
+- `component`
+- `state`
+- `gatheringState`
+
+The following events are supported:
+
+- "onstatechange"
+- "ongatheringstatechange"
+
+RTCIceCandidate
+---------------
+
+RTCIceCandidates now include the following attributes:
+
+- `foundation`
+- `component`
+- `priority`
+- `address`
+- `protocol`
+- `port`
+- `type`
+- `tcpType`
+- `relatedAddress`
+- `relatedPort`
+- `usernameFragment`
 
 0.3.7
 =====
