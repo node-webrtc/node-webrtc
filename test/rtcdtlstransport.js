@@ -43,7 +43,7 @@ async function testDtlsTransport(t, createSenderOrReceiver) {
   );
 
   await connectingPromise;
-  t.equal(transport.state, 'connecting', '.state transitions to "connecting"');
+  t.ok(transport.state === 'connecting' || transport.state === 'connected', '.state transitions to "connecting" (or "connected")');
   t.ok(transport.iceTransport.state === 'checking' || transport.iceTransport.state === 'connected', '.state transitions to "checking" (or "connected")');
 
   await connectedPromise;
