@@ -99,6 +99,9 @@ function waitForStateChange(target, state, options = {}) {
     property: 'state',
     ...options
   };
+  if (target[options.property] === state) {
+    return Promise.resolve();
+  }
   return new Promise(resolve => {
     target.addEventListener(options.event, function listener() {
       if (target[options.property] === state) {
