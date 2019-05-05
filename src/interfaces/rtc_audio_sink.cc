@@ -102,7 +102,9 @@ void RTCAudioSink::OnData(
       delete[] dict.samples;
       return;
     }
-    MakeCallback("ondata", { maybeValue.UnsafeFromValid() });
+    auto object = maybeValue.UnsafeFromValid().ToObject();
+    object.Set("type", Napi::String::New(env, "data"));
+    MakeCallback("dispatchEvent", { object });
   }));
 }
 

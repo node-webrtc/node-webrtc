@@ -69,7 +69,10 @@ void RTCVideoSink::OnFrame(const webrtc::VideoFrame& frame) {
       // TODO(mroberts): Should raise an error; although this really shouldn't happen.
       return;
     }
-    MakeCallback("onframe", { maybeValue.UnsafeFromValid() });
+    auto object = Napi::Object::New(env);
+    object.Set("type", Napi::String::New(env, "frame"));
+    object.Set("frame", maybeValue.UnsafeFromValid());
+    MakeCallback("dispatchEvent", { object });
   }));
 }
 
