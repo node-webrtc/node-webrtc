@@ -135,13 +135,13 @@ void RTCDataChannel::OnStateChange() {
 void RTCDataChannel::HandleStateChange(RTCDataChannel& channel, webrtc::DataChannelInterface::DataState state) {
   auto env = channel.Env();
   Napi::HandleScope scope(env);
+  auto object = Napi::Object::New(env);
   if (state == webrtc::DataChannelInterface::kClosed) {
-    auto value = Napi::String::New(env, "closed");
-    channel.MakeCallback("onstatechange", { value });
+    object.Set("type", Napi::String::New(env, "close"));
   } else if (state == webrtc::DataChannelInterface::kOpen) {
-    auto value = Napi::String::New(env, "open");
-    channel.MakeCallback("onstatechange", { value });
+    object.Set("type", Napi::String::New(env, "open"));
   }
+  channel.MakeCallback("dispatchEvent", { object });
   if (state == webrtc::DataChannelInterface::kClosed) {
     channel.Stop();
   }
@@ -171,7 +171,10 @@ void RTCDataChannel::HandleMessage(RTCDataChannel& channel, const webrtc::DataBu
     auto str = Napi::String::New(env, message, size);  // NOLINT
     value = str;
   }
-  channel.MakeCallback("onmessage", { value });
+  auto object = Napi::Object::New(env);
+  object.Set("type", "message");
+  object.Set("data", value);
+  channel.MakeCallback("dispatchEvent", { object });
 }
 
 Napi::Value RTCDataChannel::Send(const Napi::CallbackInfo& info) {
@@ -363,7 +366,7 @@ void RTCDataChannel::Init(Napi::Env env, Napi::Object exports) {
     InstanceAccessor("binaryType", &RTCDataChannel::GetBinaryType, &RTCDataChannel::SetBinaryType),
     InstanceAccessor("readyState", &RTCDataChannel::GetReadyState, nullptr),
     InstanceMethod("close", &RTCDataChannel::Close),
-    InstanceMethod("send", &RTCDataChannel::Send)
+    InstanceMethod("_send", &RTCDataChannel::Send)
   });
 
   constructor() = Napi::Persistent(func);
