@@ -42,7 +42,9 @@ async function testDtlsTransport(t, createSenderOrReceiver) {
     candidates[1].map(candidate => pc1.addIceCandidate(candidate)))
   );
 
-  await connectingPromise;
+  if (transport.state !== 'connected') {
+    await connectingPromise;
+  }
   t.ok(transport.state === 'connecting' || transport.state === 'connected', '.state transitions to "connecting" (or "connected")');
   t.ok(transport.iceTransport.state === 'checking' || transport.iceTransport.state === 'connected', '.state transitions to "checking" (or "connected")');
 
