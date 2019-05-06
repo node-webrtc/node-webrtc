@@ -11,7 +11,7 @@ New Features
 
 - Updated to WebRTC M74.
 - Added support for Node 12.
-- Added support for Electron 5.
+- Added support for Electron 4 and 5.
 - Added initial RTCIceTransport support (see below).
 - Added initial RTCSctpTransport support (see below).
 - Expanded RTCIceCandidate support (see below).
