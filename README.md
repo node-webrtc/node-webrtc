@@ -74,7 +74,15 @@ The following platforms are confirmed to work with node-webrtc and have prebuilt
       <td align="center">✓</td>
     </tr>
     <tr>
-      <th>Electron</th>
+      <th rowspan="2">Electron</th>
+      <th>4</th>
+        <td align="center"></td>
+        <td align="center"></td>
+        <td align="center">✓</td>
+      <td align="center">✓</td>
+      <td align="center">✓</td>
+    </tr>
+    <tr>
       <th>5</th>
         <td align="center"></td>
         <td align="center"></td>

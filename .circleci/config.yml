@@ -164,8 +164,16 @@ aliases:
           exit 0
         fi
 
+        npm install --no-save electron@4.x
         if [[ "$(uname)" == Linux ]]; then
           sudo apt-get install -y xvfb
+          xvfb-run ./node_modules/.bin/electron test/electron --no-sandbox
+        else
+          npm run test:electron
+        fi
+
+        npm install --no-save electron@5.x
+        if [[ "$(uname)" == Linux ]]; then
           xvfb-run ./node_modules/.bin/electron test/electron --no-sandbox
         else
           npm run test:electron
