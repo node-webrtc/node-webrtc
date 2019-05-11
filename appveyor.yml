@@ -7,6 +7,7 @@ environment:
     - nodejs_version: "8"
       platform: x64
       msvs_toolset: 15
+      CHECK_REFLEXIVE: true
 
 os: Visual Studio 2017
 
