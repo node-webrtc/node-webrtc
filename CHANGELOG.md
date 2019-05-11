@@ -1,3 +1,11 @@
+0.4.1
+=====
+
+Bug Fixes
+---------
+
+- Fix memory leak when receiving strings over RTCDataChannel. (#528)
+
 0.4.0
 =====
 
