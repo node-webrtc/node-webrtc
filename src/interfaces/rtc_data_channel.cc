@@ -156,19 +156,19 @@ void RTCDataChannel::OnMessage(const webrtc::DataBuffer& buffer) {
 void RTCDataChannel::HandleMessage(RTCDataChannel& channel, const webrtc::DataBuffer& buffer) {
   bool binary = buffer.binary;
   size_t size = buffer.size();
-  char* message = new char[size];
-  memcpy(reinterpret_cast<void*>(message), reinterpret_cast<const void*>(buffer.data.data()), size);
 
   auto env = channel.Env();
   Napi::HandleScope scope(env);
   Napi::Value value;
   if (binary) {
+    char* message = new char[size];
+    memcpy(reinterpret_cast<void*>(message), reinterpret_cast<const void*>(buffer.data.data()), size);
     auto array = Napi::ArrayBuffer::New(env, message, size, [](Napi::Env, void* buffer) {
       delete[] static_cast<char*>(buffer);
     });
     value = array;  // NOLINT
   } else {
-    auto str = Napi::String::New(env, message, size);  // NOLINT
+    auto str = Napi::String::New(env, static_cast<const char*>(buffer.data.data()), size);  // NOLINT
     value = str;
   }
   auto object = Napi::Object::New(env);
