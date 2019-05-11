@@ -12,6 +12,8 @@ var RTCSessionDescription = wrtc.RTCSessionDescription;
 var isDarwinOnCircleCi = process.platform === 'darwin'
   && process.env.CIRCLECI === 'true';
 
+var skipReflexive = isDarwinOnCircleCi || !process.env.CHECK_REFLEXIVE;
+
 var pc;
 
 test('assign ICE server and get reflective candidates', function(t) {
@@ -32,7 +34,7 @@ test('assign ICE server and get reflective candidates', function(t) {
       return;
     }
     pc.close();
-    t.equal(gotReflective || isDarwinOnCircleCi, true, 'gotReflective === true');
+    t.equal(gotReflective || skipReflexive, true, 'gotReflective === true');
   }
 
   pc.onicecandidate = function(candidate) {

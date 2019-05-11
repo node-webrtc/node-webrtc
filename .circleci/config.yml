@@ -50,6 +50,7 @@ aliases:
           # NOTE(mroberts): First run C++ tests, if any.
           node test/cpp.js
 
+          export CHECK_REFLEXIVE=true
           npm test
 
           cd example
