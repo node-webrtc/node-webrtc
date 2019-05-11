@@ -168,7 +168,7 @@ void RTCDataChannel::HandleMessage(RTCDataChannel& channel, const webrtc::DataBu
     });
     value = array;  // NOLINT
   } else {
-    auto str = Napi::String::New(env, static_cast<const char*>(buffer.data.data()), size);  // NOLINT
+    auto str = Napi::String::New(env, reinterpret_cast<const char*>(buffer.data.data()), size);  // NOLINT
     value = str;
   }
   auto object = Napi::Object::New(env);
