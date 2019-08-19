@@ -70,7 +70,7 @@ test('RTCRtpSender\'s destructor fires', async t => {
       const pc = new RTCPeerConnection();
       const offer = new RTCSessionDescription({ type: 'offer', sdp });
       await pc.setRemoteDescription(offer);
-      pc.getReceivers().forEach(receiver => pc.addTrack(receiver.track, new MediaStream()));
+      pc.getReceivers().forEach(receiver => pc.addTrack(receiver.track));
       t.equal(pc.getSenders().length, pc.getReceivers().length);
       return pc;
     },

@@ -43,6 +43,7 @@ var sdp = [
   'a=ssrc:2 msid:stream 456'
 ].join('\r\n') + '\r\n';
 
+// TODO - adjust?
 tape('.addTrack(track, stream)', function(t) {
   return getMediaStream().then(function(stream) {
     var pc = new RTCPeerConnection();
@@ -73,6 +74,7 @@ tape('.addTrack(track, stream)', function(t) {
   });
 });
 
+// TODO - adjust?
 tape('.addTrack(track, stream) called twice', t => {
   return getMediaStream().then(stream => {
     const pc = new RTCPeerConnection();
@@ -88,6 +90,7 @@ tape('.addTrack(track, stream) called twice', t => {
   });
 });
 
+// TODO - adjust?
 tape('.replaceTrack(null)', function(t) {
   return getMediaStream().then(function(stream) {
     var pc = new RTCPeerConnection();

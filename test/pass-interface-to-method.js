@@ -6,7 +6,7 @@ const RTCPeerConnection = require('..').RTCPeerConnection;
 
 test('passing something that\'s not a MediaStream fails', t => {
   const pc = new RTCPeerConnection();
-  t.throws(() => pc.addTransceiver('audio', { streams: [{}] }), / This is not an instance of MediaStream/);
+  t.throws(() => pc.addTransceiver('audio', { streamIds: [{}] }), / This is not an instance of a string vector/);
   pc.close();
   t.end();
 });
