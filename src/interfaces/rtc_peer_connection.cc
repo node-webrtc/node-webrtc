@@ -227,10 +227,10 @@ Napi::Value RTCPeerConnection::AddTrack(const Napi::CallbackInfo& info) {
   }
   CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, pair, std::tuple<MediaStreamTrack* COMMA Maybe<std::vector<std::string>>>)
   auto mediaStreamTrack = std::get<0>(pair);
-  Maybe<std::vector<std::string>>> mediaStreamIds = std::get<1>(pair);
+  Maybe<std::vector<std::string>> mediaStreamIds = std::get<1>(pair);
   std::vector<std::string> streamIds;
   if (mediaStreamIds.IsJust()) {
-      streamIds = mediaStreamIds;
+      streamIds = mediaStreamIds.UnsafeFromJust();
   }
   auto result = _jinglePeerConnection->AddTrack(mediaStreamTrack->track(), streamIds);
   if (!result.ok()) {
