@@ -2,7 +2,7 @@
 
 const test = require('tape');
 
-const { MediaStream, RTCPeerConnection, RTCSessionDescription } = require('../..');
+const { RTCPeerConnection, RTCSessionDescription } = require('../..');
 
 const checkDestructor = require('./util');
 
