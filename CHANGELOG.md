@@ -1,3 +1,11 @@
+0.4.2
+=====
+
+Bug Fixes
+---------
+
+- Fix image stride issue at certain resolutions. (#536)
+
 0.4.1
 =====
 
