@@ -56,25 +56,25 @@ TO_NAPI_IMPL(rtc::scoped_refptr<webrtc::I420BufferInterface>, pair) {
   auto dstUPlane = data + sizeOfDstYPlane;
   auto dstVPlane = dstUPlane + sizeOfDstUPlane;
 
-  if( sizeOfSrcYPlane == sizeOfDstYPlane ) {
+  if (sizeOfSrcYPlane == sizeOfDstYPlane) {
     memcpy(dstYPlane, srcYPlane, sizeOfDstYPlane);
   } else {
-    for( int i=0, j=0; i<sizeOfSrcYPlane; i += value->StrideY(), j += value->width() ) {
-      memcpy(dstYPlane+j, srcYPlane+i, value->width());
+    for (int i = 0, j = 0; i < sizeOfSrcYPlane; i += value->StrideY(), j += value->width()) {
+      memcpy(dstYPlane + j, srcYPlane + i, value->width());
     }
   }
-  if( sizeOfSrcUPlane == sizeOfDstUPlane ) {
+  if (sizeOfSrcUPlane == sizeOfDstUPlane) {
     memcpy(dstUPlane, srcUPlane, sizeOfDstUPlane);
   } else {
-    for( int i=0, j = 0; i<sizeOfSrcUPlane; i += value->StrideU(), j += value->width()/2 ) {
-      memcpy(dstUPlane+j, srcUPlane+i, value->width()/2);
+    for (int i = 0, j = 0; i < sizeOfSrcUPlane; i += value->StrideU(), j += value->width() / 2) {
+      memcpy(dstUPlane + j, srcUPlane + i, value->width() / 2);
     }
   }
-  if( sizeOfSrcVPlane == sizeOfDstVPlane ) {
+  if (sizeOfSrcVPlane == sizeOfDstVPlane) {
     memcpy(dstVPlane, srcVPlane, sizeOfDstVPlane);
   } else {
-    for( int i=0, j = 0; i<sizeOfSrcVPlane; i += value->StrideV(), j += value->width()/2 ) {
-      memcpy(dstVPlane+j, srcVPlane+i, value->width()/2);
+    for (int i = 0, j = 0; i < sizeOfSrcVPlane; i += value->StrideV(), j += value->width() / 2) {
+      memcpy(dstVPlane + j, srcVPlane + i, value->width() / 2);
     }
   }
 
