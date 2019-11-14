@@ -20,6 +20,9 @@
 #include "src/functional/maybe.h"
 #include "src/interfaces/media_stream_track.h"
 
+#include <chrono>
+#include <ctime>
+
 namespace node_webrtc {
 
 Napi::FunctionReference& RTCVideoSource::constructor() {
@@ -61,8 +64,15 @@ Napi::Value RTCVideoSource::CreateTrack(const Napi::CallbackInfo&) {
 
 Napi::Value RTCVideoSource::OnFrame(const Napi::CallbackInfo& info) {
   CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, buffer, rtc::scoped_refptr<webrtc::I420Buffer>)
+
+  auto now = std::chrono::time_point_cast<std::chrono::microseconds>(std::chrono::system_clock::now());
+  uint64_t nowInUs = now.time_since_epoch().count();
+
   webrtc::VideoFrame::Builder builder;
-  auto frame = builder.set_video_frame_buffer(buffer).build();
+  auto frame = builder
+  .set_timestamp_us(nowInUs)
+  .set_video_frame_buffer(buffer)
+  .build();
   _source->PushFrame(frame);
   return info.Env().Undefined();
 }
