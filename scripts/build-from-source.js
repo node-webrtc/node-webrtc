@@ -15,6 +15,12 @@ if (process.platform === 'win32') {
   args.push(process.arch === 'x64'
     ? '"Visual Studio 15 2017 Win64"'
     : '"Visual Studio 15 2017"');
+} else if (
+    process.platform === 'darwin' ||
+    process.platform === 'linux'
+) {
+  args.push('-g');
+  args.push('"Unix Makefiles"');
 }
 
 function main() {
