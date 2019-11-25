@@ -103,15 +103,18 @@ void RTCDataChannel::CleanupInternals() {
   if (_jingleDataChannel == nullptr) {
     return;
   }
-  _jingleDataChannel->UnregisterObserver();
-  _cached_id = _jingleDataChannel->id();
-  _cached_label = _jingleDataChannel->label();
-  _cached_max_packet_life_time = _jingleDataChannel->maxRetransmitTime();
-  _cached_max_retransmits = _jingleDataChannel->maxRetransmits();
-  _cached_negotiated = _jingleDataChannel->negotiated();
-  _cached_ordered = _jingleDataChannel->ordered();
-  _cached_protocol = _jingleDataChannel->protocol();
-  _cached_buffered_amount = _jingleDataChannel->buffered_amount();
+  try { // _jingleDataChannel might be freed already
+    _jingleDataChannel->UnregisterObserver();
+    _cached_id = _jingleDataChannel->id();
+    _cached_label = _jingleDataChannel->label();
+    _cached_max_packet_life_time = _jingleDataChannel->maxRetransmitTime();
+    _cached_max_retransmits = _jingleDataChannel->maxRetransmits();
+    _cached_negotiated = _jingleDataChannel->negotiated();
+    _cached_ordered = _jingleDataChannel->ordered();
+    _cached_protocol = _jingleDataChannel->protocol();
+    _cached_buffered_amount = _jingleDataChannel->buffered_amount();
+  } catch (e) {
+  }
   _jingleDataChannel = nullptr;
 }
 
