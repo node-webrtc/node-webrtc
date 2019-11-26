@@ -29,7 +29,7 @@ TO_NAPI_IMPL(rtc::scoped_refptr<webrtc::VideoFrameBuffer>, pair) {
 
 CONVERT_VIA(Napi::Value, I420ImageData, rtc::scoped_refptr<webrtc::I420Buffer>)
 
-TO_NAPI_IMPL(rtc::scoped_refptr<webrtc::I420BufferInterface>, pair) {
+TO_NAPI_IMPL(const webrtc::I420BufferInterface*, pair) {
   auto env = pair.first;
   Napi::EscapableHandleScope scope(env);
   auto value = pair.second;

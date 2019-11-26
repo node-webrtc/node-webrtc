@@ -19,7 +19,6 @@
 #include <webrtc/modules/audio_device/include/audio_device.h>
 #include <webrtc/rtc_base/buffer.h>
 #include <webrtc/rtc_base/event.h>
-#include <webrtc/rtc_base/platform_file.h>
 
 namespace webrtc { class AudioTransport; }
 
@@ -122,33 +121,6 @@ class TestAudioDeviceModule : public webrtc::AudioDeviceModule {
   // kAmplitudeThreshold) and at the end (only actual 0 samples in this case).
   static std::unique_ptr<Renderer> CreateBoundedWavFileWriter(
       std::string filename,
-      int sampling_frequency_in_hz,
-      int num_channels = 1);
-
-  // WavReader and WavWriter creation based on rtc::PlatformFile.
-
-  // Returns a Capturer instance that gets its data from a file. The sample rate
-  // and channels will be checked against the Wav file.
-  static std::unique_ptr<Capturer> CreateWavFileReader(
-      rtc::PlatformFile file,
-      int sampling_frequency_in_hz,
-      int num_channels = 1);
-
-  // Returns a Capturer instance that gets its data from a file.
-  // Automatically detects sample rate and num of channels.
-  static std::unique_ptr<Capturer> CreateWavFileReader(rtc::PlatformFile file);
-
-  // Returns a Renderer instance that writes its data to a file.
-  static std::unique_ptr<Renderer> CreateWavFileWriter(
-      rtc::PlatformFile file,
-      int sampling_frequency_in_hz,
-      int num_channels = 1);
-
-  // Returns a Renderer instance that writes its data to a WAV file, cutting
-  // off silence at the beginning (not necessarily perfect silence, see
-  // kAmplitudeThreshold) and at the end (only actual 0 samples in this case).
-  static std::unique_ptr<Renderer> CreateBoundedWavFileWriter(
-      rtc::PlatformFile file,
       int sampling_frequency_in_hz,
       int num_channels = 1);
 

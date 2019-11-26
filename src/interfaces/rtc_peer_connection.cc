@@ -461,8 +461,8 @@ Napi::Value RTCPeerConnection::SetConfiguration(const Napi::CallbackInfo& info) 
     return env.Undefined();
   }
 
-  webrtc::RTCError rtcError;
-  if (!_jinglePeerConnection->SetConfiguration(configuration, &rtcError)) {
+  auto rtcError = _jinglePeerConnection->SetConfiguration(configuration);
+  if (!rtcError.ok()) {
     CONVERT_OR_THROW_AND_RETURN_NAPI(env, &rtcError, error, Napi::Value)
     Napi::Error(env, error).ThrowAsJavaScriptException();
     return env.Undefined();

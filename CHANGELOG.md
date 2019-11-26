@@ -1,3 +1,11 @@
+0.4.3
+=====
+
+New Features
+------------
+
+- Updated to WebRTC M78.
+
 0.4.2
 =====
 
