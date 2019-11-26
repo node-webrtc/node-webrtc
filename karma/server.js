@@ -107,6 +107,9 @@ wss.on('connection', function(ws) {
         } else {
           console.log('onmessage:', new Uint8Array(evt.data));
         }
+        if (channel.readyState !== 'open') {
+          return;
+        }
         if ('string' === typeof data) {
           channel.send('Hello peer!');
         } else {
