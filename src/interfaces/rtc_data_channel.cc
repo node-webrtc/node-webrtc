@@ -103,18 +103,16 @@ void RTCDataChannel::CleanupInternals() {
   if (_jingleDataChannel == nullptr) {
     return;
   }
-  try { // _jingleDataChannel might be freed already
-    _jingleDataChannel->UnregisterObserver();
-    _cached_id = _jingleDataChannel->id();
-    _cached_label = _jingleDataChannel->label();
-    _cached_max_packet_life_time = _jingleDataChannel->maxRetransmitTime();
-    _cached_max_retransmits = _jingleDataChannel->maxRetransmits();
-    _cached_negotiated = _jingleDataChannel->negotiated();
-    _cached_ordered = _jingleDataChannel->ordered();
-    _cached_protocol = _jingleDataChannel->protocol();
-    _cached_buffered_amount = _jingleDataChannel->buffered_amount();
-  } catch (e) {
-  }
+  // _jingleDataChannel might be freed already.
+  _jingleDataChannel->UnregisterObserver();
+  _cached_id = _jingleDataChannel->id();
+  _cached_label = _jingleDataChannel->label();
+  _cached_max_packet_life_time = _jingleDataChannel->maxRetransmitTime();
+  _cached_max_retransmits = _jingleDataChannel->maxRetransmits();
+  _cached_negotiated = _jingleDataChannel->negotiated();
+  _cached_ordered = _jingleDataChannel->ordered();
+  _cached_protocol = _jingleDataChannel->protocol();
+  _cached_buffered_amount = _jingleDataChannel->buffered_amount();
   _jingleDataChannel = nullptr;
 }
 
@@ -127,9 +125,6 @@ void RTCDataChannel::OnPeerConnectionClosed() {
 
 void RTCDataChannel::OnStateChange() {
   auto state = _jingleDataChannel->state();
-  if (state == webrtc::DataChannelInterface::kClosed) {
-    CleanupInternals();
-  }
   Dispatch(CreateCallback<RTCDataChannel>([this, state]() {
     RTCDataChannel::HandleStateChange(*this, state);
   }));
@@ -146,6 +141,7 @@ void RTCDataChannel::HandleStateChange(RTCDataChannel& channel, webrtc::DataChan
   }
   channel.MakeCallback("dispatchEvent", { object });
   if (state == webrtc::DataChannelInterface::kClosed) {
+    channel.CleanupInternals();
     channel.Stop();
   }
 }
