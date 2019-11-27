@@ -116,10 +116,16 @@ void RTCDataChannel::CleanupInternals() {
 }
 
 void RTCDataChannel::OnPeerConnectionClosed() {
+  // let channel clean up by itself. otherwise RTCPeerConnection has to react with the channel close event,
+  // to pop channel from __channels array, otherwise the freed channel pointer still be used in RTCPeerConnection,
+  // which will lead to crash.
+  // to avoid channel close event management in RTCPeerConnection, let's decouple the channel close and RTCPeerConnection.
+  /*
   if (_jingleDataChannel != nullptr) {
     CleanupInternals();
     Stop();
   }
+  */
 }
 
 void RTCDataChannel::OnStateChange() {
@@ -230,7 +236,6 @@ Napi::Value RTCDataChannel::Send(const Napi::CallbackInfo& info) {
 Napi::Value RTCDataChannel::Close(const Napi::CallbackInfo& info) {
   if (_jingleDataChannel != nullptr) {
     _jingleDataChannel->Close();
-    CleanupInternals();
   }
   return info.Env().Undefined();
 }
