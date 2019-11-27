@@ -49,9 +49,9 @@ static Validation<webrtc::RtpEncodingParameters> RTP_ENCODING_PARAMETERS_FN(
   }
   if (dtx.IsJust()) {
     parameters.dtx = absl::optional<webrtc::DtxStatus>(
-      dtx.UnsafeFromJust() == node_webrtc::RTCDtxStatus::kDisabled
-        ? webrtc::DtxStatus::DISABLED
-        : webrtc::DtxStatus::ENABLED);
+            dtx.UnsafeFromJust() == node_webrtc::RTCDtxStatus::kDisabled
+            ? webrtc::DtxStatus::DISABLED
+            : webrtc::DtxStatus::ENABLED);
   }
   parameters.active = active;
   // TODO(mroberts): Do something with this.
