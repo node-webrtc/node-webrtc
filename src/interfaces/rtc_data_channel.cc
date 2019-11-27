@@ -103,7 +103,6 @@ void RTCDataChannel::CleanupInternals() {
   if (_jingleDataChannel == nullptr) {
     return;
   }
-  // _jingleDataChannel might be freed already.
   _jingleDataChannel->UnregisterObserver();
   _cached_id = _jingleDataChannel->id();
   _cached_label = _jingleDataChannel->label();
@@ -125,6 +124,9 @@ void RTCDataChannel::OnPeerConnectionClosed() {
 
 void RTCDataChannel::OnStateChange() {
   auto state = _jingleDataChannel->state();
+  if (state == webrtc::DataChannelInterface::kClosed) {
+    CleanupInternals();
+  }
   Dispatch(CreateCallback<RTCDataChannel>([this, state]() {
     RTCDataChannel::HandleStateChange(*this, state);
   }));
@@ -141,7 +143,6 @@ void RTCDataChannel::HandleStateChange(RTCDataChannel& channel, webrtc::DataChan
   }
   channel.MakeCallback("dispatchEvent", { object });
   if (state == webrtc::DataChannelInterface::kClosed) {
-    channel.CleanupInternals();
     channel.Stop();
   }
 }
@@ -229,6 +230,7 @@ Napi::Value RTCDataChannel::Send(const Napi::CallbackInfo& info) {
 Napi::Value RTCDataChannel::Close(const Napi::CallbackInfo& info) {
   if (_jingleDataChannel != nullptr) {
     _jingleDataChannel->Close();
+    CleanupInternals();
   }
   return info.Env().Undefined();
 }
