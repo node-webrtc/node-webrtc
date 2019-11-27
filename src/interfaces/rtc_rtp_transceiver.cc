@@ -13,6 +13,7 @@
 #include "src/converters/absl.h"
 #include "src/converters/arguments.h"
 #include "src/converters/interfaces.h"
+#include "src/dictionaries/webrtc/rtp_encoding_parameters.h"
 #include "src/enums/webrtc/rtp_transceiver_direction.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
 #include "src/interfaces/rtc_rtp_receiver.h"
