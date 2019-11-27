@@ -116,16 +116,11 @@ void RTCDataChannel::CleanupInternals() {
 }
 
 void RTCDataChannel::OnPeerConnectionClosed() {
-  // let channel clean up by itself. otherwise RTCPeerConnection has to react with the channel close event,
-  // to pop channel from __channels array, otherwise the freed channel pointer still be used in RTCPeerConnection,
-  // which will lead to crash.
-  // to avoid channel close event management in RTCPeerConnection, let's decouple the channel close and RTCPeerConnection.
-  /*
   if (_jingleDataChannel != nullptr) {
-    CleanupInternals();
+    // _jingleDataChannel might be freed already.
+    // CleanupInternals();
     Stop();
   }
-  */
 }
 
 void RTCDataChannel::OnStateChange() {
