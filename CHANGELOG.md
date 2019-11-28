@@ -8,6 +8,8 @@ New Features
 - Added support for `sendEncodings` to RTCRtpEncodingParameters, including
   `rid`, `ssrc`, `codecPayloadType`, `dtx`, `active`, `ptime`, `maxBitrate`,
   `maxFramerate`, and `scaleResolutionDownBy`.
+- Added support for `setStreams` to RTCRtpSender. At this time, up to one
+  MediaStream argument is supported.
 
 0.4.2
 =====
