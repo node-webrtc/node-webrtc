@@ -10,6 +10,7 @@ New Features
   `maxFramerate`, and `scaleResolutionDownBy`.
 - Added support for `setStreams` to RTCRtpSender. At this time, up to one
   MediaStream argument is supported.
+- Added support for `restartIce` to RTCPeerConnection.
 
 0.4.2
 =====
