@@ -12,6 +12,7 @@ New Features
   MediaStream argument is supported.
 - Added support for `restartIce` to RTCPeerConnection.
 - Added support for the "icecandidateerror" event to RTCPeerConnection.
+- Added support for `getRemoteCertificates` to RTCDtlsTransport.
 
 0.4.2
 =====

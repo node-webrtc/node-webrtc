@@ -1,6 +1,7 @@
 'use strict';
 
 const test = require('tape');
+const { Certificate } = require('@fidm/x509');
 
 const {
   RTCDtlsTransport,
@@ -53,6 +54,18 @@ async function testDtlsTransport(t, createSenderOrReceiver) {
   t.pass('"statechange" fires in state "connected"');
   t.equal(transport.state, 'connected', '.state is "connected"');
   t.equal(transport.iceTransport.state, 'connected', '.iceTransport.state is also "connected"');
+
+  const remoteCertificates = transport.getRemoteCertificates();
+  t.ok(remoteCertificates.length > 0, 'getRemoteCertificates() returns at least one remote certificate');
+  remoteCertificates.forEach((derBuffer, i) => {
+    // NOTE(mroberts): https://stackoverflow.com/a/48309802
+    const prefix = '-----BEGIN CERTIFICATE-----\n';
+    const postfix = '-----END CERTIFICATE-----';
+    const pemText = prefix + Buffer.from(derBuffer).toString('base64').match(/.{0,64}/g).join('\n') + postfix;
+    const cert = Certificate.fromPEM(pemText);
+    t.equal(cert.issuer.commonName, 'WebRTC', 'Issuer is "WebRTC"');
+    t.pass(`parsed remote certificate ${i + 1}`);
+  });
 
   pc1.close();
   pc2.close();

@@ -41,6 +41,7 @@
     "node-pre-gyp"
   ],
   "devDependencies": {
+    "@fidm/x509": "^1.2.1",
     "aws-sdk": "^2.2.10",
     "browserify-middleware": "^8.1.1",
     "cross-env": "^5.1.4",
