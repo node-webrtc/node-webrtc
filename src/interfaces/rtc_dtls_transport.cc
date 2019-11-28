@@ -19,6 +19,7 @@
 
 #include "src/converters.h"
 #include "src/converters/napi.h"
+#include "src/converters/webrtc.h"
 #include "src/dictionaries/node_webrtc/some_error.h"
 #include "src/enums/webrtc/dtls_transport_state.h"  // IWYU pragma: keep
 #include "src/functional/validation.h"
@@ -31,6 +32,23 @@ namespace node_webrtc {
 Napi::FunctionReference& RTCDtlsTransport::constructor() {
   static Napi::FunctionReference constructor;
   return constructor;
+}
+
+static std::vector<rtc::Buffer> copy_certs(webrtc::DtlsTransportInformation information) {
+  auto certs = information.remote_ssl_certificates();
+  if (certs) {
+    auto size = certs->GetSize();
+    auto ders = std::vector<rtc::Buffer>();
+    ders.reserve(size);
+    for (unsigned long i = 0; i < size; i++) {
+      // TODO(mroberts): I don't know a more approriate value to initialize with.
+      auto buffer = rtc::Buffer(1);
+      certs->Get(i).ToDER(&buffer);
+      ders.emplace_back(std::move(buffer));
+    }
+    return ders;
+  }
+  return std::vector<rtc::Buffer>();
 }
 
 RTCDtlsTransport::RTCDtlsTransport(const Napi::CallbackInfo& info)
@@ -53,7 +71,9 @@ RTCDtlsTransport::RTCDtlsTransport(const Napi::CallbackInfo& info)
 
   _factory->_workerThread->Invoke<void>(RTC_FROM_HERE, [this]() {
     _transport->RegisterObserver(this);
-    _state = _transport->Information().state();
+    auto information = _transport->Information();
+    _state = information.state();
+    _certs = copy_certs(information);
     if (_state == webrtc::DtlsTransportState::kClosed) {
       Stop();
     }
@@ -79,6 +99,7 @@ void RTCDtlsTransport::OnStateChange(webrtc::DtlsTransportInformation informatio
   {
     std::lock_guard<std::mutex> lock(_mutex);
     _state = information.state();
+    _certs = copy_certs(information);
   }
 
   Dispatch(CreateCallback<RTCDtlsTransport>([this]() {
@@ -123,6 +144,18 @@ Napi::Value RTCDtlsTransport::GetState(const Napi::CallbackInfo& info) {
   return result;
 }
 
+Napi::Value RTCDtlsTransport::GetRemoteCertificates(const Napi::CallbackInfo& info) {
+  std::lock_guard<std::mutex> lock(_mutex);
+  auto certs = std::vector<rtc::Buffer*>();
+  certs.reserve(_certs.size());
+  for (unsigned long i = 0; i < _certs.size(); i++) {
+    auto cert = &_certs[i];
+    certs.emplace_back(cert);
+  }
+  CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), certs, result, Napi::Value)
+  return result;
+}
+
 Wrap <
 RTCDtlsTransport*,
 rtc::scoped_refptr<webrtc::DtlsTransportInterface>,
@@ -152,6 +185,7 @@ RTCDtlsTransport* RTCDtlsTransport::Create(
 
 void RTCDtlsTransport::Init(Napi::Env env, Napi::Object exports) {
   auto func = DefineClass(env, "RTCDtlsTransport", {
+    InstanceMethod("getRemoteCertificates", &RTCDtlsTransport::GetRemoteCertificates),
     InstanceAccessor("iceTransport", &RTCDtlsTransport::GetIceTransport, nullptr),
     InstanceAccessor("state", &RTCDtlsTransport::GetState, nullptr)
   });
