@@ -90,6 +90,7 @@ class RTCPeerConnection
   Napi::Value LegacyGetStats(const Napi::CallbackInfo&);
   Napi::Value GetTransceivers(const Napi::CallbackInfo&);
   Napi::Value Close(const Napi::CallbackInfo&);
+  Napi::Value RestartIce(const Napi::CallbackInfo&);
 
   Napi::Value GetCanTrickleIceCandidates(const Napi::CallbackInfo&);
   Napi::Value GetConnectionState(const Napi::CallbackInfo&);

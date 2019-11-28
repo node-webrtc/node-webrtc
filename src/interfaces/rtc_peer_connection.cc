@@ -576,6 +576,14 @@ Napi::Value RTCPeerConnection::Close(const Napi::CallbackInfo& info) {
   return info.Env().Undefined();
 }
 
+Napi::Value RTCPeerConnection::RestartIce(const Napi::CallbackInfo& info) {
+  (void) info;
+  if (_jinglePeerConnection) {
+    _jinglePeerConnection->RestartIce();
+  }
+  return info.Env().Undefined();
+}
+
 Napi::Value RTCPeerConnection::GetCanTrickleIceCandidates(const Napi::CallbackInfo& info) {
   return info.Env().Null();
 }
@@ -696,6 +704,7 @@ void RTCPeerConnection::Init(Napi::Env env, Napi::Object exports) {
     InstanceMethod("setRemoteDescription", &RTCPeerConnection::SetRemoteDescription),
     InstanceMethod("getConfiguration", &RTCPeerConnection::GetConfiguration),
     InstanceMethod("setConfiguration", &RTCPeerConnection::SetConfiguration),
+    InstanceMethod("restartIce", &RTCPeerConnection::RestartIce),
     InstanceMethod("getReceivers", &RTCPeerConnection::GetReceivers),
     InstanceMethod("getSenders", &RTCPeerConnection::GetSenders),
     InstanceMethod("getStats", &RTCPeerConnection::GetStats),
