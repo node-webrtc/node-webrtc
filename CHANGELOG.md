@@ -13,6 +13,8 @@ New Features
 - Added support for `restartIce` to RTCPeerConnection.
 - Added support for the "icecandidateerror" event to RTCPeerConnection.
 - Added support for `getRemoteCertificates` to RTCDtlsTransport.
+- Added support for `getCapabilities` to RTCRtpSender and RTCRtpReceiver.
+- Added support for `setCodecPreferences` to RTCRtpTransceiver.
 
 0.4.2
 =====
