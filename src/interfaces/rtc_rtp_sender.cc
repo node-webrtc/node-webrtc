@@ -13,6 +13,7 @@
 #include "src/converters/null.h"
 #include "src/dictionaries/webrtc/rtp_parameters.h"
 #include "src/interfaces/media_stream_track.h"
+#include "src/interfaces/media_stream.h"
 #include "src/interfaces/rtc_dtls_transport.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
 #include "src/node/error_factory.h"
@@ -116,6 +117,16 @@ Napi::Value RTCRtpSender::ReplaceTrack(const Napi::CallbackInfo& info) {
   return deferred.Promise();
 }
 
+Napi::Value RTCRtpSender::SetStreams(const Napi::CallbackInfo& info) {
+  CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, maybeStream, Maybe<MediaStream*>)
+  auto streams = std::vector<std::string>();
+  if (maybeStream.IsJust()) {
+    streams.emplace_back(maybeStream.UnsafeFromJust()->stream()->id());
+  }
+  _sender->SetStreams(streams);
+  return info.Env().Undefined();
+}
+
 Wrap <
 RTCRtpSender*,
 rtc::scoped_refptr<webrtc::RtpSenderInterface>,
@@ -152,6 +163,7 @@ void RTCRtpSender::Init(Napi::Env env, Napi::Object exports) {
     InstanceMethod("setParameters", &RTCRtpSender::SetParameters),
     InstanceMethod("getStats", &RTCRtpSender::GetStats),
     InstanceMethod("replaceTrack", &RTCRtpSender::ReplaceTrack),
+    InstanceMethod("setStreams", &RTCRtpSender::SetStreams),
     StaticMethod("getCapabilities", &RTCRtpSender::GetCapabilities)
   });
 
