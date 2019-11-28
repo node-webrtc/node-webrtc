@@ -11,6 +11,7 @@ New Features
 - Added support for `setStreams` to RTCRtpSender. At this time, up to one
   MediaStream argument is supported.
 - Added support for `restartIce` to RTCPeerConnection.
+- Added support for the "icecandidateerror" event to RTCPeerConnection.
 
 0.4.2
 =====
