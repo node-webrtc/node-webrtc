@@ -181,10 +181,10 @@ void RTCPeerConnection::OnIceCandidateError(const std::string& host_candidate, c
   Dispatch(CreateCallback<RTCPeerConnection>([this, host_candidate, url, error_code, error_text]() {
     auto env = Env();
     auto maybeEvent = Validation<Napi::Value>::Join(curry(CreateRTCPeerConnectionIceErrorEvent)
-        % From<Napi::Value>(std::make_pair(env, host_candidate))
-        * From<Napi::Value>(std::make_pair(env, url))
-        * From<Napi::Value>(std::make_pair(env, error_code))
-        * From<Napi::Value>(std::make_pair(env, error_text)));
+            % From<Napi::Value>(std::make_pair(env, host_candidate))
+            * From<Napi::Value>(std::make_pair(env, url))
+            * From<Napi::Value>(std::make_pair(env, error_code))
+            * From<Napi::Value>(std::make_pair(env, error_text)));
     if (maybeEvent.IsValid()) {
       MakeCallback("onicecandidateerror", { maybeEvent.UnsafeFromValid() });
     }
