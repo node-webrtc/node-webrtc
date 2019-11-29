@@ -5,6 +5,7 @@ New Features
 ------------
 
 - Updated to WebRTC M79.
+- Added support for Node 13.
 - Added support for `sendEncodings` to RTCRtpEncodingParameters, including
   `rid`, `ssrc`, `codecPayloadType`, `dtx`, `active`, `ptime`, `maxBitrate`,
   `maxFramerate`, and `scaleResolutionDownBy`.

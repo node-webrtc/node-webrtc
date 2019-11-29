@@ -29,6 +29,16 @@ SET nodejs_version=11
 CALL scripts\run-tests.bat
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
+ECHO Test using Node 12
+SET nodejs_version=12
+CALL scripts\run-tests.bat
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
+ECHO Test using Node 13
+SET nodejs_version=13
+CALL scripts\run-tests.bat
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+
 ECHO Test Electron 4
 CALL npm install --no-save electron@4.x
 CALL npm run test:electron
