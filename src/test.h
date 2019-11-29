@@ -5,6 +5,8 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
+#ifdef DEBUG
+
 #pragma once
 
 #include <node-addon-api/napi.h>
@@ -22,3 +24,5 @@ class Test {
 };
 
 }  // namespace node_webrtc
+
+#endif  // DEBUG
