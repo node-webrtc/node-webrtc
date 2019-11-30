@@ -7,10 +7,13 @@
  */
 #include "src/interfaces/rtc_rtp_sender.h"
 
+#include <webrtc/api/rtp_parameters.h>
+
 #include "src/converters.h"
 #include "src/converters/arguments.h"
 #include "src/converters/interfaces.h"
 #include "src/converters/null.h"
+#include "src/dictionaries/webrtc/rtc_error.h"
 #include "src/dictionaries/webrtc/rtp_capabilities.h"
 #include "src/dictionaries/webrtc/rtp_parameters.h"
 #include "src/enums/webrtc/media_type.h"
@@ -93,7 +96,14 @@ Napi::Value RTCRtpSender::GetParameters(const Napi::CallbackInfo& info) {
 
 Napi::Value RTCRtpSender::SetParameters(const Napi::CallbackInfo& info) {
   CREATE_DEFERRED(info.Env(), deffered)
-  Reject(deferred, Napi::Error::New(info.Env(), "Not yet implemented; file a feature request against node-webrtc"));
+  CONVERT_ARGS_OR_REJECT_AND_RETURN_NAPI(deferred, info, parameters, webrtc::RtpParameters)
+  auto error = _sender->SetParameters(parameters);
+  if (error.ok()) {
+    deferred.Resolve(info.Env().Undefined());
+  } else {
+    CONVERT_OR_REJECT_AND_RETURN_NAPI(deferred, &error, reason, Napi::Value)
+    deferred.Reject(reason);
+  }
   return deferred.Promise();
 }
 

@@ -6,6 +6,10 @@
 
 #include <webrtc/api/rtp_parameters.h>
 
+#include "src/converters.h"
+#include "src/converters/absl.h"
+#include "src/converters/object.h"
+#include "src/dictionaries/macros/napi.h"
 #include "src/enums/node_webrtc/rtc_dtx_status.h"
 #include "src/enums/node_webrtc/rtc_priority_type.h"
 #include "src/functional/maybe.h"
@@ -69,6 +73,24 @@ static Validation<webrtc::RtpEncodingParameters> RTP_ENCODING_PARAMETERS_FN(
     parameters.scale_resolution_down_by = absl::optional<double>(scaleResolutionDownBy.UnsafeFromJust());
   }
   return Pure(parameters);
+}
+
+TO_NAPI_IMPL(webrtc::RtpEncodingParameters, pair) {
+  auto env = pair.first;
+  Napi::EscapableHandleScope scope(env);
+  auto parameters = pair.second;
+  NODE_WEBRTC_CREATE_OBJECT_OR_RETURN(env, object)
+  if (!parameters.rid.empty()) {
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "rid", parameters.rid)
+  }
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "active", parameters.active)
+  if (parameters.max_bitrate_bps) {
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "maxBitrate", parameters.max_bitrate_bps)
+  }
+  if (parameters.scale_resolution_down_by) {
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "scaleResolutionDownBy", parameters.scale_resolution_down_by)
+  }
+  return Pure(scope.Escape(object));
 }
 
 }  // namespace node_webrtc

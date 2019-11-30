@@ -208,7 +208,7 @@ tape('applying a remote offer and then applying a local answer causes .getParame
           channels: 1
         }
       ],
-      encodings: []
+      encodings: [{ active: true }]
     }, 'the audio RTCRtpReceiver\'s .getParameters() returns the expected RTCRtpParameters');
     compareParameters(t, receivers[1].getParameters(), {
       headerExtensions: [],
@@ -225,7 +225,7 @@ tape('applying a remote offer and then applying a local answer causes .getParame
           sdpFmtpLine: 'a=fmtp:121 profile-id=0'
         }
       ],
-      encodings: []
+      encodings: [{ active: true }]
     }, 'the video RTCRtpReceiver\'s .getParameters() returns the expected RTCRtpParameters');
     pc.close();
     t.end();

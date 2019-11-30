@@ -88,6 +88,10 @@ PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo& info)
           nullptr);
   assert(_factory);
 
+  webrtc::PeerConnectionFactoryInterface::Options options;
+  options.network_ignore_mask = 0;
+  _factory->SetOptions(options);
+
   _networkManager = std::unique_ptr<rtc::NetworkManager>(new rtc::BasicNetworkManager());
   assert(_networkManager != nullptr);
 
