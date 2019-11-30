@@ -6,15 +6,24 @@ New Features
 
 - Updated to WebRTC M79.
 - Added support for Node 13.
-- Added support for `sendEncodings` to RTCRtpEncodingParameters, including
-  `rid`, `ssrc`, `codecPayloadType`, `dtx`, `active`, `ptime`, `maxBitrate`,
-  `maxFramerate`, and `scaleResolutionDownBy`.
-- Added support for `setStreams` to RTCRtpSender. At this time, up to one
-  MediaStream argument is supported.
-- Added support for `restartIce` to RTCPeerConnection.
-- Added support for the "icecandidateerror" event to RTCPeerConnection.
-- Added support for `getRemoteCertificates` to RTCDtlsTransport.
+- Added support for a number of new standard APIs (see below).
+
+### RTCPeerConnection
+
+- Added support for `restartIce`.
+- Added support for "icecandidateerror" events.
+
+### RTCDtlsTransport
+
+- Added support for `getRemoteCertificates`.
+
+### RTCRtpSender, RTCRtpReceiver & RTCRtpTransceiver
+
 - Added support for `getCapabilities` to RTCRtpSender and RTCRtpReceiver.
+- Added support for `setParameters` to RTCRtpSender.
+- Added support for `setStreams` to RTCRtpSender (at this time, up to one
+  MediaStream argument is supported).
+- Added support for `sendEncodings` to RTCRtpTransceiverInit.
 - Added support for `setCodecPreferences` to RTCRtpTransceiver.
 
 0.4.2

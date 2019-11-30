@@ -7,6 +7,6 @@ namespace webrtc { typedef RtpExtension RtpHeaderExtensionParameters; }
 
 namespace node_webrtc {
 
-DECLARE_TO_NAPI(webrtc::RtpHeaderExtensionParameters)
+DECLARE_TO_AND_FROM_NAPI(webrtc::RtpHeaderExtensionParameters)
 
 }  // namespace node_webrtc
