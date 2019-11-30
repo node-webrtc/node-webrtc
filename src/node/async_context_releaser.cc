@@ -28,6 +28,12 @@ void AsyncContextReleaser::Execute(Napi::Env env) {
 }
 
 AsyncContextReleaser* AsyncContextReleaser::GetDefault() {
+  if (!_default) {
+    Napi::HandleScope scope(constructor().Env());
+    auto object = constructor().New({});
+    _default = Unwrap(object);
+    _default->Ref();
+  }
   return _default;
 }
 
@@ -35,9 +41,6 @@ void AsyncContextReleaser::Init(Napi::Env env, Napi::Object) {
   auto func = DefineClass(env, "AsyncContextReleaser", {});
   constructor() = Napi::Persistent(func);
   constructor().SuppressDestruct();
-  auto object = constructor().New({});
-  _default = Unwrap(object);
-  _default->Ref();
 }
 
 }  // namespace node_webrtc
