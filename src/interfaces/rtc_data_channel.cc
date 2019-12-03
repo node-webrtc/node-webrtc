@@ -117,8 +117,9 @@ void RTCDataChannel::CleanupInternals() {
 
 void RTCDataChannel::OnPeerConnectionClosed() {
   if (_jingleDataChannel != nullptr) {
-    CleanupInternals();
-    Stop();
+    // this data channel instance might be freed already.
+    // CleanupInternals();
+    // Stop();
   }
 }
 
