@@ -26,6 +26,15 @@ New Features
 - Added support for `sendEncodings` to RTCRtpTransceiverInit.
 - Added support for `setCodecPreferences` to RTCRtpTransceiver.
 
+Bug Fixes
+---------
+
+- Fixed a bug where VideoFrame timestamps reported via RTCP were incorrect
+  (#566). Thanks, @lonocvb.
+- Fixed a bug where, in some cases, Ninja builds failed on macOS (#582). Thanks,
+  @taylorhoward92.
+- Fixed bugs related to N-API usage in recent version of Node 12 and 13.
+
 0.4.2
 =====
 
