@@ -26,7 +26,7 @@
     "host": "https://node-webrtc.s3.amazonaws.com"
   },
   "engines": {
-    "node": "^8.11.2 || ^10.0.0 || ^11.0.0 || ^12.0.0"
+    "node": "^8.11.2 || ^10.0.0 || ^11.0.0 || ^12.0.0 || ^13.0.0"
   },
   "dependencies": {
     "nan": "^2.3.2",
