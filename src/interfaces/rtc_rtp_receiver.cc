@@ -10,10 +10,13 @@
 #include <webrtc/api/rtp_receiver_interface.h>
 
 #include "src/converters.h"
+#include "src/converters/arguments.h"
 #include "src/converters/interfaces.h"
 #include "src/converters/napi.h"
+#include "src/dictionaries/webrtc/rtp_capabilities.h"
 #include "src/dictionaries/webrtc/rtp_parameters.h"
 #include "src/dictionaries/webrtc/rtp_source.h"
+#include "src/enums/webrtc/media_type.h"
 #include "src/interfaces/media_stream_track.h"
 #include "src/interfaces/rtc_dtls_transport.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
@@ -66,8 +69,16 @@ Napi::Value RTCRtpReceiver::GetRtcpTransport(const Napi::CallbackInfo& info) {
 }
 
 Napi::Value RTCRtpReceiver::GetCapabilities(const Napi::CallbackInfo& info) {
-  Napi::Error::New(info.Env(), "Not yet implemented; file a feature request against node-webrtc").ThrowAsJavaScriptException();
-  return info.Env().Undefined();
+  CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, kindString, std::string)
+  if (kindString == "audio" || kindString == "video") {
+    auto factory = PeerConnectionFactory::GetOrCreateDefault();
+    auto kind = kindString == "audio" ? cricket::MEDIA_TYPE_AUDIO : cricket::MEDIA_TYPE_VIDEO;
+    auto capabilities = factory->factory()->GetRtpReceiverCapabilities(kind);
+    factory->Release();
+    CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), capabilities, result, Napi::Value)
+    return result;
+  }
+  return info.Env().Null();
 }
 
 Napi::Value RTCRtpReceiver::GetParameters(const Napi::CallbackInfo& info) {

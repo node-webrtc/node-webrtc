@@ -29,16 +29,19 @@ TO_NAPI_IMPL(rtc::scoped_refptr<webrtc::VideoFrameBuffer>, pair) {
 
 CONVERT_VIA(Napi::Value, I420ImageData, rtc::scoped_refptr<webrtc::I420Buffer>)
 
-TO_NAPI_IMPL(rtc::scoped_refptr<webrtc::I420BufferInterface>, pair) {
+TO_NAPI_IMPL(const webrtc::I420BufferInterface*, pair) {
   auto env = pair.first;
   Napi::EscapableHandleScope scope(env);
   auto value = pair.second;
 
-  auto sizeOfYPlane = value->StrideY() * value->height();
-  auto sizeOfUPlane = value->StrideU() * value->height() / 2;
-  auto sizeOfVPlane = value->StrideV() * value->height() / 2;
+  auto sizeOfSrcYPlane = value->StrideY() * value->height();
+  auto sizeOfSrcUPlane = value->StrideU() * value->height() / 2;
+  auto sizeOfSrcVPlane = value->StrideV() * value->height() / 2;
+  auto sizeOfDstYPlane = value->width() * value->height();
+  auto sizeOfDstUPlane = sizeOfDstYPlane / 4;
+  auto sizeOfDstVPlane = sizeOfDstYPlane / 4;
 
-  auto byteLength = sizeOfYPlane + sizeOfUPlane + sizeOfVPlane;
+  auto byteLength = sizeOfDstYPlane + sizeOfDstUPlane + sizeOfDstVPlane;
   auto maybeArrayBuffer = Napi::ArrayBuffer::New(env, byteLength);
   if (maybeArrayBuffer.Env().IsExceptionPending()) {
     return Validation<Napi::Value>::Invalid(maybeArrayBuffer.Env().GetAndClearPendingException().Message());
@@ -50,12 +53,30 @@ TO_NAPI_IMPL(rtc::scoped_refptr<webrtc::I420BufferInterface>, pair) {
   auto srcVPlane = value->DataV();
 
   auto dstYPlane = data;
-  auto dstUPlane = data + sizeOfYPlane;
-  auto dstVPlane = dstUPlane + sizeOfUPlane;
+  auto dstUPlane = data + sizeOfDstYPlane;
+  auto dstVPlane = dstUPlane + sizeOfDstUPlane;
 
-  memcpy(dstYPlane, srcYPlane, sizeOfYPlane);
-  memcpy(dstUPlane, srcUPlane, sizeOfUPlane);
-  memcpy(dstVPlane, srcVPlane, sizeOfVPlane);
+  if (sizeOfSrcYPlane == sizeOfDstYPlane) {
+    memcpy(dstYPlane, srcYPlane, sizeOfDstYPlane);
+  } else {
+    for (int i = 0, j = 0; i < sizeOfSrcYPlane; i += value->StrideY(), j += value->width()) {
+      memcpy(dstYPlane + j, srcYPlane + i, value->width());
+    }
+  }
+  if (sizeOfSrcUPlane == sizeOfDstUPlane) {
+    memcpy(dstUPlane, srcUPlane, sizeOfDstUPlane);
+  } else {
+    for (int i = 0, j = 0; i < sizeOfSrcUPlane; i += value->StrideU(), j += value->width() / 2) {
+      memcpy(dstUPlane + j, srcUPlane + i, value->width() / 2);
+    }
+  }
+  if (sizeOfSrcVPlane == sizeOfDstVPlane) {
+    memcpy(dstVPlane, srcVPlane, sizeOfDstVPlane);
+  } else {
+    for (int i = 0, j = 0; i < sizeOfSrcVPlane; i += value->StrideV(), j += value->width() / 2) {
+      memcpy(dstVPlane + j, srcVPlane + i, value->width() / 2);
+    }
+  }
 
   // FIXME(mroberts): How to create a Uint8ClampedArray?
   auto maybeUint8Array = Napi::Uint8Array::New(env, byteLength, maybeArrayBuffer, 0);

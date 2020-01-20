@@ -3,11 +3,9 @@
 var tape = require('tape');
 var wrtc = require('..');
 
-var MediaStreamTrack = wrtc.MediaStreamTrack;
 var RTCPeerConnection = wrtc.RTCPeerConnection;
 var RTCRtpSender = wrtc.RTCRtpSender;
 var RTCSessionDescription = wrtc.RTCSessionDescription;
-var MediaStream = wrtc.MediaStream;
 
 var sdp = [
   'v=0',

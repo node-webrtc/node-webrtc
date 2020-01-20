@@ -50,6 +50,7 @@ class RTCDtlsTransport
 
   Napi::Value GetIceTransport(const Napi::CallbackInfo&);
   Napi::Value GetState(const Napi::CallbackInfo&);
+  Napi::Value GetRemoteCertificates(const Napi::CallbackInfo&);
 
   static RTCDtlsTransport* Create(
       PeerConnectionFactory*,
@@ -57,6 +58,7 @@ class RTCDtlsTransport
 
   std::mutex _mutex;
   webrtc::DtlsTransportState _state;
+  std::vector<rtc::Buffer> _certs;
 
   PeerConnectionFactory* _factory;
   rtc::scoped_refptr<webrtc::DtlsTransportInterface> _transport;

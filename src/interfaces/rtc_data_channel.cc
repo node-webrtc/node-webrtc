@@ -7,7 +7,6 @@
  */
 #include "src/interfaces/rtc_data_channel.h"
 
-#include <iostream>
 #include <utility>
 
 #include <webrtc/api/data_channel_interface.h>
@@ -117,7 +116,6 @@ void RTCDataChannel::CleanupInternals() {
 
 void RTCDataChannel::OnPeerConnectionClosed() {
   if (_jingleDataChannel != nullptr) {
-    CleanupInternals();
     Stop();
   }
 }

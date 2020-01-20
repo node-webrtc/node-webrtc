@@ -20,6 +20,7 @@
 #include "src/converters/arguments.h"
 #include "src/converters/interfaces.h"
 #include "src/converters/napi.h"
+#include "src/dictionaries/macros/napi.h"
 #include "src/dictionaries/node_webrtc/rtc_answer_options.h"
 #include "src/dictionaries/node_webrtc/rtc_offer_options.h"
 #include "src/dictionaries/node_webrtc/rtc_session_description_init.h"
@@ -157,6 +158,35 @@ void RTCPeerConnection::OnIceCandidate(const webrtc::IceCandidateInterface* ice_
       if (maybeCandidate.IsValid()) {
         MakeCallback("onicecandidate", { maybeCandidate.UnsafeFromValid() });
       }
+    }
+  }));
+}
+
+static Validation<Napi::Value> CreateRTCPeerConnectionIceErrorEvent(
+    const Napi::Value hostCandidate,
+    const Napi::Value url,
+    const Napi::Value errorCode,
+    const Napi::Value errorText) {
+  auto env = hostCandidate.Env();
+  Napi::EscapableHandleScope scope(env);
+  NODE_WEBRTC_CREATE_OBJECT_OR_RETURN(env, object)
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "hostCandidate", hostCandidate)
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "url", url)
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "errorCode", errorCode)
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "errorText", errorText)
+  return Pure(scope.Escape(object));
+}
+
+void RTCPeerConnection::OnIceCandidateError(const std::string& host_candidate, const std::string& url, int error_code, const std::string& error_text) {
+  Dispatch(CreateCallback<RTCPeerConnection>([this, host_candidate, url, error_code, error_text]() {
+    auto env = Env();
+    auto maybeEvent = Validation<Napi::Value>::Join(curry(CreateRTCPeerConnectionIceErrorEvent)
+            % From<Napi::Value>(std::make_pair(env, host_candidate))
+            * From<Napi::Value>(std::make_pair(env, url))
+            * From<Napi::Value>(std::make_pair(env, error_code))
+            * From<Napi::Value>(std::make_pair(env, error_text)));
+    if (maybeEvent.IsValid()) {
+      MakeCallback("onicecandidateerror", { maybeEvent.UnsafeFromValid() });
     }
   }));
 }
@@ -464,8 +494,8 @@ Napi::Value RTCPeerConnection::SetConfiguration(const Napi::CallbackInfo& info) 
     return env.Undefined();
   }
 
-  webrtc::RTCError rtcError;
-  if (!_jinglePeerConnection->SetConfiguration(configuration, &rtcError)) {
+  auto rtcError = _jinglePeerConnection->SetConfiguration(configuration);
+  if (!rtcError.ok()) {
     CONVERT_OR_THROW_AND_RETURN_NAPI(env, &rtcError, error, Napi::Value)
     Napi::Error(env, error).ThrowAsJavaScriptException();
     return env.Undefined();
@@ -576,6 +606,14 @@ Napi::Value RTCPeerConnection::Close(const Napi::CallbackInfo& info) {
     _factory = nullptr;
   }
 
+  return info.Env().Undefined();
+}
+
+Napi::Value RTCPeerConnection::RestartIce(const Napi::CallbackInfo& info) {
+  (void) info;
+  if (_jinglePeerConnection) {
+    _jinglePeerConnection->RestartIce();
+  }
   return info.Env().Undefined();
 }
 
@@ -699,6 +737,7 @@ void RTCPeerConnection::Init(Napi::Env env, Napi::Object exports) {
     InstanceMethod("setRemoteDescription", &RTCPeerConnection::SetRemoteDescription),
     InstanceMethod("getConfiguration", &RTCPeerConnection::GetConfiguration),
     InstanceMethod("setConfiguration", &RTCPeerConnection::SetConfiguration),
+    InstanceMethod("restartIce", &RTCPeerConnection::RestartIce),
     InstanceMethod("getReceivers", &RTCPeerConnection::GetReceivers),
     InstanceMethod("getSenders", &RTCPeerConnection::GetSenders),
     InstanceMethod("getStats", &RTCPeerConnection::GetStats),

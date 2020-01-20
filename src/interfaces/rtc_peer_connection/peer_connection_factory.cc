@@ -50,7 +50,7 @@ PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo& info)
   // TODO(mroberts): Read `audioLayer` from some PeerConnectionFactoryOptions?
   auto audioLayer = MakeNothing<webrtc::AudioDeviceModule::AudioLayer>();
 
-  _workerThread = std::make_unique<rtc::Thread>();
+  _workerThread = rtc::Thread::CreateWithSocketServer();
   assert(_workerThread);
 
   bool result = _workerThread->Start();
@@ -58,7 +58,10 @@ PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo& info)
 
   _audioDeviceModule = _workerThread->Invoke<rtc::scoped_refptr<webrtc::AudioDeviceModule>>(RTC_FROM_HERE, [audioLayer]() {
     return audioLayer.Map([](auto audioLayer) {
-      return webrtc::AudioDeviceModule::Create(audioLayer);
+      // TODO(mroberts): I'm just trying to get this to compile right now.
+      // We need to call something like CreateDefaultTaskQueueFactory().
+      // This code is currently unused, though.
+      return webrtc::AudioDeviceModule::Create(audioLayer, nullptr);
     }).Or([]() {
       return TestAudioDeviceModule::CreateTestAudioDeviceModule(
               ZeroCapturer::Create(48000),
@@ -84,6 +87,10 @@ PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo& info)
           nullptr,
           nullptr);
   assert(_factory);
+
+  webrtc::PeerConnectionFactoryInterface::Options options;
+  options.network_ignore_mask = 0;
+  _factory->SetOptions(options);
 
   _networkManager = std::unique_ptr<rtc::NetworkManager>(new rtc::BasicNetworkManager());
   assert(_networkManager != nullptr);

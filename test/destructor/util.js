@@ -23,50 +23,72 @@ function createDeferred() {
   return deferred;
 }
 
-/**
- * Check that an AsyncResource, T, is destroyed.
- * @param {string} type
- * @param {function(): (T|Promise<T>)} create
- * @param {function(created: T): (void|Promise<void>)} destroy
- */
-async function checkDestructor(type, create, destroy) {
-  const initDeferred = createDeferred();
-  const destroyDeferred = createDeferred();
+const typesToIgnore = new Set([
+  'FSEVENTWRAP', 'FSREQCALLBACK', 'GETADDRINFOREQWRAP', 'GETNAMEINFOREQWRAP', 'HTTPINCOMINGMESSAGE',
+  'HTTPCLIENTREQUEST', 'JSSTREAM', 'PIPECONNECTWRAP', 'PIPEWRAP', 'PROCESSWRAP', 'QUERYWRAP',
+  'SHUTDOWNWRAP', 'SIGNALWRAP', 'STATWATCHER', 'TCPCONNECTWRAP', 'TCPSERVERWRAP', 'TCPWRAP',
+  'TTYWRAP', 'UDPSENDWRAP', 'UDPWRAP', 'WRITEWRAP', 'ZLIB', 'SSLCONNECTION', 'PBKDF2REQUEST',
+  'RANDOMBYTESREQUEST', 'TLSWRAP', 'Microtask', 'Timeout', 'Immediate', 'TickObject', 'PROMISE'
+]);
 
-  let asyncId;
+function trackDestructors() {
+  const asyncIds = new WeakMap();
+  const destructorDeferreds = new Map();
+
+  function createDestructorDeferred(resource, asyncId) {
+    const destructorDeferred = createDeferred();
+    asyncIds.set(resource, asyncId);
+    destructorDeferreds.set(asyncId, destructorDeferred);
+    return destructorDeferred;
+  }
+
+  function maybeResolveDestructorDeferred(asyncId) {
+    const destructorDeferred = destructorDeferreds.get(asyncId);
+    if (destructorDeferred) {
+      destructorDeferreds.delete(asyncId);
+      destructorDeferred.resolve();
+      return true;
+    }
+    return false;
+  }
+
+  function getDestructorPromise(resource) {
+    const asyncId = asyncIds.get(resource);
+    if (!asyncId) {
+      return Promise.reject(new Error('Unknown resource'));
+    }
+    const destructorDeferred = destructorDeferreds.get(asyncId);
+    return destructorDeferred
+      ? destructorDeferred.promise
+      : Promise.reject(new Error('Unknown asyncId'));
+  }
+
+  const interval = setInterval(gc);
 
   const asyncHook = createHook({
-    init(_asyncId, _type) {
-      if (_type !== type || typeof asyncId === 'number') {
+    init(asyncId, type, triggerAsyncId, resource) {
+      if (typesToIgnore.has(type)) {
         return;
       }
-      asyncId = _asyncId;
-      initDeferred.resolve();
+      createDestructorDeferred(resource, asyncId);
     },
-    destroy(_asyncId) {
-      if (_asyncId !== asyncId) {
-        return;
-      }
-      destroyDeferred.resolve();
-    },
+    destroy(asyncId) {
+      maybeResolveDestructorDeferred(asyncId);
+    }
   });
 
   asyncHook.enable();
 
-  const interval = setInterval(() => gc());
-
-  // NOTE(mroberts): We need to do this in a closure so that the AsyncResource
-  // can be garbage collected.
-  await (async () => {
-    const created = await create();
-    await initDeferred.promise;
-    await destroy(created);
-  })();
-
-  await destroyDeferred.promise;
-  clearInterval(interval);
-
-  asyncHook.disable();
+  return {
+    destructor: getDestructorPromise,
+    stop() {
+      clearInterval(interval);
+      asyncHook.disable();
+    }
+  };
 }
 
-module.exports = checkDestructor;
+module.exports = {
+  createDeferred,
+  trackDestructors
+};

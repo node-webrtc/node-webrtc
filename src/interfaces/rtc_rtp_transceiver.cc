@@ -13,6 +13,9 @@
 #include "src/converters/absl.h"
 #include "src/converters/arguments.h"
 #include "src/converters/interfaces.h"
+#include "src/dictionaries/webrtc/rtc_error.h"
+#include "src/dictionaries/webrtc/rtp_encoding_parameters.h"
+#include "src/dictionaries/webrtc/rtp_codec_capability.h"
 #include "src/enums/webrtc/rtp_transceiver_direction.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
 #include "src/interfaces/rtc_rtp_receiver.h"
@@ -93,7 +96,13 @@ Napi::Value RTCRtpTransceiver::Stop(const Napi::CallbackInfo& info) {
 }
 
 Napi::Value RTCRtpTransceiver::SetCodecPreferences(const Napi::CallbackInfo& info) {
-  Napi::Error::New(info.Env(), "Not yet implemented; file a feature request against node-webrtc").ThrowAsJavaScriptException();
+  CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, codecs, std::vector<webrtc::RtpCodecCapability>)
+  auto capabilities = rtc::ArrayView<webrtc::RtpCodecCapability>(codecs);
+  auto error = _transceiver->SetCodecPreferences(capabilities);
+  if (!error.ok()) {
+    CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), &error, result, Napi::Value)
+    Napi::Error(info.Env(), result).ThrowAsJavaScriptException();
+  }
   return info.Env().Undefined();
 }
 

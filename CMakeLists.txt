@@ -30,10 +30,98 @@ ExternalProject_Add(
 ExternalProject_Get_Property(project_depot_tools SOURCE_DIR)
 set(depot_tools_install_dir ${SOURCE_DIR})
 
+# libc++
+# -----------------------------------------------------------------------------
+
+set(libwebrtc_binary_dir ${CMAKE_BINARY_DIR}/external/libwebrtc/build/${CMAKE_BUILD_TYPE})
+set(libwebrtc_src_dir ${CMAKE_BINARY_DIR}/external/libwebrtc/download/src)
+
+add_library(libc++ OBJECT IMPORTED)
+add_dependencies(libc++ libwebrtc)
+
+set(libc++_objects
+  algorithm.o
+  any.o
+  bind.o
+  chrono.o
+  condition_variable.o
+  debug.o
+  exception.o
+  functional.o
+  future.o
+  hash.o
+  ios.o
+  iostream.o
+  locale.o
+  memory.o
+  mutex.o
+  new.o
+  optional.o
+  random.o
+  regex.o
+  shared_mutex.o
+  stdexcept.o
+  string.o
+  strstream.o
+  system_error.o
+  thread.o
+  typeinfo.o
+  utility.o
+  valarray.o
+  variant.o
+  vector.o
+)
+list(TRANSFORM libc++_objects PREPEND ${libwebrtc_binary_dir}/obj/buildtools/third_party/libc++/libc++/)
+
+set_property(TARGET libc++ APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
+set_target_properties(libc++ PROPERTIES IMPORTED_OBJECTS_DEBUG "${libc++_objects}" IMPORTED_OBJECTS "${libc++_objects}")
+
+# NOTE(mroberts): I would like this to be INTERFACE.
+#
+#   https://gitlab.kitware.com/cmake/cmake/issues/15052
+#
+# target_include_directories(libc++ SYSTEM INTERFACE "${libc++_include_dir}")
+
+# libc++abi
+# -----------------------------------------------------------------------------
+
+add_library(libc++abi OBJECT IMPORTED)
+add_dependencies(libc++abi libwebrtc)
+
+set(libc++abi_objects
+  abort_message.o
+  cxa_aux_runtime.o
+  cxa_default_handlers.o
+  cxa_demangle.o
+  cxa_exception.o
+  cxa_exception_storage.o
+  cxa_guard.o
+  cxa_handlers.o
+  cxa_personality.o
+  cxa_unexpected.o
+  cxa_vector.o
+  cxa_virtual.o
+  fallback_malloc.o
+  private_typeinfo.o
+  stdlib_exception.o
+  stdlib_stdexcept.o
+  stdlib_typeinfo.o
+)
+list(TRANSFORM libc++abi_objects PREPEND ${libwebrtc_binary_dir}/obj/buildtools/third_party/libc++abi/libc++abi/)
+
+set_property(TARGET libc++abi APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
+set_target_properties(libc++abi PROPERTIES IMPORTED_OBJECTS_DEBUG "${libc++abi_objects}" IMPORTED_OBJECTS "${libc++abi_objects}")
+
+# NOTE(mroberts): I would like this to be INTERFACE.
+#
+#   https://gitlab.kitware.com/cmake/cmake/issues/15052
+#
+# target_include_directories(libc++abi SYSTEM INTERFACE "${libc++abi_include_dir}")
+
 # libwebrtc
 # -----------------------------------------------------------------------------
 
-set(WEBRTC_REVISION branch-heads/m74)
+set(WEBRTC_REVISION branch-heads/m79)
 
 list(APPEND GN_GEN_ARGS
   rtc_build_examples=false
@@ -87,6 +175,20 @@ else()
   endif()
 endif()
 
+if (WIN32)
+  set(byproducts
+    ${libwebrtc_binary_dir}/obj/webrtc.lib
+    ${libwebrtc_binary_dir}/obj/pc/peerconnection.lib
+  )
+else()
+  set(byproducts
+    ${libc++_objects}
+    ${libc++abi_objects}
+    ${libwebrtc_binary_dir}/obj/libwebrtc.a
+    ${libwebrtc_binary_dir}/obj/pc/libpeerconnection.a
+  )
+endif()
+
 ExternalProject_Add(
   project_libwebrtc
 
@@ -96,6 +198,8 @@ ExternalProject_Add(
   DOWNLOAD_DIR      ${CMAKE_BINARY_DIR}/external/libwebrtc/download
   SOURCE_DIR        ${CMAKE_BINARY_DIR}/external/libwebrtc/download/src
   BINARY_DIR        ${CMAKE_BINARY_DIR}/external/libwebrtc/build/${CMAKE_BUILD_TYPE}
+
+  BUILD_BYPRODUCTS  ${byproducts}
 
   DOWNLOAD_COMMAND  ${CMAKE_COMMAND} -E env DEPOT_TOOLS=${depot_tools_install_dir} PLATFORM=${PLATFORM} WEBRTC_REVISION=${WEBRTC_REVISION} ${CMAKE_SOURCE_DIR}/scripts/download-webrtc.${suffix}
   CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env BINARY_DIR=<BINARY_DIR> DEPOT_TOOLS=${depot_tools_install_dir} GN_GEN_ARGS=${GN_GEN_ARGS} SOURCE_DIR=<SOURCE_DIR> ${CMAKE_SOURCE_DIR}/scripts/configure-webrtc.${suffix}
@@ -129,6 +233,9 @@ else()
   set_property(TARGET libpeerconnection PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/pc/libpeerconnection.a")
 endif()
 
+set(libc++_include_dir "${libwebrtc_source_dir}/src/buildtools/third_party/libc++/trunk/include")
+set(libc++abi_include_dir "${libwebrtc_source_dir}/src/buildtools/third_party/libc++abi/trunk/include")
+
 # NOTE(mroberts): I would like this to be INTERFACE.
 #
 #   https://gitlab.kitware.com/cmake/cmake/issues/15052
@@ -139,95 +246,6 @@ endif()
 #   ${libwebrtc_source_dir}/webrtc/third_party/abseil-cpp
 #   ${libwebrtc_source_dir}/webrtc/third_party/libyuv/include
 # )
-
-# libc++
-# -----------------------------------------------------------------------------
-
-add_library(libc++ OBJECT IMPORTED)
-add_dependencies(libc++ libwebrtc)
-
-set(libc++_objects
-  algorithm.o
-  any.o
-  bind.o
-  chrono.o
-  condition_variable.o
-  debug.o
-  exception.o
-  functional.o
-  future.o
-  hash.o
-  ios.o
-  iostream.o
-  locale.o
-  memory.o
-  mutex.o
-  new.o
-  optional.o
-  random.o
-  regex.o
-  shared_mutex.o
-  stdexcept.o
-  string.o
-  strstream.o
-  system_error.o
-  thread.o
-  typeinfo.o
-  utility.o
-  valarray.o
-  variant.o
-  vector.o
-)
-list(TRANSFORM libc++_objects PREPEND ${libwebrtc_binary_dir}/obj/buildtools/third_party/libc++/libc++/)
-
-set_property(TARGET libc++ APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
-set_target_properties(libc++ PROPERTIES IMPORTED_OBJECTS_DEBUG "${libc++_objects}" IMPORTED_OBJECTS "${libc++_objects}")
-
-set(libc++_include_dir "${libwebrtc_source_dir}/src/buildtools/third_party/libc++/trunk/include")
-
-# NOTE(mroberts): I would like this to be INTERFACE.
-#
-#   https://gitlab.kitware.com/cmake/cmake/issues/15052
-#
-# target_include_directories(libc++ SYSTEM INTERFACE "${libc++_include_dir}")
-
-# libc++abi
-# -----------------------------------------------------------------------------
-
-add_library(libc++abi OBJECT IMPORTED)
-add_dependencies(libc++abi libwebrtc)
-
-set(libc++abi_objects
-  abort_message.o
-  cxa_aux_runtime.o
-  cxa_default_handlers.o
-  cxa_demangle.o
-  cxa_exception.o
-  cxa_exception_storage.o
-  cxa_guard.o
-  cxa_handlers.o
-  cxa_personality.o
-  cxa_unexpected.o
-  cxa_vector.o
-  cxa_virtual.o
-  fallback_malloc.o
-  private_typeinfo.o
-  stdlib_exception.o
-  stdlib_stdexcept.o
-  stdlib_typeinfo.o
-)
-list(TRANSFORM libc++abi_objects PREPEND ${libwebrtc_binary_dir}/obj/buildtools/third_party/libc++abi/libc++abi/)
-
-set_property(TARGET libc++abi APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
-set_target_properties(libc++abi PROPERTIES IMPORTED_OBJECTS_DEBUG "${libc++abi_objects}" IMPORTED_OBJECTS "${libc++abi_objects}")
-
-set(libc++abi_include_dir "${libwebrtc_source_dir}/src/buildtools/third_party/libc++abi/trunk/include")
-
-# NOTE(mroberts): I would like this to be INTERFACE.
-#
-#   https://gitlab.kitware.com/cmake/cmake/issues/15052
-#
-# target_include_directories(libc++abi SYSTEM INTERFACE "${libc++abi_include_dir}")
 
 # catch2
 # -----------------------------------------------------------------------------

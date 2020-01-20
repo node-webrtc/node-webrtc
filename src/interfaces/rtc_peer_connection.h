@@ -47,6 +47,7 @@ class RTCPeerConnection
   void OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState new_state) override;
   void OnIceGatheringChange(webrtc::PeerConnectionInterface::IceGatheringState new_state) override;
   void OnIceCandidate(const webrtc::IceCandidateInterface* candidate) override;
+  void OnIceCandidateError(const std::string& host_candidate, const std::string& url, int error_code, const std::string& error_text) override;
   void OnRenegotiationNeeded() override;
 
   void OnDataChannel(rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel) override;
@@ -90,6 +91,7 @@ class RTCPeerConnection
   Napi::Value LegacyGetStats(const Napi::CallbackInfo&);
   Napi::Value GetTransceivers(const Napi::CallbackInfo&);
   Napi::Value Close(const Napi::CallbackInfo&);
+  Napi::Value RestartIce(const Napi::CallbackInfo&);
 
   Napi::Value GetCanTrickleIceCandidates(const Napi::CallbackInfo&);
   Napi::Value GetConnectionState(const Napi::CallbackInfo&);

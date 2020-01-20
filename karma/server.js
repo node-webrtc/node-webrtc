@@ -107,11 +107,15 @@ wss.on('connection', function(ws) {
         } else {
           console.log('onmessage:', new Uint8Array(evt.data));
         }
-        if ('string' === typeof data) {
-          channel.send('Hello peer!');
-        } else {
-          var response = new Uint8Array([107, 99, 97, 0]);
-          channel.send(response.buffer);
+        try {
+          if ('string' === typeof data) {
+            channel.send('Hello peer!');
+          } else {
+            var response = new Uint8Array([107, 99, 97, 0]);
+            channel.send(response.buffer);
+          }
+        } catch (error) {
+          // Do nothing.
         }
       };
       channel.onclose = function() {

@@ -1,3 +1,48 @@
+0.4.3
+=====
+
+New Features
+------------
+
+- Updated to WebRTC M79.
+- Added support for Node 13.
+- Added support for a number of new standard APIs (see below).
+
+### RTCPeerConnection
+
+- Added support for `restartIce`.
+- Added support for "icecandidateerror" events.
+
+### RTCDtlsTransport
+
+- Added support for `getRemoteCertificates`.
+
+### RTCRtpSender, RTCRtpReceiver & RTCRtpTransceiver
+
+- Added support for `getCapabilities` to RTCRtpSender and RTCRtpReceiver.
+- Added support for `setParameters` to RTCRtpSender.
+- Added support for `setStreams` to RTCRtpSender (at this time, up to one
+  MediaStream argument is supported).
+- Added support for `sendEncodings` to RTCRtpTransceiverInit.
+- Added support for `setCodecPreferences` to RTCRtpTransceiver.
+
+Bug Fixes
+---------
+
+- Fixed a bug where VideoFrame timestamps reported via RTCP were incorrect
+  (#566). Thanks, @lonocvb.
+- Fixed a bug where, in some cases, Ninja builds failed on macOS (#582). Thanks,
+  @taylorhoward92.
+- Fixed bugs related to N-API usage in recent version of Node 12 and 13.
+
+0.4.2
+=====
+
+Bug Fixes
+---------
+
+- Fix image stride issue at certain resolutions. (#536)
+
 0.4.1
 =====
 
