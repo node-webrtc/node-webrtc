@@ -4,14 +4,9 @@ const test = require('tape');
 
 const RTCPeerConnection = require('..').RTCPeerConnection;
 
-/* cjs 21-Aug-2019 - after replacing MediaStream objects in RtpTransceiverInit
- * with a simple array of streamID strings, this test became much harder to
- * pass.  It may make sense to remove it altogether, rather than check for a
- * non-object.
- */
-test('passing something that\'s not a RtpTransceiverInit fails', t => {
+test('passing something that\'s not a MediaStream fails', t => {
   const pc = new RTCPeerConnection();
-  t.throws(() => pc.addTransceiver('audio', 57), /Expected an object/);
+  t.throws(() => pc.addTransceiver('audio', { streams: [{}] }), / This is not an instance of MediaStream/);
   pc.close();
   t.end();
 });

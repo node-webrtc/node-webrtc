@@ -16,14 +16,19 @@ namespace node_webrtc {
 #define RTP_TRANSCEIVER_INIT_FN CreateRtpTransceiverInit
 #define RTP_TRANSCEIVER_INIT_LIST \
   DICT_DEFAULT(webrtc::RtpTransceiverDirection, direction, "direction", webrtc::RtpTransceiverDirection::kSendRecv) \
-  DICT_DEFAULT(std::vector<std::string>, streamIds, "streamIds", std::vector<std::string>())
+  DICT_DEFAULT(std::vector<MediaStream*>, streams, "streams", std::vector<MediaStream*>())
 
 static Validation<webrtc::RtpTransceiverInit> RTP_TRANSCEIVER_INIT_FN(
     const webrtc::RtpTransceiverDirection direction,
-    const std::vector<std::string>& streamIds) {
+    const std::vector<MediaStream*>& streams) {
   webrtc::RtpTransceiverInit init;
   init.direction = direction;
-  init.stream_ids = streamIds;
+  std::vector<std::string> stream_ids;
+  stream_ids.reserve(streams.size());
+  for (const auto& stream : streams) {
+    stream_ids.emplace_back(stream->stream()->id());
+  }
+  init.stream_ids = stream_ids;
   return Pure(init);
 }
 

@@ -7,6 +7,7 @@ var MediaStreamTrack = wrtc.MediaStreamTrack;
 var RTCPeerConnection = wrtc.RTCPeerConnection;
 var RTCRtpSender = wrtc.RTCRtpSender;
 var RTCSessionDescription = wrtc.RTCSessionDescription;
+var MediaStream = wrtc.MediaStream;
 
 var sdp = [
   'v=0',
@@ -43,45 +44,45 @@ var sdp = [
   'a=ssrc:2 msid:stream 456'
 ].join('\r\n') + '\r\n';
 
-tape('.addTrack(track, [stream.id])', function(t) {
+tape('.addTrack(track, [stream])', function(t) {
   return getMediaStream().then(function(stream) {
     var pc = new RTCPeerConnection();
     t.equal(pc.getSenders().length, 0, 'initially, .getSenders() returns an empty Array');
     var tracks = stream.getTracks();
     var senders = tracks.map(function(track) {
-      return pc.addTrack(track, [stream.id]);
+      return pc.addTrack(track, [stream]);
     });
-    t.equal(pc.getSenders().length, senders.length, 'then, after calling .addTrack(track, [stream.id]), .getSenders() returns a non-empty Array');
+    t.equal(pc.getSenders().length, senders.length, 'then, after calling .addTrack(track, [stream]), .getSenders() returns a non-empty Array');
     t.ok(pc.getSenders().every(function(sender) {
       return sender instanceof RTCRtpSender;
     }), 'every element of the Array returned by .getSenders() is an RTCRtpSender');
     t.ok(pc.getSenders().every(function(sender, i) {
       return sender === senders[i];
-    }), 'every RTCRtpSender returned by .addTrack(track, [stream.id]) is present in .getSenders()');
+    }), 'every RTCRtpSender returned by .addTrack(track, [stream]) is present in .getSenders()');
     t.ok(senders.every(function(sender, i) {
       return sender.track === tracks[i];
     }), 'every RTCRtpSender\'s .track is one of the MediaStreamTracks added');
     senders.forEach(function(sender) {
       pc.removeTrack(sender);
     });
-    t.equal(pc.getSenders().length, 0, 'finally, after calling .removeTrack(sender), .getSenders() returns an empty Array again');
+    t.equal(pc.getSenders().length, senders.length, 'finally, after calling .removeTrack(sender), .getSenders() size remains the same (senders are not removed)');
     t.ok(senders.every(function(sender) {
-      return sender.track instanceof MediaStreamTrack;
-    }), 'but every RTCRtpSender\'s .track is still non-null');
+      return sender.track === null;
+    }), 'but every RTCRtpSender\'s .track is null');
     pc.close();
     t.end();
   });
 });
 
-tape('.addTrack(track, [stream.id]) called twice', t => {
+tape('.addTrack(track, [stream]) called twice', t => {
   return getMediaStream().then(stream => {
     const pc = new RTCPeerConnection();
     const [track] = stream.getTracks();
-    pc.addTrack(track, [stream.id]);
+    pc.addTrack(track, [stream]);
     t.throws(
-      () => pc.addTrack(track, [stream.id]),
+      () => pc.addTrack(track, [stream]),
       /Sender already exists for track/,
-      'calling .addTrack(track, [stream.id]) with the same track twice throws'
+      'calling .addTrack(track, [stream]) with the same track twice throws'
     );
     pc.close();
     t.end();
@@ -92,7 +93,7 @@ tape('.replaceTrack(null)', function(t) {
   return getMediaStream().then(function(stream) {
     var pc = new RTCPeerConnection();
     var senders = stream.getTracks().map(function(track) {
-      return pc.addTrack(track, [stream.id]);
+      return pc.addTrack(track, [stream]);
     });
     return Promise.all(senders.map(function(sender) {
       return sender.replaceTrack(null);

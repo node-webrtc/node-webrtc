@@ -19,6 +19,7 @@ require('./rtcaudiosource');
 require('./rtcdtlstransport');
 require('./rtcdatachannel');
 require('./rtcrtpreceiver');
+require('./rtcrtpsender')
 require('./rtcvideosink');
 require('./rtcvideosource');
 require('./send-arraybuffer');
