@@ -109,7 +109,7 @@ test('Destructors fire in MediaStreamTrack use-case', async t => {
 
     const [pc1, pc2] = await negotiateRTCPeerConnections({
       withPc1(pc1) {
-        stream1.getTracks().forEach(track => pc1.addTrack(track, [stream1]));
+        stream1.getTracks().forEach(track => pc1.addTrack(track, stream1));
       }
   });
 

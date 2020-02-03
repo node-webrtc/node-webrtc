@@ -6,6 +6,7 @@ var wrtc = require('..');
 var RTCPeerConnection = wrtc.RTCPeerConnection;
 var RTCRtpSender = wrtc.RTCRtpSender;
 var RTCSessionDescription = wrtc.RTCSessionDescription;
+var MediaStream = wrtc.MediaStream;
 
 var sdp = [
   'v=0',
@@ -42,21 +43,21 @@ var sdp = [
   'a=ssrc:2 msid:stream 456'
 ].join('\r\n') + '\r\n';
 
-tape('.addTrack(track, [stream])', function(t) {
+tape('.addTrack(track, stream)', function(t) {
   return getMediaStream().then(function(stream) {
     var pc = new RTCPeerConnection();
     t.equal(pc.getSenders().length, 0, 'initially, .getSenders() returns an empty Array');
     var tracks = stream.getTracks();
     var senders = tracks.map(function(track) {
-      return pc.addTrack(track, [stream]);
+      return pc.addTrack(track, stream);
     });
-    t.equal(pc.getSenders().length, senders.length, 'then, after calling .addTrack(track, [stream]), .getSenders() returns a non-empty Array');
+    t.equal(pc.getSenders().length, senders.length, 'then, after calling .addTrack(track, stream), .getSenders() returns a non-empty Array');
     t.ok(pc.getSenders().every(function(sender) {
       return sender instanceof RTCRtpSender;
     }), 'every element of the Array returned by .getSenders() is an RTCRtpSender');
     t.ok(pc.getSenders().every(function(sender, i) {
       return sender === senders[i];
-    }), 'every RTCRtpSender returned by .addTrack(track, [stream]) is present in .getSenders()');
+    }), 'every RTCRtpSender returned by .addTrack(track, stream) is present in .getSenders()');
     t.ok(senders.every(function(sender, i) {
       return sender.track === tracks[i];
     }), 'every RTCRtpSender\'s .track is one of the MediaStreamTracks added');
@@ -72,15 +73,43 @@ tape('.addTrack(track, [stream])', function(t) {
   });
 });
 
-tape('.addTrack(track, [stream]) called twice', t => {
+tape('.addTrack(track, stream, stream2, stream3) duplicate stream ids', function(t) {
+  return getMediaStream().then(function(stream) {
+    var pc = new RTCPeerConnection();
+    t.equal(pc.getSenders().length, 0, 'initially, .getSenders() returns an empty Array');
+    var tracks = stream.getTracks();
+    var senders = tracks.map(function(track) {
+      var stream2 = new MediaStream({ id: 'testStreamId' });
+      var stream3 = new MediaStream({ id: 'testStreamId' });
+      return pc.addTrack(track, stream, stream2, stream3);  // Stream2 and Stream3 have the same stream id
+    });
+    t.equal(pc.getSenders().length, senders.length, 'then, after calling .addTrack(track, stream, stream2, stream3), .getSenders() returns a non-empty Array');
+    t.ok(pc.getSenders().every(function(sender) {
+      return sender instanceof RTCRtpSender;
+    }), 'every element of the Array returned by .getSenders() is an RTCRtpSender');
+    t.ok(pc.getSenders().every(function(sender, i) {
+      return sender === senders[i];
+    }), 'every RTCRtpSender returned by .addTrack(track, stream, stream2, stream3) is present in .getSenders()');
+    t.ok(senders.every(function(sender, i) {
+      return sender.track === tracks[i];
+    }), 'every RTCRtpSender\'s .track is one of the MediaStreamTracks added');
+    return pc.createOffer().then(function(offer) {
+      t.equal((offer.sdp.match(/a=msid:/g) || []).length, 6, 'even duplicates get added');  // 3 streams per track and 2 tracks (audio + video) = 6 msid lines
+      pc.close();
+      t.end();
+    });    
+  });
+});
+
+tape('.addTrack(track, stream) called twice', t => {
   return getMediaStream().then(stream => {
     const pc = new RTCPeerConnection();
     const [track] = stream.getTracks();
-    pc.addTrack(track, [stream]);
+    pc.addTrack(track, stream);
     t.throws(
-      () => pc.addTrack(track, [stream]),
+      () => pc.addTrack(track, stream),
       /Sender already exists for track/,
-      'calling .addTrack(track, [stream]) with the same track twice throws'
+      'calling .addTrack(track, stream) with the same track twice throws'
     );
     pc.close();
     t.end();
@@ -91,7 +120,7 @@ tape('.replaceTrack(null)', function(t) {
   return getMediaStream().then(function(stream) {
     var pc = new RTCPeerConnection();
     var senders = stream.getTracks().map(function(track) {
-      return pc.addTrack(track, [stream]);
+      return pc.addTrack(track, stream);
     });
     return Promise.all(senders.map(function(sender) {
       return sender.replaceTrack(null);
