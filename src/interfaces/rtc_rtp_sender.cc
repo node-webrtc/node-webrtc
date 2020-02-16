@@ -138,10 +138,17 @@ Napi::Value RTCRtpSender::ReplaceTrack(const Napi::CallbackInfo& info) {
 }
 
 Napi::Value RTCRtpSender::SetStreams(const Napi::CallbackInfo& info) {
-  CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, maybeStream, Maybe<MediaStream*>)
   auto streams = std::vector<std::string>();
-  if (maybeStream.IsJust()) {
-    streams.emplace_back(maybeStream.UnsafeFromJust()->stream()->id());
+  for (size_t i = 0; i < info.Length(); i++) {
+    auto value = info[i];
+    auto maybeStream = From<MediaStream*>(value);
+    if (maybeStream.IsInvalid()) {
+      auto error = maybeStream.ToErrors()[0];
+      Napi::TypeError::New(info.Env(), error).ThrowAsJavaScriptException();
+      return info.Env().Undefined();
+    }
+    auto stream = maybeStream.UnsafeFromValid();
+    streams.emplace_back(stream->stream()->id());
   }
   _sender->SetStreams(streams);
   return info.Env().Undefined();
