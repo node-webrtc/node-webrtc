@@ -1,3 +1,12 @@
+0.4.4
+=====
+
+New Features
+------------
+
+- `addTrack` now supports multiple MediaStream arguments (#548). Thanks,
+  @csheely and @sgodin.
+
 0.4.3
 =====
 
