@@ -75,6 +75,13 @@ tape('new MediaStream(tracks)', function(t) {
   });
 });
 
+tape('new MediaStream(mediaStreamInit)', function(t) {
+  var stream = new MediaStream({ id: 'testStreamId' });
+  t.equal(stream.getTracks().length, 0, 'the MediaStream does not contain any MediaStreamTracks');
+  t.equal(stream.id, 'testStreamId', 'the MediaStream has the id we assigned to it');
+  t.end();
+});
+
 tape('.clone', function(t) {
   return getRemoteMediaStream().then(function(stream1) {
     var stream2 = stream1.clone();

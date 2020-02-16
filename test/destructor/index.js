@@ -111,7 +111,7 @@ test('Destructors fire in MediaStreamTrack use-case', async t => {
       withPc1(pc1) {
         stream1.getTracks().forEach(track => pc1.addTrack(track, stream1));
       }
-    });
+  });
 
     const localTracks = stream1.getTracks().map(destructor);
     const remoteTracks = pc2.getReceivers().map(receiver => destructor(receiver.track));

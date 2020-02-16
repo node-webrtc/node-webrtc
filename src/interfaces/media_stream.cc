@@ -16,6 +16,7 @@
 #include "src/converters/napi.h"
 #include "src/functional/either.h"
 #include "src/functional/maybe.h"
+#include "src/dictionaries/node_webrtc/rtc_media_stream_init.h"
 #include "src/interfaces/media_stream_track.h"
 #include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
 
@@ -58,6 +59,14 @@ MediaStream::Impl::Impl(
   _factory->Ref();
 }
 
+MediaStream::Impl::Impl(const RTCMediaStreamInit& init, 
+PeerConnectionFactory* factory)
+  : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault())
+  , _stream(_factory->factory()->CreateLocalMediaStream(init.id))
+  , _shouldReleaseFactory(!factory) {
+  _factory->Ref();
+}
+
 MediaStream::Impl::~Impl() {
   Napi::HandleScope scope(PeerConnectionFactory::constructor().Env());
   if (_factory) {
@@ -85,31 +94,34 @@ rtc::scoped_refptr<webrtc::MediaStreamInterface> MediaStream::stream() {
 }
 
 MediaStream::MediaStream(const Napi::CallbackInfo& info): Napi::ObjectWrap<MediaStream>(info) {
-  auto maybeEither = From<Either<std::tuple<Napi::Object COMMA Napi::External<rtc::scoped_refptr<webrtc::MediaStreamInterface>>> COMMA Either<std::vector<MediaStreamTrack*> COMMA Maybe<MediaStream*>>>>(Arguments(info));
+  auto maybeEither = From<Either<std::tuple<Napi::Object COMMA Napi::External<rtc::scoped_refptr<webrtc::MediaStreamInterface>>> COMMA   // Either1 - Remote MediaStream OR Either2
+                            Either<std::vector<MediaStreamTrack*> COMMA                                                                  // Either2 - Array of MediaStreamTracks OR Either3
+                              Either<MediaStream* COMMA                                                                                  // Either3 - Local MediaStream OR Maybe
+                                Maybe<RTCMediaStreamInit>>>>>(Arguments(info));                                                          // Maybe - Optional RTCMediaStreamInit dictionary
   if (maybeEither.IsInvalid()) {
     Napi::TypeError::New(info.Env(), maybeEither.ToErrors()[0]).ThrowAsJavaScriptException();
     return;
   }
-  auto eithers = maybeEither.UnsafeFromValid();
+  auto either1 = maybeEither.UnsafeFromValid();
 
-  if (eithers.IsLeft()) {
+  if (either1.IsLeft()) {
     // 1. Remote MediaStream
-    auto pair = eithers.UnsafeFromLeft();
+    auto pair = either1.UnsafeFromLeft();
     // FIXME(mroberts): There is a safer way to do this.
     auto factory = PeerConnectionFactory::Unwrap(std::get<0>(pair));
     auto stream = *std::get<1>(pair).Data();
     _impl = MediaStream::Impl(std::move(stream), factory);
   } else {
-    auto either = eithers.UnsafeFromRight();
-    if (either.IsLeft()) {
+    auto either2 = either1.UnsafeFromRight();
+    if (either2.IsLeft()) { 
       // 2. Local MediaStream, Array of MediaStreamTracks
-      auto tracks = either.UnsafeFromLeft();
+      auto tracks = either2.UnsafeFromLeft();
       _impl = MediaStream::Impl(std::move(tracks));
     } else {
-      auto maybeStream = either.UnsafeFromRight();
-      if (maybeStream.IsJust()) {
+      auto either3 = either2.UnsafeFromRight();
+      if(either3.IsLeft()) {
         // 3. Local MediaStream, existing MediaStream
-        auto existingStream = maybeStream.UnsafeFromJust();
+        auto existingStream = either3.UnsafeFromLeft();
         auto factory = existingStream->_impl._factory;
         auto tracks = std::vector<MediaStreamTrack*>();
         for (auto const& track : existingStream->tracks()) {
@@ -117,8 +129,16 @@ MediaStream::MediaStream(const Napi::CallbackInfo& info): Napi::ObjectWrap<Media
         }
         _impl = MediaStream::Impl(std::move(tracks), factory);
       } else {
-        // 4. Local MediaStream
-        _impl = MediaStream::Impl();
+        // Check if RTCMediaStreamInit was provided
+        auto maybeMediaStreamInit = either3.UnsafeFromRight();
+        if(maybeMediaStreamInit.IsJust()) {
+          // 4. Local MediaStream with Custom MediaStreamId
+          _impl = MediaStream::Impl(maybeMediaStreamInit.UnsafeFromJust());
+        }
+        else {
+          // 5. Local MediaStream
+          _impl = MediaStream::Impl();
+        }
       }
     }
   }

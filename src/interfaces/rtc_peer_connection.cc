@@ -255,14 +255,17 @@ Napi::Value RTCPeerConnection::AddTrack(const Napi::CallbackInfo& info) {
     Napi::Error(env, ErrorFactory::CreateInvalidStateError(env, "Cannot addTrack; RTCPeerConnection is closed")).ThrowAsJavaScriptException();
     return env.Undefined();
   }
-  CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, pair, std::tuple<MediaStreamTrack* COMMA Maybe<MediaStream*>>)
+  CONVERT_ARGS_OR_THROW_AND_RETURN_NAPI(info, pair, std::tuple<MediaStreamTrack* COMMA Maybe<std::vector<MediaStream*>>>)
   auto mediaStreamTrack = std::get<0>(pair);
-  Maybe<MediaStream*> mediaStream = std::get<1>(pair);
-  std::vector<std::string> streams;
-  if (mediaStream.IsJust()) {
-    streams.push_back(mediaStream.UnsafeFromJust()->stream()->id());
+  Maybe<std::vector<MediaStream*>> mediaStreams = std::get<1>(pair);
+  std::vector<std::string> streamIds;
+  if (mediaStreams.IsJust()) {
+      streamIds.reserve(mediaStreams.UnsafeFromJust().size());
+      for (auto const& stream : mediaStreams.UnsafeFromJust()) {
+         streamIds.emplace_back(stream->stream()->id());
+      }
   }
-  auto result = _jinglePeerConnection->AddTrack(mediaStreamTrack->track(), streams);
+  auto result = _jinglePeerConnection->AddTrack(mediaStreamTrack->track(), streamIds);
   if (!result.ok()) {
     CONVERT_OR_THROW_AND_RETURN_NAPI(env, &result.error(), error, Napi::Value)
     Napi::Error(env, error).ThrowAsJavaScriptException();

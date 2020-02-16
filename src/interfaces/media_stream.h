@@ -22,6 +22,7 @@ namespace node_webrtc {
 
 class MediaStreamTrack;
 class PeerConnectionFactory;
+struct RTCMediaStreamInit;
 
 class MediaStream
   : public Napi::ObjectWrap<MediaStream> {
@@ -63,6 +64,8 @@ class MediaStream
     Impl(std::vector<MediaStreamTrack*>&& tracks, PeerConnectionFactory* factory = nullptr);
 
     Impl(rtc::scoped_refptr<webrtc::MediaStreamInterface>&& stream, PeerConnectionFactory* factory = nullptr);
+
+    Impl(const RTCMediaStreamInit& init, PeerConnectionFactory* factory = nullptr);
 
     PeerConnectionFactory* _factory;
     rtc::scoped_refptr<webrtc::MediaStreamInterface> _stream;
