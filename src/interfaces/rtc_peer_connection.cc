@@ -260,10 +260,10 @@ Napi::Value RTCPeerConnection::AddTrack(const Napi::CallbackInfo& info) {
   Maybe<std::vector<MediaStream*>> mediaStreams = std::get<1>(pair);
   std::vector<std::string> streamIds;
   if (mediaStreams.IsJust()) {
-      streamIds.reserve(mediaStreams.UnsafeFromJust().size());
-      for (auto const& stream : mediaStreams.UnsafeFromJust()) {
-         streamIds.emplace_back(stream->stream()->id());
-      }
+    streamIds.reserve(mediaStreams.UnsafeFromJust().size());
+    for (auto const& stream : mediaStreams.UnsafeFromJust()) {
+      streamIds.emplace_back(stream->stream()->id());
+    }
   }
   auto result = _jinglePeerConnection->AddTrack(mediaStreamTrack->track(), streamIds);
   if (!result.ok()) {

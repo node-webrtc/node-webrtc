@@ -59,8 +59,8 @@ MediaStream::Impl::Impl(
   _factory->Ref();
 }
 
-MediaStream::Impl::Impl(const RTCMediaStreamInit& init, 
-PeerConnectionFactory* factory)
+MediaStream::Impl::Impl(const RTCMediaStreamInit& init,
+    PeerConnectionFactory* factory)
   : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault())
   , _stream(_factory->factory()->CreateLocalMediaStream(init.id))
   , _shouldReleaseFactory(!factory) {
@@ -95,9 +95,9 @@ rtc::scoped_refptr<webrtc::MediaStreamInterface> MediaStream::stream() {
 
 MediaStream::MediaStream(const Napi::CallbackInfo& info): Napi::ObjectWrap<MediaStream>(info) {
   auto maybeEither = From<Either<std::tuple<Napi::Object COMMA Napi::External<rtc::scoped_refptr<webrtc::MediaStreamInterface>>> COMMA   // Either1 - Remote MediaStream OR Either2
-                            Either<std::vector<MediaStreamTrack*> COMMA                                                                  // Either2 - Array of MediaStreamTracks OR Either3
-                              Either<MediaStream* COMMA                                                                                  // Either3 - Local MediaStream OR Maybe
-                                Maybe<RTCMediaStreamInit>>>>>(Arguments(info));                                                          // Maybe - Optional RTCMediaStreamInit dictionary
+      Either<std::vector<MediaStreamTrack*> COMMA                                                                  // Either2 - Array of MediaStreamTracks OR Either3
+      Either<MediaStream* COMMA                                                                                  // Either3 - Local MediaStream OR Maybe
+      Maybe<RTCMediaStreamInit>>>>>(Arguments(info));                                                          // Maybe - Optional RTCMediaStreamInit dictionary
   if (maybeEither.IsInvalid()) {
     Napi::TypeError::New(info.Env(), maybeEither.ToErrors()[0]).ThrowAsJavaScriptException();
     return;
@@ -113,13 +113,13 @@ MediaStream::MediaStream(const Napi::CallbackInfo& info): Napi::ObjectWrap<Media
     _impl = MediaStream::Impl(std::move(stream), factory);
   } else {
     auto either2 = either1.UnsafeFromRight();
-    if (either2.IsLeft()) { 
+    if (either2.IsLeft()) {
       // 2. Local MediaStream, Array of MediaStreamTracks
       auto tracks = either2.UnsafeFromLeft();
       _impl = MediaStream::Impl(std::move(tracks));
     } else {
       auto either3 = either2.UnsafeFromRight();
-      if(either3.IsLeft()) {
+      if (either3.IsLeft()) {
         // 3. Local MediaStream, existing MediaStream
         auto existingStream = either3.UnsafeFromLeft();
         auto factory = existingStream->_impl._factory;
@@ -131,11 +131,10 @@ MediaStream::MediaStream(const Napi::CallbackInfo& info): Napi::ObjectWrap<Media
       } else {
         // Check if RTCMediaStreamInit was provided
         auto maybeMediaStreamInit = either3.UnsafeFromRight();
-        if(maybeMediaStreamInit.IsJust()) {
+        if (maybeMediaStreamInit.IsJust()) {
           // 4. Local MediaStream with Custom MediaStreamId
           _impl = MediaStream::Impl(maybeMediaStreamInit.UnsafeFromJust());
-        }
-        else {
+        } else {
           // 5. Local MediaStream
           _impl = MediaStream::Impl();
         }
