@@ -1,6 +1,17 @@
 Nonstandard APIs
 ================
 
+MediaStream
+-----------
+
+MediaStreams in node-webrtc can be constructed with arbitrary IDs. For example,
+the following MediaStream, `stream`, has its ID set to "foo".
+
+```js
+const stream = new MediaStream({ id: 'foo' });
+stream.id === 'foo';  // true
+```
+
 RTCConfiguration
 ----------------
 

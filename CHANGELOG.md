@@ -4,9 +4,21 @@
 New Features
 ------------
 
-- `addTrack` now supports multiple MediaStream arguments (#548). Thanks,
-  @csheely and @sgodin.
+- `addTrack` now supports multiple MediaStream arguments (#548). Additionally,
+  MediaStreams can now be constructed with arbitrary IDs. For more information,
+  see below. Thanks, @csheely and @sgodin.
 - `setStreams` now supports multiple MediaStream arguments.
+
+MediaStream
+-----------
+
+MediaStreams in node-webrtc can be constructed with arbitrary IDs. For example,
+the following MediaStream, `stream`, has its ID set to "foo".
+
+```js
+const stream = new MediaStream({ id: 'foo' });
+stream.id === 'foo';  // true
+```
 
 0.4.3
 =====
