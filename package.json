@@ -56,7 +56,7 @@
     "karma-tap": "^4.1.4",
     "karma-tap-pretty-reporter": "^4.1.0",
     "minimatch": "^3.0.4",
-    "minimist": "0.0.8",
+    "minimist": "1.2.5",
     "mocha": "^5.2.0",
     "mocha-sugar-free": "^1.4.0",
     "node-fetch": "^2.5.0",
