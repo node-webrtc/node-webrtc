@@ -32,6 +32,7 @@ SKIP_DOWNLOAD=true npm install
 Subsequent builds can be triggered with `ncmake`:
 
 ```
+./node_modules/.bin/ncmake configure
 ./node_modules/.bin/ncmake build
 ```
 
