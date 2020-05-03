@@ -43,6 +43,9 @@ CONVERTER_IMPL(const webrtc::RTCError*, SomeError, error) {
     case webrtc::RTCErrorType::RESOURCE_EXHAUSTED:
       type = MakeLeft<ErrorFactory::ErrorName>(ErrorFactory::DOMExceptionName::kOperationError);
       break;
+    case webrtc::RTCErrorType::OPERATION_ERROR_WITH_DATA:
+      type = MakeLeft<ErrorFactory::ErrorName>(ErrorFactory::DOMExceptionName::kOperationError);
+      break;
   }
   return Pure(SomeError(error->message(), type));
 }
