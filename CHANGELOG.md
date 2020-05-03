@@ -1,3 +1,11 @@
+0.4.5
+=====
+
+New Features
+------------
+
+- Updated to WebRTC M81.
+
 0.4.4
 =====
 

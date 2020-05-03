@@ -43,8 +43,10 @@ set(libc++_objects
   algorithm.o
   any.o
   bind.o
+  charconv.o
   chrono.o
   condition_variable.o
+  condition_variable_destructor.o
   debug.o
   exception.o
   functional.o
@@ -55,6 +57,7 @@ set(libc++_objects
   locale.o
   memory.o
   mutex.o
+  mutex_destructor.o
   new.o
   optional.o
   random.o
@@ -121,7 +124,7 @@ set_target_properties(libc++abi PROPERTIES IMPORTED_OBJECTS_DEBUG "${libc++abi_o
 # libwebrtc
 # -----------------------------------------------------------------------------
 
-set(WEBRTC_REVISION branch-heads/m79)
+set(WEBRTC_REVISION branch-heads/4044)
 
 list(APPEND GN_GEN_ARGS
   rtc_build_examples=false

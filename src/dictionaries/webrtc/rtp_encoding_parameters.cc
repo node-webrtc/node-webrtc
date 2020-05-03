@@ -49,19 +49,22 @@ static Validation<webrtc::RtpEncodingParameters> RTP_ENCODING_PARAMETERS_FN(
     parameters.ssrc = absl::optional<uint32_t>(ssrc.UnsafeFromJust());
   }
   if (codecPayloadType.IsJust()) {
-    parameters.codec_payload_type = absl::optional<int>(codecPayloadType.UnsafeFromJust());
+    // FIXME(mroberts): ???
+    // parameters.codec_payload_type = absl::optional<int>(codecPayloadType.UnsafeFromJust());
   }
   if (dtx.IsJust()) {
-    parameters.dtx = absl::optional<webrtc::DtxStatus>(
-            dtx.UnsafeFromJust() == node_webrtc::RTCDtxStatus::kDisabled
-            ? webrtc::DtxStatus::DISABLED
-            : webrtc::DtxStatus::ENABLED);
+    // FIXME(mroberts): ???
+    // parameters.dtx = absl::optional<webrtc::DtxStatus>(
+    //         dtx.UnsafeFromJust() == node_webrtc::RTCDtxStatus::kDisabled
+    //         ? webrtc::DtxStatus::DISABLED
+    //         : webrtc::DtxStatus::ENABLED);
   }
   parameters.active = active;
   // TODO(mroberts): Do something with this.
   (void) priority;
   if (ptime.IsJust()) {
-    parameters.ptime = absl::optional<int>(ptime.UnsafeFromJust());
+    // FIXME(mroberts): ???
+    // parameters.ptime = absl::optional<int>(ptime.UnsafeFromJust());
   }
   if (maxBitrate.IsJust()) {
     parameters.max_bitrate_bps = absl::optional<int>(maxBitrate.UnsafeFromJust());
