@@ -75,6 +75,9 @@ const char* node_webrtc::ErrorFactory::DOMExceptionNameToString(DOMExceptionName
       return "NetworkError";
     case kOperationError:
       return "OperationError";
+	// FIXME(nick-erm): What is default case???
+	default:
+	  return "OperationError";
   }
 }
 

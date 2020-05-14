@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
+project(wrtc)
+
 include(ExternalProject)
 find_package(Git REQUIRED)
 find_package(Threads REQUIRED)
@@ -13,7 +15,7 @@ ExternalProject_Add(
   project_depot_tools
 
   GIT_REPOSITORY    https://chromium.googlesource.com/chromium/tools/depot_tools.git
-  GIT_TAG           2fddb95698211db1373ebe2b16091a54eac51c9c
+  GIT_TAG           fdd2e3d34e908541d0fbd53b26e846679d0d3727
 
   PREFIX            ${CMAKE_BINARY_DIR}/external/depot_tools/prefix
   TMP_DIR           ${CMAKE_BINARY_DIR}/external/depot_tools/tmp
@@ -257,7 +259,7 @@ ExternalProject_Add(
   project_catch2
 
   GIT_REPOSITORY    https://github.com/catchorg/Catch2.git
-  GIT_TAG           a1cdff4f188170c5b0aa3d5d217b60d821f237df
+  GIT_TAG           v3.0.0-preview1
 
   PREFIX            ${CMAKE_BINARY_DIR}/external/catch2/prefix
   TMP_DIR           ${CMAKE_BINARY_DIR}/external/catch2/tmp
@@ -347,7 +349,7 @@ target_compile_definitions(${MODULE} PRIVATE
 
 if(WIN32)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT /GR-")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd /GR-")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd /D_ITERATOR_DEBUG_LEVEL=2 /GR-")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /FORCE:UNRESOLVED")
 
   target_link_libraries(${MODULE} PRIVATE
@@ -410,9 +412,17 @@ else()
       -g
     )
 
-    target_compile_definitions(${MODULE} PRIVATE
-      -DDEBUG
-    )
+    if(NOT WIN32)
+		target_compile_definitions(${MODULE} PRIVATE
+		  -DDEBUG
+		)
+	endif()
+	if(WIN32)
+		target_compile_definitions(${MODULE} PRIVATE
+		  -DDEBUG
+		  -D_ITERATOR_DEBUG_LEVEL=2
+		)	
+	endif()
   endif()
 
   if(APPLE)

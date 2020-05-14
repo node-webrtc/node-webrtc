@@ -28,7 +28,8 @@ TO_NAPI_IMPL(webrtc::RtpParameters, pair) {
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "rtcp", parameters.rtcp)
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "encodings", parameters.encodings)
   if (parameters.degradation_preference != webrtc::DegradationPreference::BALANCED) {
-    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "degradationPreference", parameters.degradation_preference)
+	// FIXME(nick-erm): Throw compile errors for Win x64: ..node-webrtc\src/converters.h(80,27): error C2039: 'Convert': is not a member of 'node_webrtc::Converter... !!!
+    // NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "degradationPreference", parameters.degradation_preference)
   }
   return Pure(scope.Escape(object));
 }

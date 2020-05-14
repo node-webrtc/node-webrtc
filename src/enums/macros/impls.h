@@ -20,6 +20,7 @@ namespace node_webrtc {
 CONVERTER_IMPL(ENUM(), std::string, value) {
   switch (value) {
       ENUM(_LIST)
+	  // FIXME(nick-erm): Needed return value???
   }
 }
 
