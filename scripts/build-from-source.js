@@ -13,8 +13,8 @@ if (process.env.DEBUG) {
 if (process.platform === 'win32') {
   args.push('-g');
   args.push(process.arch === 'x64'
-    ? '"Visual Studio 16 2019" -A x64'
-    : '"Visual Studio 16 2019"');
+    ? '"Visual Studio 15 2017" -A x64'
+    : '"Visual Studio 15 2017"');
 }
 
 function main() {
