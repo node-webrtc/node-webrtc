@@ -55,6 +55,7 @@ rules:
   no-process-env: 2
   no-process-exit: 2
   no-proto: 2
+  no-redeclare: 0
   no-return-assign: 2
   no-shadow: 0
   no-shadow-restricted-names: 2
@@ -70,6 +71,7 @@ rules:
   no-unused-expressions: 2
   no-use-before-define: [2, nofunc]
   no-useless-call: 2
+  no-useless-catch: 0
   no-useless-concat: 2
   no-warning-comments: 1
   no-with: 1
