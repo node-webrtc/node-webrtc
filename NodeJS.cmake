@@ -1,6 +1,5 @@
 # Defaults for standard Node.js builds
 set(NODEJS_DEFAULT_URL https://nodejs.org/download/release)
-set(NODEJS_VERSION v10.15.1)
 set(NODEJS_DEFAULT_VERSION installed)
 set(NODEJS_VERSION_FALLBACK latest)
 set(NODEJS_DEFAULT_NAME node)
