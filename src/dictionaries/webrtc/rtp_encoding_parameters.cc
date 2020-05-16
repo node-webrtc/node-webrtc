@@ -27,7 +27,6 @@ namespace node_webrtc {
   DICT_DEFAULT(RTCPriorityType, priority, "priority", RTCPriorityType::kLow) \
   DICT_OPTIONAL(uint64_t, ptime, "ptime") \
   DICT_OPTIONAL(uint64_t, maxBitrate, "maxBitrate") \
-  DICT_OPTIONAL(uint64_t, minBitrate, "minBitrate") \
   DICT_OPTIONAL(double, maxFramerate, "maxFramerate") \
   DICT_OPTIONAL(double, scaleResolutionDownBy, "scaleResolutionDownBy")
 
@@ -40,8 +39,6 @@ static Validation<webrtc::RtpEncodingParameters> RTP_ENCODING_PARAMETERS_FN(
     const RTCPriorityType priority,
     const node_webrtc::Maybe<uint64_t> ptime,
     const node_webrtc::Maybe<uint64_t> maxBitrate,
-	// FIXME(nick-erm): new parameter - minBitrate.
-	const node_webrtc::Maybe<uint64_t> minBitrate,
     const node_webrtc::Maybe<double> maxFramerate,
     const node_webrtc::Maybe<double> scaleResolutionDownBy) {
   webrtc::RtpEncodingParameters parameters;
@@ -52,32 +49,25 @@ static Validation<webrtc::RtpEncodingParameters> RTP_ENCODING_PARAMETERS_FN(
     parameters.ssrc = absl::optional<uint32_t>(ssrc.UnsafeFromJust());
   }
   if (codecPayloadType.IsJust()) {
-    // FIXME(mroberts): ???
-    // parameters.codec_payload_type = absl::optional<int>(codecPayloadType.UnsafeFromJust());
+    parameters.codec_payload_type = absl::optional<int>(codecPayloadType.UnsafeFromJust());
   }
   if (dtx.IsJust()) {
-    // FIXME(mroberts): ???
-    // parameters.dtx = absl::optional<webrtc::DtxStatus>(
-    //         dtx.UnsafeFromJust() == node_webrtc::RTCDtxStatus::kDisabled
-    //         ? webrtc::DtxStatus::DISABLED
-    //         : webrtc::DtxStatus::ENABLED);
+    parameters.dtx = absl::optional<webrtc::DtxStatus>(
+            dtx.UnsafeFromJust() == node_webrtc::RTCDtxStatus::kDisabled
+            ? webrtc::DtxStatus::DISABLED
+            : webrtc::DtxStatus::ENABLED);
   }
   parameters.active = active;
   // TODO(mroberts): Do something with this.
   (void) priority;
   if (ptime.IsJust()) {
-    // FIXME(mroberts): ???
-    // parameters.ptime = absl::optional<int>(ptime.UnsafeFromJust());
+    parameters.ptime = absl::optional<int>(ptime.UnsafeFromJust());
   }
   if (maxBitrate.IsJust()) {
     parameters.max_bitrate_bps = absl::optional<int>(maxBitrate.UnsafeFromJust());
   }
-	// FIXME(nick-erm): new parameter - minBitrate.
-  if (minBitrate.IsJust()) {
-    parameters.min_bitrate_bps = absl::optional<int>(minBitrate.UnsafeFromJust());
-  }
   if (maxFramerate.IsJust()) {
-    parameters.max_framerate = absl::optional<double>(maxFramerate.UnsafeFromJust());
+    parameters.max_framerate = absl::optional<int>(maxFramerate.UnsafeFromJust());
   }
   if (scaleResolutionDownBy.IsJust()) {
     parameters.scale_resolution_down_by = absl::optional<double>(scaleResolutionDownBy.UnsafeFromJust());
@@ -96,9 +86,6 @@ TO_NAPI_IMPL(webrtc::RtpEncodingParameters, pair) {
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "active", parameters.active)
   if (parameters.max_bitrate_bps) {
     NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "maxBitrate", parameters.max_bitrate_bps)
-  }
-  if (parameters.min_bitrate_bps) {
-    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "minBitrate", parameters.min_bitrate_bps)
   }
   if (parameters.scale_resolution_down_by) {
     NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "scaleResolutionDownBy", parameters.scale_resolution_down_by)
