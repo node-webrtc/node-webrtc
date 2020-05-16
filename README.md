@@ -5,7 +5,7 @@
 
 [![NPM](https://img.shields.io/npm/v/wrtc.svg)](https://www.npmjs.com/package/wrtc) [![macOS/Linux Build Status](https://circleci.com/gh/node-webrtc/node-webrtc/tree/develop.svg?style=shield)](https://circleci.com/gh/node-webrtc/node-webrtc) [![Windows Build status](https://ci.appveyor.com/api/projects/status/iulc84we28o1i7b9?svg=true)](https://ci.appveyor.com/project/markandrus/node-webrtc-7bnua)
 
-node-webrtc is a Node.js Native Addon that provides bindings to [WebRTC M79](https://chromium.googlesource.com/external/webrtc/+/branch-heads/m79). This project aims for spec-compliance and is tested using the W3C's [web-platform-tests](https://github.com/web-platform-tests/wpt) project. A number of [nonstandard APIs](docs/nonstandard-apis.md) for testing are also included.
+node-webrtc is a Node.js Native Addon that provides bindings to [WebRTC M81](https://chromium.googlesource.com/external/webrtc/+/branch-heads/4044). This project aims for spec-compliance and is tested using the W3C's [web-platform-tests](https://github.com/web-platform-tests/wpt) project. A number of [nonstandard APIs](docs/nonstandard-apis.md) for testing are also included.
 
 Install
 -------

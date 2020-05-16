@@ -49,19 +49,16 @@ static Validation<webrtc::RtpEncodingParameters> RTP_ENCODING_PARAMETERS_FN(
     parameters.ssrc = absl::optional<uint32_t>(ssrc.UnsafeFromJust());
   }
   if (codecPayloadType.IsJust()) {
-    parameters.codec_payload_type = absl::optional<int>(codecPayloadType.UnsafeFromJust());
+    // NOTE(mroberts): No longer supported in WebRTC 1.0.
   }
   if (dtx.IsJust()) {
-    parameters.dtx = absl::optional<webrtc::DtxStatus>(
-            dtx.UnsafeFromJust() == node_webrtc::RTCDtxStatus::kDisabled
-            ? webrtc::DtxStatus::DISABLED
-            : webrtc::DtxStatus::ENABLED);
+    // NOTE(mroberts): No longer supported in WebRTC 1.0.
   }
   parameters.active = active;
   // TODO(mroberts): Do something with this.
   (void) priority;
   if (ptime.IsJust()) {
-    parameters.ptime = absl::optional<int>(ptime.UnsafeFromJust());
+    // NOTE(mroberts): No longer supported in WebRTC 1.0.
   }
   if (maxBitrate.IsJust()) {
     parameters.max_bitrate_bps = absl::optional<int>(maxBitrate.UnsafeFromJust());

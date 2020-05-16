@@ -1,3 +1,21 @@
+0.4.5
+=====
+
+New Features
+------------
+
+- Updated to WebRTC M81.
+
+Breaking Changes
+----------------
+
+- With the update from M79 to M81, the `dtx`, `ptime`, and `codecPayloadType`
+  parameters to RTCRtpEncodingParameters no longer take affect. They've also
+  been removed from the WebRTC 1.0 specification (see [here](https://github.com/w3c/webrtc-pc/issues/2350)).
+  Although this is technically a SemVer-breaking change, few users of this
+  library are depending on the removed functionality, and I prefer not to
+  increment the version number at this time.
+
 0.4.4
 =====
 
