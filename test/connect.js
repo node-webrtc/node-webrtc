@@ -271,7 +271,7 @@ function testSendingAMessageWithOptions(t, sender, receiver, message, options) {
       return char.charCodeAt(0);
     }));
   } else if (options.type === 'buffer') {
-    message = new Buffer(message);
+    message = Buffer.from(message);
   }
   return testSendingAMessageNTimes(t, sender, receiver, message, options.times);
 }
