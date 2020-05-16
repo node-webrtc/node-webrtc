@@ -64,7 +64,7 @@ test('make sure channel is available after after connection is closed on the oth
 test('make sure onicecandidate handler doesn\'t fire when connection is closed', function(t) {
   t.plan(1);
 
-  var peer = new RTCPeerConnection({ iceServers: [] });
+  var pc = new RTCPeerConnection({ iceServers: [] });
 
   pc.onicecandidate = function () {
     t.ok(false, 'should not have fired');

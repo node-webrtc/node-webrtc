@@ -5,6 +5,13 @@ New Features
 ------------
 
 - Updated to WebRTC M81.
+- Added support for Node 14.
+
+Bug Fixes
+---------
+
+- RTCPeerConnection no longer raises "icegatheringstatechange" when the
+  RTCPeerConnection is closed. Thanks, @arlolra. (#625)
 
 Breaking Changes
 ----------------
