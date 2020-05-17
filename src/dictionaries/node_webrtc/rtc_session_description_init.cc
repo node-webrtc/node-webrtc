@@ -42,7 +42,7 @@ CONVERTER_IMPL(RTCSessionDescriptionInit, webrtc::SessionDescriptionInterface*, 
       type_ = "answer";
       break;
     case RTCSdpType::kRollback:
-      return Validation<webrtc::SessionDescriptionInterface*>::Invalid("Rollback is not currently supported");
+      type_ = "rollback";
   }
   webrtc::SdpParseError error;
   auto description = webrtc::CreateSessionDescription(type_, init.sdp, &error);

@@ -6,6 +6,7 @@ New Features
 
 - Updated to WebRTC M81.
 - Added support for Node 14.
+- Added rollback support.
 
 Bug Fixes
 ---------
