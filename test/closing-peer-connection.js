@@ -66,13 +66,13 @@ test('make sure onicecandidate handler doesn\'t fire when connection is closed',
 
   var pc = new RTCPeerConnection({ iceServers: [] });
 
-  pc.onicecandidate = function () {
+  pc.onicecandidate = () => {
     t.ok(false, 'should not have fired');
   };
 
   pc.close();
 
-  setTimeout(function() {
+  setTimeout(() => {
     t.ok(true, 'other t did not fire');
   }, 100);
 });
