@@ -14,6 +14,7 @@ require('./iceservers');
 require('./mediastream');
 require('./multiconnect');
 require('./pass-interface-to-method');
+require('./rollback');
 require('./rtcaudiosink');
 require('./rtcaudiosource');
 require('./rtcdtlstransport');
