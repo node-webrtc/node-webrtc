@@ -6,7 +6,8 @@
  * tree.
  */
 #include <node-addon-api/napi.h>
-#include <node.h>
+#include <assert.h>
+#include <uv.h>
 
 #include "src/interfaces/legacy_rtc_stats_report.h"
 #include "src/interfaces/media_stream.h"
@@ -64,7 +65,10 @@ static Napi::Object Init(Napi::Env env, Napi::Object exports) {
   node_webrtc::Test::Init(env, exports);
 #endif
 
-  node::AtExit(dispose);
+  auto status = napi_add_env_cleanup_hook(env, [](void*) {
+    dispose(nullptr);
+  }, nullptr);
+  assert(status == napi_ok);
 
   return exports;
 }
