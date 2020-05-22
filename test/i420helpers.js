@@ -48,12 +48,12 @@ tape('rgbaToI420(rgbaFrame, i420Frame)', t => {
 
     whitenRgbaFrame(rgbaFrame);
     rgbaToI420(rgbaFrame, i420Frame);
-    t.ok(everyYuv(i420Frame, [237, 128, 128]),
+    t.ok(everyYuv(i420Frame, [235, 128, 128]),
       'converting a white RGBA frame to I420 works');
 
     setRgba(rgbaFrame, [28, 255, 213, 255]);
     rgbaToI420(rgbaFrame, i420Frame);
-    t.ok(everyYuv(i420Frame, [174, 143, 31]),
+    t.ok(everyYuv(i420Frame, [173, 143, 31]),
       'converting a turquoise RGBA frame to I420 works');
 
     t.end();

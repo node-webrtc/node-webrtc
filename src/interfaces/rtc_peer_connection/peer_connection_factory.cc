@@ -53,7 +53,10 @@ PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo& info)
   _workerThread = rtc::Thread::CreateWithSocketServer();
   assert(_workerThread);
 
-  bool result = _workerThread->Start();
+  bool result = _workerThread->SetName("PeerConnectionFactory:workerThread", nullptr);
+  assert(result);
+
+  result = _workerThread->Start();
   assert(result);
 
   _audioDeviceModule = _workerThread->Invoke<rtc::scoped_refptr<webrtc::AudioDeviceModule>>(RTC_FROM_HERE, [audioLayer]() {
@@ -71,6 +74,9 @@ PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo& info)
 
   _signalingThread = rtc::Thread::Create();
   assert(_signalingThread);
+
+  result = _signalingThread->SetName("PeerConnectionFactory:signalingThread", nullptr);
+  assert(result);
 
   result = _signalingThread->Start();
   assert(result);

@@ -59,3 +59,20 @@ test('make sure channel is available after after connection is closed on the oth
       peer1.setRemoteDescription(peer2.localDescription);
     });
 });
+
+
+test('make sure onicecandidate handler doesn\'t fire when connection is closed', function(t) {
+  t.plan(1);
+
+  var pc = new RTCPeerConnection({ iceServers: [] });
+
+  pc.onicecandidate = () => {
+    t.ok(false, 'should not have fired');
+  };
+
+  pc.close();
+
+  setTimeout(() => {
+    t.ok(true, 'other t did not fire');
+  }, 100);
+});
