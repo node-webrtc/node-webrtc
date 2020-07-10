@@ -30,6 +30,7 @@ class AsyncObjectWrap: public Napi::ObjectWrap<T> {
       const Napi::CallbackInfo& info):
     Napi::ObjectWrap<T>(info) {
     this->_async_context = new Napi::AsyncContext(info.Env(), name, this->Value());
+    AsyncContextReleaser::GetDefault();
   }
 
   virtual ~AsyncObjectWrap() {
