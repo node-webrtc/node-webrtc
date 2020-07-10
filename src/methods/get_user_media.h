@@ -15,8 +15,8 @@
 namespace node_webrtc {
 
 class GetUserMedia {
- // TODO Remove when `GetDisplayMedia` gets its own implementation
- friend class node_webrtc::GetDisplayMedia;
+  // TODO Remove when `GetDisplayMedia` gets its own implementation
+  friend class node_webrtc::GetDisplayMedia;
  public:
   static void Init(Napi::Env, Napi::Object);
 
