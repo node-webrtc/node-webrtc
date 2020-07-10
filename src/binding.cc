@@ -26,6 +26,7 @@
 #include "src/interfaces/rtc_stats_response.h"
 #include "src/interfaces/rtc_video_sink.h"
 #include "src/interfaces/rtc_video_source.h"
+#include "src/methods/get_display_media.h"
 #include "src/methods/get_user_media.h"
 #include "src/methods/i420_helpers.h"
 #include "src/node/async_context_releaser.h"
@@ -42,6 +43,7 @@ static void dispose(void*) {
 static Napi::Object Init(Napi::Env env, Napi::Object exports) {
   node_webrtc::AsyncContextReleaser::Init(env, exports);
   node_webrtc::ErrorFactory::Init(env, exports);
+  node_webrtc::GetDisplayMedia::Init(env, exports);
   node_webrtc::GetUserMedia::Init(env, exports);
   node_webrtc::I420Helpers::Init(env, exports);
   node_webrtc::LegacyStatsReport::Init(env, exports);

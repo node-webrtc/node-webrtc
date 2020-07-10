@@ -4,7 +4,7 @@
 
 const { spawnSync } = require('child_process');
 
-function main() {
+function main(exit) {
   const args = ['install'];
 
   if (process.env.DEBUG) {
@@ -20,6 +20,10 @@ function main() {
     stdio: 'inherit'
   });
   if (status) {
+    if (!exit) {
+      throw new Error(status);
+    }
+
     process.exit(1);
   }
 }
@@ -27,5 +31,5 @@ function main() {
 module.exports = main;
 
 if (require.main === module) {
-  main();
+  main(true);
 }
