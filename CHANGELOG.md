@@ -1,3 +1,21 @@
+0.4.6
+=====
+
+New Features
+------------
+
+- Added `target` property to RTCPeerConnection events (thanks, @CharlesRA).
+- Support for additional APIs in `lib/browser.js` (thanks, @piranna).
+- Added a naïve version of `getDeviceMedia` that delegates to `getUserMedia`
+  (thanks, @piranna).
+
+Bug Fixes
+---------
+
+- Although Node 14 support was confirmed in v0.4.5, it was not included in the
+  "engines" property of package.json (thanks, @farnabaz).
+- Potential fix for a crash mentioned in #637 (thanks, @thedracle).
+
 0.4.5
 =====
 
