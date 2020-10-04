@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 export declare var MediaStream: {
     prototype: MediaStream;
     new(): MediaStream;
