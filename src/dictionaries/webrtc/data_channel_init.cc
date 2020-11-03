@@ -37,8 +37,8 @@ static Validation<webrtc::DataChannelInit> DATA_CHANNEL_INIT_FN(
   }
   webrtc::DataChannelInit init;
   init.ordered = ordered;
-  init.maxRetransmitTime = maxPacketLifeTime.Map([](auto i) { return static_cast<int>(i); }).FromMaybe(-1);
-  init.maxRetransmits = maxRetransmits.Map([](auto i) { return static_cast<int>(i); }).FromMaybe(-1);
+  init.maxRetransmitTime = maxPacketLifeTime.Map([](auto i) { return absl::make_optional(static_cast<int>(i)); }).FromMaybe(absl::optional<int>());
+  init.maxRetransmits = maxRetransmits.Map([](auto i) { return absl::make_optional(static_cast<int>(i)); }).FromMaybe(absl::optional<int>());
   init.protocol = protocol;
   init.negotiated = negotiated;
   init.id = id.Map([](auto i) { return static_cast<int>(i); }).FromMaybe(-1);

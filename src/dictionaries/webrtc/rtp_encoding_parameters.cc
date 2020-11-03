@@ -41,33 +41,28 @@ static Validation<webrtc::RtpEncodingParameters> RTP_ENCODING_PARAMETERS_FN(
     const node_webrtc::Maybe<uint64_t> maxBitrate,
     const node_webrtc::Maybe<double> maxFramerate,
     const node_webrtc::Maybe<double> scaleResolutionDownBy) {
+  // NOTE(mroberts): No longer supported in WebRTC 1.0.
+  (void) codecPayloadType;
+  (void) dtx;
+  (void) priority;
+  (void) ptime;
+
   webrtc::RtpEncodingParameters parameters;
   if (rid.IsJust()) {
     parameters.rid = rid.UnsafeFromJust();
   }
   if (ssrc.IsJust()) {
-    parameters.ssrc = absl::optional<uint32_t>(ssrc.UnsafeFromJust());
-  }
-  if (codecPayloadType.IsJust()) {
-    // NOTE(mroberts): No longer supported in WebRTC 1.0.
-  }
-  if (dtx.IsJust()) {
-    // NOTE(mroberts): No longer supported in WebRTC 1.0.
+    parameters.ssrc = ssrc.UnsafeFromJust();
   }
   parameters.active = active;
-  // TODO(mroberts): Do something with this.
-  (void) priority;
-  if (ptime.IsJust()) {
-    // NOTE(mroberts): No longer supported in WebRTC 1.0.
-  }
   if (maxBitrate.IsJust()) {
-    parameters.max_bitrate_bps = absl::optional<int>(maxBitrate.UnsafeFromJust());
+    parameters.max_bitrate_bps = maxBitrate.UnsafeFromJust();
   }
   if (maxFramerate.IsJust()) {
-    parameters.max_framerate = absl::optional<int>(maxFramerate.UnsafeFromJust());
+    parameters.max_framerate = maxFramerate.UnsafeFromJust();
   }
   if (scaleResolutionDownBy.IsJust()) {
-    parameters.scale_resolution_down_by = absl::optional<double>(scaleResolutionDownBy.UnsafeFromJust());
+    parameters.scale_resolution_down_by = scaleResolutionDownBy.UnsafeFromJust();
   }
   return Pure(parameters);
 }

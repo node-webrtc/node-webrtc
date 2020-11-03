@@ -1,3 +1,13 @@
+0.4.7
+=====
+
+New Features
+------------
+
+- Updated to WebRTC M87. Check the WebRTC release notes for changes included in
+  M82—M87.
+- Added support for RTCRtpTransceiverDirection "stopped".
+
 0.4.6
 =====
 

@@ -6,7 +6,8 @@
 
 #define RTC_PEER_CONNECTION_ICE_ERROR_EVENT RTCPeerConnectionIceErrorEvent
 #define RTC_PEER_CONNECTION_ICE_ERROR_EVENT_LIST \
-  DICT_REQUIRED(std::string, hostCandidate, "hostCandidate") \
+  DICT_REQUIRED(std::string, address, "address") \
+  DICT_REQUIRED(int, port, "port") \
   DICT_REQUIRED(std::string, url, "url") \
   DICT_REQUIRED(uint8_t, errorCode, "errorCoode") \
   DICT_REQUIRED(std::string, errorText, "errorText")

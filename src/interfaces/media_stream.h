@@ -27,7 +27,9 @@ struct RTCMediaStreamInit;
 class MediaStream
   : public Napi::ObjectWrap<MediaStream> {
  public:
-  MediaStream(const Napi::CallbackInfo&);
+  explicit MediaStream(const Napi::CallbackInfo&);
+
+  ~MediaStream();
 
   static void Init(Napi::Env, Napi::Object);
 

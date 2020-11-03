@@ -1,106 +1,246 @@
+# NOTE(mroberts: Here's how we use this file:
+#
+#   1. Check https://wpt.fyi for recent Chrome test results.
+#
+#   2. For any tests here which are failing here while passing in Chrome, mark
+#      them as passing in Chrome; then, investigate and suffix a reason the
+#      test(s) fail (separated by ";").
+#
+#   3. For any tests here which are failing both here and in Chrome, feel free
+#      to just mark them as failing in Chrome. Investigate in more detail if
+#      you like, but this is something we can leave to web-platform-test and
+#      Chrome engineers to deal with (node-webrtc can't necessarily fix these
+#      problems; although in some cases we can workaround them...).
+#
+#   4. Any tests which take a long time to pass or even crash the test process
+#      should be marked as "fail-slow". "flaky" is reserved for tests which, for
+#      whatever reason, sometimes pass and sometimes fail.
+#
+# Structured this way, we can use some shell scripts to handily review and work
+# on tests. For example, to identify tests which need investigation, run the
+# following:
+#
+#   $ sed -e 's/^\(.*\): \[\(.*\), "\(.*\)"]$/\1 \2      \3/' -e 'tx' -e 'd' -e ':x' <test/web-platform-tests/to-run.yaml | grep 'fail.*\tPassing' | grep -v ';'
+#
+# After investigating, suffix the failure reason (or update the code such that
+# the test passes) and re-run the report. The test should now be excluded from
+# the report.
+#
+# Running individual tests can be done (very ugly) this way:
+#
+#   $ TEST_FILE=mediacapture-streams/GUM-impossible-constraint.https.html ./node_modules/.bin/mocha test/web-platform-tests/run-wpt.js --exit
+#
+
 DIR: mediacapture-streams
 
-GUM-deny.https.html: [fail, "The success callback should not be triggered since access is to be denied"]
-GUM-impossible-constraint.https.html: [fail]
-GUM-invalid-facing-mode.https.html: [fail, "The empty string is not a valid facingMode"]
-MediaDevices-SecureContext.html: [fail]
-MediaDevices-enumerateDevices-not-allowed-camera.https.html: [fail]
-MediaDevices-enumerateDevices-not-allowed-mic.https.html: [fail]
-MediaDevices-enumerateDevices-returned-objects.https.html: [fail]
-MediaDevices-enumerateDevices.https.html: [fail]
-MediaDevices-getSupportedConstraints.https.html: [fail]
-MediaDevices-getUserMedia.https.html: [fail]
-MediaStream-MediaElement-firstframe.https.html: [fail-slow]
-MediaStream-MediaElement-srcObject.https.html: [fail-slow]
-MediaStream-clone.https.html: [fail, "readyState/source management needs a rework"]
-MediaStream-default-feature-policy.https.html: [fail-slow]
-MediaStream-idl.https.html: [fail-slow]
-MediaStream-removetrack.https.html: [fail-slow]
-MediaStream-supported-by-feature-policy.html: [fail]
-MediaStreamTrack-MediaElement-disabled-audio-is-silence.https.html: [fail, "AudioContext"]
-MediaStreamTrack-MediaElement-disabled-video-is-black.https.html: [fail-slow]
-MediaStreamTrack-applyConstraints.https.html: [fail]
-MediaStreamTrack-getCapabilities.https.html: [fail]
-MediaStreamTrack-getSettings.https.html: [fail]
-MediaStreamTrackEvent-constructor.https.html: [fail]
-idlharness.https.window.html: [fail, "ReferenceError: MediaStreamTrackEvent is not defined"]
+GUM-deny.https.html: [fail, "Failing in Chrome 88"]
+GUM-impossible-constraint.https.html: [fail, "Passing in Chrome 88; we don't support MediaTrackConstraints"]
+GUM-invalid-facing-mode.https.html: [fail, "Passing in Chrome 88; we don't support MediaTrackConstaints"]
+GUM-required-constraint-with-ideal-value.https.html: [fail, "Passing in Chrome 88; we don't support MediaTrackConstraints"]
+MediaDevices-SecureContext.html: [fail, "Passing in Chrome 88; SecureContext is not a concept in Node"]
+MediaDevices-enumerateDevices-not-allowed-camera.https.html: [fail, "Failing in Chrome 88; but also, we do not support enumerateDevices"]
+MediaDevices-enumerateDevices-not-allowed-mic.https.html: [fail, "Failing in Chrome 88; but also, we do not support enumerateDevices"]
+MediaDevices-enumerateDevices-returned-objects.https.html: [fail, "Passing in Chrome 88; we do not support enumerateDevices"]
+MediaDevices-enumerateDevices.https.html: [fail, "Failing in Chrome 88; but also, we do not support enumerateDevices"]
+MediaDevices-getSupportedConstraints.https.html: [fail, "Passing in Chrome 88; we do not support getSupportedConstraints"]
+MediaDevices-getUserMedia.https.html: [fail, "Passing in Chrome 88; we do not support getSupportedConstraints"]
+MediaStream-MediaElement-firstframe.https.html: [fail-slow, "Failing in Chrome 88"]
+MediaStream-MediaElement-srcObject.https.html: [fail-slow, "Failing in Chrome 88"]
+MediaStream-clone.https.html: [fail, "Passing in Chrome 88; this needs further investigation, as we have a very similar test in tests/mediastream.js which passes"]
+MediaStream-default-feature-policy.https.html: [fail-slow, "Failing in Chrome 88; but also, we do not support featurePolicy"]
+MediaStream-removetrack.https.html: [fail-slow, "Failing in Chrome 88"]
+MediaStream-supported-by-feature-policy.html: [fail, "Passing in Chrome 88; we do not support featurePolicy"]
+MediaStreamTrack-MediaElement-disabled-audio-is-silence.https.html: [fail, "Passing in Chrome 88; we do not support AudioContext"]
+MediaStreamTrack-MediaElement-disabled-video-is-black.https.html: [fail-slow, "Passing in Chrome 88; we do not support MediaElement"]
+MediaStreamTrack-applyConstraints.https.html: [fail, "Passing in Chrome 88; we do not support getSettings or applyConstraints"]
+MediaStreamTrack-getCapabilities.https.html: [fail, "Passing in Chrome 88; we do not support enumerateDevices or getCapabilities"]
+MediaStreamTrack-getSettings.https.html: [fail, "Passing in Chrome 88; we do not support enumerateDevices or getSettings"]
+MediaStreamTrackEvent-constructor.https.html: [fail, "Passing in Chrome 88; we do not support MediaStreamTrackEvent or AudioContext"]
+# NOTE(mroberts): Can at least be improved...
+idlharness.https.window.html: [fail, "Passing in Chrome 88; we're missing lot's of things; we could add some, but we might still miss some unsupported properties"]
 
 ---
 
 DIR: webrtc
 
-RTCCertificate-postMessage.html: [fail-slow]
-RTCCertificate.html: [fail, "RTCPeerConnection.generateCertificate is not a function"]
+RTCCertificate-postMessage.html: [fail-slow, "Failing in Chrome 88"]
+RTCCertificate.html: [fail, "Failing in Chrome 88; RTCPeerConnection.generateCertificate is not a function"]
 RTCConfiguration-iceCandidatePoolSize.html: [fail-slow, "https://bugs.chromium.org/p/webrtc/issues/detail?id=7585"]
-RTCConfiguration-iceServers.html: [fail, "Lot's of issues"]
-RTCDTMFSender-insertDTMF.https.html: [fail]
-RTCDTMFSender-ontonechange-long.https.html: [fail]
-RTCDTMFSender-ontonechange.https.html: [fail]
-RTCDataChannel-bufferedAmount.html: [fail-slow]
-RTCDataChannel-id.html: [fail]
-RTCDataChannel-send.html: [fail, "\"blob\" is not supported at this time; file a bug on https://github.com/node-webrtc/node-webrtc"]
-RTCDataChannelEvent-constructor.html: [fail]
-RTCDtlsTransport-state.html: [fail]
-RTCError.html: [fail]
-RTCIceCandidate-constructor.html: [fail, "Lot's of issues"]
-RTCIceConnectionState-candidate-pair.https.html: [flaky, "A succeeded candidate-pair should exist expected true got false"]
-RTCIceTransport-extension.https.html: [fail]
-RTCIceTransport.html: [fail]
-RTCPeerConnection-addIceCandidate-timing.https.html: [fail, "IDK"]
-RTCPeerConnection-addIceCandidate.html: [fail, "Lot's of issues"]
-RTCPeerConnection-addTransceiver.https.html: [fail, "https://crbug.com/webrtc/8730"]
-RTCPeerConnection-canTrickleIceCandidates.html: [fail, "Always null"]
-RTCPeerConnection-connectionState.https.html: [fail]
-RTCPeerConnection-createDataChannel.html: [fail, "Some validation to work on"]
-RTCPeerConnection-createOffer.html: [fail, "When media stream is added when createOffer() is running in parallel, the result offer should contain the new media stream (Chrome fails this, Firefox passes this)"]
-RTCPeerConnection-generateCertificate.html: [fail, "RTCPeerConnection.generateCertificate is not a function"]
-RTCPeerConnection-getDefaultIceServers.html: [fail, "RTCPeerConnection.getDefaultIceServers is not a function"]
-RTCPeerConnection-getStats.https.html: [fail-slow]
-RTCPeerConnection-iceConnectionState.https.html: [fail]
-RTCPeerConnection-iceGatheringState.html: [flaky]
-RTCPeerConnection-mandatory-getStats.https.html: [fail-slow, "IDK"]
-RTCPeerConnection-ondatachannel.html: [fail]
-RTCPeerConnection-onicecandidateerror.https.html: [fail-slow, "IDK"]
-RTCPeerConnection-remote-track-mute.https.html: [fail]
-RTCPeerConnection-restartIce-onnegotiationneeded.https.html: [fail, "IDK"]
-RTCPeerConnection-restartIce.https.html: [fail, "IDK"]
-RTCPeerConnection-setDescription-transceiver.html: [fail, "Requires rollback support"]
-RTCPeerConnection-setLocalDescription-answer.html: [fail]
-RTCPeerConnection-setLocalDescription-offer.html: [fail, "Set created offer other than last offer should reject with InvalidModificationError (CHrome fails this)"]
-RTCPeerConnection-setLocalDescription-parameterless.https.html: [fail, "IDK"]
-RTCPeerConnection-setLocalDescription-pranswer.html: [fail, "The test or the spec might be invalid"]
-RTCPeerConnection-setRemoteDescription-offer.html: [fail-slow, "Need RTCError support"]
-RTCPeerConnection-setRemoteDescription-replaceTrack.https.html: [fail, "replaceTrack() does not set the track synchronously."]
-RTCPeerConnection-setRemoteDescription-rollback.html: [fail]
-RTCPeerConnection-setRemoteDescription-tracks.https.html: [fail]
-RTCPeerConnection-setRemoteDescription.html: [fail, "InvalidAccessError: Failed to set remote offer sdp: The order of m-lines in subsequent offer doesn't match order from previous offer/answer"]
-RTCPeerConnection-track-stats.https.html: [fail]
-RTCPeerConnection-transceivers.https.html: [fail, "Need RTCTrackEvent support"]
-RTCPeerConnectionIceEvent-constructor.html: [fail]
-RTCRtpParameters-codecs.html: [fail, "pc.addTransceiver is not a function"]
-RTCRtpParameters-degradationPreference.html: [fail, "pc.addTransceiver is not a function"]
-RTCRtpParameters-encodings.html: [fail, "pc.addTransceiver is not a function"]
-RTCRtpParameters-headerExtensions.html: [fail, "pc.addTransceiver is not a function"]
-RTCRtpParameters-rtcp.html: [fail, "pc.addTransceiver is not a function"]
-RTCRtpParameters-transactionId.html: [fail, "pc.addTransceiver is not a function"]
-RTCRtpReceiver-getParameters.html: [fail, "RID stuff"]
-RTCRtpReceiver-getStats.https.html: [fail, "pc.addTransceiver is not a function"]
-RTCRtpReceiver-getSynchronizationSources.https.html: [fail-slow]
-RTCRtpSender-getStats.https.html: [fail, "caller.addTransceiver is not a function"]
-RTCRtpSender-setStreams.https.html: [fail, "IDK"]
-RTCRtpTransceiver.https.html: [fail-slow, "Muted support"]
-RTCSctpTransport-events.html: [fail-slow]
-RTCTrackEvent-constructor.html: [fail, "pc.addTransceiver is not a function"]
-RTCTrackEvent-fire.html: [fail-slow]
-datachannel-emptystring.html: [fail]
-getstats.html: [flaky]
-idlharness.https.window.html: [fail, "A bunch of stuff"]
-legacy/RTCPeerConnection-addStream.https.html: [fail]
-legacy/onaddstream.https.html: [fail]
-protocol/candidate-exchange.https.html: [fail-slow, "IDK"]
-protocol/dtls-fingerprint-validation.html: [fail-slow, "IDK"]
-protocol/ice-state.https.html: [fail]
-protocol/missing-fields.html: [fail]
-protocol/video-codecs.https.html: [fail, "No H.264 Support"]
-simplecall-no-ssrcs.https.html: [fail]
-simplecall.https.html: [fail]
+RTCConfiguration-iceServers.html: [fail, "Failing in Chrome 88"]
+RTCDTMFSender-insertDTMF.https.html: [fail, "Passing in Chrome 88; we do not support RTCDTMFSender"]
+RTCDTMFSender-ontonechange-long.https.html: [fail, "Passing in Chrome 88; we do not support RTCDTMFSender"]
+RTCDTMFSender-ontonechange.https.html: [fail, "Failing in Chrome 88; we do not support RTCDTMFSender"]
+RTCDataChannel-binaryType.window.html: [fail, "Failing in Chrome 88"]
+RTCDataChannel-bufferedAmount.html: [fail-slow, "Failing in Chrome 88"]
+# NOTE(mroberts): Looks fixable.
+RTCDataChannel-close.html: [fail, "Passing in Chrome 88; timing issues"]
+# NOTE(mroberts): Looks fixable.
+RTCDataChannel-id.html: [fail, "Passing in Chrome 88; ID -1 should be mapped to null"]
+RTCDataChannel-send.html: [fail, "Failing in Chrome 88; but also, Blob is not supported at this time"]
+# NOTE(mroberts): Looks fixable.
+RTCDataChannelEvent-constructor.html: [fail, "Passing in Chrome 88; setting `channel` to `undefined` or `null` should throw TypeError with message \"member channel is not of type RTCDataChannel.\""]
+RTCDtlsTransport-getRemoteCertificates.html: [fail, "Passing in Chrome 88; we do not support AudioContext"]
+RTCDtlsTransport-state.html: [fail, "Passing in Chrome 88; we do not support AudioContext"]
+# NOTE(mroberts): Needs a lot of work.
+RTCError.html: [fail, "Passing in Chrome 88; we do not support RTCError"]
+# NOTE(mroberts): Looks fixable.
+RTCIceCandidate-constructor.html: [fail, "Passing in Chrome 88; need to review behavior"]
+RTCIceConnectionState-candidate-pair.https.html: [flaky, "Passing in Chrome 88"]
+RTCIceTransport-extension.https.html: [fail, "Passing in Chrome 88; these all depend on being able to construct an RTCIceTransport, which we don't currently support"]
+RTCIceTransport.html: [fail, "Failing in Chrome 88"]
+# NOTE(mroberts): Potentially needs a lot of work.
+RTCPeerConnection-SLD-SRD-timing.https.html: [fail, "Passing in Chrome 88; timing issues"]
+# NOTE(mroberts): Potentially needs a lot of work.
+RTCPeerConnection-addIceCandidate-connectionSetup.html: [fail-slow, "Passing in Chrome 88; depends on RTCDtlsTransport state events"]
+# NOTE(mroberts): Potentially needs a lot of work.
+RTCPeerConnection-addIceCandidate-timing.https.html: [fail, "Passing in Chrome 88; timing issues"]
+RTCPeerConnection-addIceCandidate.html: [fail, "Failing in Chrome 88"]
+RTCPeerConnection-addTransceiver.https.html: [fail, "Passing in Chrome 88; invalid RID is raising InvalidAccessError instead of TypeError, also, `muted` should be `true` but is `false`"]
+# NOTE(mroberts): Is it really flaky?
+# RTCPeerConnection-candidate-in-sdp.https.html: [flaky, "Passing in Chrome 88"]
+# NOTE(mroberts): Potentially needs a lot of work.
+RTCPeerConnection-connectionState.https.html: [fail, "Passing in Chrome 88; somehow skipping the \"connecting\" state and going from \"new\" to \"connected\""]
+RTCPeerConnection-createDataChannel.html: [fail, "Failing in Chrome 88"]
+RTCPeerConnection-createOffer.html: [fail, "Failing in Chrome 88"]
+# NOTE(mroberts): Potentially needs a lot of work.
+RTCPeerConnection-description-attributes-timing.https.html: [fail, "Passing in Chrome 88; timing issues"]
+RTCPeerConnection-explicit-rollback-iceGatheringState.html: [fail-slow, "Passing in Chrome 88; RTCIceGatheringState goes back to \"new\", but no event emitted; hence timeout"]
+RTCPeerConnection-generateCertificate.html: [fail, "Failing in Chrome 88; RTCPeerConnection.generateCertificate is not a function"]
+RTCPeerConnection-getStats.https.html: [fail-slow, "Failing in Chrome 88"]
+# NOTE(mroberts): Potentially needs a lot of work.
+RTCPeerConnection-iceConnectionState.https.html: [fail, "Passing in Chrome 88; mismatch between events and values read"]
+# NOTE(mroberts): Potentially needs a lot of work.
+RTCPeerConnection-iceGatheringState.html: [fail, "Passing in Chrome 88; timing issues"]
+RTCPeerConnection-mandatory-getStats.https.html: [fail-slow, "Failing in Chrome 88"]
+# NOTE(mroberts): Potentially needs a lot of work.
+RTCPeerConnection-ondatachannel.html: [fail, "Passing in Chrome 88; one issue with the \"open\" event and little issues with `maxPacketLifetime` and `maxRetransmits` not being `null`"]
+# NOTE(mroberts): Potentially needs a lot of work.
+RTCPeerConnection-onnegotiationneeded.html: [fail, "Passing in Chrome 88; timing issues"]
+RTCPeerConnection-onsignalingstatechanged.https.html: [fail, "Passing in Chrome 88; closing raises an event it shouldn't"]
+RTCPeerConnection-operations.https.html: [fail-slow, "Failing in Chrome 88"]
+RTCPeerConnection-perfect-negotiation-stress-glare-linear.https.html: [fail-slow, "Passing in Chrome 88; probably depends on onnegotiationneeded"]
+RTCPeerConnection-perfect-negotiation-stress-glare.https.html: [fail-slow, "Passing in Chrome 88; probably depends on onnegotiationneeded"]
+RTCPeerConnection-perfect-negotiation.https.html: [fail-slow, "Passing in Chrome 88; probably depends on onnegotiationneeded"]
+RTCPeerConnection-remote-track-mute.https.html: [fail-slow, "Failing in Chrome 88"]
+RTCPeerConnection-restartIce-onnegotiationneeded.https.html: [fail-slow, "Passing in Chrome 88; depends on onnegotiationneeded"]
+RTCPeerConnection-restartIce.https.html: [fail, "Failing in Chrome 88"]
+RTCPeerConnection-setLocalDescription-answer.html: [fail, "Failing in Chrome 88"]
+RTCPeerConnection-setLocalDescription-offer.html: [fail, "Failing in Chrome 88"]
+RTCPeerConnection-setLocalDescription-parameterless.https.html: [fail, "Failing in Chrome 88"]
+RTCPeerConnection-setLocalDescription-pranswer.html: [fail, "Failing in Chrome 88"]
+# NOTE(mroberts): Potentially needs a lot of work.
+RTCPeerConnection-setLocalDescription-rollback.html: [fail, "Passing in Chrome 88; timing issues"]
+RTCPeerConnection-setRemoteDescription-offer.html: [fail-slow, "Failing in Chrome 88"]
+# NOTE(mroberts): Potentially needs a lot of work.
+RTCPeerConnection-setRemoteDescription-replaceTrack.https.html: [fail, "Passing in Chrome 88; replaceTrack should not replace the track synchronously"]
+# NOTE(mroberts): Potentially needs a lot of work.
+RTCPeerConnection-setRemoteDescription-rollback.html: [fail, "Passing in Chrome 88; timing issues"]
+RTCPeerConnection-setRemoteDescription-simulcast.https.html: [fail, "Failing in Chrome 88"]
+RTCPeerConnection-setRemoteDescription-tracks.https.html: [fail-slow, "Failing in Chrome 88"]
+RTCPeerConnection-setRemoteDescription.html: [fail, "Failing in Chrome 88"]
+RTCPeerConnection-track-stats.https.html: [fail-slow, "Failing in Chrome 88"]
+# NOTE(mroberts): Potentially needs a little bit of work.
+RTCPeerConnection-transceivers.https.html: [fail, "Passing in Chrome 88; RTCTrackEvent is not supported"]
+RTCPeerConnection-videoDetectorTest.html: [fail-slow, "Passing in Chrome 88; we do not support MediaElement"]
+RTCPeerConnectionIceEvent-constructor.html: [fail, "Failing in Chrome 88"]
+# NOTE(mroberts): Potentially needs a little bit of work.
+RTCRtpParameters-encodings.html: [fail, "Passing in Chrome 88; we're throwing TypeErrors instead of InvalidModificationError or RangeError in some places; interactions with setParameters"]
+# NOTE(mroberts): Potentially needs a little bit of work.
+RTCRtpParameters-headerExtensions.html: [fail, "Passing in Chrome 88; we didn't reject with InvalidModificationError"]
+# NOTE(mroberts): Potentially needs a little bit of work.
+RTCRtpParameters-rtcp.html: [fail, "Passing in Chrome 88; we didn't reject with InvalidModificationError"]
+# NOTE(mroberts): Looks fixable.
+RTCRtpParameters-transactionId.html: [fail, "Passing in Chrome 88; we're throwing TypeErrors instead of InvalidModificationError for RTCDegradationPreference"]
+RTCRtpReceiver-getParameters.html: [fail, "Failing in Chrome 88"]
+RTCRtpReceiver-getStats.https.html: [fail, "Failing in Chrome 88"]
+RTCRtpReceiver-getSynchronizationSources.https.html: [fail-slow, "Failing in Chrome 88"]
+RTCRtpSender-encode-same-track-twice.https.html: [fail, "Passing in Chrome 88; we do not support MediaElement"]
+RTCRtpSender-getStats.https.html: [fail, "Failing in Chrome 88"]
+RTCRtpSender-replaceTrack.https.html: [fail-slow, "Failing in Chrome 88"]
+RTCRtpSender-setStreams.https.html: [fail-slow, "Passing in Chrome 88; not sure yet"]
+RTCRtpSender.https.html: [fail, "Passing in Chrome 88; we do not support RTCDTMFSender"]
+RTCRtpTransceiver-setCodecPreferences.html: [fail, "Passing in Chrome 88; we do not build with H.264"]
+RTCRtpTransceiver.https.html: [fail-slow, "Failing in Chrome 88"]
+# NOTE(mroberts): Potentially needs a lot of work.
+RTCSctpTransport-events.html: [fail-slow, "Passing in Chrome 88; events don't seem to be firing correctly"]
+RTCTrackEvent-constructor.html: [fail, "Failing in Chrome 88"]
+RTCTrackEvent-fire.html: [fail-slow, "Failing in Chrome 88"]
+datachannel-emptystring.html: [fail, "Failing in Chrome 88"]
+idlharness.https.window.html: [fail, "Failing in Chrome 88"]
+legacy/RTCPeerConnection-addStream.https.html: [fail, "Passing in Chrome 88; we do not support addStream anymore"]
+legacy/onaddstream.https.html: [fail, "Passing in Chrome 88; we do not suppport onaddstream anymore"]
+protocol/bundle.https.html: [fail-slow, "Passing in Chrome 88; we do not support MediaElement"]
+# NOTE(mroberts): Potentially needs a lot of work.
+protocol/candidate-exchange.https.html: [fail-slow, "Passing in Chrome 88; not sure, but looks like event issues"]
+protocol/crypto-suite.https.html: [fail, "Failing in Chrome 88"]
+# NOTE(mroberts): Potentially needs a lot of work.
+protocol/dtls-fingerprint-validation.html: [fail-slow, "Passing in Chrome 88; not sure, but looks like event issues"]
+# NOTE(mroberts): Potentially needs a lot of work.
+protocol/ice-state.https.html: [fail-slow, "Passing in Chrome 88"]
+protocol/missing-fields.html: [fail, "Passing in Chrome 88"]
+protocol/rtp-demuxing.html: [fail-slow, "Passing in Chrome 88"]
+protocol/split.https.html: [fail-slow, "Passing in Chrome 88"]
+protocol/unknown-mediatypes.html: [fail, "Passing in Chrome 88"]
+protocol/video-codecs.https.html: [fail, "Passing in Chrome 88"]
+receiver-track-live.https.html: [fail, "Failing in Chrome 88"]
+simplecall-no-ssrcs.https.html: [fail-slow, "Passing in Chrome 88"]
+simplecall.https.html: [fail-slow, "Passing in Chrome 88"]
+simulcast/basic.https.html: [fail-slow, "Passing in Chrome 88"]
+simulcast/getStats.https.html: [fail-slow, "Passing in Chrome 88"]
+simulcast/h264.https.html: [fail, "Passing in Chrome 88; we do not build with H.264"]
+simulcast/setParameters-active.https.html: [fail-slow, "Passing in Chrome 88"]
+simulcast/vp8.https.html: [fail-slow, "Passing in Chrome 88"]
+
+---
+
+DIR: webrtc-extensions
+
+# NOTE(mroberts): Looks fixable.
+RTCRtpParameters-maxFramerate.html: [fail, "Passing in Chrome 88; check how we're handling RTCDegradationPreference"]
+RTCRtpReceiver-playoutDelayHint.html: [fail, "Passing in Chrome 88; we don't support this and probably there is no need to"]
+# NOTE(mroberts): Looks fixable.
+RTCRtpSynchronizationSource-captureTimestamp.html: [fail-slow, "Passing in Chrome 88; we don't yet support `captureTimestamp`"]
+
+---
+
+DIR: webrtc-identity
+
+RTCPeerConnection-getIdentityAssertion.sub.https.html: [fail, "Failing in Chrome 88"]
+RTCPeerConnection-peerIdentity.https.html: [fail, "Failing in Chrome 88"]
+idlharness.https.window.html: [fail, "Failing in Chrome 88"]
+
+---
+
+DIR: webrtc-insertable-streams
+
+RTCEncodedAudioFrame-serviceworker-failure.https.html: [fail, "Passing in Chrome 88; we do not support this yet"]
+RTCEncodedVideoFrame-serviceworker-failure.https.html: [fail, "Passing in Chrome 88; we do not support this yet"]
+RTCPeerConnection-insertable-streams-audio.https.html: [fail, "Passing in Chrome 88; we do not support this yet"]
+RTCPeerConnection-insertable-streams-errors.https.html: [fail, "Passing in Chrome 88; we do not support this yet"]
+RTCPeerConnection-insertable-streams-legacy.https.html: [fail-slow, "Passing in Chrome 88; we do not support this yet"]
+RTCPeerConnection-insertable-streams-simulcast.https.html: [fail, "Passing in Chrome 88; we do not support this yet"]
+RTCPeerConnection-insertable-streams-video-frames.https.html: [fail, "Passing in Chrome 88; we do not support this yet"]
+RTCPeerConnection-insertable-streams-video.https.html: [fail, "Passing in Chrome 88; we do not support this yet"]
+RTCPeerConnection-insertable-streams-worker.https.html: [fail, "Passing in Chrome 88; we do not support this yet"]
+idlharness.https.window.html: [fail, "Passing in Chrome 88; we do not support this yet"]
+
+---
+
+DIR: webrtc-priority
+
+RTCPeerConnection-ondatachannel.html: [fail, "Failing in Chrome 88"]
+# NOTE(mroberts): Looks fixable.
+RTCRtpParameters-encodings.html: [fail, "Passing in Chrome 88; check how we're handling RTCDegradationPreference"]
+
+---
+
+DIR: webrtc-stats
+
+getStats-remote-candidate-address.html: [fail, "Failing in Chrome 88"]
+
+---
+
+DIR: webrtc-svc
+
+# NOTE(mroberts): Looks fixable.
+RTCRtpParameters-scalability.html: [fail, "Passing in Chrome 88; we don't yet support scalabilityMode, but probable we just need to expose it"]

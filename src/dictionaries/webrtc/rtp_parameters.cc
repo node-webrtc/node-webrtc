@@ -2,8 +2,10 @@
 
 #include <webrtc/api/rtp_parameters.h>
 
+#include "src/converters/absl.h"
 #include "src/converters/object.h"
 #include "src/enums/webrtc/degradation_preference.h"
+#include "src/functional/maybe.h"
 #include "src/dictionaries/macros/napi.h"
 #include "src/dictionaries/webrtc/rtcp_parameters.h"
 #include "src/dictionaries/webrtc/rtp_codec_parameters.h"
@@ -27,10 +29,9 @@ TO_NAPI_IMPL(webrtc::RtpParameters, pair) {
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "codecs", parameters.codecs)
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "rtcp", parameters.rtcp)
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "encodings", parameters.encodings)
-  // TODO: fix this
-  // if (parameters.degradation_preference != webrtc::DegradationPreference::BALANCED) {
-  //   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "degradationPreference", parameters.degradation_preference)
-  // }
+  if (parameters.degradation_preference && parameters.degradation_preference != webrtc::DegradationPreference::BALANCED) {
+    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "degradationPreference", parameters.degradation_preference)
+  }
   return Pure(scope.Escape(object));
 }
 
@@ -40,14 +41,16 @@ static webrtc::RtpParameters NapiToRtpParameters(
     webrtc::RtcpParameters rtcp,
     std::vector<webrtc::RtpCodecParameters> codecs,
     std::vector<webrtc::RtpEncodingParameters> encodings,
-    webrtc::DegradationPreference degradationPreference) {
+    node_webrtc::Maybe<webrtc::DegradationPreference> degradationPreference) {
   webrtc::RtpParameters parameters;
   parameters.transaction_id = transactionId;
   parameters.header_extensions = headerExtensions;
   parameters.rtcp = rtcp;
   parameters.codecs = codecs;
   parameters.encodings = encodings;
-  parameters.degradation_preference = degradationPreference;
+  parameters.degradation_preference = degradationPreference
+  .Map([](auto degradationPreference) { return absl::make_optional(static_cast<webrtc::DegradationPreference>(degradationPreference)); })
+  .FromMaybe(absl::optional<webrtc::DegradationPreference>());
   return parameters;
 }
 
@@ -59,7 +62,7 @@ FROM_NAPI_IMPL(webrtc::RtpParameters, value) {
         * GetRequired<webrtc::RtcpParameters>(object, "rtcp")
         * GetRequired<std::vector<webrtc::RtpCodecParameters>>(object, "codecs")
         * GetRequired<std::vector<webrtc::RtpEncodingParameters>>(object, "encodings")
-        * GetOptional<webrtc::DegradationPreference>(object, "degradationPreference", webrtc::DegradationPreference::BALANCED);
+        * GetOptional<webrtc::DegradationPreference>(object, "degradationPreference");
   });
 }
 

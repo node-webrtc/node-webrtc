@@ -17,6 +17,7 @@
 #include <webrtc/p2p/client/basic_port_allocator.h>
 
 #include "src/converters.h"
+#include "src/converters/absl.h"
 #include "src/converters/arguments.h"
 #include "src/converters/interfaces.h"
 #include "src/converters/napi.h"
@@ -163,25 +164,28 @@ void RTCPeerConnection::OnIceCandidate(const webrtc::IceCandidateInterface* ice_
 }
 
 static Validation<Napi::Value> CreateRTCPeerConnectionIceErrorEvent(
-    const Napi::Value hostCandidate,
+    const Napi::Value address,
+    const Napi::Value port,
     const Napi::Value url,
     const Napi::Value errorCode,
     const Napi::Value errorText) {
-  auto env = hostCandidate.Env();
+  auto env = address.Env();
   Napi::EscapableHandleScope scope(env);
   NODE_WEBRTC_CREATE_OBJECT_OR_RETURN(env, object)
-  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "hostCandidate", hostCandidate)
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "address", address)
+  NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "port", port)
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "url", url)
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "errorCode", errorCode)
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "errorText", errorText)
   return Pure(scope.Escape(object));
 }
 
-void RTCPeerConnection::OnIceCandidateError(const std::string& host_candidate, const std::string& url, int error_code, const std::string& error_text) {
-  Dispatch(CreateCallback<RTCPeerConnection>([this, host_candidate, url, error_code, error_text]() {
+void RTCPeerConnection::OnIceCandidateError(const std::string& address, int port, const std::string& url, int error_code, const std::string& error_text) {
+  Dispatch(CreateCallback<RTCPeerConnection>([this, address, port, url, error_code, error_text]() {
     auto env = Env();
     auto maybeEvent = Validation<Napi::Value>::Join(curry(CreateRTCPeerConnectionIceErrorEvent)
-            % From<Napi::Value>(std::make_pair(env, host_candidate))
+            % From<Napi::Value>(std::make_pair(env, address))
+            * From<Napi::Value>(std::make_pair(env, port))
             * From<Napi::Value>(std::make_pair(env, url))
             * From<Napi::Value>(std::make_pair(env, error_code))
             * From<Napi::Value>(std::make_pair(env, error_text)));
@@ -315,9 +319,10 @@ Napi::Value RTCPeerConnection::RemoveTrack(const Napi::CallbackInfo& info) {
     Napi::Error(env, ErrorFactory::CreateInvalidAccessError(env, "Cannot removeTrack")).ThrowAsJavaScriptException();
     return env.Undefined();
   }
-  if (!_jinglePeerConnection->RemoveTrack(sender->sender())) {
-    Napi::Error(env, ErrorFactory::CreateInvalidAccessError(env, "Cannot removeTrack")).ThrowAsJavaScriptException();
-    return env.Undefined();
+  auto error = _jinglePeerConnection->RemoveTrackNew(sender->sender());
+  if (!error.ok()) {
+    CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), &error, result, Napi::Value)
+    Napi::Error(info.Env(), result).ThrowAsJavaScriptException();
   }
   return env.Undefined();
 }
@@ -618,7 +623,13 @@ Napi::Value RTCPeerConnection::RestartIce(const Napi::CallbackInfo& info) {
 }
 
 Napi::Value RTCPeerConnection::GetCanTrickleIceCandidates(const Napi::CallbackInfo& info) {
-  return info.Env().Null();
+  auto env = info.Env();
+  if (!_jinglePeerConnection) {
+    return env.Null();
+  }
+  auto canTrickleIceCandidates = _jinglePeerConnection->can_trickle_ice_candidates();
+  CONVERT_OR_THROW_AND_RETURN_NAPI(env, canTrickleIceCandidates, result, Napi::Value)
+  return result;
 }
 
 Napi::Value RTCPeerConnection::GetConnectionState(const Napi::CallbackInfo& info) {

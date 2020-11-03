@@ -1,12 +1,13 @@
 'use strict';
 /* eslint-disable no-console, global-require */
-const path = require('path');
 const dns = require('dns');
+const path = require('path');
+const util = require('util');
 const childProcess = require('child_process');
-const q = require('q');
-const { inBrowserContext } = require('./util.js');
 const requestHead = require('request-promise-native').head;
-const dnsLookup = q.denodeify(dns.lookup);
+const { inBrowserContext } = require('./util.js');
+
+const dnsLookup = util.promisify(dns.lookup);
 
 const wptDir = path.resolve(__dirname, 'tests');
 
@@ -29,46 +30,51 @@ module.exports = ({ toUpstream = false } = {}) => {
   const configPath = configPaths[configType];
   const config = configs[configType];
 
-  const urlPrefix = `http://${config.browser_host}:${config.ports.http[0]}/`;
-
   return dnsLookup('web-platform.test').then(
     () => {
       const configArg = path.relative(path.resolve(wptDir), configPath);
-      const args = ['./wpt.py', 'serve', '--config', configArg];
-      const python = childProcess.spawn('python', args, {
+      const args = ['./wpt.py', 'serve', '--no-h2', '--config', configArg];
+      const subprocess = childProcess.spawn('python', args, {
         cwd: wptDir,
         stdio: 'inherit'
       });
 
       return new Promise((resolve, reject) => {
-        python.on('error', e => {
+        subprocess.on('error', e => {
           reject(new Error('Error starting python server process:', e.message));
         });
 
-        resolve(pollForServer(urlPrefix));
+        resolve(Promise.all([
+          pollForServer(`http://${config.browser_host}:${config.ports.http[0]}/`),
+          pollForServer(`https://${config.browser_host}:${config.ports.https[0]}/`),
+          pollForServer(`http://${config.browser_host}:${config.ports.ws[0]}/`),
+          pollForServer(`https://${config.browser_host}:${config.ports.wss[0]}/`)
+        ]).then(urls => ({ urls, subprocess })));
 
         process.on('exit', () => {
           // Python doesn't register a default handler for SIGTERM and it doesn't run __exit__() methods of context
           // managers when it gets that signal. Using SIGINT avoids this problem.
-          python.kill('SIGINT');
+          subprocess.kill('SIGINT');
         });
       });
     },
     () => {
       throw new Error('Host entries not present for web platform tests. See ' +
-                      'https://github.com/w3c/web-platform-tests#running-the-tests');
+                      'https://github.com/web-platform-tests/wpt#running-the-tests');
     }
   );
 };
 
 function pollForServer(url) {
-  return requestHead(url)
+  return requestHead(url, { strictSSL: false })
     .then(() => {
       console.log(`WPT server at ${url} is up!`);
       return url;
     })
     .catch(err => {
       console.log(`WPT server at ${url} is not up yet (${err.message}); trying again`);
-      return q.delay(500).then(() => pollForServer(url));
+      return new Promise(resolve => {
+        setTimeout(() => resolve(pollForServer(url)), 500);
+      });
     });
 }
