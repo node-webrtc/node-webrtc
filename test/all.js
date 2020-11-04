@@ -1,6 +1,6 @@
 'use strict';
 
-const semver = require('semver');
+// const semver = require('semver');
 
 require('./addicecandidate');
 require('./closing-data-channel');
