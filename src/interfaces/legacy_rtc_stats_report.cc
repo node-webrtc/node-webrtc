@@ -80,7 +80,9 @@ LegacyStatsReport* LegacyStatsReport::Create(double timestamp, const std::map<st
     Napi::External<std::map<std::string, std::string>>::New(env, const_cast<std::map<std::string, std::string>*>(&stats))
   });
 
-  return LegacyStatsReport::Unwrap(object);
+  auto unwrapped = Unwrap(object);
+  unwrapped->Ref();
+  return unwrapped;
 }
 
 void LegacyStatsReport::Init(Napi::Env env, Napi::Object exports) {

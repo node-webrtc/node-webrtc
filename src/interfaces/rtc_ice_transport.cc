@@ -68,6 +68,11 @@ RTCIceTransport::~RTCIceTransport() {
   _factory->Unref();
   _factory = nullptr;
   wrap()->Release(this);
+  // Decrement refcount from e.g. wrap()->Create if we aren't already down to 0
+  if (!this->Value().IsEmpty())
+  {
+    this->Unref();
+  }
 }  // NOLINT
 
 void RTCIceTransport::OnRTCDtlsTransportStopped() {
@@ -109,7 +114,9 @@ RTCIceTransport* RTCIceTransport::Create(
     Napi::External<rtc::scoped_refptr<webrtc::IceTransportInterface>>::New(env, &transport)
   });
 
-  return RTCIceTransport::Unwrap(object);
+  auto unwrapped = Unwrap(object);
+  unwrapped->Ref();
+  return unwrapped;
 }
 
 void RTCIceTransport::OnStateChanged(cricket::IceTransportInternal*) {
