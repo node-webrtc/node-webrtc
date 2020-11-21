@@ -21,7 +21,7 @@
 #include <webrtc/modules/audio_device/include/audio_device_defines.h>
 #include <webrtc/rtc_base/buffer.h>
 #include <webrtc/rtc_base/checks.h>
-#include <webrtc/rtc_base/critical_section.h>
+#include <webrtc/rtc_base/deprecated/recursive_critical_section.h>
 #include <webrtc/rtc_base/event.h>
 #include <webrtc/rtc_base/logging.h>
 #include <webrtc/rtc_base/numerics/safe_conversions.h>
@@ -239,7 +239,7 @@ class TestAudioDeviceModuleImpl  // NOLINT
   const std::unique_ptr<Renderer> renderer_ RTC_GUARDED_BY(lock_);
   const int64_t process_interval_us_;
 
-  rtc::CriticalSection lock_;
+  rtc::RecursiveCriticalSection lock_;
   webrtc::AudioTransport* audio_callback_ RTC_GUARDED_BY(lock_);
   bool rendering_ RTC_GUARDED_BY(lock_);
   bool capturing_ RTC_GUARDED_BY(lock_);
@@ -306,7 +306,7 @@ class PulsedNoiseCapturerImpl final
   int sampling_frequency_in_hz_;
   bool fill_with_zero_;
   webrtc::Random random_generator_;
-  rtc::CriticalSection lock_;
+  rtc::RecursiveCriticalSection lock_;
   int16_t max_amplitude_ RTC_GUARDED_BY(lock_);
   const int num_channels_;
 };

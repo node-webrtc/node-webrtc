@@ -27,9 +27,10 @@ TO_NAPI_IMPL(webrtc::RtpParameters, pair) {
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "codecs", parameters.codecs)
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "rtcp", parameters.rtcp)
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "encodings", parameters.encodings)
-  if (parameters.degradation_preference != webrtc::DegradationPreference::BALANCED) {
-    NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "degradationPreference", parameters.degradation_preference)
-  }
+  // TODO: fix this
+  // if (parameters.degradation_preference != webrtc::DegradationPreference::BALANCED) {
+  //   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, object, "degradationPreference", parameters.degradation_preference)
+  // }
   return Pure(scope.Escape(object));
 }
 

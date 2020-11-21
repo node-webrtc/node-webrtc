@@ -9,7 +9,7 @@ environment:
       msvs_toolset: 15
       CHECK_REFLEXIVE: true
 
-os: Visual Studio 2017
+os: Visual Studio 2019
 
 install:
   - scripts\build-appveyor.bat
