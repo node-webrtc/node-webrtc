@@ -771,7 +771,7 @@ aliases:
 
       - run:
           name: Install CMake
-          command: brew install --build-from-source cmake
+          command: brew update && brew install --build-from-source cmake
 
       - checkout
 
