@@ -1,26 +1,12 @@
 version: 2
 
 aliases:
-  node-8-release: &node-8-release { environment: { NODE_VERSION: 8 } }
-  node-8-arm-release: &node-8-arm-release { environment: { NODE_VERSION: 8, TARGET_ARCH: arm } }
-  node-8-arm64-release: &node-8-arm64-release { environment: { NODE_VERSION: 8, TARGET_ARCH: arm64 } }
-  node-8-debug: &node-8-debug { environment: { NODE_VERSION: 8, DEBUG: true } }
-  node-8-arm-debug: &node-8-arm-debug { environment: { NODE_VERSION: 8, TARGET_ARCH: arm, DEBUG: true } }
-  node-8-arm64-debug: &node-8-arm64-debug { environment: { NODE_VERSION: 8, TARGET_ARCH: arm64, DEBUG: true } }
-
   node-10-release: &node-10-release { environment: { NODE_VERSION: 10 } }
   node-10-arm-release: &node-10-arm-release { environment: { NODE_VERSION: 10, TARGET_ARCH: arm } }
   node-10-arm64-release: &node-10-arm64-release { environment: { NODE_VERSION: 10, TARGET_ARCH: arm64 } }
   node-10-debug: &node-10-debug { environment: { NODE_VERSION: 10, DEBUG: true } }
   node-10-arm-debug: &node-10-arm-debug { environment: { NODE_VERSION: 10, TARGET_ARCH: arm, DEBUG: true } }
   node-10-arm64-debug: &node-10-arm64-debug { environment: { NODE_VERSION: 10, TARGET_ARCH: arm64, DEBUG: true } }
-
-  node-11-release: &node-11-release { environment: { NODE_VERSION: 11 } }
-  node-11-arm-release: &node-11-arm-release { environment: { NODE_VERSION: 11, TARGET_ARCH: arm } }
-  node-11-arm64-release: &node-11-arm64-release { environment: { NODE_VERSION: 11, TARGET_ARCH: arm64 } }
-  node-11-debug: &node-11-debug { environment: { NODE_VERSION: 11, DEBUG: true } }
-  node-11-arm-debug: &node-11-arm-debug { environment: { NODE_VERSION: 11, TARGET_ARCH: arm, DEBUG: true } }
-  node-11-arm64-debug: &node-11-arm64-debug { environment: { NODE_VERSION: 11, TARGET_ARCH: arm64, DEBUG: true } }
 
   node-12-release: &node-12-release { environment: { NODE_VERSION: 12 } }
   node-12-arm-release: &node-12-arm-release { environment: { NODE_VERSION: 12, TARGET_ARCH: arm } }
@@ -29,19 +15,19 @@ aliases:
   node-12-arm-debug: &node-12-arm-debug { environment: { NODE_VERSION: 12, TARGET_ARCH: arm, DEBUG: true } }
   node-12-arm64-debug: &node-12-arm64-debug { environment: { NODE_VERSION: 12, TARGET_ARCH: arm64, DEBUG: true } }
 
-  node-13-release: &node-13-release { environment: { NODE_VERSION: 13 } }
-  node-13-arm-release: &node-13-arm-release { environment: { NODE_VERSION: 13, TARGET_ARCH: arm } }
-  node-13-arm64-release: &node-13-arm64-release { environment: { NODE_VERSION: 13, TARGET_ARCH: arm64 } }
-  node-13-debug: &node-13-debug { environment: { NODE_VERSION: 13, DEBUG: true } }
-  node-13-arm-debug: &node-13-arm-debug { environment: { NODE_VERSION: 13, TARGET_ARCH: arm, DEBUG: true } }
-  node-13-arm64-debug: &node-13-arm64-debug { environment: { NODE_VERSION: 13, TARGET_ARCH: arm64, DEBUG: true } }
-
   node-14-release: &node-14-release { environment: { NODE_VERSION: 14 } }
   node-14-arm-release: &node-14-arm-release { environment: { NODE_VERSION: 14, TARGET_ARCH: arm } }
   node-14-arm64-release: &node-14-arm64-release { environment: { NODE_VERSION: 14, TARGET_ARCH: arm64 } }
   node-14-debug: &node-14-debug { environment: { NODE_VERSION: 14, DEBUG: true } }
   node-14-arm-debug: &node-14-arm-debug { environment: { NODE_VERSION: 14, TARGET_ARCH: arm, DEBUG: true } }
   node-14-arm64-debug: &node-14-arm64-debug { environment: { NODE_VERSION: 14, TARGET_ARCH: arm64, DEBUG: true } }
+
+  node-15-release: &node-15-release { environment: { NODE_VERSION: 14 } }
+  node-15-arm-release: &node-15-arm-release { environment: { NODE_VERSION: 14, TARGET_ARCH: arm } }
+  node-15-arm64-release: &node-15-arm64-release { environment: { NODE_VERSION: 14, TARGET_ARCH: arm64 } }
+  node-15-debug: &node-15-debug { environment: { NODE_VERSION: 14, DEBUG: true } }
+  node-15-arm-debug: &node-15-arm-debug { environment: { NODE_VERSION: 14, TARGET_ARCH: arm, DEBUG: true } }
+  node-15-arm64-debug: &node-15-arm64-debug { environment: { NODE_VERSION: 14, TARGET_ARCH: arm64, DEBUG: true } }
 
   lint-javascript: &lint-javascript
     run:
@@ -847,69 +833,37 @@ aliases:
       - <<: *publish-binary
 
 jobs:
-  build-linux-x86_64-node-8-debug:
+  build-linux-x86_64-node-10-debug:
     <<: *build-linux-x86_64
-    <<: *node-8-debug
+    <<: *node-10-debug
 
-  build-linux-x86_64-node-8-release:
+  build-linux-x86_64-node-10-release:
     <<: *build-linux-x86_64
-    <<: *node-8-release
+    <<: *node-10-release
 
-  build-linux-armv7l-node-8-debug:
+  build-linux-armv7l-node-10-debug:
     <<: *build-linux-x86_64
-    <<: *node-8-arm-debug
+    <<: *node-10-arm-debug
 
-  build-linux-armv7l-node-8-release:
+  build-linux-armv7l-node-10-release:
     <<: *build-linux-x86_64
-    <<: *node-8-arm-release
+    <<: *node-10-arm-release
 
-  build-linux-arm64-node-8-debug:
+  build-linux-arm64-node-10-debug:
     <<: *build-linux-x86_64
-    <<: *node-8-arm64-debug
+    <<: *node-10-arm64-debug
 
-  build-linux-arm64-node-8-release:
+  build-linux-arm64-node-10-release:
     <<: *build-linux-x86_64
-    <<: *node-8-arm64-release
+    <<: *node-10-arm64-release
 
-  build-darwin-x86_64-node-8-debug:
+  build-darwin-x86_64-node-10-debug:
     <<: *build-darwin-x86_64
-    <<: *node-8-debug
+    <<: *node-10-debug
 
-  build-darwin-x86_64-node-8-release:
+  build-darwin-x86_64-node-10-release:
     <<: *build-darwin-x86_64
-    <<: *node-8-release
-
-  test-linux-x86_64-node-8-debug:
-    <<: *test-linux-x86_64
-    <<: *node-8-debug
-
-  test-linux-x86_64-node-8-release:
-    <<: *test-linux-x86_64
-    <<: *node-8-release
-
-  test-linux-armv7l-node-8-debug:
-    <<: *test-linux-x86_64
-    <<: *node-8-arm-debug
-
-  test-linux-armv7l-node-8-release:
-    <<: *test-linux-x86_64
-    <<: *node-8-arm-release
-
-  test-linux-arm64-node-8-debug:
-    <<: *test-linux-x86_64
-    <<: *node-8-arm64-debug
-
-  test-linux-arm64-node-8-release:
-    <<: *test-linux-x86_64
-    <<: *node-8-arm64-release
-
-  test-darwin-x86_64-node-8-debug:
-    <<: *test-darwin-x86_64
-    <<: *node-8-debug
-
-  test-darwin-x86_64-node-8-release:
-    <<: *test-darwin-x86_64
-    <<: *node-8-release
+    <<: *node-10-release
 
   test-linux-x86_64-node-10-debug:
     <<: *test-linux-x86_64
@@ -943,38 +897,6 @@ jobs:
     <<: *test-darwin-x86_64
     <<: *node-10-release
 
-  test-linux-x86_64-node-11-debug:
-    <<: *test-linux-x86_64
-    <<: *node-11-debug
-
-  test-linux-x86_64-node-11-release:
-    <<: *test-linux-x86_64
-    <<: *node-11-release
-
-  test-linux-armv7l-node-11-debug:
-    <<: *test-linux-x86_64
-    <<: *node-11-arm-debug
-
-  test-linux-armv7l-node-11-release:
-    <<: *test-linux-x86_64
-    <<: *node-11-arm-release
-
-  test-linux-arm64-node-11-debug:
-    <<: *test-linux-x86_64
-    <<: *node-11-arm64-debug
-
-  test-linux-arm64-node-11-release:
-    <<: *test-linux-x86_64
-    <<: *node-11-arm64-release
-
-  test-darwin-x86_64-node-11-debug:
-    <<: *test-darwin-x86_64
-    <<: *node-11-debug
-
-  test-darwin-x86_64-node-11-release:
-    <<: *test-darwin-x86_64
-    <<: *node-11-release
-
   test-linux-x86_64-node-12-debug:
     <<: *test-linux-x86_64
     <<: *node-12-debug
@@ -1006,38 +928,6 @@ jobs:
   test-darwin-x86_64-node-12-release:
     <<: *test-darwin-x86_64
     <<: *node-12-release
-
-  test-linux-x86_64-node-13-debug:
-    <<: *test-linux-x86_64
-    <<: *node-13-debug
-
-  test-linux-x86_64-node-13-release:
-    <<: *test-linux-x86_64
-    <<: *node-13-release
-
-  test-linux-armv7l-node-13-debug:
-    <<: *test-linux-x86_64
-    <<: *node-13-arm-debug
-
-  test-linux-armv7l-node-13-release:
-    <<: *test-linux-x86_64
-    <<: *node-13-arm-release
-
-  test-linux-arm64-node-13-debug:
-    <<: *test-linux-x86_64
-    <<: *node-13-arm64-debug
-
-  test-linux-arm64-node-13-release:
-    <<: *test-linux-x86_64
-    <<: *node-13-arm64-release
-
-  test-darwin-x86_64-node-13-debug:
-    <<: *test-darwin-x86_64
-    <<: *node-13-debug
-
-  test-darwin-x86_64-node-13-release:
-    <<: *test-darwin-x86_64
-    <<: *node-13-release
 
   test-linux-x86_64-node-14-debug:
     <<: *test-linux-x86_64
@@ -1071,173 +961,171 @@ jobs:
     <<: *test-darwin-x86_64
     <<: *node-14-release
 
-  publish-linux-x86_64-node-8-debug:
-    <<: *publish-linux-x86_64
-    <<: *node-8-debug
+  test-linux-x86_64-node-15-debug:
+    <<: *test-linux-x86_64
+    <<: *node-15-debug
 
-  publish-linux-x86_64-node-8-release:
-    <<: *publish-linux-x86_64
-    <<: *node-8-release
+  test-linux-x86_64-node-15-release:
+    <<: *test-linux-x86_64
+    <<: *node-15-release
 
-  publish-linux-armv7l-node-8-debug:
-    <<: *publish-linux-x86_64
-    <<: *node-8-arm-debug
+  test-linux-armv7l-node-15-debug:
+    <<: *test-linux-x86_64
+    <<: *node-15-arm-debug
 
-  publish-linux-armv7l-node-8-release:
-    <<: *publish-linux-x86_64
-    <<: *node-8-arm-release
+  test-linux-armv7l-node-15-release:
+    <<: *test-linux-x86_64
+    <<: *node-15-arm-release
 
-  publish-linux-arm64-node-8-debug:
-    <<: *publish-linux-x86_64
-    <<: *node-8-arm64-debug
+  test-linux-arm64-node-15-debug:
+    <<: *test-linux-x86_64
+    <<: *node-15-arm64-debug
 
-  publish-linux-arm64-node-8-release:
-    <<: *publish-linux-x86_64
-    <<: *node-8-arm64-release
+  test-linux-arm64-node-15-release:
+    <<: *test-linux-x86_64
+    <<: *node-15-arm64-release
 
-  publish-darwin-x86_64-node-8-debug:
+  test-darwin-x86_64-node-15-debug:
+    <<: *test-darwin-x86_64
+    <<: *node-15-debug
+
+  test-darwin-x86_64-node-15-release:
+    <<: *test-darwin-x86_64
+    <<: *node-15-release
+
+  publish-linux-x86_64-node-10-debug:
+    <<: *publish-linux-x86_64
+    <<: *node-10-debug
+
+  publish-linux-x86_64-node-10-release:
+    <<: *publish-linux-x86_64
+    <<: *node-10-release
+
+  publish-linux-armv7l-node-10-debug:
+    <<: *publish-linux-x86_64
+    <<: *node-10-arm-debug
+
+  publish-linux-armv7l-node-10-release:
+    <<: *publish-linux-x86_64
+    <<: *node-10-arm-release
+
+  publish-linux-arm64-node-10-debug:
+    <<: *publish-linux-x86_64
+    <<: *node-10-arm64-debug
+
+  publish-linux-arm64-node-10-release:
+    <<: *publish-linux-x86_64
+    <<: *node-10-arm64-release
+
+  publish-darwin-x86_64-node-10-debug:
     <<: *publish-darwin-x86_64
-    <<: *node-8-debug
+    <<: *node-10-debug
 
-  publish-darwin-x86_64-node-8-release:
+  publish-darwin-x86_64-node-10-release:
     <<: *publish-darwin-x86_64
-    <<: *node-8-release
+    <<: *node-10-release
 
 workflows:
   version: 2
   build:
     jobs:
-      - build-linux-x86_64-node-8-debug
-      - build-linux-x86_64-node-8-release
-      - build-linux-armv7l-node-8-debug
-      - build-linux-armv7l-node-8-release
-      - build-linux-arm64-node-8-debug
-      - build-linux-arm64-node-8-release
-      - build-darwin-x86_64-node-8-debug
-      - build-darwin-x86_64-node-8-release
+      - build-linux-x86_64-node-10-debug
+      - build-linux-x86_64-node-10-release
+      - build-linux-armv7l-node-10-debug
+      - build-linux-armv7l-node-10-release
+      - build-linux-arm64-node-10-debug
+      - build-linux-arm64-node-10-release
+      - build-darwin-x86_64-node-10-debug
+      - build-darwin-x86_64-node-10-release
 
-      - test-linux-x86_64-node-8-debug:    { requires: [build-linux-x86_64-node-8-debug] }
-      - test-linux-x86_64-node-8-release:  { requires: [build-linux-x86_64-node-8-release] }
-      - test-linux-armv7l-node-8-debug:    { requires: [build-linux-armv7l-node-8-debug] }
-      - test-linux-armv7l-node-8-release:  { requires: [build-linux-armv7l-node-8-release] }
-      - test-linux-arm64-node-8-debug:     { requires: [build-linux-arm64-node-8-debug] }
-      - test-linux-arm64-node-8-release:   { requires: [build-linux-arm64-node-8-release] }
-      - test-darwin-x86_64-node-8-debug:   { requires: [build-darwin-x86_64-node-8-debug] }
-      - test-darwin-x86_64-node-8-release: { requires: [build-darwin-x86_64-node-8-release] }
+      - test-linux-x86_64-node-10-debug:    { requires: [build-linux-x86_64-node-10-debug] }
+      - test-linux-x86_64-node-10-release:  { requires: [build-linux-x86_64-node-10-release] }
+      - test-linux-armv7l-node-10-debug:    { requires: [build-linux-armv7l-node-10-debug] }
+      - test-linux-armv7l-node-10-release:  { requires: [build-linux-armv7l-node-10-release] }
+      - test-linux-arm64-node-10-debug:     { requires: [build-linux-arm64-node-10-debug] }
+      - test-linux-arm64-node-10-release:   { requires: [build-linux-arm64-node-10-release] }
+      - test-darwin-x86_64-node-10-debug:   { requires: [build-darwin-x86_64-node-10-debug] }
+      - test-darwin-x86_64-node-10-release: { requires: [build-darwin-x86_64-node-10-release] }
 
-      - test-linux-x86_64-node-10-debug:    { requires: [build-linux-x86_64-node-8-debug] }
-      - test-linux-x86_64-node-10-release:  { requires: [build-linux-x86_64-node-8-release] }
-      - test-linux-armv7l-node-10-debug:    { requires: [build-linux-armv7l-node-8-debug] }
-      - test-linux-armv7l-node-10-release:  { requires: [build-linux-armv7l-node-8-release] }
-      - test-linux-arm64-node-10-debug:     { requires: [build-linux-arm64-node-8-debug] }
-      - test-linux-arm64-node-10-release:   { requires: [build-linux-arm64-node-8-release] }
-      - test-darwin-x86_64-node-10-debug:   { requires: [build-darwin-x86_64-node-8-debug] }
-      - test-darwin-x86_64-node-10-release: { requires: [build-darwin-x86_64-node-8-release] }
+      - test-linux-x86_64-node-12-debug:    { requires: [build-linux-x86_64-node-10-debug] }
+      - test-linux-x86_64-node-12-release:  { requires: [build-linux-x86_64-node-10-release] }
+      - test-linux-armv7l-node-12-debug:    { requires: [build-linux-armv7l-node-10-debug] }
+      - test-linux-armv7l-node-12-release:  { requires: [build-linux-armv7l-node-10-release] }
+      - test-linux-arm64-node-12-debug:     { requires: [build-linux-arm64-node-10-debug] }
+      - test-linux-arm64-node-12-release:   { requires: [build-linux-arm64-node-10-release] }
+      - test-darwin-x86_64-node-12-debug:   { requires: [build-darwin-x86_64-node-10-debug] }
+      - test-darwin-x86_64-node-12-release: { requires: [build-darwin-x86_64-node-10-release] }
 
-      - test-linux-x86_64-node-11-debug:    { requires: [build-linux-x86_64-node-8-debug] }
-      - test-linux-x86_64-node-11-release:  { requires: [build-linux-x86_64-node-8-release] }
-      - test-linux-armv7l-node-11-debug:    { requires: [build-linux-armv7l-node-8-debug] }
-      - test-linux-armv7l-node-11-release:  { requires: [build-linux-armv7l-node-8-release] }
-      - test-linux-arm64-node-11-debug:     { requires: [build-linux-arm64-node-8-debug] }
-      - test-linux-arm64-node-11-release:   { requires: [build-linux-arm64-node-8-release] }
-      - test-darwin-x86_64-node-11-debug:   { requires: [build-darwin-x86_64-node-8-debug] }
-      - test-darwin-x86_64-node-11-release: { requires: [build-darwin-x86_64-node-8-release] }
+      - test-linux-x86_64-node-14-debug:    { requires: [build-linux-x86_64-node-10-debug] }
+      - test-linux-x86_64-node-14-release:  { requires: [build-linux-x86_64-node-10-release] }
+      - test-linux-armv7l-node-14-debug:    { requires: [build-linux-armv7l-node-10-debug] }
+      - test-linux-armv7l-node-14-release:  { requires: [build-linux-armv7l-node-10-release] }
+      - test-linux-arm64-node-14-debug:     { requires: [build-linux-arm64-node-10-debug] }
+      - test-linux-arm64-node-14-release:   { requires: [build-linux-arm64-node-10-release] }
+      - test-darwin-x86_64-node-14-debug:   { requires: [build-darwin-x86_64-node-10-debug] }
+      - test-darwin-x86_64-node-14-release: { requires: [build-darwin-x86_64-node-10-release] }
 
-      - test-linux-x86_64-node-12-debug:    { requires: [build-linux-x86_64-node-8-debug] }
-      - test-linux-x86_64-node-12-release:  { requires: [build-linux-x86_64-node-8-release] }
-      - test-linux-armv7l-node-12-debug:    { requires: [build-linux-armv7l-node-8-debug] }
-      - test-linux-armv7l-node-12-release:  { requires: [build-linux-armv7l-node-8-release] }
-      - test-linux-arm64-node-12-debug:     { requires: [build-linux-arm64-node-8-debug] }
-      - test-linux-arm64-node-12-release:   { requires: [build-linux-arm64-node-8-release] }
-      - test-darwin-x86_64-node-12-debug:   { requires: [build-darwin-x86_64-node-8-debug] }
-      - test-darwin-x86_64-node-12-release: { requires: [build-darwin-x86_64-node-8-release] }
+      - test-linux-x86_64-node-15-debug:    { requires: [build-linux-x86_64-node-10-debug] }
+      - test-linux-x86_64-node-15-release:  { requires: [build-linux-x86_64-node-10-release] }
+      - test-linux-armv7l-node-15-debug:    { requires: [build-linux-armv7l-node-10-debug] }
+      - test-linux-armv7l-node-15-release:  { requires: [build-linux-armv7l-node-10-release] }
+      - test-linux-arm64-node-15-debug:     { requires: [build-linux-arm64-node-10-debug] }
+      - test-linux-arm64-node-15-release:   { requires: [build-linux-arm64-node-10-release] }
+      - test-darwin-x86_64-node-15-debug:   { requires: [build-darwin-x86_64-node-10-debug] }
+      - test-darwin-x86_64-node-15-release: { requires: [build-darwin-x86_64-node-10-release] }
 
-      - test-linux-x86_64-node-13-debug:    { requires: [build-linux-x86_64-node-8-debug] }
-      - test-linux-x86_64-node-13-release:  { requires: [build-linux-x86_64-node-8-release] }
-      - test-linux-armv7l-node-13-debug:    { requires: [build-linux-armv7l-node-8-debug] }
-      - test-linux-armv7l-node-13-release:  { requires: [build-linux-armv7l-node-8-release] }
-      - test-linux-arm64-node-13-debug:     { requires: [build-linux-arm64-node-8-debug] }
-      - test-linux-arm64-node-13-release:   { requires: [build-linux-arm64-node-8-release] }
-      - test-darwin-x86_64-node-13-debug:   { requires: [build-darwin-x86_64-node-8-debug] }
-      - test-darwin-x86_64-node-13-release: { requires: [build-darwin-x86_64-node-8-release] }
-
-      - test-linux-x86_64-node-14-debug:    { requires: [build-linux-x86_64-node-8-debug] }
-      - test-linux-x86_64-node-14-release:  { requires: [build-linux-x86_64-node-8-release] }
-      - test-linux-armv7l-node-14-debug:    { requires: [build-linux-armv7l-node-8-debug] }
-      - test-linux-armv7l-node-14-release:  { requires: [build-linux-armv7l-node-8-release] }
-      - test-linux-arm64-node-14-debug:     { requires: [build-linux-arm64-node-8-debug] }
-      - test-linux-arm64-node-14-release:   { requires: [build-linux-arm64-node-8-release] }
-      - test-darwin-x86_64-node-14-debug:   { requires: [build-darwin-x86_64-node-8-debug] }
-      - test-darwin-x86_64-node-14-release: { requires: [build-darwin-x86_64-node-8-release] }
-
-      - publish-linux-x86_64-node-8-debug:
+      - publish-linux-x86_64-node-10-debug:
           requires:
-            - test-linux-x86_64-node-8-debug
             - test-linux-x86_64-node-10-debug
-            - test-linux-x86_64-node-11-debug
             - test-linux-x86_64-node-12-debug
-            - test-linux-x86_64-node-13-debug
             - test-linux-x86_64-node-14-debug
+            - test-linux-x86_64-node-15-debug
 
-      - publish-linux-x86_64-node-8-release:
+      - publish-linux-x86_64-node-10-release:
           requires:
-            - test-linux-x86_64-node-8-release
             - test-linux-x86_64-node-10-release
-            - test-linux-x86_64-node-11-release
             - test-linux-x86_64-node-12-release
-            - test-linux-x86_64-node-13-release
             - test-linux-x86_64-node-14-release
+            - test-linux-x86_64-node-15-release
 
-      - publish-linux-armv7l-node-8-debug:
+      - publish-linux-armv7l-node-10-debug:
           requires:
-            - test-linux-armv7l-node-8-debug
             - test-linux-armv7l-node-10-debug
-            - test-linux-armv7l-node-11-debug
             - test-linux-armv7l-node-12-debug
-            - test-linux-armv7l-node-13-debug
             - test-linux-armv7l-node-14-debug
+            - test-linux-armv7l-node-15-debug
 
-      - publish-linux-armv7l-node-8-release:
+      - publish-linux-armv7l-node-10-release:
           requires:
-            - test-linux-armv7l-node-8-release
             - test-linux-armv7l-node-10-release
-            - test-linux-armv7l-node-11-release
             - test-linux-armv7l-node-12-release
-            - test-linux-armv7l-node-13-release
             - test-linux-armv7l-node-14-release
+            - test-linux-armv7l-node-15-release
 
-      - publish-linux-arm64-node-8-debug:
+      - publish-linux-arm64-node-10-debug:
           requires:
-            - test-linux-arm64-node-8-debug
             - test-linux-arm64-node-10-debug
-            - test-linux-arm64-node-11-debug
             - test-linux-arm64-node-12-debug
-            - test-linux-arm64-node-13-debug
             - test-linux-arm64-node-14-debug
+            - test-linux-arm64-node-15-debug
 
-      - publish-linux-arm64-node-8-release:
+      - publish-linux-arm64-node-10-release:
           requires:
-            - test-linux-arm64-node-8-release
             - test-linux-arm64-node-10-release
-            - test-linux-arm64-node-11-release
             - test-linux-arm64-node-12-release
-            - test-linux-arm64-node-13-release
             - test-linux-arm64-node-14-release
+            - test-linux-arm64-node-15-release
 
-      - publish-darwin-x86_64-node-8-debug:
+      - publish-darwin-x86_64-node-10-debug:
           requires:
-            - test-darwin-x86_64-node-8-debug
             - test-darwin-x86_64-node-10-debug
-            - test-darwin-x86_64-node-11-debug
             - test-darwin-x86_64-node-12-debug
-            - test-darwin-x86_64-node-13-debug
             - test-darwin-x86_64-node-14-debug
+            - test-darwin-x86_64-node-15-debug
 
-      - publish-darwin-x86_64-node-8-release:
+      - publish-darwin-x86_64-node-10-release:
           requires:
-            - test-darwin-x86_64-node-8-release
             - test-darwin-x86_64-node-10-release
-            - test-darwin-x86_64-node-11-release
             - test-darwin-x86_64-node-12-release
-            - test-darwin-x86_64-node-13-release
             - test-darwin-x86_64-node-14-release
+            - test-darwin-x86_64-node-15-debug
