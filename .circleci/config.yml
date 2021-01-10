@@ -15,13 +15,6 @@ aliases:
   node-10-arm-debug: &node-10-arm-debug { environment: { NODE_VERSION: 10, TARGET_ARCH: arm, DEBUG: true } }
   node-10-arm64-debug: &node-10-arm64-debug { environment: { NODE_VERSION: 10, TARGET_ARCH: arm64, DEBUG: true } }
 
-  node-11-release: &node-11-release { environment: { NODE_VERSION: 11 } }
-  node-11-arm-release: &node-11-arm-release { environment: { NODE_VERSION: 11, TARGET_ARCH: arm } }
-  node-11-arm64-release: &node-11-arm64-release { environment: { NODE_VERSION: 11, TARGET_ARCH: arm64 } }
-  node-11-debug: &node-11-debug { environment: { NODE_VERSION: 11, DEBUG: true } }
-  node-11-arm-debug: &node-11-arm-debug { environment: { NODE_VERSION: 11, TARGET_ARCH: arm, DEBUG: true } }
-  node-11-arm64-debug: &node-11-arm64-debug { environment: { NODE_VERSION: 11, TARGET_ARCH: arm64, DEBUG: true } }
-
   node-12-release: &node-12-release { environment: { NODE_VERSION: 12 } }
   node-12-arm-release: &node-12-arm-release { environment: { NODE_VERSION: 12, TARGET_ARCH: arm } }
   node-12-arm64-release: &node-12-arm64-release { environment: { NODE_VERSION: 12, TARGET_ARCH: arm64 } }
@@ -751,38 +744,6 @@ jobs:
     <<: *test-darwin-x86_64
     <<: *node-10-release
 
-  test-linux-x86_64-node-11-debug:
-    <<: *test-linux-x86_64
-    <<: *node-11-debug
-
-  test-linux-x86_64-node-11-release:
-    <<: *test-linux-x86_64
-    <<: *node-11-release
-
-  test-linux-armv7l-node-11-debug:
-    <<: *test-linux-x86_64
-    <<: *node-11-arm-debug
-
-  test-linux-armv7l-node-11-release:
-    <<: *test-linux-x86_64
-    <<: *node-11-arm-release
-
-  test-linux-arm64-node-11-debug:
-    <<: *test-linux-x86_64
-    <<: *node-11-arm64-debug
-
-  test-linux-arm64-node-11-release:
-    <<: *test-linux-x86_64
-    <<: *node-11-arm64-release
-
-  test-darwin-x86_64-node-11-debug:
-    <<: *test-darwin-x86_64
-    <<: *node-11-debug
-
-  test-darwin-x86_64-node-11-release:
-    <<: *test-darwin-x86_64
-    <<: *node-11-release
-
   test-linux-x86_64-node-12-debug:
     <<: *test-linux-x86_64
     <<: *node-12-debug
@@ -942,15 +903,6 @@ workflows:
       - test-darwin-x86_64-node-10-debug:   { requires: [build-darwin-x86_64-node-8-debug] }
       - test-darwin-x86_64-node-10-release: { requires: [build-darwin-x86_64-node-8-release] }
 
-      - test-linux-x86_64-node-11-debug:    { requires: [build-linux-x86_64-node-8-debug] }
-      - test-linux-x86_64-node-11-release:  { requires: [build-linux-x86_64-node-8-release] }
-      - test-linux-armv7l-node-11-debug:    { requires: [build-linux-armv7l-node-8-debug] }
-      - test-linux-armv7l-node-11-release:  { requires: [build-linux-armv7l-node-8-release] }
-      - test-linux-arm64-node-11-debug:     { requires: [build-linux-arm64-node-8-debug] }
-      - test-linux-arm64-node-11-release:   { requires: [build-linux-arm64-node-8-release] }
-      - test-darwin-x86_64-node-11-debug:   { requires: [build-darwin-x86_64-node-8-debug] }
-      - test-darwin-x86_64-node-11-release: { requires: [build-darwin-x86_64-node-8-release] }
-
       - test-linux-x86_64-node-12-debug:    { requires: [build-linux-x86_64-node-8-debug] }
       - test-linux-x86_64-node-12-release:  { requires: [build-linux-x86_64-node-8-release] }
       - test-linux-armv7l-node-12-debug:    { requires: [build-linux-armv7l-node-8-debug] }
@@ -982,7 +934,6 @@ workflows:
           requires:
             - test-linux-x86_64-node-8-debug
             - test-linux-x86_64-node-10-debug
-            - test-linux-x86_64-node-11-debug
             - test-linux-x86_64-node-12-debug
             - test-linux-x86_64-node-13-debug
             - test-linux-x86_64-node-14-debug
@@ -991,7 +942,6 @@ workflows:
           requires:
             - test-linux-x86_64-node-8-release
             - test-linux-x86_64-node-10-release
-            - test-linux-x86_64-node-11-release
             - test-linux-x86_64-node-12-release
             - test-linux-x86_64-node-13-release
             - test-linux-x86_64-node-14-release
@@ -1000,7 +950,6 @@ workflows:
           requires:
             - test-linux-armv7l-node-8-debug
             - test-linux-armv7l-node-10-debug
-            - test-linux-armv7l-node-11-debug
             - test-linux-armv7l-node-12-debug
             - test-linux-armv7l-node-13-debug
             - test-linux-armv7l-node-14-debug
@@ -1009,7 +958,6 @@ workflows:
           requires:
             - test-linux-armv7l-node-8-release
             - test-linux-armv7l-node-10-release
-            - test-linux-armv7l-node-11-release
             - test-linux-armv7l-node-12-release
             - test-linux-armv7l-node-13-release
             - test-linux-armv7l-node-14-release
@@ -1018,7 +966,6 @@ workflows:
           requires:
             - test-linux-arm64-node-8-debug
             - test-linux-arm64-node-10-debug
-            - test-linux-arm64-node-11-debug
             - test-linux-arm64-node-12-debug
             - test-linux-arm64-node-13-debug
             - test-linux-arm64-node-14-debug
@@ -1027,7 +974,6 @@ workflows:
           requires:
             - test-linux-arm64-node-8-release
             - test-linux-arm64-node-10-release
-            - test-linux-arm64-node-11-release
             - test-linux-arm64-node-12-release
             - test-linux-arm64-node-13-release
             - test-linux-arm64-node-14-release
@@ -1036,7 +982,6 @@ workflows:
           requires:
             - test-darwin-x86_64-node-8-debug
             - test-darwin-x86_64-node-10-debug
-            - test-darwin-x86_64-node-11-debug
             - test-darwin-x86_64-node-12-debug
             - test-darwin-x86_64-node-13-debug
             - test-darwin-x86_64-node-14-debug
@@ -1045,7 +990,6 @@ workflows:
           requires:
             - test-darwin-x86_64-node-8-release
             - test-darwin-x86_64-node-10-release
-            - test-darwin-x86_64-node-11-release
             - test-darwin-x86_64-node-12-release
             - test-darwin-x86_64-node-13-release
             - test-darwin-x86_64-node-14-release

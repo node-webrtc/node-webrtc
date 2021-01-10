@@ -24,11 +24,6 @@ SET nodejs_version=10
 CALL scripts\run-tests.bat
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-ECHO Test using Node 11
-SET nodejs_version=11
-CALL scripts\run-tests.bat
-IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-
 ECHO Test using Node 12
 SET nodejs_version=12
 CALL scripts\run-tests.bat
