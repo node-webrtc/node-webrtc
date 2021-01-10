@@ -556,7 +556,7 @@ aliases:
     working_directory: ~/node-webrtc
 
     macos:
-      xcode: "9.3.1"
+      xcode: "9.4.1"
 
   install-node-darwin: &install-node-darwin
     run:
@@ -593,7 +593,7 @@ aliases:
           #   Please don't worry, you likely hit a bug auto-updating from an old version.
           #   Rerun your command, everything is up-to-date and fine now.
           #
-          command: brew install cmake || brew install cmake
+          command: brew update && brew install --build-from-source cmake
 
       - checkout
 

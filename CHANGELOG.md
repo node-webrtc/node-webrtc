@@ -1,3 +1,12 @@
+0.4.7
+=====
+
+New Features
+------------
+
+- Updated the "engines" property of package.json to use a range (thanks
+  @piranna).
+
 0.4.6
 =====
 
