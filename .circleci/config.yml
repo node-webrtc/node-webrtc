@@ -549,7 +549,7 @@ aliases:
     working_directory: ~/node-webrtc
 
     macos:
-      xcode: "9.4.1"
+      xcode: "10.1.0"
 
   install-node-darwin: &install-node-darwin
     run:
