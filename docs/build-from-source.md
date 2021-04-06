@@ -10,8 +10,9 @@ required by node-cmake, you will need
 * CMake 3.12 or newer
 * GCC 5.4 or newer (Linux)
 * Xcode 9 or newer (macOS)
-* Microsoft Visual Studio 2017 (Windows)
-* Any [additional prerequisites listed by WebRTC](https://webrtc.org/native-code/development/prerequisite-sw)
+* Microsoft Visual Studio 2019 (Windows)
+* Check [additional prerequisites listed by WebRTC](https://webrtc.github.io/webrtc-org/native-code/development/prerequisite-sw/) - although thses are automated by the CMake scripts provided
+
 
 ## Install
 
@@ -26,6 +27,8 @@ git clone https://github.com/node-webrtc/node-webrtc.git
 cd node-webrtc
 SKIP_DOWNLOAD=true npm install
 ```
+
+Note: Use `$SKIP_DOWNLOAD = 'true'; npm install` on Windows Powershell.
 
 ## Subsequent Builds
 
@@ -87,6 +90,14 @@ but we compile node-webrtc sources using the system Clang.
 
 On Windows, we do not compile WebRTC sources with Clang. This is disabled by
 passing `is_clang=false` to `gn gen`.
+
+To fix error `Filename too long`, use (optionally with `--global` or `--system` switches):
+
+```
+git config core.longpaths true
+```
+
+Creating symbolic links with MKLINK is used by the build script but is disabled for non-Administrative users by default with a local security policy. On Windows 10, fix this with Run (Windows-R) then `gpedit.msc`. Edit key "Local Computer Policy -> Windows Settings -> Security Settings -> Local Policies -> User Rights Assignment -> Create Symbolic Links" and add your user name. Log out and in to change the policy. Note the [associated security vunerability](https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/create-symbolic-links#vulnerability).
 
 # Test
 
