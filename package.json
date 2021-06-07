@@ -29,16 +29,16 @@
     "node": "^8.11.2 || ^10.0.0 || ^11.0.0 || ^12.0.0 || ^13.0.0 || ^14.0.0 || ^15.0.0"
   },
   "dependencies": {
+    "@mapbox/node-pre-gyp": "^1.0.4",
     "nan": "^2.3.2",
     "node-addon-api": "^1.6.2",
-    "node-cmake": "2.3.2",
-    "node-pre-gyp": "^0.13.0"
+    "node-cmake": "2.3.2"
   },
   "optionalDependencies": {
     "domexception": "^1.0.1"
   },
   "bundledDependencies": [
-    "node-pre-gyp"
+    "@mapbox/node-pre-gyp"
   ],
   "devDependencies": {
     "@fidm/x509": "^1.2.1",
