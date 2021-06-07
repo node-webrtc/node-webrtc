@@ -27,6 +27,10 @@ Napi::FunctionReference& MediaStream::constructor() {
   return constructor;
 }
 
+MediaStream::~MediaStream() {
+  wrap()->Release(this);
+}
+
 MediaStream::Impl::Impl(PeerConnectionFactory* factory)
   : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault())
   , _stream(_factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid()))

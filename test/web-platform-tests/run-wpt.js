@@ -35,6 +35,10 @@ const toRunDocs = jsYAML.loadAll(toRunString, null, { filename: toRunFilename, s
 
 const minimatchers = new Map();
 
+// eslint-disable-next-line no-process-env
+const testFilePath = process.env.TEST_FILE;
+const dir = path.dirname(testFilePath);
+
 checkToRun();
 
 let wptServerURL;
@@ -51,44 +55,41 @@ after(() => {
 });
 
 describe('web-platform-tests', () => {
-  for (const toRunDoc of toRunDocs) {
-    describe(toRunDoc.DIR, () => {
-      for (const testFilePath of possibleTestFilePaths) {
-        if (testFilePath.startsWith(toRunDoc.DIR + '/')) {
-          const matchingPattern = expectationsInDoc(toRunDoc).find(pattern => {
-            const matcher = minimatchers.get(toRunDoc.DIR + '/' + pattern);
-            return matcher.match(testFilePath);
-          });
+  describe(dir, () => {
+    if (testFilePath.startsWith(dir + '/')) {
+      const toRunDoc = toRunDocs.find(toRunDoc => toRunDoc.DIR === dir);
+      const matchingPattern = expectationsInDoc(toRunDoc).find(pattern => {
+        const matcher = minimatchers.get(dir + '/' + pattern);
+        return matcher.match(testFilePath);
+      });
 
-          const testFile = testFilePath.slice((toRunDoc.DIR + '/').length);
-          let reason;
+      const testFile = testFilePath.slice((dir + '/').length);
+      let reason;
 
-          if (matchingPattern) {
-            reason = toRunDoc[matchingPattern][0];
-          } else if (toRunDoc.DIR.startsWith('html/canvas/')) {
-            reason = 'needs-canvas';
-          }
-
-          const shouldSkip = ['fail-slow', 'timeout', 'flaky'].includes(reason) ||
-                             (['fail-with-canvas', 'needs-canvas'].includes(reason) && !hasCanvas);
-          const expectFail = (reason === 'fail') ||
-                             (reason === 'fail-with-canvas' && hasCanvas) ||
-                             (reason === 'needs-node10' && !hasNode10) ||
-                             (reason === 'needs-node11' && !hasNode11) ||
-                             (reason === 'needs-node12' && !hasNode12);
-
-          if (shouldSkip) {
-            specify.skip(`[${reason}] ${testFile}`);
-          } else if (expectFail) {
-            const failReason = reason !== 'fail' ? `: ${reason}` : '';
-            runSingleWPT(testFilePath, `[expected fail${failReason}] ${testFile}`, expectFail);
-          } else {
-            runSingleWPT(testFilePath, testFile, expectFail);
-          }
-        }
+      if (matchingPattern) {
+        reason = toRunDoc[matchingPattern][0];
+      } else if (dir.startsWith('html/canvas/')) {
+        reason = 'needs-canvas';
       }
-    });
-  }
+
+      const shouldSkip = ['fail-slow', 'timeout', 'flaky'].includes(reason) ||
+                         (['fail-with-canvas', 'needs-canvas'].includes(reason) && !hasCanvas);
+      const expectFail = (reason === 'fail') ||
+                         (reason === 'fail-with-canvas' && hasCanvas) ||
+                         (reason === 'needs-node10' && !hasNode10) ||
+                         (reason === 'needs-node11' && !hasNode11) ||
+                         (reason === 'needs-node12' && !hasNode12);
+
+      if (shouldSkip) {
+        specify.skip(`[${reason}] ${testFile}`);
+      } else if (expectFail) {
+        const failReason = reason !== 'fail' ? `: ${reason}` : '';
+        runSingleWPT(testFilePath, `[expected fail${failReason}] ${testFile}`, expectFail);
+      } else {
+        runSingleWPT(testFilePath, testFile, expectFail);
+      }
+    }
+  });
 });
 
 function checkToRun() {

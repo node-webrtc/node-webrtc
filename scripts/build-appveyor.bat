@@ -14,33 +14,23 @@ ECHO npm run lint
 CALL npm run lint
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-@REM ECHO Test using Node 8
-@REM SET nodejs_version=8
-@REM CALL scripts\run-tests.bat
-@REM IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-
-@REM ECHO Test using Node 10
-@REM SET nodejs_version=10
-@REM CALL scripts\run-tests.bat
-@REM IF %ERRORLEVEL% NEQ 0 GOTO ERROR
-
-@REM ECHO Test using Node 11
-@REM SET nodejs_version=11
-@REM CALL scripts\run-tests.bat
-@REM IF %ERRORLEVEL% NEQ 0 GOTO ERROR
+ECHO Test using Node 10
+SET nodejs_version=10
+CALL scripts\run-tests.bat
+IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO Test using Node 12
 SET nodejs_version=12
 CALL scripts\run-tests.bat
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-ECHO Test using Node 13
-SET nodejs_version=13
+ECHO Test using Node 14
+SET nodejs_version=14
 CALL scripts\run-tests.bat
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
-ECHO Test using Node 14
-SET nodejs_version=14
+ECHO Test using Node 15
+SET nodejs_version=15
 CALL scripts\run-tests.bat
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
