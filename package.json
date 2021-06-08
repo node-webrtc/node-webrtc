@@ -18,6 +18,7 @@
   },
   "main": "lib/index.js",
   "browser": "lib/browser.js",
+  "types": "types.d.ts",
   "binary": {
     "module_name": "wrtc",
     "module_path": "./build/{configuration}/",
