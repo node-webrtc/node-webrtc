@@ -9,11 +9,11 @@ jobs:
         uses: actions/checkout@master
       - name: Prepare Environment
         run: |
-          yum install -y centos-release-scl-rh
-          yum install -y rh-nodejs12
-          scl enable rh-nodejs12 bash
+          wget https://nodejs.org/dist/v16.7.0/node-v16.7.0-linux-x64.tar.xz
+          tar -xvf node-v16.7.0-linux-x64.tar.xz
+          cd  node-v14.15.0-linux-x64/bin && ls
           node -v
-          npm install
+          npm -v
       - name: build
         run: |
           ./node_modules/.bin/ncmake rebuild -- -DGN_GEN_ARGS='proprietary_codecs=true ffmpeg_branding="Chrome"'
