@@ -12,9 +12,9 @@ jobs:
           curl -O https://nodejs.org/dist/v16.7.0/node-v16.7.0-linux-x64.tar.xz
           tar -xf node-v16.7.0-linux-x64.tar.xz
           cd node-v16.7.0-linux-x64/bin && ls
-          pwd
-          ./node -v
-          ./npm -v
+          ln -s /__w/node-webrtc/node-webrtc/node-v16.7.0-linux-x64/bin/node /usr/bin/node
+          ln -s /__w/node-webrtc/node-webrtc/node-v16.7.0-linux-x64/bin/npm /usr/bin/npm
+          npm install
       - name: build
         run: |
           ./node_modules/.bin/ncmake rebuild -- -DGN_GEN_ARGS='proprietary_codecs=true ffmpeg_branding="Chrome"'
