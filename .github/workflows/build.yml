@@ -1,11 +1,18 @@
-name: GitHub Actions Demo
+name: Build
 on: [push]
 jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
     container: docker.io/centos:7
     steps:
+      - name: Prepare Environment
+        run: |
+          - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+          - source ~/.bash_profile
+          - nvm install v14.17.5
       - name: Checkout
-        uses: actions/checkout@master
+        uses: actions/checkout@develop
       - name: build
-        run: ./node_modules/.bin/ncmake rebuild -- -DGN_GEN_ARGS='proprietary_codecs=true ffmpeg_branding="Chrome"'
+        run: |
+          - npm install
+          - ./node_modules/.bin/ncmake rebuild -- -DGN_GEN_ARGS='proprietary_codecs=true ffmpeg_branding="Chrome"'
