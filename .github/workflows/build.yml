@@ -7,21 +7,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
-      - name: Prepare Environment
+      - name: Prepare Environment - NodeJS
         run: |
           curl -O https://nodejs.org/dist/v14.15.0/node-v14.15.0-linux-x64.tar.xz
           tar -xf node-v14.15.0-linux-x64.tar.xz
           cd node-v14.15.0-linux-x64/bin && ls
           ln -s /__w/node-webrtc/node-webrtc/node-v14.15.0-linux-x64/bin/node /usr/bin/node
           ln -s /__w/node-webrtc/node-webrtc/node-v14.15.0-linux-x64/bin/npm /usr/bin/npm
-          npm install
+      - name: Prepare Environment - Cmake
+        run: |
           yum install -y openssl openssl-devel
-          curl -O https://github.com/Kitware/CMake/releases/download/v3.21.1/cmake-3.21.1.tar.gz
-          tar xf cmake-3.21.1.tar.gz
-          cd cmake-3.21.1
+          curl -O https://cmake.org/files/v3.10/cmake-3.10.0-rc3.tar.gz
+          tar zxf cmake-3.10.0-rc3
+          cd cmake-3.10.0-rc3
           ./bootstrap
           gmake && gmake install
-          yum install -y python36
+      - name: Prepare Environment - Python
+        run: yum install -y python36
       - name: build
         run: |
           ./node_modules/.bin/ncmake rebuild -- -DGN_GEN_ARGS='proprietary_codecs=true ffmpeg_branding="Chrome"'
