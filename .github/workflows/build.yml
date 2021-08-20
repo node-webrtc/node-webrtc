@@ -21,6 +21,7 @@ jobs:
           cd cmake-3.21.1
           ./bootstrap
           gmake && gmake install
+          yum install -y python36
       - name: build
         run: |
           ./node_modules/.bin/ncmake rebuild -- -DGN_GEN_ARGS='proprietary_codecs=true ffmpeg_branding="Chrome"'
