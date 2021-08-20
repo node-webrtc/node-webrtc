@@ -9,8 +9,9 @@ jobs:
         uses: actions/checkout@master
       - name: Prepare Environment
         run: |
-          curl -sL https://rpm.nodesource.com/setup_14.x | sudo bash -
-          yum install -y nodejs
+          yum install -y centos-release-scl-rh
+          yum install -y rh-nodejs12
+          scl enable rh-nodejs12 bash
           node -v
           npm install
       - name: build
