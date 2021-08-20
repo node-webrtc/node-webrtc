@@ -38,9 +38,11 @@ jobs:
           ../configure --prefix=/usr --disable-profile --enable-add-ons --with-headers=/usr/include --with-binutils=/usr/bin
           make -j 4
           make install
-      - name: Build
+      - name: NodeJS Dependencies Install
         run: |
           npm install
+      - name: Build Release
+        run: |
           ./node_modules/.bin/ncmake rebuild -- -DGN_GEN_ARGS='proprietary_codecs=true ffmpeg_branding="Chrome"'
       - name: Upload Artifact
         uses: actions/upload-artifact@master
