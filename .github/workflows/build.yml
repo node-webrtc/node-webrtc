@@ -18,7 +18,7 @@ jobs:
         run: |
           yum install -y openssl openssl-devel
           curl -O https://cmake.org/files/v3.10/cmake-3.10.0-rc3.tar.gz
-          tar zxf cmake-3.10.0-rc3
+          tar zxf cmake-3.10.0-rc3.tar.gz
           cd cmake-3.10.0-rc3
           ./bootstrap
           gmake && gmake install
