@@ -20,9 +20,9 @@ jobs:
           ln -s /__w/node-webrtc/node-webrtc/node-v14.15.0-linux-x64/bin/npm /usr/bin/npm
       - name: Prepare Environment - Cmake
         run: |
-          curl -O https://cmake.org/files/v3.10/cmake-3.10.2.tar.gz
-          tar zxf cmake-3.10.2.tar.gz
-          cd cmake-3.10.2
+          curl -O https://cmake.org/files/v3.12/cmake-3.12.4.tar.gz
+          tar zxf cmake-3.12.4.tar.gz
+          cd cmake-3.12.4
           ./bootstrap
           gmake -j4 && gmake install
       - name: Prepare Environment - Python
