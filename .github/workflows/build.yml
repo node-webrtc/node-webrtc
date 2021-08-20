@@ -5,6 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     container: docker.io/centos:7
     steps:
+      - name: Checkout
+        uses: actions/checkout@master
       - name: Prepare Environment
         run: |
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
@@ -12,8 +14,6 @@ jobs:
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           nvm install v14.17.5
           npm install
-      - name: Checkout
-        uses: actions/checkout@master
       - name: build
         run: |
           ./node_modules/.bin/ncmake rebuild -- -DGN_GEN_ARGS='proprietary_codecs=true ffmpeg_branding="Chrome"'
