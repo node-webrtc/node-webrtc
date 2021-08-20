@@ -11,7 +11,7 @@ jobs:
         run: |
           curl -O https://nodejs.org/dist/v16.7.0/node-v16.7.0-linux-x64.tar.xz
           tar -xf node-v16.7.0-linux-x64.tar.xz
-          cd node-v14.15.0-linux-x64/bin && ls
+          cd node-v16.7.0-linux-x64/bin && ls
           pwd
           ./node -v
           ./npm -v
