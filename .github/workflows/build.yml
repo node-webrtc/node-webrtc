@@ -20,9 +20,9 @@ jobs:
           ln -s /__w/node-webrtc/node-webrtc/node-v14.15.0-linux-x64/bin/npm /usr/bin/npm
       - name: Prepare Environment - Cmake
         run: |
-          curl -O https://cmake.org/files/v3.10/cmake-3.10.0-rc3.tar.gz
-          tar zxf cmake-3.10.0-rc3.tar.gz
-          cd cmake-3.10.0-rc3
+          curl -O https://cmake.org/files/v3.10/cmake-3.10.2.tar.gz
+          tar zxf cmake-3.10.2.tar.gz
+          cd cmake-3.10.2
           ./bootstrap
           gmake -j4 && gmake install
       - name: Prepare Environment - Python
@@ -31,3 +31,8 @@ jobs:
         run: |
           npm install
           ./node_modules/.bin/ncmake rebuild -- -DGN_GEN_ARGS='proprietary_codecs=true ffmpeg_branding="Chrome"'
+      - name: Upload artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: OpenWrt firmware
+          path: ./bin/targets/
