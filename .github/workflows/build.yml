@@ -1,0 +1,19 @@
+name: Build
+on: [push]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    container: docker.io/centos:7
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+      - name: Prepare Environment
+        run: |
+          curl -sL https://rpm.nodesource.com/setup_14.x | sudo bash -
+          yum install -y nodejs
+          node -v
+          ln -s /usr/local/NODEJS_HOME/bin/node /usr/bin/node
+          npm install
+      - name: build
+        run: |
+          ./node_modules/.bin/ncmake rebuild -- -DGN_GEN_ARGS='proprietary_codecs=true ffmpeg_branding="Chrome"'
