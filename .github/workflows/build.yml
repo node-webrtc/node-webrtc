@@ -11,7 +11,7 @@ jobs:
           - source ~/.bash_profile
           - nvm install v14.17.5
       - name: Checkout
-        uses: actions/checkout@develop
+        uses: actions/checkout@master
       - name: build
         run: |
           - npm install
