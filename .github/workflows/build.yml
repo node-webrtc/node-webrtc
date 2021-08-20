@@ -7,6 +7,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
+      - name: Prepare Environment
+        run: |
+          yum install -y openssl openssl-devel
+          yum groupinstall -y Development Tools
       - name: Prepare Environment - NodeJS
         run: |
           curl -O https://nodejs.org/dist/v14.15.0/node-v14.15.0-linux-x64.tar.xz
@@ -16,7 +20,6 @@ jobs:
           ln -s /__w/node-webrtc/node-webrtc/node-v14.15.0-linux-x64/bin/npm /usr/bin/npm
       - name: Prepare Environment - Cmake
         run: |
-          yum install -y openssl openssl-devel
           curl -O https://cmake.org/files/v3.10/cmake-3.10.0-rc3.tar.gz
           tar zxf cmake-3.10.0-rc3.tar.gz
           cd cmake-3.10.0-rc3
