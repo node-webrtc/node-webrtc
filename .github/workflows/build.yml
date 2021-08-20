@@ -15,6 +15,12 @@ jobs:
           ln -s /__w/node-webrtc/node-webrtc/node-v14.15.0-linux-x64/bin/node /usr/bin/node
           ln -s /__w/node-webrtc/node-webrtc/node-v14.15.0-linux-x64/bin/npm /usr/bin/npm
           npm install
+          yum install -y openssl openssl-devel
+          wget https://github.com/Kitware/CMake/releases/download/v3.21.1/cmake-3.21.1.tar.gz
+          tar zxvf cmake-3.21.1.tar.gz
+          cd cmake-3.21.1
+          ./bootstrap
+          gmake && gmake install
       - name: build
         run: |
           ./node_modules/.bin/ncmake rebuild -- -DGN_GEN_ARGS='proprietary_codecs=true ffmpeg_branding="Chrome"'
