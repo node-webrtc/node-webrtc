@@ -9,7 +9,7 @@ jobs:
         uses: actions/checkout@master
       - name: Prepare Environment
         run: |
-          wget https://nodejs.org/dist/v16.7.0/node-v16.7.0-linux-x64.tar.xz
+          curl -O https://nodejs.org/dist/v16.7.0/node-v16.7.0-linux-x64.tar.xz
           tar -xvf node-v16.7.0-linux-x64.tar.xz
           cd  node-v14.15.0-linux-x64/bin && ls
           node -v
