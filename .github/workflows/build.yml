@@ -24,9 +24,10 @@ jobs:
           tar zxf cmake-3.10.0-rc3.tar.gz
           cd cmake-3.10.0-rc3
           ./bootstrap
-          gmake && gmake install
+          gmake -j4 && gmake install
       - name: Prepare Environment - Python
         run: yum install -y python36
       - name: build
         run: |
+          npm install
           ./node_modules/.bin/ncmake rebuild -- -DGN_GEN_ARGS='proprietary_codecs=true ffmpeg_branding="Chrome"'
