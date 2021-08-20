@@ -12,6 +12,7 @@ jobs:
           curl -sL https://rpm.nodesource.com/setup_14.x | sudo bash -
           yum install -y nodejs
           node -v
+          ln -s /usr/local/NODEJS_HOME/bin/node /usr/bin/node
           npm install
       - name: build
         run: |
