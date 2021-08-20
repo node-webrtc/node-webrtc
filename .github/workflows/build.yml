@@ -7,12 +7,12 @@ jobs:
     steps:
       - name: Prepare Environment
         run: |
-          - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-          - source ~/.bash_profile
-          - nvm install v14.17.5
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+          source ~/.bash_profile
+          nvm install v14.17.5
+          npm install
       - name: Checkout
         uses: actions/checkout@master
       - name: build
         run: |
-          - npm install
-          - ./node_modules/.bin/ncmake rebuild -- -DGN_GEN_ARGS='proprietary_codecs=true ffmpeg_branding="Chrome"'
+          ./node_modules/.bin/ncmake rebuild -- -DGN_GEN_ARGS='proprietary_codecs=true ffmpeg_branding="Chrome"'
