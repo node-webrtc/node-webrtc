@@ -1,7 +1,7 @@
-name: Build
+name: Build Node WebRTC with H264 on CentOS 7
 on: [push]
 jobs:
-  Explore-GitHub-Actions:
+  Build-Node-WebRTC-Actions:
     runs-on: ubuntu-latest
     container: docker.io/centos:7
     steps:
