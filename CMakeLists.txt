@@ -394,9 +394,11 @@ else()
     -Wall
     -Wextra
     -Wno-missing-field-initializers
+    -Wno-missing-prototypes
     -Wno-uninitialized
     -Wno-unused-local-typedefs
     -Wno-unused-variable
+    -Wno-suggest-override
     -Wpedantic
   )
 
