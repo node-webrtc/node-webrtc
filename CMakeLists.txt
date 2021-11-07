@@ -102,7 +102,7 @@ set(libc++abi_objects
   cxa_guard.o
   cxa_handlers.o
   cxa_personality.o
-  cxa_unexpected.o
+  #cxa_unexpected.o
   cxa_vector.o
   cxa_virtual.o
   fallback_malloc.o
@@ -405,12 +405,12 @@ else()
     -Wall
     -Wextra
     -Wno-missing-field-initializers
-    -Wno-missing-prototypes
     -Wno-uninitialized
     -Wno-unused-local-typedefs
     -Wno-unused-variable
     -Wno-suggest-override
     -Wpedantic
+    $<$<COMPILE_LANGUAGE:C>:-Wno-missing-prototypes>
   )
 
   target_compile_definitions(${MODULE} PRIVATE
