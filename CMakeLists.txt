@@ -54,7 +54,7 @@ set(libc++_objects
   future.o
   hash.o
   ios.o
-  iostream.o
+  #iostream.o
   locale.o
   memory.o
   mutex.o
@@ -191,10 +191,12 @@ if (WIN32)
 else()
   set(byproducts
     ${libc++_objects}
-    ${libc++abi_objects}
     ${libwebrtc_binary_dir}/obj/libwebrtc.a
     ${libwebrtc_binary_dir}/obj/pc/libpeerconnection.a
   )
+  if (NOT APPLE)
+    list(APPEND byproducts ${libc++abi_objects})
+  endif()
 endif()
 
 ExternalProject_Add(
@@ -388,8 +390,12 @@ else()
     -lc
     -lm
     libc++
-    libc++abi
   )
+  if(NOT APPLE)
+    target_link_libraries(${MODULE} PRIVATE
+      libc++abi
+    )
+  endif()
 
   target_compile_options(${MODULE} PRIVATE
     -fno-rtti
