@@ -13,7 +13,7 @@ ExternalProject_Add(
   project_depot_tools
 
   GIT_REPOSITORY    https://chromium.googlesource.com/chromium/tools/depot_tools.git
-  GIT_TAG           2fddb95698211db1373ebe2b16091a54eac51c9c
+  GIT_TAG           650096367cd9900e499052c49179b33b68fa1ac9
 
   PREFIX            ${CMAKE_BINARY_DIR}/external/depot_tools/prefix
   TMP_DIR           ${CMAKE_BINARY_DIR}/external/depot_tools/tmp
@@ -124,7 +124,7 @@ set_target_properties(libc++abi PROPERTIES IMPORTED_OBJECTS_DEBUG "${libc++abi_o
 # libwebrtc
 # -----------------------------------------------------------------------------
 
-set(WEBRTC_REVISION branch-heads/4280)
+set(WEBRTC_REVISION branch-heads/4500)
 
 list(APPEND GN_GEN_ARGS
   rtc_build_examples=false
