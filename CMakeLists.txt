@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
+project(node-webrtc)
 
 include(ExternalProject)
 find_package(Git REQUIRED)
@@ -143,8 +144,12 @@ if ("$ENV{TARGET_ARCH}" STREQUAL "arm")
     fatal_linker_warnings=false
   )
 elseif ("$ENV{TARGET_ARCH}" STREQUAL "arm64")
+  if(NOT APPLE)
   list(APPEND GN_GEN_ARGS
     target_os="linux"
+  )
+  endif()
+  list(APPEND GN_GEN_ARGS
     target_cpu="arm64"
     rtc_build_tools=true
     treat_warnings_as_errors=false
@@ -422,6 +427,15 @@ else()
       "-framework AppKit"
       "-framework AVFoundation"
     )
+
+    if ("$ENV{TARGET_ARCH}" STREQUAL "arm64")
+      target_compile_options(${MODULE} PRIVATE
+        -arch arm64
+      )
+      target_link_options(${MODULE} PRIVATE
+        -arch arm64
+      )
+    endif()
 
     target_compile_options(${MODULE} PRIVATE
       -Weverything

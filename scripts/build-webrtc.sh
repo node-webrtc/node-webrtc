@@ -7,8 +7,10 @@ set -v
 export PATH=$DEPOT_TOOLS:$PATH
 
 export TARGETS="webrtc libjingle_peerconnection"
+if [ "$(uname)" == "Linux" ]; then
 if [[ "$TARGET_ARCH" == arm* ]]; then
   export TARGETS="$TARGETS pc:peerconnection libc++ libc++abi"
+fi
 fi
 
 if [ -z "$PARALLELISM" ]; then

@@ -8,12 +8,14 @@ export PATH=$DEPOT_TOOLS:$PATH
 
 cd ${SOURCE_DIR}
 
+if [ "$(uname)" == "Linux" ]; then
 if [ "$TARGET_ARCH" == "arm" ]; then
   python build/linux/sysroot_scripts/install-sysroot.py --arch=arm
 elif [ "$TARGET_ARCH" == "arm64" ]; then
   python build/linux/sysroot_scripts/install-sysroot.py --arch=arm64
 else
   python build/linux/sysroot_scripts/install-sysroot.py --arch=amd64
+fi
 fi
 
 # NOTE(mroberts): Running hooks generates this file, but running hooks also
