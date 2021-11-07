@@ -362,15 +362,24 @@ test('getStats', function(t) {
 });
 
 test('close the connections', function(t) {
-  t.plan(7);
+  t.plan(1 + 2 * (2 * 3 + 1));
 
   peers[0].close();
   peers[1].close();
 
+  function is_error(error, code, name) {
+    t.equal(error.code, code);
+    t.equal(error.name, name);
+  }
+
+  function is_invalid_state(error) {
+    is_error(error, 11, 'InvalidStateError');
+  }
+
   // make sure nothing crashes after connection is closed and _jinglePeerConnection is null
   for (var i = 0; i < 2; i++) {
-    peers[i].createOffer();
-    peers[i].createAnswer();
+    peers[i].createOffer().catch(is_invalid_state);
+    peers[i].createAnswer().catch(is_invalid_state);
     peers[i].setLocalDescription({}, function() {}, function() {});
     peers[i].setRemoteDescription({}, function() {}, function() {});
     peers[i].addIceCandidate({}, function() {}, function() {});
@@ -378,8 +387,7 @@ test('close the connections', function(t) {
       peers[i].createDataChannel('test');
       t.fail('createDataChannel should throw InvalidStateError');
     } catch (error) {
-      t.equal(error.code, 11);
-      t.equal(error.name, 'InvalidStateError');
+      is_invalid_state(error);
     }
     peers[i].getStats(function() {}, function(err) {
       t.ok(err);
