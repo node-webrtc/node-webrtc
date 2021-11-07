@@ -410,8 +410,12 @@ else()
     -Wno-unused-variable
     -Wno-suggest-override
     -Wpedantic
-    $<$<COMPILE_LANGUAGE:C>:-Wno-missing-prototypes>
   )
+  if(APPLE)  # actually should be if(clang), but there is no such flag
+    target_compile_options(${MODULE} PRIVATE
+      -Wno-missing-prototypes
+    )
+  endif()
 
   target_compile_definitions(${MODULE} PRIVATE
     -D_LIBCPP_ABI_UNSTABLE
