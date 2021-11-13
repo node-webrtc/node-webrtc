@@ -197,6 +197,7 @@ else()
     ${libc++_objects}
     ${libwebrtc_binary_dir}/obj/libwebrtc.a
     ${libwebrtc_binary_dir}/obj/pc/libpeerconnection.a
+    ${libwebrtc_binary_dir}/libwebrtc-bin.tar.xz
   )
   if (NOT APPLE)
     list(APPEND byproducts ${libc++abi_objects})
@@ -218,7 +219,7 @@ ExternalProject_Add(
   DOWNLOAD_COMMAND  ${CMAKE_COMMAND} -E env DEPOT_TOOLS=${depot_tools_install_dir} PLATFORM=${PLATFORM} WEBRTC_REVISION=${WEBRTC_REVISION} ${CMAKE_SOURCE_DIR}/scripts/download-webrtc.${suffix}
   CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env BINARY_DIR=<BINARY_DIR> DEPOT_TOOLS=${depot_tools_install_dir} GN_GEN_ARGS=${GN_GEN_ARGS} SOURCE_DIR=<SOURCE_DIR> ${CMAKE_SOURCE_DIR}/scripts/configure-webrtc.${suffix}
   BUILD_COMMAND     ${CMAKE_COMMAND} -E env CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} DEPOT_TOOLS=${depot_tools_install_dir} ${CMAKE_SOURCE_DIR}/scripts/build-webrtc.${suffix}
-  INSTALL_COMMAND   ""
+  INSTALL_COMMAND   ${CMAKE_COMMAND} -E env CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} DEPOT_TOOLS=${depot_tools_install_dir} ${CMAKE_SOURCE_DIR}/scripts/pack-webrtc.${suffix}
 )
 
 add_dependencies(project_libwebrtc project_depot_tools)
