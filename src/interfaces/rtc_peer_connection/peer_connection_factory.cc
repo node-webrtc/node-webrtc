@@ -101,7 +101,7 @@ PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo& info)
   _networkManager = std::unique_ptr<rtc::NetworkManager>(new rtc::BasicNetworkManager());
   assert(_networkManager != nullptr);
 
-  _socketFactory = std::unique_ptr<rtc::PacketSocketFactory>(new rtc::BasicPacketSocketFactory(_workerThread.get()));
+  _socketFactory = std::unique_ptr<rtc::PacketSocketFactory>(new rtc::BasicPacketSocketFactory(_workerThread->socketserver()));
   assert(_socketFactory != nullptr);
 }
 

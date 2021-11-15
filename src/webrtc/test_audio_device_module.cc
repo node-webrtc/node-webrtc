@@ -87,16 +87,18 @@ class TestAudioDeviceModuleImpl  // NOLINT
         rtc::CritScope cs(&lock_);
         stop_thread_ = true;
       }
-      thread_->Stop();
+      // TODO thread_->Stop();
     }
   }
 
   int32_t Init() override {
+      /* TODO this has to be ported to use SpawnThread
     rtc::ThreadAttributes ta;
     thread_ = absl::make_unique<rtc::PlatformThread>(
             TestAudioDeviceModuleImpl::Run, this, "TestAudioDeviceModuleImpl",
-            ta.SetPriority(rtc::kHighPriority));
-    thread_->Start();
+            ta.SetPriority(rtc::ThreadPriority::kHigh));
+     thread_->Start();
+     */
     return 0;
   }
 

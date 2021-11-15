@@ -129,7 +129,7 @@ set_target_properties(libc++abi PROPERTIES IMPORTED_OBJECTS_DEBUG "${libc++abi_o
 # libwebrtc
 # -----------------------------------------------------------------------------
 
-set(WEBRTC_REVISION branch-heads/4500)
+set(WEBRTC_REVISION branch-heads/4707)
 
 list(APPEND GN_GEN_ARGS
   rtc_build_examples=false
