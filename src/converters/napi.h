@@ -4,6 +4,7 @@
 #include <iosfwd>
 #include <string>
 #include <vector>
+#include <map>
 #include <utility>
 
 #include <node-addon-api/napi.h>
@@ -148,6 +149,13 @@ struct Converter<std::pair<Napi::Env, std::vector<T>>, Napi::Value> {
       }
     }
     return Pure(scope.Escape(maybeArray));
+  }
+};
+
+template <typename K, typename V>
+struct Converter<std::pair<Napi::Env, std::map<K, V>>, Napi::Value> {
+  static Validation<Napi::Value> Convert(std::pair<Napi::Env, std::map<K,V>> /*pair*/) {
+    return Validation<Napi::Value>::Invalid("std::map conversion: not implemented"); // TODO
   }
 };
 
