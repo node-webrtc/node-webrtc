@@ -9,7 +9,7 @@ find_program(clang_tidy_path OPTIONAL NAMES clang-tidy)
 
 # depot_tools
 # -----------------------------------------------------------------------------
-#[[
+
 ExternalProject_Add(
   project_depot_tools
 
@@ -30,12 +30,13 @@ ExternalProject_Add(
 
 ExternalProject_Get_Property(project_depot_tools SOURCE_DIR)
 set(depot_tools_install_dir ${SOURCE_DIR})
-]]
+
 # libc++
 # -----------------------------------------------------------------------------
 
 set(libwebrtc_binary_dir ${CMAKE_BINARY_DIR}/external/libwebrtc/build/${CMAKE_BUILD_TYPE})
 set(libwebrtc_src_dir ${CMAKE_BINARY_DIR}/external/libwebrtc/download/src)
+
 #[[
 add_library(libc++ OBJECT IMPORTED)
 add_dependencies(libc++ libwebrtc)
@@ -83,7 +84,9 @@ list(TRANSFORM libc++_objects PREPEND ${libwebrtc_binary_dir}/obj/buildtools/thi
 
 set_property(TARGET libc++ APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
 set_target_properties(libc++ PROPERTIES IMPORTED_OBJECTS_DEBUG "${libc++_objects}" IMPORTED_OBJECTS "${libc++_objects}")
+
 ]]
+
 # NOTE(mroberts): I would like this to be INTERFACE.
 #
 #   https://gitlab.kitware.com/cmake/cmake/issues/15052
@@ -93,6 +96,7 @@ set_target_properties(libc++ PROPERTIES IMPORTED_OBJECTS_DEBUG "${libc++_objects
 # libc++abi
 # -----------------------------------------------------------------------------
 
+#[[
 add_library(libc++abi OBJECT IMPORTED)
 add_dependencies(libc++abi libwebrtc)
 
@@ -119,6 +123,8 @@ list(TRANSFORM libc++abi_objects PREPEND ${libwebrtc_binary_dir}/obj/buildtools/
 
 set_property(TARGET libc++abi APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
 set_target_properties(libc++abi PROPERTIES IMPORTED_OBJECTS_DEBUG "${libc++abi_objects}" IMPORTED_OBJECTS "${libc++abi_objects}")
+
+]]
 
 # NOTE(mroberts): I would like this to be INTERFACE.
 #
@@ -197,12 +203,12 @@ else()
     ${libc++_objects}
     ${libwebrtc_binary_dir}/obj/libwebrtc.a
     ${libwebrtc_binary_dir}/obj/pc/libpeerconnection.a
+    ${libwebrtc_binary_dir}/libwebrtc-bin.tar.xz
   )
   if (NOT APPLE)
     list(APPEND byproducts ${libc++abi_objects})
   endif()
 endif()
-
 
 ExternalProject_Add(
   project_libwebrtc
@@ -212,44 +218,40 @@ ExternalProject_Add(
   STAMP_DIR         ${CMAKE_BINARY_DIR}/external/libwebrtc/stamp
   DOWNLOAD_DIR      ${CMAKE_BINARY_DIR}/external/libwebrtc/download
   SOURCE_DIR        ${CMAKE_BINARY_DIR}/external/libwebrtc/download/src
-  BINARY_DIR        ${CMAKE_BINARY_DIR}/external/libwebrtc
-  #/build/${CMAKE_BUILD_TYPE}
+  BINARY_DIR        ${CMAKE_BINARY_DIR}/external/libwebrtc/build/${CMAKE_BUILD_TYPE}
 
-  BUILD_BYPRODUCTS  <BINARY_DIR>/libpeerconnection.a <BINARY_DIR>/libwebrtc.a <BINARY_DIR>/libc++.a
+  BUILD_BYPRODUCTS  ${byproducts}
 
-  DOWNLOAD_COMMAND  ""
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND     ""
-  INSTALL_COMMAND   ${CMAKE_COMMAND} -E env CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ${CMAKE_SOURCE_DIR}/scripts/unpack-webrtc.${suffix}
+  DOWNLOAD_COMMAND  ${CMAKE_COMMAND} -E env DEPOT_TOOLS=${depot_tools_install_dir} PLATFORM=${PLATFORM} WEBRTC_REVISION=${WEBRTC_REVISION} ${CMAKE_SOURCE_DIR}/../scripts/download-webrtc.${suffix}
+  CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env BINARY_DIR=<BINARY_DIR> DEPOT_TOOLS=${depot_tools_install_dir} GN_GEN_ARGS=${GN_GEN_ARGS} SOURCE_DIR=<SOURCE_DIR> ${CMAKE_SOURCE_DIR}/../scripts/configure-webrtc.${suffix}
+  BUILD_COMMAND     ${CMAKE_COMMAND} -E env CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} DEPOT_TOOLS=${depot_tools_install_dir} ${CMAKE_SOURCE_DIR}/../scripts/build-webrtc.${suffix}
+  INSTALL_COMMAND   ${CMAKE_COMMAND} -E env CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} DEPOT_TOOLS=${depot_tools_install_dir} ${CMAKE_SOURCE_DIR}/../scripts/pack-webrtc.${suffix}
 )
 
+add_dependencies(project_libwebrtc project_depot_tools)
 
-#ExternalProject_Get_Property(project_libwebrtc DOWNLOAD_DIR)
-set(libwebrtc_source_dir "${CMAKE_BINARY_DIR}/external/libwebrtc/download")
+ExternalProject_Get_Property(project_libwebrtc DOWNLOAD_DIR)
+set(libwebrtc_source_dir "${DOWNLOAD_DIR}")
 
 ExternalProject_Get_Property(project_libwebrtc BINARY_DIR)
-#set(libwebrtc_binary_dir "${CMAKE_BINARY_DIR}/external/libwebrtc")
 set(libwebrtc_binary_dir "${BINARY_DIR}")
-
-add_library(libc++ STATIC IMPORTED)
-set_property(TARGET libc++ PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/libc++.a")
 
 add_library(libwebrtc STATIC IMPORTED)
 add_dependencies(libwebrtc project_libwebrtc)
 
 if(WIN32)
-  set_property(TARGET libwebrtc PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/webrtc.lib")
+  set_property(TARGET libwebrtc PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/webrtc.lib")
 else()
-  set_property(TARGET libwebrtc PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/libwebrtc.a")
+  set_property(TARGET libwebrtc PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/libwebrtc.a")
 endif()
 
 add_library(libpeerconnection STATIC IMPORTED)
 add_dependencies(libpeerconnection project_libwebrtc)
 
 if(WIN32)
-  set_property(TARGET libpeerconnection PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/peerconnection.lib")
+  set_property(TARGET libpeerconnection PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/pc/peerconnection.lib")
 else()
-  set_property(TARGET libpeerconnection PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/libpeerconnection.a")
+  set_property(TARGET libpeerconnection PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/pc/libpeerconnection.a")
 endif()
 
 set(libc++_include_dir "${libwebrtc_source_dir}/src/buildtools/third_party/libc++/trunk/include")
@@ -268,8 +270,6 @@ set(libc++abi_include_dir "${libwebrtc_source_dir}/src/buildtools/third_party/li
 
 # catch2
 # -----------------------------------------------------------------------------
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 ExternalProject_Add(
   project_catch2
@@ -292,11 +292,9 @@ ExternalProject_Add(
 ExternalProject_Get_Property(project_catch2 SOURCE_DIR)
 set(catch2_install_dir ${SOURCE_DIR})
 
-endif()
-
 # node-webrtc
 # -----------------------------------------------------------------------------
-
+#[[
 set(MODULE wrtc)
 include(${CMAKE_SOURCE_DIR}/NodeJS.cmake)
 if(DEFINED ENV{npm_config_runtime})
@@ -337,8 +335,10 @@ set(node_addon_api_dir ${CMAKE_SOURCE_DIR}/node_modules/node-addon-api)
 # is to include all the header files here.
 target_include_directories(${MODULE} SYSTEM PRIVATE
   ${node_addon_api_dir}/..
-  ${CMAKE_BINARY_DIR}/external/libwebrtc
-  ${CMAKE_BINARY_DIR}/external/libwebrtc/webrtc
+  ${libwebrtc_source_dir}
+  ${libwebrtc_source_dir}/webrtc
+  ${libwebrtc_source_dir}/webrtc/third_party/abseil-cpp
+  ${libwebrtc_source_dir}/webrtc/third_party/libyuv/include
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -390,10 +390,10 @@ else()
   #   https://gitlab.kitware.com/cmake/cmake/issues/15052
   #
   # is to include all the header files here.
-  #target_include_directories(${MODULE} SYSTEM PRIVATE
-  #  ${libc++_include_dir}
-  #  ${libc++abi_include_dir}
-  #)
+  target_include_directories(${MODULE} SYSTEM PRIVATE
+    ${libc++_include_dir}
+    ${libc++abi_include_dir}
+  )
 
   # NOTE(mroberts): On Linux and macOS, we statically link the same libc++ and
   # libc++abi libraries that libwebrtc builds against.
@@ -402,11 +402,11 @@ else()
     -lm
     libc++
   )
-  #if(NOT APPLE)
-  #  target_link_libraries(${MODULE} PRIVATE
-  #    libc++abi
-  #  )
-  #endif()
+  if(NOT APPLE)
+    target_link_libraries(${MODULE} PRIVATE
+      libc++abi
+    )
+  endif()
 
   target_compile_options(${MODULE} PRIVATE
     -fno-rtti
@@ -490,8 +490,6 @@ else()
       -fpermissive
     )
 
-    set(linux_src ${CMAKE_BINARY_DIR}/external/linux)
-
     if ("$ENV{TARGET_ARCH}" STREQUAL "arm" OR "$ENV{TARGET_ARCH}" STREQUAL "arm64")
       set(CMAKE_SYSTEM_NAME Linux)
       set(CMAKE_SYSTEM_PROCESSOR "$ENV{TARGET_ARCH}")
@@ -503,7 +501,7 @@ else()
       set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
       if ("$ENV{TARGET_ARCH}" STREQUAL "arm")
-        set(CMAKE_SYSROOT ${linux_src}/debian_sid_arm-sysroot)
+        set(CMAKE_SYSROOT ${libwebrtc_source_dir}/src/build/linux/debian_sid_arm-sysroot)
         target_compile_options(${MODULE} PRIVATE
           -march=armv7-a
           -mfloat-abi=hard
@@ -520,7 +518,7 @@ else()
     else()
       target_compile_options(${MODULE} PRIVATE
         -B${libwebrtc_source_dir}/src/third_party/binutils/Linux_x64/Release/bin
-        --sysroot=${linux_src}/debian_sid_amd64-sysroot
+        --sysroot=${libwebrtc_source_dir}/src/build/linux/debian_sid_amd64-sysroot
       )
     endif()
   endif()
@@ -585,3 +583,5 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     )
   endif()
 endif()
+
+]]
