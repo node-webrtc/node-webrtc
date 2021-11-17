@@ -7,6 +7,10 @@ find_package(Threads REQUIRED)
 find_program(iwyu_path OPTIONAL NAMES include-what-you-use iwyu)
 find_program(clang_tidy_path OPTIONAL NAMES clang-tidy)
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  set(LINUX TRUE)
+endif()
+
 # depot_tools
 # -----------------------------------------------------------------------------
 #[[
@@ -163,6 +167,14 @@ else()
   list(APPEND GN_GEN_ARGS
     rtc_build_tools=false
   )
+endif()
+
+if (LINUX)
+  message(STATUS ">>> Using system g++")
+  set(CUSTOM_CXX FALSE)
+else()
+  message(STATUS ">>> Using custom libc++")
+  set(CUSTOM_CXX TRUE)
 endif()
 
 if (WIN32)
@@ -354,9 +366,14 @@ target_include_directories(${MODULE} PRIVATE
 
 target_link_libraries(${MODULE} PRIVATE
   ${CMAKE_THREAD_LIBS_INIT}
-  libpeerconnection
   libwebrtc
 )
+
+if(APPLE OR WIN32)
+  target_link_libraries(${MODULE} PRIVATE
+    libpeerconnection
+  )
+endif()
 
 target_compile_definitions(${MODULE} PRIVATE
   -DNAPI_VERSION=3
@@ -385,34 +402,36 @@ if(WIN32)
     -DWEBRTC_WIN
   )
 else()
-  # NOTE(mroberts): Workaround for
-  #
-  #   https://gitlab.kitware.com/cmake/cmake/issues/15052
-  #
-  # is to include all the header files here.
-  #target_include_directories(${MODULE} SYSTEM PRIVATE
-  #  ${libc++_include_dir}
-  #  ${libc++abi_include_dir}
-  #)
-
-  # NOTE(mroberts): On Linux and macOS, we statically link the same libc++ and
-  # libc++abi libraries that libwebrtc builds against.
   target_link_libraries(${MODULE} PRIVATE
     -lc
     -lm
-    libc++
   )
-  #if(NOT APPLE)
-  #  target_link_libraries(${MODULE} PRIVATE
-  #    libc++abi
-  #  )
-  #endif()
+  if(CUSTOM_CXX)
+    target_include_directories(${MODULE} SYSTEM PRIVATE
+      ${libc++_include_dir}
+      ${libc++abi_include_dir}
+    )
+    target_compile_options(${MODULE} PRIVATE
+      -nostdinc++
+      -nodefaultlibs
+    )
+    target_link_libraries(${MODULE} PRIVATE
+      libc++
+    )
+    if(NOT APPLE)
+      target_link_libraries(${MODULE} PRIVATE
+        libc++abi
+      )
+    endif()
+  else()
+    target_link_options(${MODULE} PRIVATE
+      -static-libstdc++
+    )
+  endif()
 
   target_compile_options(${MODULE} PRIVATE
     -fno-rtti
     -fvisibility=hidden
-    -nostdinc++
-    -nodefaultlibs
     -Wall
     -Wextra
     -Wno-missing-field-initializers
@@ -518,10 +537,10 @@ else()
         set(CMAKE_CXX_COMPILER ${tools}/bin/aarch64-linux-gnu-g++)
       endif()
     else()
-      target_compile_options(${MODULE} PRIVATE
-        -B${libwebrtc_source_dir}/src/third_party/binutils/Linux_x64/Release/bin
-        --sysroot=${linux_src}/debian_sid_amd64-sysroot
-      )
+        #target_compile_options(${MODULE} PRIVATE
+        #-B${libwebrtc_source_dir}/src/third_party/binutils/Linux_x64/Release/bin
+        #--sysroot=${linux_src}/debian_sid_amd64-sysroot
+        #)
     endif()
   endif()
 endif()

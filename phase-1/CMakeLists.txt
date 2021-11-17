@@ -7,6 +7,10 @@ find_package(Threads REQUIRED)
 find_program(iwyu_path OPTIONAL NAMES include-what-you-use iwyu)
 find_program(clang_tidy_path OPTIONAL NAMES clang-tidy)
 
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  set(LINUX TRUE)
+endif()
+
 # depot_tools
 # -----------------------------------------------------------------------------
 
@@ -168,6 +172,19 @@ else()
   list(APPEND GN_GEN_ARGS
     rtc_build_tools=false
   )
+endif()
+
+if (LINUX)
+  message(STATUS ">>> Using system g++")
+  list(APPEND GN_GEN_ARGS
+    is_clang=false
+    treat_warnings_as_errors=false
+    use_custom_libcxx=false
+  )
+  set(CUSTOM_CXX FALSE)
+else()
+  message(STATUS ">>> Using custom libc++")
+  set(CUSTOM_CXX TRUE)
 endif()
 
 if (WIN32)
@@ -389,29 +406,39 @@ else()
   #   https://gitlab.kitware.com/cmake/cmake/issues/15052
   #
   # is to include all the header files here.
-  target_include_directories(${MODULE} SYSTEM PRIVATE
-    ${libc++_include_dir}
-    ${libc++abi_include_dir}
-  )
 
   # NOTE(mroberts): On Linux and macOS, we statically link the same libc++ and
   # libc++abi libraries that libwebrtc builds against.
   target_link_libraries(${MODULE} PRIVATE
     -lc
     -lm
-    libc++
   )
-  if(NOT APPLE)
+  if(CUSTOM_CXX)
+    target_include_directories(${MODULE} SYSTEM PRIVATE
+      ${libc++_include_dir}
+      ${libc++abi_include_dir}
+    )
+    target_compile_options(${MODULE} PRIVATE
+      -nostdinc++
+      -nodefaultlibs
+    )
     target_link_libraries(${MODULE} PRIVATE
-      libc++abi
+      libc++
+    )
+    if(NOT APPLE)
+      target_link_libraries(${MODULE} PRIVATE
+        libc++abi
+      )
+    endif()
+  else()
+    target_link_options(${MODULE} PRIVATE
+      -static-libstdc++
     )
   endif()
 
   target_compile_options(${MODULE} PRIVATE
     -fno-rtti
     -fvisibility=hidden
-    -nostdinc++
-    -nodefaultlibs
     -Wall
     -Wextra
     -Wno-missing-field-initializers
@@ -516,7 +543,6 @@ else()
       endif()
     else()
       target_compile_options(${MODULE} PRIVATE
-        -B${libwebrtc_source_dir}/src/third_party/binutils/Linux_x64/Release/bin
         --sysroot=${libwebrtc_source_dir}/src/build/linux/debian_sid_amd64-sysroot
       )
     endif()
