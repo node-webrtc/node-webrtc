@@ -30,15 +30,11 @@
     "@mapbox/node-pre-gyp": "^1.0.4",
     "nan": "^2.3.2",
     "node-addon-api": "^1.6.2",
-    "node-cmake": "2.3.2",
-    "node-pre-gyp": "^0.17.0"
+    "node-cmake": "2.3.2"
   },
   "optionalDependencies": {
     "domexception": "^1.0.1"
   },
-  "bundledDependencies": [
-    "@mapbox/node-pre-gyp"
-  ],
   "devDependencies": {
     "@fidm/x509": "^1.2.1",
     "@octokit/rest": "^18.12.0",
@@ -70,7 +66,7 @@
     "server-destroy": "^1.0.1",
     "simple-peer": "~9.7.0",
     "tap-spec": "^5.0.0",
-    "tape": "^4.9.1",
+    "tape": "^5.3.2",
     "temp": "^0.9.0",
     "travis-multirunner": "^4.3.0",
     "ws": "^5.2.0"
