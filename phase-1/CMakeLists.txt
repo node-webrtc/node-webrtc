@@ -78,7 +78,7 @@ else()
   )
 endif()
 
-if (LINUX)
+if (LINUX AND "$ENV{TARGET_ARCH}" STREQUAL "")
   message(STATUS ">>> Using system g++")
   list(APPEND GN_GEN_ARGS
     is_clang=false

@@ -2,7 +2,7 @@
 
 version=$(node -p "require('$(dirname $0)/../package.json').version")
 platform=$(uname -s | tr '[A-Z]' '[a-z]')
-arch=$(uname -m | tr '[A-Z]' '[a-z]')
+arch=${TARGET_ARCH:-$(uname -m | tr '[A-Z]' '[a-z]')}
 
 set -e
 
@@ -20,6 +20,8 @@ if [ -d obj/buildtools/third_party/libc++ ] ; then
     -C $DL/src/buildtools/third_party/libc++ __config_site
   )
 fi
+
+mkdir -p ${STAGE_DIR}/${version}
 
 tar zcf ${STAGE_DIR}/${version}/libwebrtc-${platform}-${arch}.tar.gz \
     ${LIBCXX[@]} \

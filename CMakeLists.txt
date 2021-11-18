@@ -169,7 +169,7 @@ else()
   )
 endif()
 
-if (LINUX)
+if (LINUX AND "$ENV{TARGET_ARCH}" STREQUAL "")
   message(STATUS ">>> Using system g++")
   set(CUSTOM_CXX FALSE)
 else()
