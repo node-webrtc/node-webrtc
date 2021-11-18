@@ -13,15 +13,17 @@
   "license": "BSD-2-Clause",
   "repository": {
     "type": "git",
-    "url": "http://github.com/koush/node-webrtc.git"
+    "url": "http://github.com/corwin-of-amber/node-webrtc.git"
   },
   "main": "lib/index.js",
   "browser": "lib/browser.js",
   "binary": {
     "module_name": "wrtc",
-    "module_path": "./build/Release/",
-    "host": "https://github.com/koush/node-webrtc/releases/download/",
-    "remote_path": "{version}"
+    "module_path": "./build/Release/{napi_build_version}/..",
+    "host": "https://github.com/corwin-of-amber/node-webrtc/releases/download/",
+    "remote_path": "{version}",
+    "package_name": "{module_name}-v{version}-napi-v{napi_build_version}-{platform}-{arch}.tar.gz",
+    "napi_versions": [3]
   },
   "engines": {
     "node": "^8.11.2 || >=10.0.0"

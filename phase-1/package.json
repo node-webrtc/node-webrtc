@@ -1,0 +1,14 @@
+{
+  "name": "wrtc-bin",
+  "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/corwin-of-amber/node-webrtc.git"
+  },
+  "binary": {
+    "module_name": "wrtc",
+    "module_path": "./build/external/libwebrtc/build/Release",
+    "host": "https://github.com/corwin-of-amber/node-webrtc/releases/download/",
+    "remote_path": "{version}"
+  }
+}

@@ -1,5 +1,6 @@
 var module = require('./node-pre-gyp-publish-github');
 var program = require('commander');
+var package_json = require('../package.json');
 
 program
 	.command('publish [options]')
@@ -9,6 +10,7 @@ program
 	.action(function(cmd, options){
 		var opts = {},
 			x = new module();
+		x.package_json.version = package_json.version;  // in case it is being run from a subdir, e.g. `phase-1`
 		opts.draft = options.release ? false : true;
 		opts.verbose = options.silent ? false : true;
 		x.publish(opts);
