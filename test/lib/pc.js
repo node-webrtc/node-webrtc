@@ -128,6 +128,17 @@ function gatherCandidates(pc) {
   });
 }
 
+function cleanup(pc, streams = []) {
+  for (let s of streams)
+    for (let t of s.getTracks())
+      t.stop();
+  pc.close();
+}
+
+function cleanupLater(pc, streams = []) {
+  setTimeout(() => cleanup(pc, streams), 1);
+}
+
 module.exports = {
   confirmSentFrameDimensions,
   createRTCPeerConnections,
@@ -137,5 +148,7 @@ module.exports = {
   doOffer,
   negotiate,
   negotiateRTCPeerConnections,
-  waitForStateChange
+  waitForStateChange,
+  cleanup,
+  cleanupLater
 };
