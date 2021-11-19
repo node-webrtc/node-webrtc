@@ -10,5 +10,8 @@
     "module_path": "./build/external/libwebrtc/build/Release",
     "host": "https://github.com/corwin-of-amber/node-webrtc/releases/download/",
     "remote_path": "{version}"
+  },
+  "scripts": {
+    "build": "cross-env LIBNAME=libwebrtc ../scripts/build-from-source.js"
   }
 }

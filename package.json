@@ -23,7 +23,9 @@
     "host": "https://github.com/corwin-of-amber/node-webrtc/releases/download/",
     "remote_path": "{version}",
     "package_name": "{module_name}-v{version}-napi-v{napi_build_version}-{platform}-{arch}.tar.gz",
-    "napi_versions": [3]
+    "napi_versions": [
+      3
+    ]
   },
   "engines": {
     "node": "^8.11.2 || >=10.0.0"
@@ -42,7 +44,7 @@
     "@octokit/rest": "^18.12.0",
     "aws-sdk": "^2.2.10",
     "browserify-middleware": "^8.1.1",
-    "cross-env": "^5.1.4",
+    "cross-env": "^5.2.1",
     "eslint": "^4.14.0",
     "express": "^4.16.2",
     "force-py2": "^0.1.0",
