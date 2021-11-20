@@ -21,10 +21,16 @@ if [ -d obj/buildtools/third_party/libc++ ] ; then
   )
 fi
 
+if [[ "$platform" == "linux" ]]; then
+  SYSROOT=(
+    -C $DL/src build/linux/sysroot_scripts/{install-sysroot.py,sysroots.json}
+  )
+fi
+
 mkdir -p ${STAGE_DIR}/${version}
 
 tar zcf ${STAGE_DIR}/${version}/libwebrtc-${platform}-${arch}.tar.gz \
-    ${LIBCXX[@]} \
+    ${LIBCXX[@]} ${SYSROOT[@]} \
     -C $PWD/obj/pc libpeerconnection.a \
     -C $PWD/obj libwebrtc.a \
     -C $DL $(cd $DL && find ${SUBDIRS[@]} -name '*.h') \
