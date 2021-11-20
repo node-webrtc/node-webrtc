@@ -12,6 +12,7 @@
     "remote_path": "{version}"
   },
   "scripts": {
-    "build": "cross-env LIBNAME=libwebrtc ../scripts/build-from-source.js"
+    "build": "cross-env LIBNAME=libwebrtc ../scripts/build-from-source.js",
+    "publish": "node ../install/publish publish"
   }
 }
