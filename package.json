@@ -21,7 +21,7 @@
     "module_name": "wrtc",
     "module_path": "./build/Release/{napi_build_version}/..",
     "host": "https://github.com/corwin-of-amber/node-webrtc/releases/download/",
-    "remote_path": "{version}",
+    "remote_path": "v{version}",
     "package_name": "{module_name}-v{version}-napi-v{napi_build_version}-{platform}-{arch}.tar.gz",
     "napi_versions": [
       3
