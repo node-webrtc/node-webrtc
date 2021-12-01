@@ -44,9 +44,10 @@ set(depot_tools_install_dir ${SOURCE_DIR})
 # libc++
 # -----------------------------------------------------------------------------
 
+#[[
 set(libwebrtc_binary_dir ${CMAKE_BINARY_DIR}/external/libwebrtc/build/${CMAKE_BUILD_TYPE})
 set(libwebrtc_src_dir ${CMAKE_BINARY_DIR}/external/libwebrtc/download/src)
-#[[
+
 add_library(libc++ OBJECT IMPORTED)
 add_dependencies(libc++ libwebrtc)
 
@@ -263,11 +264,7 @@ if (LINUX)
   add_dependencies(linux_sysroot project_libwebrtc)
 endif()
 
-#ExternalProject_Get_Property(project_libwebrtc DOWNLOAD_DIR)
-set(libwebrtc_source_dir "${CMAKE_BINARY_DIR}/external/libwebrtc/download")
-
 ExternalProject_Get_Property(project_libwebrtc BINARY_DIR)
-#set(libwebrtc_binary_dir "${CMAKE_BINARY_DIR}/external/libwebrtc")
 set(libwebrtc_binary_dir "${BINARY_DIR}")
 
 add_library(libc++ STATIC IMPORTED)
@@ -538,7 +535,16 @@ else()
     if ("$ENV{TARGET_ARCH}" STREQUAL "arm" OR "$ENV{TARGET_ARCH}" STREQUAL "arm64")
       set(CMAKE_SYSTEM_NAME Linux)
       set(CMAKE_SYSTEM_PROCESSOR "$ENV{TARGET_ARCH}")
-      set(tools $ENV{ARM_TOOLS_PATH})
+      if (NOT "$ENV{ARM_TOOLS_PATH}" STREQUAL "")
+        set(tools $ENV{ARM_TOOLS_PATH})
+        if (NOT "$ENV{ARM_TOOLS_CLANG}" STREQUAL "")
+          set(tools_clang TRUE)
+        endif()
+      else()
+        # Assume that phase-1 build is present and use Clang from there
+        set(tools ${CMAKE_SOURCE_DIR}/phase-1/build/external/libwebrtc/download/src/third_party/llvm-build/Release+Asserts)
+        set(tools_clang TRUE)
+      endif()
 
       set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
       set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
@@ -555,22 +561,34 @@ else()
         )
         set(CMAKE_C_COMPILER ${tools}/bin/arm-linux-gnueabihf-gcc)
         set(CMAKE_CXX_COMPILER ${tools}/bin/arm-linux-gnueabihf-g++)
+        if (tools_clang)
+          target_compile_options(${MODULE} PRIVATE
+            -target arm-linux-gnueabihf
+          )
+          target_link_options(${MODULE} PRIVATE
+            -target arm-linux-gnueabihf
+          )
+        endif()
       else()
         set(CMAKE_SYSROOT ${linux_src}/debian_sid_arm64-sysroot)
         set(CMAKE_C_COMPILER ${tools}/bin/aarch64-linux-gnu-gcc)
         set(CMAKE_CXX_COMPILER ${tools}/bin/aarch64-linux-gnu-g++)
-        # TODO if build tool is clang
-        if (NOT "$ENV{ARM_TOOLS_CLANG}" STREQUAL "")
+        if (tools_clang)
           target_compile_options(${MODULE} PRIVATE
             -target arm64-linux-gnu
           )
           target_link_options(${MODULE} PRIVATE
             -target arm64-linux-gnu
-            -fuse-ld=lld
           )
-          set(CMAKE_C_COMPILER ${tools}/bin/clang)
-          set(CMAKE_CXX_COMPILER ${tools}/bin/clang++)
         endif()
+      endif()
+
+      if (tools_clang)
+        target_link_options(${MODULE} PRIVATE
+          -fuse-ld=lld
+        )
+        set(CMAKE_C_COMPILER ${tools}/bin/clang)
+        set(CMAKE_CXX_COMPILER ${tools}/bin/clang++)
       endif()
     else()
       target_compile_options(${MODULE} PRIVATE
