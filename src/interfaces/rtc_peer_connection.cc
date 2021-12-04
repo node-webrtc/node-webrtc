@@ -90,11 +90,12 @@ RTCPeerConnection::RTCPeerConnection(const Napi::CallbackInfo& info)
       _port_range.min.FromMaybe(0),
       _port_range.max.FromMaybe(65535));
 
-  _jinglePeerConnection = _factory->factory()->CreatePeerConnection(
-          configuration.configuration,
-          std::move(portAllocator),
-          nullptr,
-          this);
+  webrtc::PeerConnectionDependencies deps(this);
+  deps.allocator = std::move(portAllocator);
+  deps.cert_generator = nullptr;
+
+  _jinglePeerConnection = _factory->factory()->CreatePeerConnectionOrError(
+          configuration.configuration, std::move(deps)).value();
 }
 
 RTCPeerConnection::~RTCPeerConnection() {
@@ -462,7 +463,7 @@ Napi::Value RTCPeerConnection::CreateDataChannel(const Napi::CallbackInfo& info)
   auto dataChannelInit = std::get<1>(args).FromMaybe(webrtc::DataChannelInit());
 
   rtc::scoped_refptr<webrtc::DataChannelInterface> data_channel_interface =
-      _jinglePeerConnection->CreateDataChannel(label, &dataChannelInit);
+      _jinglePeerConnection->CreateDataChannelOrError(label, &dataChannelInit).value();
 
   if (!data_channel_interface) {
     Napi::Error(env, ErrorFactory::CreateInvalidStateError(env, "'createDataChannel' failed")).ThrowAsJavaScriptException();

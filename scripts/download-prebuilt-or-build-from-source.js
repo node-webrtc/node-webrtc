@@ -6,7 +6,7 @@ const build = require('./build-from-source');
 const download = require('./download-prebuilt');
 
 function main() {
-  if (!process.env.SKIP_DOWNLOAD) {
+  if (!(process.env.SKIP_DOWNLOAD || process.env.SKIP_BIN)) {
     try {
       console.log('Searching for a pre-built wrtc binary');
       download();
@@ -16,7 +16,10 @@ function main() {
       console.log('Unable to install a pre-built wrtc binary; falling back to ncmake');
     }
   }
-  build();
+  if (!(process.env.SKIP_BUILD || process.env.SKIP_BIN)) {
+    build();
+  }
+  else { console.log('Build skip requested; no binaries for now.'); }
 }
 
 main();

@@ -21,6 +21,9 @@ CONVERTER_IMPL(ENUM(), std::string, value) {
   switch (value) {
       ENUM(_LIST)
   }
+#if defined(__GNUC__) || defined(__clang__)
+  __builtin_unreachable();
+#endif
 }
 
 CONVERT_VIA(Napi::Value, std::string, ENUM())

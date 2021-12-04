@@ -1,5 +1,7 @@
 #!/bin/bash
 
+uname="$(uname)"
+
 set -e
 
 set -v
@@ -7,8 +9,11 @@ set -v
 export PATH=$DEPOT_TOOLS:$PATH
 
 export TARGETS="webrtc libjingle_peerconnection"
-if [[ "$TARGET_ARCH" == arm* ]]; then
+if [[ "$uname" == "Linux" && "$TARGET_ARCH" == arm* ]]; then
   export TARGETS="$TARGETS pc:peerconnection libc++ libc++abi"
+fi
+if [[ "$uname" == "Darwin" ]]; then
+  export TARGETS="$TARGETS libc++"
 fi
 
 if [ -z "$PARALLELISM" ]; then
