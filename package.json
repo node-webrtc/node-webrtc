@@ -69,7 +69,7 @@
     "server-destroy": "^1.0.1",
     "simple-peer": "~9.7.0",
     "tap-spec": "^5.0.0",
-    "tape": "^5.5.2",
+    "tape": "^4.9.1",
     "temp": "^0.9.0",
     "travis-multirunner": "^4.3.0",
     "ws": "^5.2.0"
