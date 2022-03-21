@@ -2,7 +2,7 @@
 SETLOCAL
 SET EL=0
 
-powershell Install-Product node $env:nodejs_version x64
+powershell Install-Product node $env:nodejs_version $env:platform
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
 ECHO npm install
