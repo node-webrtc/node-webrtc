@@ -266,6 +266,11 @@ MediaStream* MediaStream::Create(
     PeerConnectionFactory* factory,
     rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) {
   auto env = MediaStream::constructor().Env();
+  if (factory == nullptr) {
+    Napi::TypeError::New(env, "PeerConnectionFactory is Null").ThrowAsJavaScriptException();
+    return;
+  }
+
   Napi::HandleScope scope(env);
 
   auto object = MediaStream::constructor().New({
