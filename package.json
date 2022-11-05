@@ -37,9 +37,6 @@
   "optionalDependencies": {
     "domexception": "^1.0.1"
   },
-  "bundledDependencies": [
-    "@mapbox/node-pre-gyp"
-  ],
   "devDependencies": {
     "@fidm/x509": "^1.2.1",
     "aws-sdk": "^2.2.10",
