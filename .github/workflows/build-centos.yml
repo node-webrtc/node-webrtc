@@ -1,5 +1,8 @@
 name: Build Node WebRTC with H264 on CentOS 7
-on: [push]
+on:
+  push:
+    branches:
+    - build-centos
 jobs:
   Build-Node-WebRTC-Actions:
     runs-on: ubuntu-latest
