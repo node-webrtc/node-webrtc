@@ -1,5 +1,5 @@
 FROM centos:7
-yum install -y openssl openssl-devel \
+RUN yum install -y openssl openssl-devel \
 && yum groupinstall -y Development Tools \
 && curl -O https://nodejs.org/dist/v14.15.0/node-v14.15.0-linux-x64.tar.xz \
 && tar -xf node-v14.15.0-linux-x64.tar.xz \
