@@ -37,7 +37,6 @@
 static void dispose(void *) { node_webrtc::PeerConnectionFactory::Dispose(); }
 
 static Napi::Object Init(Napi::Env env, Napi::Object exports) {
-  node_webrtc::AsyncContextReleaser::Init(env, exports);
   node_webrtc::ErrorFactory::Init(env, exports);
   node_webrtc::GetDisplayMedia::Init(env, exports);
   node_webrtc::GetUserMedia::Init(env, exports);
@@ -61,8 +60,7 @@ static Napi::Object Init(Napi::Env env, Napi::Object exports) {
   node_webrtc::Test::Init(env, exports);
 #endif
 
-  auto status = napi_add_env_cleanup_hook(
-      env, [](void *) { dispose(nullptr); }, nullptr);
+  auto status = napi_add_env_cleanup_hook(env, dispose, nullptr);
   assert(status == napi_ok);
   (void)status; // Ignore unused variable warning in release builds
 

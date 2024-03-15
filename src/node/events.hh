@@ -18,6 +18,13 @@ namespace node_webrtc {
  */
 template <typename T> class Event {
 public:
+  Event(const Event &) = delete;
+  Event(Event &&) = delete;
+  Event &operator=(const Event &) = delete;
+  Event &operator=(Event &&) = delete;
+  Event() = default;
+  virtual ~Event() = default;
+
   /**
    * Dispatch the Event to the target.
    * @param target the target to dispatch to
@@ -25,8 +32,6 @@ public:
   virtual void Dispatch(T &) {
     // Do nothing.
   }
-
-  virtual ~Event() = default;
 
   static std::unique_ptr<Event<T>> Create() {
     return std::unique_ptr<Event<T>>(new Event<T>());
@@ -63,7 +68,7 @@ public:
 private:
   explicit Callback1(const std::function<void(T &)> &callback)
       : _callback(callback) {}
-  const std::function<void(T &)> _callback;
+  std::function<void(T &)> _callback;
 };
 
 } // namespace node_webrtc

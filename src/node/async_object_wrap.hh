@@ -5,19 +5,17 @@
 
 #include <node-addon-api/napi.h>
 
-#include "src/node/async_context_releaser.hh"
-
 namespace node_webrtc {
 
 template <typename T> class AsyncObjectWrap : public Napi::ObjectWrap<T> {
 private:
-  Napi::AsyncContext *_async_context;
+  Napi::AsyncContext *_async_context{};
   std::mutex _async_context_mutex;
 
   void DestroyAsyncContext() {
     _async_context_mutex.lock();
     if (_async_context) {
-      AsyncContextReleaser::GetDefault()->Release(_async_context);
+      delete _async_context;
       _async_context = nullptr;
     }
     _async_context_mutex.unlock();
@@ -30,9 +28,7 @@ public:
   AsyncObjectWrap &operator=(AsyncObjectWrap &&) = delete;
   AsyncObjectWrap(const char *name, const Napi::CallbackInfo &info)
       : Napi::ObjectWrap<T>(info), _async_context(new Napi::AsyncContext(
-                                       info.Env(), name, this->Value())) {
-    AsyncContextReleaser::GetDefault();
-  }
+                                       info.Env(), name, this->Value())) {}
 
   ~AsyncObjectWrap() override { DestroyAsyncContext(); }
 
