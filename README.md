@@ -1,3 +1,9 @@
+# \#\#\# NOTE \#\#\#
+
+This repository is out-of-date. For an actively maintained fork supporting Node 20 and more recent versions of WebRTC, see [@roamhq/wrtc](https://github.com/WonderInventions/node-webrtc).
+
+Once `@roamhq/wrtc` is stable, it will be merged back into this repository.
+
 <h1 align="center">
   <img height="120px" src="https://upload.wikimedia.org/wikipedia/commons/d/d9/Node.js_logo.svg" />&nbsp;&nbsp;&nbsp;&nbsp;
   <img height="120px" src="https://webrtc.github.io/webrtc-org/assets/images/webrtc-logo-vert-retro-dist.svg" />
