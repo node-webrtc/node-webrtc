@@ -96,6 +96,11 @@ RTCDataChannel::~RTCDataChannel() {
   _factory = nullptr;
 
   wrap()->Release(this);
+  // Decrement refcount from e.g. wrap()->Create if we aren't already down to 0
+  if (!this->Value().IsEmpty())
+  {
+    this->Unref();
+  }
 }  // NOLINT
 
 void RTCDataChannel::CleanupInternals() {
@@ -347,7 +352,9 @@ RTCDataChannel* RTCDataChannel::Create(
     Napi::External<node_webrtc::DataChannelObserver>::New(env, observer)
   });
 
-  return Unwrap(object);
+  auto unwrapped = Unwrap(object);
+  unwrapped->Ref();
+  return unwrapped;
 }
 
 void RTCDataChannel::Init(Napi::Env env, Napi::Object exports) {
