@@ -1,0 +1,12 @@
+{
+    "name": "force-py2",
+    "version": "0.1.1",
+    "description": "Adds a symlink that makes `python` resolve to `python2` in npm scripts",
+    "bin": {
+        "python": "python2"
+    },
+    "scripts": {
+        "preinstall": "./link-me-up.js"
+    },
+    "files": ["link-me-up.js"]
+}

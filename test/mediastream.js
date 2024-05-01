@@ -3,6 +3,8 @@
 var tape = require('tape');
 var wrtc = require('..');
 
+const { cleanupLater } = require('./lib/pc');
+
 var getUserMedia = wrtc.getUserMedia;
 var MediaStream = wrtc.MediaStream;
 var RTCPeerConnection = wrtc.RTCPeerConnection;
@@ -205,7 +207,7 @@ function getRemoteMediaStream() {
   return pc.setRemoteDescription(offer).then(function() {
     return trackEventPromise;
   }).then(function(trackEvent) {
-    pc.close();
+    cleanupLater(pc, [...trackEvent.streams]);
     return trackEvent.streams[0];
   });
 }

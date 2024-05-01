@@ -5,6 +5,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <map>
 
 #include <node-addon-api/napi.h>
 #include <webrtc/api/stats/rtc_stats.h>
@@ -45,7 +46,15 @@ TO_NAPI_IMPL(const webrtc::RTCStatsMemberInterface*, pair) {
       return From<Napi::Value>(std::make_pair(env, *value->cast_to<webrtc::RTCStatsMember<std::vector<double>>>()));
     case webrtc::RTCStatsMemberInterface::Type::kSequenceString:  // std::vector<std::string>
       return From<Napi::Value>(std::make_pair(env, *value->cast_to<webrtc::RTCStatsMember<std::vector<std::string>>>()));
+    case webrtc::RTCStatsMemberInterface::Type::kMapStringUint64:  // std::map<std::string, uint64_t>
+      return From<Napi::Value>(std::make_pair(env, *value->cast_to<webrtc::RTCStatsMember<std::map<std::string, uint64_t>>>()));
+    case webrtc::RTCStatsMemberInterface::Type::kMapStringDouble:  // std::map<std::string, double>
+      return From<Napi::Value>(std::make_pair(env, *value->cast_to<webrtc::RTCStatsMember<std::map<std::string, double>>>()));
+#warning "std::map conversion is not implemented (in `converters/napi.h`)"
   }
+#if defined(__GNUC__) || defined(__clang__)
+  __builtin_unreachable();
+#endif
 }
 
 } // namespace node_webrtc

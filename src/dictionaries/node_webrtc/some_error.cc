@@ -68,6 +68,9 @@ TO_NAPI_IMPL(SomeError, pair) {
       case ErrorFactory::DOMExceptionName::kOperationError:
         return ErrorFactory::CreateOperationError(env, message);
     }
+#if defined(__GNUC__) || defined(__clang__)
+    __builtin_unreachable();
+#endif
   }, [env, message](auto name) {
     switch (name) {
       case ErrorFactory::ErrorName::kError:
@@ -77,6 +80,9 @@ TO_NAPI_IMPL(SomeError, pair) {
       case ErrorFactory::ErrorName::kSyntaxError:
         return ErrorFactory::CreateSyntaxError(env, message);
     }
+#if defined(__GNUC__) || defined(__clang__)
+    __builtin_unreachable();
+#endif
   })));
 }
 

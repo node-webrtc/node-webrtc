@@ -76,6 +76,9 @@ const char* node_webrtc::ErrorFactory::DOMExceptionNameToString(DOMExceptionName
     case kOperationError:
       return "OperationError";
   }
+#if defined(__GNUC__) || defined(__clang__)
+  __builtin_unreachable();
+#endif
 }
 
 Napi::Value node_webrtc::ErrorFactory::CreateDOMException(Napi::Env env, const std::string message, const DOMExceptionName name) {

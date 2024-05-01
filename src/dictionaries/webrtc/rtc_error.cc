@@ -46,6 +46,9 @@ TO_NAPI_IMPL(const webrtc::RTCError*, pair) {
     case webrtc::RTCErrorType::OPERATION_ERROR_WITH_DATA:
       return Pure(scope.Escape(ErrorFactory::CreateOperationError(env, error->message())));
   }
+#if defined(__GNUC__) || defined(__clang__)
+  __builtin_unreachable();
+#endif
 }
 
 }  // namespace node_webrtc

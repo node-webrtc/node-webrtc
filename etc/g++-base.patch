@@ -1,0 +1,15 @@
+diff --git a/threading/thread_restrictions.h b/threading/thread_restrictions.h
+index 0f02929b..db22e7ae 100644
+--- a/threading/thread_restrictions.h
++++ b/threading/thread_restrictions.h
+@@ -115,8 +115,10 @@ class Profile;
+ class StartupTabProviderImpl;
+ class GaiaConfig;
+ class WebEngineBrowserMainParts;
++class Environment;
+ 
+ Profile* GetLastProfileMac();
++bool HasWaylandDisplay(Environment* env);
+ 
+ namespace android_webview {
+ class AwFormDatabaseService;

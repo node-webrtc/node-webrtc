@@ -4,6 +4,7 @@
 
 const { spawnSync } = require('child_process');
 
+const libname = process.env.LIBNAME || "wrtc";
 const args = ['configure'];
 
 if (process.env.DEBUG) {
@@ -22,7 +23,7 @@ function main() {
     stdio: 'inherit'
   });
   if (status) {
-    throw new Error('ncmake configure failed for wrtc');
+    throw new Error('ncmake configure failed for ' + libname);
   }
 
   console.log('Running ncmake build');
@@ -31,10 +32,10 @@ function main() {
     stdio: 'inherit'
   }).status;
   if (status) {
-    throw new Error('ncmake build failed for wrtc');
+    throw new Error('ncmake build failed for ' + libname);
   }
 
-  console.log('Built wrtc');
+  console.log('Built ' + libname);
 }
 
 module.exports = main;
