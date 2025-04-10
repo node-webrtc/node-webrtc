@@ -8,6 +8,7 @@
 #include "src/interfaces/rtc_peer_connection.hh"
 
 #include <iostream>
+#include <src/api/jsep.h>
 #include <webrtc/api/media_types.h>
 #include <webrtc/api/peer_connection_interface.h>
 #include <webrtc/api/rtc_error.h>
@@ -430,14 +431,8 @@ Napi::Value RTCPeerConnection::CreateAnswer(const Napi::CallbackInfo &info) {
   auto env = info.Env();
   CREATE_DEFERRED(env, deferred)
 
-  auto maybeOptions =
-      From<Maybe<RTCAnswerOptions>>(Arguments(info)).Map([](auto maybeOptions) {
-        return maybeOptions.FromMaybe(RTCAnswerOptions());
-      });
-  if (maybeOptions.IsInvalid()) {
-    Reject(deferred, SomeError(maybeOptions.ToErrors()[0]));
-    return deferred.Promise();
-  }
+  CONVERT_ARGS_OR_REJECT_AND_RETURN_NAPI(deferred, info, maybeOptions,
+                                         Maybe<RTCAnswerOptions>)
 
   if (!_jinglePeerConnection ||
       _jinglePeerConnection->signaling_state() ==
@@ -449,10 +444,11 @@ Napi::Value RTCPeerConnection::CreateAnswer(const Napi::CallbackInfo &info) {
     return deferred.Promise();
   }
 
+  auto options = maybeOptions.Map([](auto options) { return options.options; })
+                     .OrDefault();
   auto observer = new rtc::RefCountedObject<CreateSessionDescriptionObserver>(
       this, deferred);
-  _jinglePeerConnection->CreateAnswer(observer,
-                                      maybeOptions.UnsafeFromValid().options);
+  _jinglePeerConnection->CreateAnswer(observer, options);
 
   return deferred.Promise();
 }
@@ -531,31 +527,37 @@ Napi::Value RTCPeerConnection::AddIceCandidate(const Napi::CallbackInfo &info) {
   CREATE_DEFERRED(env, deferred)
 
   CONVERT_ARGS_OR_REJECT_AND_RETURN_NAPI(
-      deferred, info, candidate, std::shared_ptr<webrtc::IceCandidateInterface>)
+      deferred, info, maybeCandidate,
+      Maybe<std::shared_ptr<webrtc::IceCandidateInterface>>)
 
-  std::cout << "JACKLOG: AddIceCandidate: creating promise "
-            << static_cast<void *>(_jinglePeerConnection) << "\n";
-  Dispatch(CreatePromise<RTCPeerConnection>(
-      deferred, [this, candidate](auto deferred) {
-        std::cout << "JACKLOG: AddIceCandidate: inside promise "
-                  << static_cast<void *>(_jinglePeerConnection) << "\n";
-        if (_jinglePeerConnection &&
-            _jinglePeerConnection->signaling_state() !=
-                webrtc::PeerConnectionInterface::SignalingState::kClosed &&
-            _jinglePeerConnection->AddIceCandidate(candidate.get())) {
-          Resolve(deferred, this->Env().Undefined());
-        } else {
-          std::string error = std::string("Failed to set ICE candidate");
-          if (!_jinglePeerConnection) {
-            error += "; RTCPeerConnection is closed";
-          } else if (_jinglePeerConnection->signaling_state() ==
-                     webrtc::PeerConnectionInterface::SignalingState::kClosed) {
-            error += "; RTCPeerConnection has a closed signaling state";
-          }
-          error += ".";
-          Reject(deferred, SomeError(error));
-        }
-      }));
+  Dispatch(CreatePromise<RTCPeerConnection>(deferred, [this, maybeCandidate](
+                                                          auto deferred) {
+    if (!_jinglePeerConnection) {
+      Reject(deferred,
+             SomeError(
+                 "Failed to set ICE candidate; RTCPeerConnection is closed."));
+      return;
+    }
+    if (_jinglePeerConnection->signaling_state() ==
+        webrtc::PeerConnectionInterface::SignalingState::kClosed) {
+      Reject(deferred,
+             SomeError("Failed to set ICE candidate; RTCPeerConnection has a "
+                       "closed signaling state."));
+      return;
+    }
+
+    if (maybeCandidate.IsJust()) {
+      // TODO(jack): Currently, it doesn't seem the underlying libwebrtc
+      // supports end-of-candidates. I hope upgrading fixes this.
+      if (!_jinglePeerConnection->AddIceCandidate(
+              maybeCandidate.UnsafeFromJust().get())) {
+        Reject(deferred, SomeError("Failed to set ICE candidate."));
+        return;
+      }
+    }
+
+    Resolve(deferred, this->Env().Undefined());
+  }));
 
   return deferred.Promise();
 }

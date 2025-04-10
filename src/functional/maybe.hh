@@ -108,6 +108,12 @@ public:
   }
 
   /**
+   * If "this" is non-empty, return this; otherwise, return a
+   * default-constructed T
+   */
+  T OrDefault() const { return _value.has_value() ? _value.value() : T(); }
+
+  /**
    * If "this" contains a value, return it; otherwise, compute a value and
    * return it
    * @param compute
