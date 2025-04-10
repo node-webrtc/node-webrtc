@@ -74,7 +74,6 @@ function trackDestructors() {
     const destructorDeferred = destructorDeferreds.get(asyncId);
     if (destructorDeferred) {
       destructorDeferreds.delete(asyncId);
-      console.log(`#### jackbug: got destructor ${asyncId}`);
       destructorDeferred.resolve();
       return true;
     }
@@ -86,7 +85,6 @@ function trackDestructors() {
     if (!asyncId) {
       return Promise.reject(new Error("Unknown resource"));
     }
-    console.log(`#### jackbug: want destructor ${asyncId}`);
     const destructorDeferred = destructorDeferreds.get(asyncId);
     return destructorDeferred
       ? destructorDeferred.promise
