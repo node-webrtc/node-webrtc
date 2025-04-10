@@ -106,14 +106,9 @@ RTCPeerConnection::RTCPeerConnection(const Napi::CallbackInfo &info)
   }
 
   _jinglePeerConnection = maybePeerConnection.MoveValue();
-
-  std::cout << "JACKLOG: Creating peer connection "
-            << static_cast<void *>(_jinglePeerConnection) << "\n";
 }
 
 RTCPeerConnection::~RTCPeerConnection() {
-  std::cout << "JACKLOG: Destroying peer connection "
-            << static_cast<void *>(_jinglePeerConnection) << "\n";
   _jinglePeerConnection = nullptr;
   _channels.clear();
   if (_factory) {
@@ -783,8 +778,6 @@ Napi::Value RTCPeerConnection::Close(const Napi::CallbackInfo &info) {
     }
   }
 
-  std::cout << "JACKLOG: Closing peer connection "
-            << static_cast<void *>(_jinglePeerConnection) << "\n";
   _jinglePeerConnection = nullptr;
 
   if (_factory) {
