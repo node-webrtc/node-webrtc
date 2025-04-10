@@ -105,9 +105,14 @@ RTCPeerConnection::RTCPeerConnection(const Napi::CallbackInfo &info)
   }
 
   _jinglePeerConnection = maybePeerConnection.MoveValue();
+
+  std::cout << "JACKLOG: Creating peer connection "
+            << static_cast<void *>(_jinglePeerConnection) << "\n";
 }
 
 RTCPeerConnection::~RTCPeerConnection() {
+  std::cout << "JACKLOG: Destroying peer connection "
+            << static_cast<void *>(_jinglePeerConnection) << "\n";
   _jinglePeerConnection = nullptr;
   _channels.clear();
   if (_factory) {
@@ -528,8 +533,12 @@ Napi::Value RTCPeerConnection::AddIceCandidate(const Napi::CallbackInfo &info) {
   CONVERT_ARGS_OR_REJECT_AND_RETURN_NAPI(
       deferred, info, candidate, std::shared_ptr<webrtc::IceCandidateInterface>)
 
+  std::cout << "JACKLOG: AddIceCandidate: creating promise "
+            << static_cast<void *>(_jinglePeerConnection) << "\n";
   Dispatch(CreatePromise<RTCPeerConnection>(
       deferred, [this, candidate](auto deferred) {
+        std::cout << "JACKLOG: AddIceCandidate: inside promise "
+                  << static_cast<void *>(_jinglePeerConnection) << "\n";
         if (_jinglePeerConnection &&
             _jinglePeerConnection->signaling_state() !=
                 webrtc::PeerConnectionInterface::SignalingState::kClosed &&
@@ -537,10 +546,11 @@ Napi::Value RTCPeerConnection::AddIceCandidate(const Napi::CallbackInfo &info) {
           Resolve(deferred, this->Env().Undefined());
         } else {
           std::string error = std::string("Failed to set ICE candidate");
-          if (!_jinglePeerConnection ||
-              _jinglePeerConnection->signaling_state() ==
-                  webrtc::PeerConnectionInterface::SignalingState::kClosed) {
+          if (!_jinglePeerConnection) {
             error += "; RTCPeerConnection is closed";
+          } else if (_jinglePeerConnection->signaling_state() ==
+                     webrtc::PeerConnectionInterface::SignalingState::kClosed) {
+            error += "; RTCPeerConnection has a closed signaling state";
           }
           error += ".";
           Reject(deferred, SomeError(error));
@@ -553,13 +563,24 @@ Napi::Value RTCPeerConnection::AddIceCandidate(const Napi::CallbackInfo &info) {
 Napi::Value
 RTCPeerConnection::CreateDataChannel(const Napi::CallbackInfo &info) {
   auto env = info.Env();
-  if (_jinglePeerConnection == nullptr) {
+  if (!_jinglePeerConnection) {
     Napi::Error(
         env,
         ErrorFactory::CreateInvalidStateError(
             env,
             "Failed to execute 'createDataChannel' on 'RTCPeerConnection': "
-            "The RTCPeerConnection's signalingState is 'closed'."))
+            "The RTCPeerConnection is closed."))
+        .ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
+  if (_jinglePeerConnection->signaling_state() ==
+      webrtc::PeerConnectionInterface::SignalingState::kClosed) {
+    Napi::Error(
+        env,
+        ErrorFactory::CreateInvalidStateError(
+            env,
+            "Failed to execute 'createDataChannel' on 'RTCPeerConnection': "
+            "The RTCPeerConnection's signaling state is 'closed'."))
         .ThrowAsJavaScriptException();
     return env.Undefined();
   }
@@ -627,20 +648,14 @@ RTCPeerConnection::SetConfiguration(const Napi::CallbackInfo &info) {
 }
 
 Napi::Value RTCPeerConnection::GetReceivers(const Napi::CallbackInfo &info) {
-  std::cout << "RTCPeerConnection::GetReceivers(): start\n";
   std::vector<RTCRtpReceiver *> receivers;
   if (_jinglePeerConnection) {
     for (const auto &receiver : _jinglePeerConnection->GetReceivers()) {
       auto new_receiver = _receiver_wrap.GetOrCreate(_factory, receiver);
-      std::cout << "RTCPeerConnection::GetReceivers(): IsEmpty(): "
-                << new_receiver->Value().IsEmpty() << "\n";
       receivers.emplace_back(new_receiver);
     }
   }
-  std::cout << "RTCPeerConnection::GetReceivers(): " << receivers.size()
-            << " elems\n";
   CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), receivers, result, Napi::Value)
-  std::cout << "RTCPeerConnection::GetReceivers(): end\n";
   return result;
 }
 
@@ -766,6 +781,8 @@ Napi::Value RTCPeerConnection::Close(const Napi::CallbackInfo &info) {
     }
   }
 
+  std::cout << "JACKLOG: Closing peer connection "
+            << static_cast<void *>(_jinglePeerConnection) << "\n";
   _jinglePeerConnection = nullptr;
 
   if (_factory) {

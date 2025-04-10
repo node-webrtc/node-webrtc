@@ -6,6 +6,7 @@
 .direnv
 .eslintcache
 .idea
+.lazy.lua
 .travis.yml
 .vim
 .vs

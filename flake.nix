@@ -56,6 +56,22 @@
               )
               + ''
                 EOF
+
+                cat <<EOF > .lazy.lua
+                -- Override the version of clang used for clangd
+                return {
+                  {
+                    "neovim/nvim-lspconfig",
+                    opts = {
+                      servers = {
+                        clangd = {
+                          cmd = { "clangd", "--query-driver=${clang}/bin/clang++" },
+                        },
+                      },
+                    },
+                  },
+                }
+                EOF
               '';
           };
       }

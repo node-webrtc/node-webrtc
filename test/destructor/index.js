@@ -63,7 +63,6 @@ test("RTCPeerConnection's destructor fires", async (t) => {
   t.end();
 });
 
-// Hangs
 test("Destructors fire in RTCDataChannel use-case", async (t) => {
   const { destructor, stop } = trackDestructors();
 
@@ -93,8 +92,6 @@ test("Destructors fire in RTCDataChannel use-case", async (t) => {
   t.end();
 });
 
-// Error: Failed to set ICE candidate; RTCPeerConnection is closed.
-// Error: BUGBUG: Task queue scheduled delayed call too early.
 test("Destructors fire in MediaStreamTrack use-case", async (t) => {
   const { destructor, stop } = trackDestructors();
 

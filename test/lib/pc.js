@@ -12,21 +12,22 @@ function createRTCPeerConnections(
     ...options,
   };
   const pc1 = new RTCPeerConnection(configuration1);
+  const pc2 = new RTCPeerConnection(configuration2);
   try {
-    const pc2 = new RTCPeerConnection(configuration2);
+    const icePromises = [];
     if (options.handleIce) {
       [
         [pc1, pc2],
         [pc2, pc1],
       ].forEach(([pcA, pcB]) => {
         pcA.addEventListener("icecandidate", ({ candidate }) => {
-          if (candidate) {
-            pcB.addIceCandidate(candidate);
+          if (candidate && pcB.connectionState !== "closed") {
+            icePromises.push(pcB.addIceCandidate(candidate));
           }
         });
       });
     }
-    return [pc1, pc2];
+    return [pc1, pc2, icePromises];
   } catch (error) {
     pc1.close();
     throw error;
@@ -66,7 +67,7 @@ async function negotiateRTCPeerConnections(options = {}) {
     },
     options,
   );
-  const [pc1, pc2] = createRTCPeerConnections(
+  const [pc1, pc2, icePromises] = createRTCPeerConnections(
     Object.assign({}, options.configuration, options.pc1Configuration),
     Object.assign({}, options.configuration, options.pc2Configuration),
   );
@@ -74,6 +75,7 @@ async function negotiateRTCPeerConnections(options = {}) {
     options.withPc1(pc1);
     options.withPc2(pc2);
     await negotiate(pc1, pc2);
+    await Promise.all(icePromises);
     return [pc1, pc2];
   } catch (error) {
     pc1.close();

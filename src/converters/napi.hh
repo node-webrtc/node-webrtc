@@ -126,7 +126,6 @@ template <typename T> struct Converter<Napi::Array, std::vector<T>> {
 
 template <typename T> struct Converter<Napi::Value, std::vector<T>> {
   static Validation<std::vector<T>> Convert(const Napi::Value value) {
-    std::cout << "Doing Napi::Value -> vector conversion\n";
     return Converter<Napi::Value, Napi::Array>::Convert(value)
         .FlatMap<std::vector<T>>(
             Converter<Napi::Array, std::vector<T>>::Convert);
@@ -137,42 +136,28 @@ template <typename T>
 struct Converter<std::pair<Napi::Env, std::vector<T>>, Napi::Value> {
   static Validation<Napi::Value>
   Convert(std::pair<Napi::Env, std::vector<T>> pair) {
-    std::cout << "Doing vector -> Napi::Value conversion\n";
     auto env = pair.first;
     Napi::EscapableHandleScope scope(env);
     auto values = pair.second;
     auto maybeArray = Napi::Array::New(env, values.size());
-    std::cout << "Doing vector -> Napi::Value conversion check 1\n";
     if (maybeArray.Env().IsExceptionPending()) {
-      std::cout << "Vector conversion: bad 1\n";
       return Validation<Napi::Value>::Invalid(
           maybeArray.Env().GetAndClearPendingException().Message());
     }
-    std::cout << "Doing vector -> Napi::Value conversion check 2\n";
     uint32_t i = 0;
     for (const auto &value : values) {
       auto maybeValue = From<Napi::Value>(std::make_pair(env, value));
-      std::cout << "Doing vector -> Napi::Value conversion check 3\n";
-      std::cout << "Doing vector -> Napi::Value conversion check 3.1\n";
       if (maybeValue.IsInvalid()) {
-        std::cout << "Vector conversion: bad 2\n";
         return Validation<Napi::Value>::Invalid(maybeValue.ToErrors());
       }
-      std::cout << "Doing vector -> Napi::Value conversion check 3.2\n";
       Napi::Value realValue = maybeValue.UnsafeFromValid();
-      std::cout
-          << "Doing vector -> Napi::Value conversion check 3.3: IsEmpty(): "
-          << realValue.IsEmpty() << "\n";
       maybeArray.Set(i++, realValue);
-      std::cout << "Doing vector -> Napi::Value conversion check 4\n";
       if (maybeArray.Env().IsExceptionPending()) {
-        std::cout << "Vector conversion: bad 3\n";
         return Validation<Napi::Value>::Invalid(
             maybeArray.Env().GetAndClearPendingException().Message());
       }
     }
 
-    std::cout << "Doing vector -> Napi::Value conversion check 5\n";
     return Pure(scope.Escape(maybeArray));
   }
 };
