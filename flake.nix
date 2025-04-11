@@ -20,8 +20,13 @@
         devShells.default =
           let
             apple-sdk = if is-darwin then pkgs.apple-sdk_12 else null;
-            clang = pkgs.llvmPackages_14.clang;
-            clang-tools = pkgs.llvmPackages_14.clang-tools;
+            llvm = pkgs.llvmPackages_14;
+            clang = llvm.clang.overrideAttrs {
+              apple-sdk = apple-sdk;
+            };
+            clang-tools = llvm.clang-tools.overrideAttrs {
+              apple-sdk = apple-sdk;
+            };
           in
           pkgs.mkShell {
             nativeBuildInputs =
@@ -30,6 +35,7 @@
                 ninja
                 nodejs_20
                 pkg-config
+                xcbuild
                 zlib
               ])
               ++ [

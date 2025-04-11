@@ -10,7 +10,7 @@ macro(assign_bool var)
   endif()
 endmacro()
 
-assign_bool(use_custom_libcxx ${APPLE})
+set(use_custom_libcxx ON)
 assign_bool(is_arm32 "y$ENV{TARGET_ARCH}" STREQUAL "yarm")
 assign_bool(is_arm64 "y$ENV{TARGET_ARCH}" STREQUAL "yarm64")
 
@@ -406,11 +406,11 @@ else()
       ${libc++abi_include_dir}
     )
 
-  # NOTE(mroberts): On Arm Linux and macOS, we statically link the same libc++ and
-    # libc++abi libraries that libwebrtc builds against.
+    # We statically link the same libc++ and libc++abi libraries that libwebrtc builds against.
     target_link_libraries(${MODULE} PRIVATE
       libc++
       libc++abi
+      -nostdlib++ # Requires clang, but that's OK, we have nix :)
     )
 
     target_compile_options(${MODULE} PRIVATE
