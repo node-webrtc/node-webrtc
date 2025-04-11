@@ -27,7 +27,6 @@
 #include "src/methods/get_display_media.hh"
 #include "src/methods/get_user_media.hh"
 #include "src/methods/i420_helpers.hh"
-#include "src/node/async_context_releaser.hh"
 #include "src/node/error_factory.hh"
 
 #ifdef DEBUG
