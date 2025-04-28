@@ -6,7 +6,7 @@
     "p2p",
     "peer"
   ],
-  "version": "0.8.0",
+  "version": "0.9.0",
   "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
   "homepage": "https://github.com/WonderInventions/node-webrtc",
   "bugs": "https://github.com/WonderInventions/node-webrtc/issues",

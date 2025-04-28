@@ -1,72 +1,59 @@
-0.9.0
-=====
+# 0.9.0
 
-New Features
-------------
+## New Features
 
 - Added support for RTCRtpTransceiverDirection "stopped".
   (<https://github.com/node-webrtc/node-webrtc/pull/672>)
+- More standards-compliance for `addIceCandidate`; now, all the different
+  "empty candidate" options are accepted as an "end-of-candidates" signal.
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Fixed too-early GCs (<https://github.com/node-webrtc/node-webrtc/pull/667>)
 
-0.8.0
-======
+  # 0.8.0
 
-New Features
-------------
+## New Features
 
 - Update libwebrtc to M98!
 - Compile linux-x64 with GCC 10 in order to support stabler Linux distributions
   like Amazon Linux 2023.
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Changed binary path resolution to make things more consistent on environments
   that don't automatically resolve `node_modules`, like Amazon Linux 2023.
 
-0.7.3
-=====
+  # 0.7.3
 
-Bug Fixes
----------
+## Bug Fixes
 
 - `ondata` audio problems should be fixed
-    (<https://github.com/WonderInventions/node-webrtc/issues/2>)
+  (<https://github.com/WonderInventions/node-webrtc/issues/2>)
 
-0.7.2
-=====
+  # 0.7.2
 
 Added `linux-arm64` prebuilt binary, built & unit-tested all x64 binaries on
 Node 20.
 
-0.7.0
-=====
+# 0.7.0
 
-New Features
-------------
+## New Features
 
 - Update to libwebrtc M94! This brings some quality improvements over M87's
   encoders and other network capabilities.
 
-Breaking Changes
-----------------
+## Breaking Changes
 
 - Remove `legacyGetStats` API from `RTCPeerConnection`.
 
-Bug Fixes
----------
+## Bug Fixes
 
 - `RTCIceTransport.getGatheringState()` no longer always returns `"complete"`.
 
-0.6.0
-=====
+  # 0.6.0
 
-New Features
-------------
+## New Features
 
 - `RTCPeerConnection.getStats()` can now take in a `MediaStreamTrack` as a
   selector, updating that API to the latest WebRTC standard.
@@ -74,60 +61,49 @@ New Features
   inaccurately, unfortunately) polyfill for WebRTC types included with the
   standard, and also define the `nonstandard` types.
 
-0.5.1
-=====
+  # 0.5.1
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Take care of case where `RTCPeerConnection` is closed while `OnTrack` events
   are still pending.
 
-0.5.0
-=====
+  # 0.5.0
 
-New Features
-------------
+## New Features
 
 - Support Node 18, with updated build system
 - Newer prebuilt binary system not dependent on node-pre-gyp
 
-0.4.6
-=====
+  # 0.4.6
 
-New Features
-------------
+## New Features
 
 - Added `target` property to RTCPeerConnection events (thanks, @CharlesRA).
 - Support for additional APIs in `lib/browser.js` (thanks, @piranna).
 - Added a naïve version of `getDeviceMedia` that delegates to `getUserMedia`
   (thanks, @piranna).
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Although Node 14 support was confirmed in v0.4.5, it was not included in the
   "engines" property of package.json (thanks, @farnabaz).
 - Potential fix for a crash mentioned in #637 (thanks, @thedracle).
 
-0.4.5
-=====
+  # 0.4.5
 
-New Features
-------------
+## New Features
 
 - Updated to WebRTC M81.
 - Added support for Node 14.
 - Added rollback support.
 
-Bug Fixes
----------
+## Bug Fixes
 
 - RTCPeerConnection no longer raises "icegatheringstatechange" when the
   RTCPeerConnection is closed. Thanks, @arlolra. (#625)
 
-Breaking Changes
-----------------
+## Breaking Changes
 
 - With the update from M79 to M81, the `dtx`, `ptime`, and `codecPayloadType`
   parameters to RTCRtpEncodingParameters no longer take affect. They've also
@@ -136,33 +112,28 @@ Breaking Changes
   library are depending on the removed functionality, and I prefer not to
   increment the version number at this time.
 
-0.4.4
-=====
+  # 0.4.4
 
-New Features
-------------
+## New Features
 
 - `addTrack` now supports multiple MediaStream arguments (#548). Additionally,
   MediaStreams can now be constructed with arbitrary IDs. For more information,
   see below. Thanks, @csheely and @sgodin.
 - `setStreams` now supports multiple MediaStream arguments.
 
-MediaStream
------------
+## MediaStream
 
 MediaStreams in node-webrtc can be constructed with arbitrary IDs. For example,
 the following MediaStream, `stream`, has its ID set to "foo".
 
 ```js
-const stream = new MediaStream({ id: 'foo' });
-stream.id === 'foo';  // true
+const stream = new MediaStream({ id: "foo" });
+stream.id === "foo"; // true
 ```
 
-0.4.3
-=====
+# 0.4.3
 
-New Features
-------------
+## New Features
 
 - Updated to WebRTC M79.
 - Added support for Node 13.
@@ -186,8 +157,7 @@ New Features
 - Added support for `sendEncodings` to RTCRtpTransceiverInit.
 - Added support for `setCodecPreferences` to RTCRtpTransceiver.
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Fixed a bug where VideoFrame timestamps reported via RTCP were incorrect
   (#566). Thanks, @lonocvb.
@@ -195,32 +165,26 @@ Bug Fixes
   @taylorhoward92.
 - Fixed bugs related to N-API usage in recent version of Node 12 and 13.
 
-0.4.2
-=====
+  # 0.4.2
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Fix image stride issue at certain resolutions. (#536)
 
-0.4.1
-=====
+  # 0.4.1
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Fix memory leak when receiving strings over RTCDataChannel. (#528)
 
-0.4.0
-=====
+  # 0.4.0
 
 node-webrtc is now implemented using N-API, which is ABI stable across Node
 releases. This means we can now ship fewer binaries while supporting a
 potentially greater number of Node releases. As of 0.4.0, node-webrtc targets
 N-API version 3.
 
-New Features
-------------
+## New Features
 
 - Updated to WebRTC M74.
 - Added support for Node 12.
@@ -229,13 +193,11 @@ New Features
 - Added initial RTCSctpTransport support (see below).
 - Expanded RTCIceCandidate support (see below).
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Avoid crashing when `createDataChannel` fails. (#508)
 
-Breaking Changes
-----------------
+## Breaking Changes
 
 - Dropped support for Node 6.
 - Installing from NPM only downloads pre-built binaries. If you wish to build
@@ -244,8 +206,7 @@ Breaking Changes
   RTCConfiguration property or the `SDP_SEMANTICS` environment variable to
   "plan-b".
 
-RTCIceTransport
----------------
+## RTCIceTransport
 
 RTCDtlsTransport now exposes RTCIceTransport under the `iceTransport` property.
 
@@ -261,8 +222,7 @@ The following events are supported:
 - "statechange"
 - "gatheringstatechange"
 
-RTCSctpTransport
-----------------
+## RTCSctpTransport
 
 RTCPeerConnection now exposes RTCSctpTransport under the `sctp` property.
 
@@ -278,8 +238,7 @@ The following attributes are partially supported:
 
 The "statechange" event is also supported.
 
-RTCIceCandidate
----------------
+## RTCIceCandidate
 
 RTCIceCandidates now include the following attributes:
 
@@ -295,11 +254,9 @@ RTCIceCandidates now include the following attributes:
 - `relatedPort`
 - `usernameFragment`
 
-0.3.7
-=====
+  # 0.3.7
 
-New Features
-------------
+## New Features
 
 ### RTCDtlsTransport
 
@@ -313,16 +270,13 @@ supports the `state` property, the "statechange" event, and the "error" event.
 - Added `maxPacketLifeTime` getter to RTCDataChannel (#492).
 - Added `negotiated` getter to RTCDataChannel.
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Fixed `addIceCandidate` queueing behavior (#498).
 
-0.3.6
-=====
+  # 0.3.6
 
-New Features
-------------
+## New Features
 
 ### Programmatic Audio
 
@@ -330,10 +284,10 @@ This release of node-webrtc adds non-standard, programmatic audio APIs in the
 form of RTCAudioSource and RTCAudioSink. These APIs are similar to the
 previously added RTCVideoSource and RTCVideoSink APIs. With these APIs, you can
 
-* Pass audio samples to RTCAudioSource via the `onData` method. Then use the
+- Pass audio samples to RTCAudioSource via the `onData` method. Then use the
   RTCAudioSource's `createTrack` method to create a local audio
   MediaStreamTrack.
-* Construct an RTCAudioSink from a local or remote audio MediaStreamTrack. The
+- Construct an RTCAudioSink from a local or remote audio MediaStreamTrack. The
   RTCAudioSink will emit a "data" event every time audio samples are received.
   When you're finished, stop the RTCAudioSink by calling `stop`.
 
@@ -341,18 +295,18 @@ Because these APIs are non-standard, they are exposed via a `nonstandard`
 property on node-webrtc's exports object. For example,
 
 ```js
-const { RTCAudioSource, RTCAudioSink } = require('wrtc').nonstandard;
+const { RTCAudioSource, RTCAudioSink } = require("wrtc").nonstandard;
 
 const source = new RTCAudioSource();
 const track = source.createTrack();
 const sink = new RTCAudioSink(track);
 
 const sampleRate = 8000;
-const samples = new Int16Array(sampleRate / 100);  // 10 ms of 16-bit mono audio
+const samples = new Int16Array(sampleRate / 100); // 10 ms of 16-bit mono audio
 
 const data = {
   samples,
-  sampleRate
+  sampleRate,
 };
 
 const interval = setInterval(() => {
@@ -360,7 +314,7 @@ const interval = setInterval(() => {
   source.onData(data);
 });
 
-sink.ondata = data => {
+sink.ondata = (data) => {
   // Do something with the received audio samples.
 };
 
@@ -389,11 +343,11 @@ dictionary RTCAudioData {
 };
 ```
 
-* Calling `createTrack` will return a local audio MediaStreamTrack whose source
+- Calling `createTrack` will return a local audio MediaStreamTrack whose source
   is the RTCAudioSource.
-* Calling `onData` with RTCAudioData pushes a new audio samples to every
+- Calling `onData` with RTCAudioData pushes a new audio samples to every
   non-stopped local audio MediaStreamTrack created with `createTrack`.
-* RTCAudioData should represent 10 ms worth of 16-bit audio samples.
+- RTCAudioData should represent 10 ms worth of 16-bit audio samples.
 
 #### RTCAudioSink
 
@@ -406,12 +360,12 @@ interface RTCAudioSink {
 };
 ```
 
-* RTCAudioSink's constructor accepts a local or remote audio MediaStreamTrack.
-* As long as neither the RTCAudioSink nor the RTCAudioSink's MediaStreamTrack
+- RTCAudioSink's constructor accepts a local or remote audio MediaStreamTrack.
+- As long as neither the RTCAudioSink nor the RTCAudioSink's MediaStreamTrack
   are stopped, the RTCAudioSink will raise a "data" event any time RTCAudioData
   is received.
-* The "data" event has all the properties of RTCAudioData.
-* RTCAudioSink must be stopped by calling `stop`.
+- The "data" event has all the properties of RTCAudioData.
+- RTCAudioSink must be stopped by calling `stop`.
 
 ### RTCVideoFrame `rotation`
 
@@ -423,21 +377,19 @@ values are 0, 90, 180, and 270.
 
 EventListener instances now support [`handleEvent`](https://developer.mozilla.org/en-US/docs/Web/API/EventListener/handleEvent).
 
-0.3.5
-=====
+# 0.3.5
 
-New Features
-------------
+## New Features
 
 ### Programmatic Video
 
 This release of node-webrtc adds non-standard, programmatic video APIs in the
 form of RTCVideoSource and RTCVideoSink. With these APIs, you can
 
-* Pass [I420](https://wiki.videolan.org/YUV/#I420) frames to RTCVideoSource via
+- Pass [I420](https://wiki.videolan.org/YUV/#I420) frames to RTCVideoSource via
   the `onFrame` method. Then use RTCVideoSource's `createTrack` method to create
   a local video MediaStreamTrack.
-* Construct an RTCVideoSink from a local or remote video MediaStreamTrack. The
+- Construct an RTCVideoSink from a local or remote video MediaStreamTrack. The
   RTCVideoSink will emit a "frame" event every time an I420 frame is received.
   When you're finished, stop the RTCVideoSink by calling `stop`.
 
@@ -445,7 +397,7 @@ Because these APIs are non-standard, they are exposed via a `nonstandard`
 property on node-webrtc's exports object. For example,
 
 ```js
-const { RTCVideoSource, RTCVideoSink } = require('wrtc').nonstandard;
+const { RTCVideoSource, RTCVideoSink } = require("wrtc").nonstandard;
 
 const source = new RTCVideoSource();
 const track = source.createTrack();
@@ -499,11 +451,11 @@ dictionary RTCVideoFrame {
 };
 ```
 
-* Calling `createTrack` will return a local video MediaStreamTrack whose source
+- Calling `createTrack` will return a local video MediaStreamTrack whose source
   is the RTCVideoSource.
-* Calling `onFrame` with an RTCVideoFrame pushes a new video frame to every
+- Calling `onFrame` with an RTCVideoFrame pushes a new video frame to every
   non-stopped local video MediaStreamTrack created with `createTrack`.
-* An RTCVideoFrame represents an I420 frame.
+- An RTCVideoFrame represents an I420 frame.
 
 #### RTCVideoSink
 
@@ -516,12 +468,12 @@ interface RTCVideoSink {
 };
 ```
 
-* RTCVideoSink's constructor accepts a local or remote video MediaStreamTrack.
-* As long as neither the RTCVideoSink nor the RTCVideoSink's MediaStreamTrack
+- RTCVideoSink's constructor accepts a local or remote video MediaStreamTrack.
+- As long as neither the RTCVideoSink nor the RTCVideoSink's MediaStreamTrack
   are stopped, the RTCVideoSink will raise a "frame" event any time an
   RTCVideoFrame is received.
-* The "frame" event has a property, `frame`, of type RTCVideoFrame.
-* RTCVideoSink must be stopped by calling `stop`.
+- The "frame" event has a property, `frame`, of type RTCVideoFrame.
+- RTCVideoSink must be stopped by calling `stop`.
 
 #### `i420ToRgba` and `rgbaToI420`
 
@@ -531,7 +483,7 @@ and RGBA frames. WebRTC expects I420, whereas APIs like the
 RGBA, so these functions are useful for converting between. For example,
 
 ```js
-const { i420ToRgba, rgbaToI420 } = require('wrtc').nonstandard;
+const { i420ToRgba, rgbaToI420 } = require("wrtc").nonstandard;
 
 const width = 640;
 const height = 480;
@@ -548,30 +500,25 @@ rgbaToI420(rgbaFrame, i420Frame);
 
 - Added support for setting MediaStreamTrack's `enabled` property (#475).
 
-0.3.4
-=====
+  # 0.3.4
 
-New Features
-------------
+## New Features
 
 - Updated to WebRTC M71.
 - Relay remote audio MediaStreamTracks on Windows (0.1.5 initially introduced
   this feature for Linux and macOS; now, Windows supports it, too).
 - Added support for [pkg](https://github.com/zeit/pkg) (#404).
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Calling certain methods, like `addTrack`, `removeTrack`, etc., with objects
   that were not instances of MediaStreamTrack, RTCRtpSender, etc., could lead to
   segfaults. This was because we did not properly validate objects before
   attempting to unwrap them. (#448)
 
-0.3.3
-=====
+  # 0.3.3
 
-New Features
-------------
+## New Features
 
 - Experimental support for armv7l and arm64. Binaries built for these
   architectures have been tested with QEMU but not on real devices. Please test
@@ -591,23 +538,19 @@ New Features
   DEBUG=true npm install
   ```
 
-0.3.2
-=====
+  # 0.3.2
 
-New Features
-------------
+## New Features
 
 - Support for Node 11 on Windows.
 
-0.3.1
-=====
+  # 0.3.1
 
 This release adds a number of new features and brings us closer to
 spec-compliance, thanks to the tests at
 [web-platform-tests/wpt](http://github.com/web-platform-tests/wpt).
 
-New Features
-------------
+## New Features
 
 ### `getUserMedia`
 
@@ -618,13 +561,13 @@ media will be transmitted. You can confirm by checking `bytesSent` and
 `bytesReceived` in `getStats`.
 
 ```js
-const { getUserMedia } = require('wrtc');
+const { getUserMedia } = require("wrtc");
 
 getUserMedia({
   audio: true,
-  video: true
-}).then(stream => {
-  stream.getTracks().forEach(track => stop());
+  video: true,
+}).then((stream) => {
+  stream.getTracks().forEach((track) => stop());
 });
 ```
 
@@ -641,34 +584,32 @@ RTCRtpReceiver-level `getStats` APIs are implemented at this time.
 
 ```js
 // Legacy API
-pc.getStats(
-  response => { /* ... */ },
-  console.error
-);
+pc.getStats((response) => {
+  /* ... */
+}, console.error);
 
 // Standards-compliant API
-pc.getStats().then(
-  report => { /* ... */ },
-  console.error
-);
+pc.getStats().then((report) => {
+  /* ... */
+}, console.error);
 ```
 
 ### Unified Plan and `sdpSemantics`
 
 This release adds support for RTCRtpTransceivers and Unified Plan SDP via
 
-* A non-standard RTCConfiguration option, `sdpSemantics`, and
-* An environment variable, `SDP_SEMANTICS`.
+- A non-standard RTCConfiguration option, `sdpSemantics`, and
+- An environment variable, `SDP_SEMANTICS`.
 
 Construct an RTCPeerConnection with `sdpSemantics` set to "unified-plan" or
 launch your application with `SDP_SEMANTICS=unified-plan` to enable
 RTCRtpTransceiver support; otherwise, "plan-b" is the default.
 
 ```js
-const { RTCPeerConnection } = require('wrtc');
+const { RTCPeerConnection } = require("wrtc");
 
 const pc = new RTCPeerConnection({
-  sdpSemantics: 'unified-plan'  // default is "plan-b"
+  sdpSemantics: "unified-plan", // default is "plan-b"
 });
 ```
 
@@ -708,20 +649,20 @@ only the following RTCRtpTransceiverInit dictionary members are supported
 - `streams`
 
 ```js
-const assert = require('assert');
-const { MediaStream, RTCPeerConnection, RTCRtpTransceiver } = require('wrtc');
+const assert = require("assert");
+const { MediaStream, RTCPeerConnection, RTCRtpTransceiver } = require("wrtc");
 
 const pc = new RTCPeerConnection({
-  sdpSemantics: 'unified-plan'
+  sdpSemantics: "unified-plan",
 });
 
-const t1 = pc.addTransceiver('audio', {
-  direction: 'recvonly'
+const t1 = pc.addTransceiver("audio", {
+  direction: "recvonly",
 });
 
 const t2 = pc.addTransceiver(t1.receiver.track, {
-  direction: 'sendonly',
-  streams: [new MediaStream()]
+  direction: "sendonly",
+  streams: [new MediaStream()],
 });
 ```
 
@@ -735,8 +676,7 @@ Added limited support for the `muted` property (it always returns `false`).
   [domexception](https://github.com/jsdom/domexception) to construct those
   DOMExceptions, if installed.
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Calling `addTrack` twice with the same MediaStreamTrack should throw an
   InvalidAccessError (#442).
@@ -744,11 +684,9 @@ Bug Fixes
 - MediaStream's `clone` method did not `clone` MediaStreamTracks.
 - MediaStreamTrack's `readyState` was not updated when `stop` was called.
 
-0.3.0
-=====
+  # 0.3.0
 
-New Features
-------------
+## New Features
 
 - Support for Node 11. Binaries are available for Linux and macOS. Windows
   binaries will become available in a subsequent release once AppVeyor gains
@@ -757,67 +695,54 @@ New Features
   [mayeut/libwebrtc](https://github.com/mayeut/libwebrtc); instead, WebRTC is
   built from source.
 
-Breaking Changes
-----------------
+## Breaking Changes
 
 - Dropped support for Node 9
 - Minimum CMake version bumped to 3.12
 - Minimum GCC version bumped to 5.4
 - Minimum Microsoft Visual Studio version bumped to 2017
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Updating to WebRTC M70 fixes an RTCDataChannel-related interop bug with recent
   Firefox releases (#444).
 
-0.2.2
-=====
+  # 0.2.2
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Destroy AudioDeviceModule on the worker thread.
 
-0.2.1
-=====
+  # 0.2.1
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Fixed an AudioDeviceModule memory and thread leak (#429).
 - Fixed an issue where closing an RTCPeerConnection would raise "open" events on
   any RTCDataChannels whose `readyState` was "connecting" (#436).
 
-0.2.0
-=====
+  # 0.2.0
 
-Breaking Changes
-----------------
+## Breaking Changes
 
 - Dropped support for Node 4, 5 and 7 (#408).
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Fixed a race when closing an RTCDataChannel (#358).
 - Fixed memory leaks in `createOffer`, `createAnswer`, `addIceCandidate`, and
   `getStats` (#425).
 
-0.1.6
-=====
+  # 0.1.6
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Fixed an issue with receiving multiple ArrayBuffers over an RTCDataChannel
   that could cause invalid memory accesses (#406).
 
-0.1.5
-=====
+  # 0.1.5
 
-New Features
-------------
+## New Features
 
 - This release allows relaying remote MediaStreamTracks. This can be useful for
   test applications. **Note:** currently, Windows cannot relay audio
@@ -830,7 +755,7 @@ excluding the "addtrack" and "removetrack" events. You can construct
 MediaStreams as follows:
 
 ```js
-const { MediaStream } = require('wrtc');
+const { MediaStream } = require("wrtc");
 
 const stream1 = new MediaStream();
 const stream2 = new MediaStream(stream1);
@@ -895,11 +820,9 @@ and the following attributes
 - `transport` (always returns `null` for now)
 - `rtcpTransport` (always returns `null` for now)
 
-0.1.4
-=====
+  # 0.1.4
 
-New Features
-------------
+## New Features
 
 - Added support for Node 10 (#402)
 
@@ -938,30 +861,24 @@ attributes
 - `kind`
 - `readyState`
 
-0.1.3
-=====
+  # 0.1.3
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Fixed memory leaks related to RTCPeerConnection events.
 
-0.1.2
-=====
+  # 0.1.2
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Fixed memory leaks related to sending and receiving messages over
   RTCDataChannels (#205, #304, #319). There are some less severe leaks related
   to RTCPeerConnection events that remain. These will be addressed in a future
   release.
 
-0.1.1
-=====
+  # 0.1.1
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Calling `createDataChannel` on a closed RTCPeerConnection no longer returns
   `undefined`; instead, it raises an InvalidStateError (#314, #382).
@@ -971,14 +888,12 @@ Bug Fixes
   Linux (for example, up to 3000 in my tests, not exceeding thread limits).
   (#362)
 
-0.1.0
-=====
+  # 0.1.0
 
 This project will begin to follow [SemVer](https://semver.org) in preparation
 for a 1.0.0 release.
 
-New Features
-------------
+## New Features
 
 Besides updating to WebRTC M60 (using
 [mayeut/libwebrtc](https://github.com/mayeut/libwebrtc)), this release adds a
@@ -990,24 +905,24 @@ still have a ways to go, but we're now testing against
 
 RTCPeerConnection's constructor now accepts the following standard properties:
 
-* `bundlePolicy`
-* `iceCandidatePoolSize`
-* `iceServers` (no support for OAuth yet)
-* `iceTransportPolicy`
-* `rtcpMuxPolicy`
+- `bundlePolicy`
+- `iceCandidatePoolSize`
+- `iceServers` (no support for OAuth yet)
+- `iceTransportPolicy`
+- `rtcpMuxPolicy`
 
 RTCConfiguration also accepts a non-standard property, `portRange`. This
 property constrains the port range used by the RTCPeerConnection's ICE
 transports. For example,
 
 ```js
-const { RTCPeerConnection } = require('wrtc');
+const { RTCPeerConnection } = require("wrtc");
 
 const pc = new RTCPeerConnection({
   portRange: {
     min: 10000, // defaults to 0
-    max: 20000  // defaults to 65535
-  }
+    max: 20000, // defaults to 65535
+  },
 });
 ```
 
@@ -1015,22 +930,22 @@ const pc = new RTCPeerConnection({
 
 RTCPeerConnection now supports two new methods:
 
-* `getConfiguration`
-* `setConfiguration`
+- `getConfiguration`
+- `setConfiguration`
 
 RTCPeerConnection now supports the following properties:
 
-* `canTrickleIceCandidates` (always returns `null` for now)
-* `connectionState` (derived from `iceConnectionState`)
-* `currentLocalDescription`
-* `currentRemoteDescription`
-* `pendingLocalDescription`
-* `pendingRemoteDescription`
+- `canTrickleIceCandidates` (always returns `null` for now)
+- `connectionState` (derived from `iceConnectionState`)
+- `currentLocalDescription`
+- `currentRemoteDescription`
+- `pendingLocalDescription`
+- `pendingRemoteDescription`
 
 RTCPeerConnection now supports the following events:
 
-* "connectionstatechange"
-* "negotiationneeded"
+- "connectionstatechange"
+- "negotiationneeded"
 
 ### RTCOfferOptions and RTCAnswerOptions
 
@@ -1038,9 +953,9 @@ RTCPeerConnection's `createOffer` method now accepts RTCOfferOptions, and
 RTCPeerConnection's `createAnswer` method now accepts RTCAnswerOptions.
 RTCOfferOptions supports
 
-* `iceRestart`
-* `offerToReceiveAudio`
-* `offerToReceiveVideo`
+- `iceRestart`
+- `offerToReceiveAudio`
+- `offerToReceiveVideo`
 
 Both RTCOfferOptions and RTCAnswerOptions support `voiceActivityDetection`.
 
@@ -1048,22 +963,22 @@ Both RTCOfferOptions and RTCAnswerOptions support `voiceActivityDetection`.
 
 RTCPeerConnection's `createDataChannel` method now accepts
 
-* `id`
-* `maxPacketLifeTime`
-* `maxRetransmits`
-* `negotiated`
-* `ordered`
-* `protocol`
+- `id`
+- `maxPacketLifeTime`
+- `maxRetransmits`
+- `negotiated`
+- `ordered`
+- `protocol`
 
 ### RTCDataChannel
 
 RTCDataChannel supports the following properties:
 
-* `id`
-* `maxRetransmits`
-* `ordered`
-* `priority` (always returns "high")
-* `protocol`
+- `id`
+- `maxRetransmits`
+- `ordered`
+- `priority` (always returns "high")
+- `protocol`
 
 RTCDataChannel's `send` method now supports sending Blobs provided by
 [jsdom](https://github.com/jsdom/jsdom); however, there is no support for
@@ -1073,12 +988,11 @@ receiving Blobs.
 
 Added top-level exports for
 
-* RTCDataChannel
-* RTCDataChannelEvent
-* RTCPeerConnectionIceEvent
+- RTCDataChannel
+- RTCDataChannelEvent
+- RTCPeerConnectionIceEvent
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Fixed a failed assertion when closing RTCPeerConnection's or RTCDataChannel's
   event loop (#376).
@@ -1087,8 +1001,7 @@ Bug Fixes
 - Copy StatsReports on the signaling thread. This fixes a thread checker
   assertion raised by debug builds of libwebrtc.
 
-Breaking Changes
-----------------
+## Breaking Changes
 
 - Dropped support for "moz"- and "webkit"-prefixed WebRTC APIs in
   `lib/browser.js`. This means that, when bundling JavaScript that depends on
@@ -1101,11 +1014,9 @@ Breaking Changes
 - Dropped support for the `RTCDataStates` and `BinaryTypes` properties on the
   RTCDataChannel prototype. This, too, was an implementation detail.
 
-0.0.67
-======
+  # 0.0.67
 
-Bug Fixes
----------
+## Bug Fixes
 
 - ObjectWrap instances accessed in an event loop (like PeerConnection and
   DataChannel) were getting freed before the event loop completed, which caused
@@ -1115,26 +1026,21 @@ Bug Fixes
   PeerConnectionFactory was freed, accessing the underlying DataChannelInterface
   would try to use Threads which had been freed.
 
-0.0.66
-======
+  # 0.0.66
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Fixed a CPU regression introduced in 0.0.63. We now share a single
   PeerConnectionFactoryInterface across PeerConnectionInterfaces, and we now use
   a "dummy" AudioDeviceModule instead of FakeAudioDeviceModule.
 
-0.0.65
-======
+  # 0.0.65
 
-New Features
-------------
+## New Features
 
 - Added support for sending Buffers (#103)
 
-Bug Fixes
----------
+## Bug Fixes
 
 - Sending an ArrayBufferView over an RTCDataChannel did not take into account
   the ArrayBufferView's `offset` or `length` properties. This resulted in
@@ -1143,33 +1049,27 @@ Bug Fixes
 - unzip-stream 0.2.2 breaks compatibility with Node 4 and 5. This release pins
   to unzip-stream 0.2.1.
 
-Breaking Changes
-----------------
+## Breaking Changes
 
 - Building from source requires CMake 3.1 or newer
 
-0.0.64
-======
+  # 0.0.64
 
-Bug Fixes
----------
+## Bug Fixes
 
 - We no longer `Externalize` ArrayBuffers. This fixes an error when sending
   ArrayBuffers mutliple times (#262 and #264) and a memory leak (#304).
 - Fixed RTCDataChannel-related segfaults by checking for `nullptr` (#236 and
   #325)
 
-0.0.63
-======
+  # 0.0.63
 
-New Features
-------------
+## New Features
 
 - Support for Node 9
 - Updated to WebRTC M57 (using [libwebrtc](https://github.com/aisouard/libwebrtc))
 
-Breaking Changes
-----------------
+## Breaking Changes
 
 - Minimum Mac OS X version bumped to 10.9
 - Minimum Microsoft Visual Studio version bumped to 2015
