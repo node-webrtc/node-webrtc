@@ -49,7 +49,7 @@ test("getConfiguration", function (t) {
     ["iceTransportPolicy", "relay"],
     ["bundlePolicy", "max-bundle"],
     ["rtcpMuxPolicy", "negotiate"],
-    ["iceCandidatePoolSize", 255],
+    ["iceCandidatePoolSize", 100], // NOTE(jack): too large values will cause faults on darwin-arm64 due to fd exhaustion; select() can only use fds under 1024, and libwebrtc is not optimized to conserve those.
     ["portRange", { min: 1, max: 2 }],
   ].forEach(function (pair) {
     t.test("after setting " + pair[0], function (t) {

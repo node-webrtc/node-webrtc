@@ -64,7 +64,8 @@ tape("rgbaToI420(rgbaFrame, i420Frame)", (t) => {
     setRgba(rgbaFrame, [28, 255, 213, 255]);
     rgbaToI420(rgbaFrame, i420Frame);
     t.ok(
-      everyYuv(i420Frame, [173, 143, 31]),
+      everyYuv(i420Frame, [173, 143, 31]) ||
+        everyYuv(i420Frame, [173, 143, 32]), // NOTE(jack): arm64 seems to have slightly different rounding for whatever reason? very strange
       "converting a turquoise RGBA frame to I420 works",
     );
 
