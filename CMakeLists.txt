@@ -10,7 +10,7 @@ macro(assign_bool var)
   endif()
 endmacro()
 
-set(use_custom_libcxx ON)
+assign_bool(use_custom_libcxx NOT WIN32)
 assign_bool(is_arm32 "y$ENV{TARGET_ARCH}" STREQUAL "yarm")
 assign_bool(is_arm64 "y$ENV{TARGET_ARCH}" STREQUAL "yarm64")
 
