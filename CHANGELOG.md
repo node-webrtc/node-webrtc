@@ -11,7 +11,7 @@
 
 - Fixed too-early GCs (<https://github.com/node-webrtc/node-webrtc/pull/667>)
 
-  # 0.8.0
+# 0.8.0
 
 ## New Features
 
@@ -24,14 +24,14 @@
 - Changed binary path resolution to make things more consistent on environments
   that don't automatically resolve `node_modules`, like Amazon Linux 2023.
 
-  # 0.7.3
+# 0.7.3
 
 ## Bug Fixes
 
 - `ondata` audio problems should be fixed
   (<https://github.com/WonderInventions/node-webrtc/issues/2>)
 
-  # 0.7.2
+# 0.7.2
 
 Added `linux-arm64` prebuilt binary, built & unit-tested all x64 binaries on
 Node 20.
@@ -51,7 +51,7 @@ Node 20.
 
 - `RTCIceTransport.getGatheringState()` no longer always returns `"complete"`.
 
-  # 0.6.0
+# 0.6.0
 
 ## New Features
 
@@ -61,7 +61,7 @@ Node 20.
   inaccurately, unfortunately) polyfill for WebRTC types included with the
   standard, and also define the `nonstandard` types.
 
-  # 0.5.1
+# 0.5.1
 
 ## Bug Fixes
 
@@ -75,7 +75,7 @@ Node 20.
 - Support Node 18, with updated build system
 - Newer prebuilt binary system not dependent on node-pre-gyp
 
-  # 0.4.6
+# 0.4.6
 
 ## New Features
 
@@ -90,7 +90,7 @@ Node 20.
   "engines" property of package.json (thanks, @farnabaz).
 - Potential fix for a crash mentioned in #637 (thanks, @thedracle).
 
-  # 0.4.5
+# 0.4.5
 
 ## New Features
 
@@ -112,7 +112,7 @@ Node 20.
   library are depending on the removed functionality, and I prefer not to
   increment the version number at this time.
 
-  # 0.4.4
+# 0.4.4
 
 ## New Features
 
@@ -165,19 +165,19 @@ stream.id === "foo"; // true
   @taylorhoward92.
 - Fixed bugs related to N-API usage in recent version of Node 12 and 13.
 
-  # 0.4.2
+# 0.4.2
 
 ## Bug Fixes
 
 - Fix image stride issue at certain resolutions. (#536)
 
-  # 0.4.1
+# 0.4.1
 
 ## Bug Fixes
 
 - Fix memory leak when receiving strings over RTCDataChannel. (#528)
 
-  # 0.4.0
+# 0.4.0
 
 node-webrtc is now implemented using N-API, which is ABI stable across Node
 releases. This means we can now ship fewer binaries while supporting a
@@ -254,7 +254,7 @@ RTCIceCandidates now include the following attributes:
 - `relatedPort`
 - `usernameFragment`
 
-  # 0.3.7
+# 0.3.7
 
 ## New Features
 
@@ -274,7 +274,7 @@ supports the `state` property, the "statechange" event, and the "error" event.
 
 - Fixed `addIceCandidate` queueing behavior (#498).
 
-  # 0.3.6
+# 0.3.6
 
 ## New Features
 
@@ -500,7 +500,7 @@ rgbaToI420(rgbaFrame, i420Frame);
 
 - Added support for setting MediaStreamTrack's `enabled` property (#475).
 
-  # 0.3.4
+# 0.3.4
 
 ## New Features
 
@@ -516,7 +516,7 @@ rgbaToI420(rgbaFrame, i420Frame);
   segfaults. This was because we did not properly validate objects before
   attempting to unwrap them. (#448)
 
-  # 0.3.3
+# 0.3.3
 
 ## New Features
 
@@ -538,13 +538,13 @@ rgbaToI420(rgbaFrame, i420Frame);
   DEBUG=true npm install
   ```
 
-  # 0.3.2
+# 0.3.2
 
 ## New Features
 
 - Support for Node 11 on Windows.
 
-  # 0.3.1
+# 0.3.1
 
 This release adds a number of new features and brings us closer to
 spec-compliance, thanks to the tests at
@@ -707,13 +707,13 @@ Added limited support for the `muted` property (it always returns `false`).
 - Updating to WebRTC M70 fixes an RTCDataChannel-related interop bug with recent
   Firefox releases (#444).
 
-  # 0.2.2
+# 0.2.2
 
 ## Bug Fixes
 
 - Destroy AudioDeviceModule on the worker thread.
 
-  # 0.2.1
+# 0.2.1
 
 ## Bug Fixes
 
@@ -721,7 +721,7 @@ Added limited support for the `muted` property (it always returns `false`).
 - Fixed an issue where closing an RTCPeerConnection would raise "open" events on
   any RTCDataChannels whose `readyState` was "connecting" (#436).
 
-  # 0.2.0
+# 0.2.0
 
 ## Breaking Changes
 
@@ -733,14 +733,14 @@ Added limited support for the `muted` property (it always returns `false`).
 - Fixed memory leaks in `createOffer`, `createAnswer`, `addIceCandidate`, and
   `getStats` (#425).
 
-  # 0.1.6
+# 0.1.6
 
 ## Bug Fixes
 
 - Fixed an issue with receiving multiple ArrayBuffers over an RTCDataChannel
   that could cause invalid memory accesses (#406).
 
-  # 0.1.5
+# 0.1.5
 
 ## New Features
 
@@ -820,7 +820,7 @@ and the following attributes
 - `transport` (always returns `null` for now)
 - `rtcpTransport` (always returns `null` for now)
 
-  # 0.1.4
+# 0.1.4
 
 ## New Features
 
@@ -861,13 +861,13 @@ attributes
 - `kind`
 - `readyState`
 
-  # 0.1.3
+# 0.1.3
 
 ## Bug Fixes
 
 - Fixed memory leaks related to RTCPeerConnection events.
 
-  # 0.1.2
+# 0.1.2
 
 ## Bug Fixes
 
@@ -876,7 +876,7 @@ attributes
   to RTCPeerConnection events that remain. These will be addressed in a future
   release.
 
-  # 0.1.1
+# 0.1.1
 
 ## Bug Fixes
 
@@ -888,7 +888,7 @@ attributes
   Linux (for example, up to 3000 in my tests, not exceeding thread limits).
   (#362)
 
-  # 0.1.0
+# 0.1.0
 
 This project will begin to follow [SemVer](https://semver.org) in preparation
 for a 1.0.0 release.
@@ -1014,7 +1014,7 @@ Added top-level exports for
 - Dropped support for the `RTCDataStates` and `BinaryTypes` properties on the
   RTCDataChannel prototype. This, too, was an implementation detail.
 
-  # 0.0.67
+# 0.0.67
 
 ## Bug Fixes
 
@@ -1026,7 +1026,7 @@ Added top-level exports for
   PeerConnectionFactory was freed, accessing the underlying DataChannelInterface
   would try to use Threads which had been freed.
 
-  # 0.0.66
+# 0.0.66
 
 ## Bug Fixes
 
@@ -1034,7 +1034,7 @@ Added top-level exports for
   PeerConnectionFactoryInterface across PeerConnectionInterfaces, and we now use
   a "dummy" AudioDeviceModule instead of FakeAudioDeviceModule.
 
-  # 0.0.65
+# 0.0.65
 
 ## New Features
 
@@ -1053,7 +1053,7 @@ Added top-level exports for
 
 - Building from source requires CMake 3.1 or newer
 
-  # 0.0.64
+# 0.0.64
 
 ## Bug Fixes
 
@@ -1062,7 +1062,7 @@ Added top-level exports for
 - Fixed RTCDataChannel-related segfaults by checking for `nullptr` (#236 and
   #325)
 
-  # 0.0.63
+# 0.0.63
 
 ## New Features
 
