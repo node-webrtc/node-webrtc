@@ -11,12 +11,8 @@ let
     (
       let
         apple-sdk = if is-darwin then pkgs.apple-sdk_12 else null;
-        llvm = pkgs.llvmPackages_14;
-        clang = llvm.clang.overrideAttrs {
-          apple-sdk = apple-sdk;
-        };
-        clang-tools = llvm.clang-tools.overrideAttrs {
-          apple-sdk = apple-sdk;
+        llvm = pkgs.llvmPackages_14.override {
+          inherit apple-sdk;
         };
       in
       {
@@ -29,36 +25,27 @@ let
             pkg-config
             zlib
           ])
-          ++ [
+          ++ (with llvm; [
             clang
             clang-tools
-          ]
-          ++ (
-            if is-darwin then
-              [
-                apple-sdk
-                pkgs.xcbuild
-              ]
-            else
-              [ ]
-          );
+            libllvm
+          ])
+          ++ (lib.optionals is-darwin [
+            apple-sdk
+            pkgs.xcbuild
+          ]);
         # Build variables based on documentation from https://github.com/timniederhausen/gn-build/blob/01c96fd9981b111a3a028356284968acd77fa435/README.md
         shellHook =
           ''
             cat <<EOF > nix.gni
             is_clang=true
             use_lld=false
-            clang_base_path="${clang}"
             clang_use_chrome_plugins=false
           ''
-          + (
-            if is-darwin then
-              ''
-                mac_sdk_path="${apple-sdk}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
-              ''
-            else
-              ""
-          )
+          + (lib.optionalString is-darwin ''
+            clang_base_path="${llvm.clang}"
+            mac_sdk_path="${apple-sdk}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+          '')
           + ''
             EOF
 
@@ -70,7 +57,7 @@ let
                 opts = {
                   servers = {
                     clangd = {
-                      cmd = { "clangd", "--query-driver=${clang}/bin/clang++" },
+                      cmd = { "clangd", "--query-driver=${llvm.clang}/bin/clang++" },
                     },
                   },
                 },
@@ -81,23 +68,15 @@ let
       }
     );
 
-  mkShell =
-    pkgs:
-    (
-      let
-        e = env pkgs;
-      in
-      if is-darwin then
-        pkgs.mkShell {
-          inherit (e) nativeBuildInputs shellHook;
-        }
-      else
-        (pkgs.buildFHSEnv.override { inherit (e) stdenv; } {
-          name = "node-webrtc-env";
-          targetPkgs = pkgs: (env pkgs).nativeBuildInputs;
-          # TODO: shellHook somewher
-          runScript = "bash";
-        }).env
-    );
 in
-mkShell pkgs
+if is-darwin then
+  pkgs.mkShell {
+    inherit (env pkgs) nativeBuildInputs shellHook;
+  }
+else
+  (pkgs.buildFHSEnv.override { inherit (env pkgs) stdenv; } {
+    name = "node-webrtc-env";
+    targetPkgs = pkgs: (env pkgs).nativeBuildInputs;
+    profile = (env pkgs).shellHook;
+    runScript = "bash";
+  }).env
