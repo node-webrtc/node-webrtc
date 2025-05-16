@@ -66,6 +66,14 @@ still be able to [build from source](docs/build-from-source.md).
       <td align="center">?</td>
       <td align="center">✓</td>
     </tr>
+    <tr>
+      <th>22</th>
+      <td align="center">✓</td>
+      <td align="center">?</td>
+      <td align="center">✓</td>
+      <td align="center">✓</td>
+      <td align="center">✓</td>
+    </tr>
   </tbody>
 </table>
 
