@@ -13,7 +13,7 @@
   "license": "BSD-2-Clause",
   "repository": {
     "type": "git",
-    "url": "http://github.com/WonderInventions/node-webrtc.git"
+    "url": "git+ssh://git@github.com/WonderInventions/node-webrtc.git"
   },
   "main": "lib/index.js",
   "types": "types/index.d.ts",
