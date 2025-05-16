@@ -2,7 +2,10 @@
   "name": "@roamhq/wrtc-linux-arm64",
   "version": "0.9.0",
   "description": "The Linux 64-bit ARM binary for @roamhq/wrtc.",
-  "repository": "https://github.com/WonderInventions/node-webrtc",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WonderInventions/node-webrtc.git"
+  },
   "license": "BSD-2-Clause",
   "os": [
     "linux"
