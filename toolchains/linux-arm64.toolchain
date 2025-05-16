@@ -1,15 +1,5 @@
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR arm64)
 
-set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
-
-# Find this by running `nix build .#aarch64-linux-clang` and reading what the `result` symlink points to
-# TODO: automate this process somehow
-set(arm_bindir /nix/store/kklqgw9kvc2r2w1vhjnxz7ygq3wrd2c7-aarch64-unknown-linux-gnu-clang-wrapper-14.0.6)
-# These compilers should come with a sysroot built in.
-# If not, set CMAKE_SYSROOT accordingly
-set(CMAKE_C_COMPILER ${arm_bindir}/aarch64-none-linux-gnu-clang)
-set(CMAKE_CXX_COMPILER ${arm_bindir}/aarch64-none-linux-gnu-clang++)
+set(CMAKE_C_COMPILER aarch64-unknown-linux-gnu-clang)
+set(CMAKE_CXX_COMPILER aarch64-unknown-linux-gnu-clang++)

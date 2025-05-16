@@ -161,7 +161,7 @@ list(APPEND GN_GEN_ARGS
   rtc_include_pulse_audio=false
   rtc_include_tests=false
   use_lld=false
-  "target_cpu=\"${TARGET_ARCH}\""
+  "target_cpu=\"$ENV{TARGET_ARCH}\""
   "${NIX_GN_GEN_ARGS}"
 )
 

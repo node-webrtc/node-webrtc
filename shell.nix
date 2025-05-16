@@ -11,12 +11,15 @@ let
     (
       let
         apple-sdk = if is-darwin then pkgs.apple-sdk_12 else null;
-        llvm = pkgs.llvmPackages_14.override {
-          inherit apple-sdk;
-        };
+        llvm =
+          pkgs:
+          pkgs.llvmPackages_14.override {
+            inherit apple-sdk;
+          };
+        clang = (llvm pkgs).clang;
       in
       {
-        stdenv = llvm.stdenv;
+        stdenv = (llvm pkgs).stdenv;
         nativeBuildInputs =
           (with pkgs; [
             cmake
@@ -25,7 +28,7 @@ let
             pkg-config
             zlib
           ])
-          ++ (with llvm; [
+          ++ (with (llvm pkgs); [
             clang
             clang-tools
             libllvm
@@ -33,6 +36,9 @@ let
           ++ (lib.optionals is-darwin [
             apple-sdk
             pkgs.xcbuild
+          ])
+          ++ (lib.optionals (!is-darwin) [
+            (llvm pkgs.pkgsCross.aarch64-multiplatform.buildPackages).clang
           ]);
         # Build variables based on documentation from https://github.com/timniederhausen/gn-build/blob/01c96fd9981b111a3a028356284968acd77fa435/README.md
         shellHook =
@@ -43,7 +49,7 @@ let
             clang_use_chrome_plugins=false
           ''
           + (lib.optionalString is-darwin ''
-            clang_base_path="${llvm.clang}"
+            clang_base_path="${clang}"
             mac_sdk_path="${apple-sdk}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
           '')
           + ''
@@ -57,7 +63,7 @@ let
                 opts = {
                   servers = {
                     clangd = {
-                      cmd = { "clangd", "--query-driver=${llvm.clang}/bin/clang++" },
+                      cmd = { "clangd", "--query-driver=${clang}/bin/clang++" },
                     },
                   },
                 },
