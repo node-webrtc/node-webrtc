@@ -6,8 +6,10 @@ set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
-set(arm_bindir /home/user/node-webrtc/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu/bin) # Change this if necessary
+# Find this by running `nix build .#aarch64-linux-clang` and reading what the `result` symlink points to
+# TODO: automate this process somehow
+set(arm_bindir /nix/store/kklqgw9kvc2r2w1vhjnxz7ygq3wrd2c7-aarch64-unknown-linux-gnu-clang-wrapper-14.0.6)
 # These compilers should come with a sysroot built in.
 # If not, set CMAKE_SYSROOT accordingly
-set(CMAKE_C_COMPILER ${arm_bindir}/aarch64-none-linux-gnu-gcc)
-set(CMAKE_CXX_COMPILER ${arm_bindir}/aarch64-none-linux-gnu-g++)
+set(CMAKE_C_COMPILER ${arm_bindir}/aarch64-none-linux-gnu-clang)
+set(CMAKE_CXX_COMPILER ${arm_bindir}/aarch64-none-linux-gnu-clang++)

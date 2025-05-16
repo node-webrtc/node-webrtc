@@ -19,5 +19,6 @@ nix.gni
 node_modules
 npm-debug.log*
 package-lock.json
+result
 third_party
 yarn.lock

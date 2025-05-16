@@ -16,6 +16,10 @@
       in
       {
         devShells.default = (import ./shell.nix) { inherit pkgs system; };
+
+        packages = {
+          aarch64-linux-clang = pkgs.pkgsCross.aarch64-multiplatform.buildPackages.llvmPackages_14.clang;
+        };
       }
     );
 }
