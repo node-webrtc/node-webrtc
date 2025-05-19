@@ -13,7 +13,7 @@ let
         apple-sdk = if is-darwin then pkgs.apple-sdk_12 else null;
         llvm =
           pkgs:
-          pkgs.llvmPackages_14.override {
+          pkgs.llvmPackages_15.override {
             inherit apple-sdk;
           };
         clang = (llvm pkgs).clang;
@@ -24,7 +24,7 @@ let
           (with pkgs; [
             cmake
             ninja
-            nodejs_20
+            nodejs_22
             pkg-config
             zlib
             # For stripping binaries for release

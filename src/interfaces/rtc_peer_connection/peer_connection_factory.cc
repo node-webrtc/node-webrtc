@@ -98,7 +98,7 @@ PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo &info)
 
   _factory = webrtc::CreatePeerConnectionFactory(
       _workerThread.get(), _workerThread.get(), _signalingThread.get(),
-      _audioDeviceModule.get(), webrtc::CreateBuiltinAudioEncoderFactory(),
+      _audioDeviceModule, webrtc::CreateBuiltinAudioEncoderFactory(),
       webrtc::CreateBuiltinAudioDecoderFactory(),
       webrtc::CreateBuiltinVideoEncoderFactory(),
       webrtc::CreateBuiltinVideoDecoderFactory(), nullptr, nullptr);

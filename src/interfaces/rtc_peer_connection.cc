@@ -383,7 +383,7 @@ Napi::Value RTCPeerConnection::RemoveTrack(const Napi::CallbackInfo &info) {
         .ThrowAsJavaScriptException();
     return env.Undefined();
   }
-  auto error = _jinglePeerConnection->RemoveTrackNew(sender->sender());
+  auto error = _jinglePeerConnection->RemoveTrackOrError(sender->sender());
   if (!error.ok()) {
     CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), &error, result, Napi::Value)
     Napi::Error(info.Env(), result).ThrowAsJavaScriptException();
@@ -416,7 +416,7 @@ Napi::Value RTCPeerConnection::CreateOffer(const Napi::CallbackInfo &info) {
 
   auto observer =
       rtc::make_ref_counted<CreateSessionDescriptionObserver>(this, deferred);
-  _jinglePeerConnection->CreateOffer(observer,
+  _jinglePeerConnection->CreateOffer(observer.get(),
                                      maybeOptions.UnsafeFromValid().options);
 
   return deferred.Promise();
@@ -512,7 +512,8 @@ RTCPeerConnection::SetRemoteDescription(const Napi::CallbackInfo &info) {
 
   auto observer =
       rtc::make_ref_counted<SetSessionDescriptionObserver>(this, deferred);
-  _jinglePeerConnection->SetRemoteDescription(observer, description.release());
+  _jinglePeerConnection->SetRemoteDescription(observer.get(),
+                                              description.release());
 
   return deferred.Promise();
 }
@@ -732,7 +733,7 @@ Napi::Value RTCPeerConnection::GetStats(const Napi::CallbackInfo &info) {
     }
   } else {
     // null selector
-    _jinglePeerConnection->GetStats(callback);
+    _jinglePeerConnection->GetStats(callback.get());
   }
 
   return deferred.Promise();

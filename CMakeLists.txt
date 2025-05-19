@@ -146,12 +146,15 @@ set_target_properties(libc++abi PROPERTIES IMPORTED_OBJECTS_DEBUG "${libc++abi_o
 # libwebrtc
 # -----------------------------------------------------------------------------
 
+# https://chromiumdash.appspot.com/branches
 # M87: branch-heads/4280
 # M91: branch-heads/4472
 # M92: branch-heads/4515
 # M94: branch-heads/4606
 # M98: branch-heads/4758
-set(WEBRTC_REVISION branch-heads/4758)
+# M102: branch-heads/5005
+# M106: branch-heads/5249
+set(WEBRTC_REVISION branch-heads/5249)
 
 file(STRINGS nix.gni NIX_GN_GEN_ARGS)
 list(APPEND GN_GEN_ARGS

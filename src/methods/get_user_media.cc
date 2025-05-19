@@ -134,8 +134,8 @@ node_webrtc::GetUserMedia::GetUserMediaImpl(const Napi::CallbackInfo &info) {
   if (audio) {
     cricket::AudioOptions options;
     auto source = factory->factory()->CreateAudioSource(options);
-    auto track =
-        factory->factory()->CreateAudioTrack(rtc::CreateRandomUuid(), source);
+    auto track = factory->factory()->CreateAudioTrack(rtc::CreateRandomUuid(),
+                                                      source.get());
     stream->AddTrack(track);
   }
 

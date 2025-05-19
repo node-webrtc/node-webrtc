@@ -72,7 +72,7 @@ void MediaStreamTrack::Stop() {
   // there is a deadlock :)
   auto thisCopy = static_cast<webrtc::ObserverInterface *>(this);
   rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> trackCopy = _track;
-  _factory->SignalingThread()->PostTask(RTC_FROM_HERE, [=]() { // NOLINT
+  _factory->SignalingThread()->PostTask([=]() { // NOLINT
     trackCopy->UnregisterObserver(thisCopy);
   });
   _ended = true;

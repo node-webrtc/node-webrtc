@@ -65,8 +65,8 @@ Napi::Value RTCVideoSource::CreateTrack(const Napi::CallbackInfo &) {
   // TODO(mroberts): Again, we have some implicit factory we are threading
   // around. How to handle?
   auto factory = PeerConnectionFactory::GetOrCreateDefault();
-  auto track =
-      factory->factory()->CreateVideoTrack(rtc::CreateRandomUuid(), _source);
+  auto track = factory->factory()->CreateVideoTrack(rtc::CreateRandomUuid(),
+                                                    _source.get());
   return _track_wrap.GetOrCreate(factory, track)->Value();
 }
 

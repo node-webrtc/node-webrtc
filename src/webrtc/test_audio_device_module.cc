@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <iosfwd>
 #include <memory>
+#include <src/rtc_base/ref_counted_object.h>
 #include <type_traits>
 #include <vector>
 
@@ -277,9 +278,11 @@ public:
       : sampling_frequency_in_hz_(sampling_frequency_in_hz),
         num_channels_(num_channels) {}
 
-  int SamplingFrequency() const override { return sampling_frequency_in_hz_; }
+  [[nodiscard]] int SamplingFrequency() const override {
+    return sampling_frequency_in_hz_;
+  }
 
-  int NumChannels() const override { return num_channels_; }
+  [[nodiscard]] int NumChannels() const override { return num_channels_; }
 
   bool Capture(rtc::BufferT<int16_t> *buffer) override {
     buffer->SetData(
@@ -308,8 +311,9 @@ TestAudioDeviceModule::CreateTestAudioDeviceModule(
     std::unique_ptr<webrtc::TestAudioDeviceModule::Capturer> capturer,
     std::unique_ptr<webrtc::TestAudioDeviceModule::Renderer> renderer,
     float speed) {
-  return new rtc::RefCountedObject<TestAudioDeviceModuleImpl>(
-      std::move(capturer), std::move(renderer), speed);
+  return rtc::scoped_refptr<rtc::RefCountedObject<TestAudioDeviceModuleImpl>>(
+      new rtc::RefCountedObject<TestAudioDeviceModuleImpl>(
+          std::move(capturer), std::move(renderer), speed));
 }
 
 std::unique_ptr<webrtc::TestAudioDeviceModule::Capturer>
