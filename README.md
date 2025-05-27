@@ -51,19 +51,11 @@ still be able to [build from source](docs/build-from-source.md).
   <tbody>
     <tr>
       <th rowspan="2">Node</th>
-      <th>18</th>
-      <td align="center">✓</td>
-      <td align="center">?</td>
-      <td align="center">✓</td>
-      <td align="center">✓</td>
-      <td align="center">✓</td>
-    </tr>
-    <tr>
       <th>20</th>
       <td align="center">✓</td>
       <td align="center">?</td>
       <td align="center">✓</td>
-      <td align="center">?</td>
+      <td align="center">✓</td>
       <td align="center">✓</td>
     </tr>
     <tr>
