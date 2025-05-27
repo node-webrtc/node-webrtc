@@ -2,6 +2,12 @@
 
 ## Prerequisites
 
+### macOS/Linux
+
+On macOS and Linux, a reproducible build environment is provided in the form of a Nix dev shell. You can install Nix using the [Lix installer](https://lix.systems/install/), then activate the build environment using `nix develop`.
+
+### Windows
+
 node-webrtc uses [cmake-js](https://github.com/cmake-js/cmake-js) to build
 from source. When building from source, in addition to the prerequisites
 required by cmake-js, you will need
@@ -9,59 +15,64 @@ required by cmake-js, you will need
 - Git
 - Ninja
 - CMake 3.15 or newer
-- Linux: GCC 10.1 or newer
-- MacOS: Xcode 12 or newer
-  - MacOSX11.3.sdk installed, see https://github.com/phracker/MacOSX-SDKs
-- Windows: Microsoft Visual Studio 2022 or newer, with the Clang toolchain installed
+- Microsoft Visual Studio 2022 or newer, with the Clang toolchain installed
 - Check the [additional prerequisites listed by WebRTC](https://webrtc.github.io/webrtc-org/native-code/development/prerequisite-sw/) - although their install is automated by the CMake scripts provided
 
-## Install
+## Building
 
-Once you have the prerequisites, clone the repository, set the `SKIP_DOWNLOAD`
-environment variable to "true", and run `npm install`. Just like when
-installing prebuilt binaries, you can set the `TARGET_ARCH` environment
-variable to "arm" or "arm64" to build for armv7l or arm64, respectively. Linux
-and macOS users can also set the `DEBUG` environment variable for debug builds.
+Once you have the prerequisites, just clone the repository, run `npm install` to install the Javascript dependencies, and `npm run build` to build node-webrtc for your host platform.
 
 ```
 git clone https://github.com/node-webrtc/node-webrtc.git
 cd node-webrtc
+npm install
+nix develop # macOS/Linux only
 npm run build
 ```
 
-## Subsequent Builds
+### Subsequent Builds
 
 Subsequent builds can be triggered with `cmake`, e.g. on MacOS:
 
 ```
-cmake --build build-darwin-x64
+cmake --build build-darwin-arm64
 ```
 
 You can pass either `--debug` or `--release` to build a debug or release build
 of node-webrtc (and the underlying WebRTC library). Refer to the CMake
 documentation for additional command line options.
 
+### Cross-Compiling
+
+The supported cross-compilation directions are:
+
+- MacOS arm64 ➡️ MacOS x64
+- MacOS x64 ➡️ ️MacOS arm64
+- Linux x64 ➡️ Linux arm64
+
+To run e.g. that that cross-compilation:
+
+1. Set `TARGET_ARCH` to "arm64"
+2. Re-run `npm run build`
+
+### Debug Builds
+
+1. Set `DEBUG=1`
+2. Re-run `npm run build`
+
+This is only fully-supported on macOS/Linux; Windows support is a bit dicey thanks to CMake.
+
+To run a release build after doing a debug build, `unset DEBUG`.
+
 ## Other Notes
 
 ### Linux
 
-On Linux, we dynamically link against the platform's libc and libc++.
-Also, although we compile WebRTC sources with Clang (downloaded as part of
-WebRTC's build process), we compile node-webrtc sources with the platform's
-complier
+On Linux, we compile libwebrtc's sources with libwebrtc's Clang toolchain and libwebrtc's sysroot. We statically link against its libc++ and libc++abi. This is a little dangerous (due to ABI concerns) but we match Clang major versions so it's probably OK?
 
 ### macOS
 
-On macOS, we statically link libc++ and libc++abi. Also, we compile WebRTC
-sources with the version of Clang downloaded as part of WebRTC's build process,
-but we compile node-webrtc sources using the system Clang.
-
-#### arm64
-
-In order to cross-compile for arm64 on MacOS,
-
-1. Set `TARGET_ARCH` to "arm64"
-2. Re-run `npm run build`
+On macOS, we compile libwebrtc's sources with our own clang toolchain and our own sysroot. We statically link against its libc++ and libc++abi.
 
 ### Windows
 
@@ -99,4 +110,5 @@ Once everything is built, run
 npm test
 ```
 
-Other tests will be written as needed, once feature parity is reached again.
+> [!WARNING]
+> If testing a release build, make sure to remove the debug build in `build-{os}-{arch}/Debug/wrtc.node` first! This takes precedence in module resolution.
