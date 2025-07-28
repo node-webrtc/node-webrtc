@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <webrtc/api/media_stream_interface.h>
 #include <webrtc/api/peer_connection_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 
@@ -44,14 +45,13 @@ MediaStream::Impl::Impl(std::vector<MediaStreamTrack *> &&tracks,
           _factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid())),
       _shouldReleaseFactory(!factory && tracks.empty()) {
   for (auto const &track : tracks) {
-    if (track->track()->kind() == track->track()->kAudioKind) {
-      auto audioTrack =
-          static_cast<webrtc::AudioTrackInterface *>(track->track().get());
-      _stream->AddTrack(audioTrack);
-    } else {
-      auto videoTrack =
-          static_cast<webrtc::VideoTrackInterface *>(track->track().get());
-      _stream->AddTrack(videoTrack);
+    auto const kind = track->track()->kind();
+    if (kind == webrtc::AudioTrackInterface::kAudioKind) {
+      _stream->AddTrack(rtc::scoped_refptr<webrtc::AudioTrackInterface>(
+          static_cast<webrtc::AudioTrackInterface *>(track->track().get())));
+    } else if (kind == webrtc::VideoTrackInterface::kVideoKind) {
+      _stream->AddTrack(rtc::scoped_refptr<webrtc::VideoTrackInterface>(
+          static_cast<webrtc::VideoTrackInterface *>(track->track().get())));
     }
   }
 }
@@ -239,9 +239,11 @@ Napi::Value MediaStream::AddTrack(const Napi::CallbackInfo &info) {
   auto stream = _impl._stream;
   auto track = mediaStreamTrack->track();
   if (track->kind() == track->kAudioKind) {
-    stream->AddTrack(static_cast<webrtc::AudioTrackInterface *>(track.get()));
-  } else {
-    stream->AddTrack(static_cast<webrtc::VideoTrackInterface *>(track.get()));
+    stream->AddTrack(rtc::scoped_refptr<webrtc::AudioTrackInterface>(
+        static_cast<webrtc::AudioTrackInterface *>(track.get())));
+  } else if (track->kind() == track->kVideoKind) {
+    stream->AddTrack(rtc::scoped_refptr<webrtc::VideoTrackInterface>(
+        static_cast<webrtc::VideoTrackInterface *>(track.get())));
   }
   return info.Env().Undefined();
 }
@@ -254,11 +256,11 @@ Napi::Value MediaStream::RemoveTrack(const Napi::CallbackInfo &info) {
   if (track->kind() == track->kAudioKind) {
     // TODO(jack): also make these remove from the _track_wrap, so we don't keep
     // around old tracks
-    stream->RemoveTrack(
-        static_cast<webrtc::AudioTrackInterface *>(track.get()));
+    stream->RemoveTrack(rtc::scoped_refptr<webrtc::AudioTrackInterface>(
+        static_cast<webrtc::AudioTrackInterface *>(track.get())));
   } else {
-    stream->RemoveTrack(
-        static_cast<webrtc::VideoTrackInterface *>(track.get()));
+    stream->RemoveTrack(rtc::scoped_refptr<webrtc::VideoTrackInterface>(
+        static_cast<webrtc::VideoTrackInterface *>(track.get())));
   }
   return info.Env().Undefined();
 }
