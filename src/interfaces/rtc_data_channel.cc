@@ -7,6 +7,7 @@
  */
 #include "src/interfaces/rtc_data_channel.hh"
 
+#include <cstdio>
 #include <iostream>
 #include <utility>
 
@@ -28,7 +29,7 @@ Napi::FunctionReference &RTCDataChannel::constructor() {
 }
 
 DataChannelObserver::DataChannelObserver(
-    PeerConnectionFactory *factory,
+    RefPtr<PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel)
     : _factory(factory), _jingleDataChannel(std::move(jingleDataChannel)) {
   _jingleDataChannel->RegisterObserver(this);
@@ -87,7 +88,10 @@ RTCDataChannel::RTCDataChannel(const Napi::CallbackInfo &info)
   _cached_buffered_amount = 0;
 }
 
-RTCDataChannel::~RTCDataChannel() { wrap()->Release(this); }
+RTCDataChannel::~RTCDataChannel() {
+  printf("releasing %p from wrap\n", (void *)this);
+  wrap()->Release(this);
+}
 
 void RTCDataChannel::CleanupInternals() {
   if (_jingleDataChannel == nullptr) {

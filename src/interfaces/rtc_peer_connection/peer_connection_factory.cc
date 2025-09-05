@@ -35,9 +35,9 @@ Napi::FunctionReference &PeerConnectionFactory::constructor() {
   return constructor;
 }
 
-PeerConnectionFactory *PeerConnectionFactory::_default = nullptr; // NOLINT
-std::mutex PeerConnectionFactory::_mutex{};                       // NOLINT
-int PeerConnectionFactory::_references = 0;                       // NOLINT
+RefPtr<PeerConnectionFactory> PeerConnectionFactory::_default =
+    nullptr;                                // NOLINT
+std::mutex PeerConnectionFactory::_mutex{}; // NOLINT
 
 PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo &info)
     : Napi::ObjectWrap<PeerConnectionFactory>(info) {
@@ -133,32 +133,17 @@ PeerConnectionFactory::~PeerConnectionFactory() {
   _socketFactory = nullptr;
 }
 
-PeerConnectionFactory *PeerConnectionFactory::GetOrCreateDefault() {
+RefPtr<PeerConnectionFactory> PeerConnectionFactory::GetOrCreateDefault() {
   _mutex.lock();
-  _references++;
-  if (_references == 1) {
-    assert(_default == nullptr);
+  if (_default == nullptr) {
     auto env = constructor().Env();
     Napi::HandleScope scope(env);
     auto object = constructor().New({});
     auto factory = Unwrap(object);
     _default = factory;
-    _default->Ref();
   }
   _mutex.unlock();
   return _default;
-}
-
-void PeerConnectionFactory::Release() {
-  _mutex.lock();
-  _references--;
-  assert(_references >= 0);
-  if (!_references) {
-    assert(_default != nullptr);
-    _default->Unref();
-    _default = nullptr;
-  }
-  _mutex.unlock();
 }
 
 void PeerConnectionFactory::Dispose() { rtc::CleanupSSL(); }

@@ -8,7 +8,12 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdio>
+
 namespace node_webrtc {
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wold-style-cast"
 
 /**
  * A class that provides strong ownership of a Napi::ObjectWrap pointer.
@@ -23,6 +28,7 @@ template <typename T> class RefPtr {
 public:
   explicit RefPtr(T *ptr) : _ptr(ptr) {
     if (_ptr) {
+      printf("ref-ed %p (explicit constructor)\n", (void *)_ptr); // NOLINT
       _ptr->Ref();
     }
   }
@@ -38,13 +44,18 @@ public:
       return *this;
     }
 
-    if (_ptr) {
-      _ptr->Unref();
-    }
+    auto old_ptr = _ptr;
     _ptr = ptr;
     if (_ptr) {
+      printf("ref-ed %p (raw pointer assignment)\n", (void *)_ptr); // NOLINT
       _ptr->Ref();
     }
+    if (old_ptr) {
+      printf("unref-ed %p (raw pointer assignment)\n", // NOLINT
+             (void *)old_ptr);
+      old_ptr->Unref();
+    }
+
     return *this;
   }
   // Allow implicit and explicit conversion to a raw pointer
@@ -55,6 +66,7 @@ public:
   T *operator->() { return _ptr; }
   ~RefPtr() {
     if (_ptr) {
+      printf("unref-ed %p (destructor)\n", (void *)_ptr); // NOLINT
       _ptr->Unref();
     }
   }
@@ -62,6 +74,7 @@ public:
   // Copy constructor: add another ref
   RefPtr(const RefPtr &other) : _ptr(other._ptr) {
     if (_ptr) {
+      printf("ref-ed %p (copy constructor)\n", (void *)_ptr); // NOLINT
       _ptr->Ref();
     }
   }
@@ -70,12 +83,15 @@ public:
       return *this;
     }
 
-    if (_ptr) {
-      _ptr->Unref();
-    }
+    auto old_ptr = _ptr;
     _ptr = other._ptr;
     if (_ptr) {
+      printf("ref-ed %p (copy assignment)\n", (void *)_ptr); // NOLINT
       _ptr->Ref();
+    }
+    if (old_ptr) {
+      printf("unref-ed %p (copy assignment)\n", (void *)old_ptr); // NOLINT
+      old_ptr->Unref();
     }
     return *this;
   }
@@ -84,7 +100,8 @@ public:
   // ownership
   RefPtr(RefPtr &&other) noexcept : _ptr(other._ptr) { other._ptr = nullptr; }
   RefPtr &operator=(RefPtr &&other) noexcept {
-    if (_ptr) {
+    if (_ptr && _ptr != other._ptr) {
+      printf("unref-ed %p (move constructor)\n", (void *)_ptr); // NOLINT
       _ptr->Unref();
     }
     _ptr = other._ptr;
@@ -96,5 +113,7 @@ public:
 private:
   T *_ptr;
 };
+
+#pragma clang diagnostic pop
 
 } // namespace node_webrtc

@@ -85,7 +85,6 @@ RTCPeerConnection::RTCPeerConnection(const Napi::CallbackInfo &info)
 
   // TODO(mroberts): Read `factory` (non-standard) from RTCConfiguration?
   _factory = PeerConnectionFactory::GetOrCreateDefault();
-  _shouldReleaseFactory = true;
 
   auto portAllocator =
       std::unique_ptr<cricket::PortAllocator>(new cricket::BasicPortAllocator(
@@ -112,9 +111,6 @@ RTCPeerConnection::~RTCPeerConnection() {
   _jinglePeerConnection = nullptr;
   _channels.clear();
   if (_factory) {
-    if (_shouldReleaseFactory) {
-      PeerConnectionFactory::Release();
-    }
     _factory = nullptr;
   }
 }
@@ -781,9 +777,6 @@ Napi::Value RTCPeerConnection::Close(const Napi::CallbackInfo &info) {
   _jinglePeerConnection = nullptr;
 
   if (_factory) {
-    if (_shouldReleaseFactory) {
-      PeerConnectionFactory::Release();
-    }
     _factory = nullptr;
   }
 

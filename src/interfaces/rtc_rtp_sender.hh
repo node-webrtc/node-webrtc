@@ -38,13 +38,13 @@ public:
 
   static ::node_webrtc::Wrap<RTCRtpSender *,
                              rtc::scoped_refptr<webrtc::RtpSenderInterface>,
-                             PeerConnectionFactory *> *
+                             RefPtr<PeerConnectionFactory>> *
   wrap();
 
   static Napi::FunctionReference &constructor();
 
 private:
-  static RTCRtpSender *Create(PeerConnectionFactory *,
+  static RTCRtpSender *Create(RefPtr<PeerConnectionFactory>,
                               rtc::scoped_refptr<webrtc::RtpSenderInterface>);
 
   Napi::Value GetTrack(const Napi::CallbackInfo &);

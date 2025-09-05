@@ -44,7 +44,7 @@ public:
 
   static ::node_webrtc::Wrap<RTCIceTransport *,
                              rtc::scoped_refptr<webrtc::IceTransportInterface>,
-                             PeerConnectionFactory *> *
+                             RefPtr<PeerConnectionFactory>> *
   wrap();
 
   void OnRTCDtlsTransportStopped();
@@ -56,8 +56,8 @@ private:
   static Napi::FunctionReference &constructor();
 
   static RTCIceTransport *
-  Create(PeerConnectionFactory *,
-         rtc::scoped_refptr<webrtc::IceTransportInterface>);
+      Create(RefPtr<PeerConnectionFactory>,
+             rtc::scoped_refptr<webrtc::IceTransportInterface>);
 
   void OnStateChanged(cricket::IceTransportInternal *);
   void OnGatheringStateChanged(cricket::IceTransportInternal *);

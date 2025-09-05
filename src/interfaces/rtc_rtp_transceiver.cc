@@ -127,17 +127,18 @@ RTCRtpTransceiver::SetCodecPreferences(const Napi::CallbackInfo &info) {
 }
 
 Wrap<RTCRtpTransceiver *, rtc::scoped_refptr<webrtc::RtpTransceiverInterface>,
-     PeerConnectionFactory *> *
+     RefPtr<PeerConnectionFactory>> *
 RTCRtpTransceiver::wrap() {
   static auto wrap =
       new node_webrtc::Wrap<RTCRtpTransceiver *,
                             rtc::scoped_refptr<webrtc::RtpTransceiverInterface>,
-                            PeerConnectionFactory *>(RTCRtpTransceiver::Create);
+                            RefPtr<PeerConnectionFactory>>(
+          RTCRtpTransceiver::Create);
   return wrap;
 }
 
 RTCRtpTransceiver *RTCRtpTransceiver::Create(
-    PeerConnectionFactory *factory,
+    RefPtr<PeerConnectionFactory> factory,
     rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver) {
   auto env = constructor().Env();
   Napi::HandleScope scope(env);

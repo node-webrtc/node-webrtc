@@ -31,7 +31,6 @@ public:
   RTCAudioTrackSource &operator=(RTCAudioTrackSource &&) = delete;
   RTCAudioTrackSource() = default;
   ~RTCAudioTrackSource() override {
-    PeerConnectionFactory::Release();
     _factory = nullptr;
     // No need to acquire mutex, since this MUST only be destroyed when there
     // are no other functions being called on it
@@ -72,7 +71,8 @@ public:
   }
 
 private:
-  PeerConnectionFactory *_factory = PeerConnectionFactory::GetOrCreateDefault();
+  RefPtr<PeerConnectionFactory> _factory =
+      PeerConnectionFactory::GetOrCreateDefault();
 
   std::shared_mutex _sinks_mutex;
   std::vector<webrtc::AudioTrackSinkInterface *> _sinks;

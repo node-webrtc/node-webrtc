@@ -134,8 +134,7 @@ private:
 
   // TODO(jack): make this a RefPtr if we ever stop using the default global
   // PeerConnectionFactory
-  PeerConnectionFactory *_factory;
-  bool _shouldReleaseFactory;
+  RefPtr<PeerConnectionFactory> _factory;
 
   std::vector<RTCDataChannel *> _channels;
   OwnedWrap<RTCDataChannel> _data_channel_wrap;
