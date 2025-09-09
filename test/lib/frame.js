@@ -29,7 +29,9 @@ class I420Frame {
   }
 
   get sizeOfChromaPlane() {
-    return this.sizeOfLuminancePlane / 4;
+    const chromaWidth = Math.floor((this.width + 1) / 2);
+    const chromaHeight = Math.floor((this.height + 1) / 2);
+    return chromaWidth * chromaHeight;
   }
 }
 

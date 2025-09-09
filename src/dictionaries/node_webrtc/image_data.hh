@@ -36,7 +36,7 @@ public:
   }
 
   [[nodiscard]] size_t sizeOfChromaPlane() const {
-    return sizeOfLuminancePlane() / 4;
+    return static_cast<size_t>((width() + 1) / 2) * static_cast<size_t>((height() + 1) / 2);
   }
 
   uint8_t *dataY() { return static_cast<uint8_t *>(data.contents.Data()); }
@@ -45,7 +45,7 @@ public:
 
   uint8_t *dataU() { return &dataY()[sizeOfLuminancePlane()]; }
 
-  [[nodiscard]] int strideU() const { return width() / 2; }
+  [[nodiscard]] int strideU() const { return (width() + 1) / 2; }
 
   uint8_t *dataV() { return &dataU()[sizeOfChromaPlane()]; }
 

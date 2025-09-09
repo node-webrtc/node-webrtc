@@ -1,5 +1,6 @@
 #include "src/dictionaries/webrtc/video_frame_buffer.hh"
 
+#include <libyuv.h>
 #include <webrtc/api/video/i420_buffer.h>
 
 #include "src/dictionaries/node_webrtc/image_data.hh"
@@ -40,18 +41,19 @@ TO_NAPI_IMPL(const webrtc::I420BufferInterface *, pair) {
   Napi::EscapableHandleScope scope(env);
   auto value = pair.second;
 
-  auto sizeOfSrcYPlane = value->StrideY() * value->height();
-  auto sizeOfSrcUPlane = value->StrideU() * value->height() / 2;
-  auto sizeOfSrcVPlane = value->StrideV() * value->height() / 2;
-  auto sizeOfDstYPlane = value->width() * value->height();
-  auto sizeOfDstUPlane = sizeOfDstYPlane / 4;
-  auto sizeOfDstVPlane = sizeOfDstYPlane / 4;
+  auto dstYStride  = value->width();
+  auto dstUVStride = (value->width() + 1) / 2;
+  auto uvHeight     = (value->height() + 1) / 2;
 
+  auto sizeOfDstYPlane = dstYStride  * value->height();
+  auto sizeOfDstUPlane = dstUVStride * uvHeight;
+  auto sizeOfDstVPlane = dstUVStride * uvHeight;
+  
   auto byteLength = sizeOfDstYPlane + sizeOfDstUPlane + sizeOfDstVPlane;
   auto maybeArrayBuffer = Napi::ArrayBuffer::New(env, byteLength);
   if (maybeArrayBuffer.Env().IsExceptionPending()) {
     return Validation<Napi::Value>::Invalid(
-        maybeArrayBuffer.Env().GetAndClearPendingException().Message());
+      maybeArrayBuffer.Env().GetAndClearPendingException().Message());
   }
   auto data = static_cast<uint8_t *>(maybeArrayBuffer.Data());
 
@@ -63,29 +65,17 @@ TO_NAPI_IMPL(const webrtc::I420BufferInterface *, pair) {
   auto dstUPlane = data + sizeOfDstYPlane;
   auto dstVPlane = dstUPlane + sizeOfDstUPlane;
 
-  if (sizeOfSrcYPlane == sizeOfDstYPlane) {
-    memcpy(dstYPlane, srcYPlane, sizeOfDstYPlane);
-  } else {
-    for (int i = 0, j = 0; i < sizeOfSrcYPlane;
-         i += value->StrideY(), j += value->width()) {
-      memcpy(dstYPlane + j, srcYPlane + i, value->width());
-    }
-  }
-  if (sizeOfSrcUPlane == sizeOfDstUPlane) {
-    memcpy(dstUPlane, srcUPlane, sizeOfDstUPlane);
-  } else {
-    for (int i = 0, j = 0; i < sizeOfSrcUPlane;
-         i += value->StrideU(), j += value->width() / 2) {
-      memcpy(dstUPlane + j, srcUPlane + i, value->width() / 2);
-    }
-  }
-  if (sizeOfSrcVPlane == sizeOfDstVPlane) {
-    memcpy(dstVPlane, srcVPlane, sizeOfDstVPlane);
-  } else {
-    for (int i = 0, j = 0; i < sizeOfSrcVPlane;
-         i += value->StrideV(), j += value->width() / 2) {
-      memcpy(dstVPlane + j, srcVPlane + i, value->width() / 2);
-    }
+  int rc = libyuv::I420Copy(
+      srcYPlane, value->StrideY(),
+      srcUPlane, value->StrideU(),
+      srcVPlane, value->StrideV(),
+      dstYPlane, dstYStride,
+      dstUPlane, dstUVStride,
+      dstVPlane, dstUVStride,
+      value->width(), value->height());
+
+  if (rc != 0) {
+    return Validation<Napi::Value>::Invalid("Failed to copy I420 buffer: " + std::to_string(rc));
   }
 
   // FIXME(mroberts): How to create a Uint8ClampedArray?

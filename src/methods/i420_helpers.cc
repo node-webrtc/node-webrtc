@@ -25,8 +25,13 @@ Validation<RgbaImageData> ImageData::toRgba() const {
 }
 
 Validation<I420ImageData> I420ImageData::Create(ImageData imageData) {
-  auto expectedByteLength =
-      static_cast<size_t>(imageData.width * imageData.height * 1.5);
+  auto y = imageData.width;
+  auto u = (imageData.width + 1) / 2;
+  auto v = (imageData.width + 1) / 2;
+  auto h = imageData.height;
+
+  size_t expectedByteLength = static_cast<size_t>(y * h + (u + v) * ((h + 1) / 2));
+  
   auto actualByteLength = imageData.contents.ByteLength();
   if (actualByteLength != expectedByteLength) {
     auto error = "Expected a .byteLength of " +

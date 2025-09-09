@@ -73,6 +73,73 @@ tape("rgbaToI420(rgbaFrame, i420Frame)", (t) => {
   });
 });
 
+tape("i420ToRgba(i420Frame, rgbaFrame) — odd size", (t) => {
+  t.test("it works", (t) => {
+    const width = 678;
+    const height = 381;
+
+    const i420Frame = new I420Frame(width, height);
+    const rgbaFrame = new RgbaFrame(width, height);
+
+    blackenI420Frame(i420Frame);
+    i420ToRgba(i420Frame, rgbaFrame);
+    t.ok(
+      everyRgba(rgbaFrame, [0, 0, 0, 255]),
+      "converting a black I420 frame to RGBA works on odd size",
+    );
+
+    whitenI420Frame(i420Frame);
+    i420ToRgba(i420Frame, rgbaFrame);
+    t.ok(
+      everyRgba(rgbaFrame, [255, 255, 255, 255]),
+      "converting a white I420 frame to RGBA works on odd size",
+    );
+
+    setYuv(i420Frame, [173, 143, 31]);
+    i420ToRgba(i420Frame, rgbaFrame);
+    t.ok(
+      everyRgba(rgbaFrame, [28, 255, 213, 255]),
+      "converting a turquoise I420 frame to RGBA works on odd size",
+    );
+
+    t.end();
+  });
+});
+
+tape("rgbaToI420(rgbaFrame, i420Frame) — odd size", (t) => {
+  t.test("it works", (t) => {
+    const width = 678;
+    const height = 381;
+
+    const rgbaFrame = new RgbaFrame(width, height);
+    const i420Frame = new I420Frame(width, height);
+
+    blackenRgbaFrame(rgbaFrame);
+    rgbaToI420(rgbaFrame, i420Frame);
+    t.ok(
+      everyYuv(i420Frame, [16, 128, 128]),
+      "converting a black RGBA frame to I420 works on odd size",
+    );
+
+    whitenRgbaFrame(rgbaFrame);
+    rgbaToI420(rgbaFrame, i420Frame);
+    t.ok(
+      everyYuv(i420Frame, [235, 128, 128]),
+      "converting a white RGBA frame to I420 works on odd size",
+    );
+
+    setRgba(rgbaFrame, [28, 255, 213, 255]);
+    rgbaToI420(rgbaFrame, i420Frame);
+    t.ok(
+      everyYuv(i420Frame, [173, 143, 31]) ||
+        everyYuv(i420Frame, [173, 143, 32]), // NOTE(jack): arm64 seems to have slightly different rounding for whatever reason? very strange
+      "converting a turquoise RGBA frame to I420 works on odd size",
+    );
+
+    t.end();
+  });
+});
+
 function setYuv(i420Frame, yuv) {
   for (let i = 0; i < i420Frame.byteLength; i++) {
     if (i < i420Frame.sizeOfLuminancePlane) {
