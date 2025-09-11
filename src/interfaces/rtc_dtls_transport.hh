@@ -40,7 +40,7 @@ public:
 
   static ::node_webrtc::Wrap<RTCDtlsTransport *,
                              rtc::scoped_refptr<webrtc::DtlsTransportInterface>,
-                             RefPtr<PeerConnectionFactory>> *
+                             PeerConnectionFactory *> *
   wrap();
 
   void OnStateChange(webrtc::DtlsTransportInformation) override;
@@ -58,8 +58,8 @@ private:
   Napi::Value GetRemoteCertificates(const Napi::CallbackInfo &);
 
   static RTCDtlsTransport *
-      Create(RefPtr<PeerConnectionFactory>,
-             rtc::scoped_refptr<webrtc::DtlsTransportInterface>);
+  Create(PeerConnectionFactory *,
+         rtc::scoped_refptr<webrtc::DtlsTransportInterface>);
 
   std::mutex _mutex;
   webrtc::DtlsTransportState _state;

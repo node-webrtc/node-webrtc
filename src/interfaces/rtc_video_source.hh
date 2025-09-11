@@ -34,7 +34,10 @@ public:
                       const absl::optional<bool> needs_denoising)
       : _is_screencast(is_screencast), _needs_denoising(needs_denoising) {}
 
-  ~RTCVideoTrackSource() override { _factory = nullptr; }
+  ~RTCVideoTrackSource() override {
+    PeerConnectionFactory::Release();
+    _factory = nullptr;
+  }
 
   RTCVideoTrackSource(const RTCVideoTrackSource &) = delete;
   RTCVideoTrackSource(RTCVideoTrackSource &&) = delete;
@@ -56,8 +59,7 @@ public:
   void PushFrame(const webrtc::VideoFrame &frame) { this->OnFrame(frame); }
 
 private:
-  RefPtr<PeerConnectionFactory> _factory =
-      PeerConnectionFactory::GetOrCreateDefault();
+  PeerConnectionFactory *_factory = PeerConnectionFactory::GetOrCreateDefault();
   const bool _is_screencast;
   const absl::optional<bool> _needs_denoising;
 };

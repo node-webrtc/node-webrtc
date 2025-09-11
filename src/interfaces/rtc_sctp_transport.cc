@@ -59,18 +59,17 @@ void RTCSctpTransport::Stop() {
 }
 
 Wrap<RTCSctpTransport *, rtc::scoped_refptr<webrtc::SctpTransportInterface>,
-     RefPtr<PeerConnectionFactory>> *
+     PeerConnectionFactory *> *
 RTCSctpTransport::wrap() {
   static auto wrap =
       new node_webrtc::Wrap<RTCSctpTransport *,
                             rtc::scoped_refptr<webrtc::SctpTransportInterface>,
-                            RefPtr<PeerConnectionFactory>>(
-          RTCSctpTransport::Create);
+                            PeerConnectionFactory *>(RTCSctpTransport::Create);
   return wrap;
 }
 
 RTCSctpTransport *RTCSctpTransport::Create(
-    RefPtr<PeerConnectionFactory> factory,
+    PeerConnectionFactory *factory,
     rtc::scoped_refptr<webrtc::SctpTransportInterface> transport) {
   auto env = constructor().Env();
 

@@ -100,7 +100,7 @@ class DataChannelObserver : public EventQueue<RTCDataChannel>,
 
 public:
   DataChannelObserver(
-      RefPtr<PeerConnectionFactory> factory,
+      PeerConnectionFactory *factory,
       rtc::scoped_refptr<webrtc::DataChannelInterface> jingleDataChannel);
   ~DataChannelObserver() override = default;
 

@@ -51,7 +51,7 @@ public:
 
   static ::node_webrtc::Wrap<
       MediaStreamTrack *, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>,
-      RefPtr<PeerConnectionFactory>> *
+      PeerConnectionFactory *> *
   wrap();
 
   static Napi::FunctionReference &constructor();
@@ -61,8 +61,8 @@ protected:
 
 private:
   static MediaStreamTrack *
-      Create(RefPtr<PeerConnectionFactory>,
-             rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>);
+  Create(PeerConnectionFactory *,
+         rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>);
 
   Napi::Value GetEnabled(const Napi::CallbackInfo &);
   void SetEnabled(const Napi::CallbackInfo &, const Napi::Value &);

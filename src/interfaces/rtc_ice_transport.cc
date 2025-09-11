@@ -86,18 +86,17 @@ void RTCIceTransport::Stop() {
 }
 
 Wrap<RTCIceTransport *, rtc::scoped_refptr<webrtc::IceTransportInterface>,
-     RefPtr<PeerConnectionFactory>> *
+     PeerConnectionFactory *> *
 RTCIceTransport::wrap() {
   static auto wrap =
       new node_webrtc::Wrap<RTCIceTransport *,
                             rtc::scoped_refptr<webrtc::IceTransportInterface>,
-                            RefPtr<PeerConnectionFactory>>(
-          RTCIceTransport::Create);
+                            PeerConnectionFactory *>(RTCIceTransport::Create);
   return wrap;
 }
 
 RTCIceTransport *RTCIceTransport::Create(
-    RefPtr<PeerConnectionFactory> factory,
+    PeerConnectionFactory *factory,
     rtc::scoped_refptr<webrtc::IceTransportInterface> transport) {
   auto env = constructor().Env();
   Napi::HandleScope scope(env);

@@ -192,16 +192,16 @@ Napi::Value MediaStreamTrack::GetSettings(const Napi::CallbackInfo &info) {
 }
 
 Wrap<MediaStreamTrack *, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>,
-     RefPtr<PeerConnectionFactory>> *
+     PeerConnectionFactory *> *
 MediaStreamTrack::wrap() {
   static auto wrap = new node_webrtc::Wrap<
       MediaStreamTrack *, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>,
-      RefPtr<PeerConnectionFactory>>(MediaStreamTrack::Create);
+      PeerConnectionFactory *>(MediaStreamTrack::Create);
   return wrap;
 }
 
 MediaStreamTrack *MediaStreamTrack::Create(
-    RefPtr<PeerConnectionFactory> factory,
+    PeerConnectionFactory *factory,
     rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) {
   auto env = constructor().Env();
   Napi::HandleScope scope(env);

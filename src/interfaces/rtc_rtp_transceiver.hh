@@ -38,15 +38,15 @@ public:
 
   static ::node_webrtc::Wrap<
       RTCRtpTransceiver *, rtc::scoped_refptr<webrtc::RtpTransceiverInterface>,
-      RefPtr<PeerConnectionFactory>> *
+      PeerConnectionFactory *> *
   wrap();
 
   static Napi::FunctionReference &constructor();
 
 private:
   static RTCRtpTransceiver *
-      Create(RefPtr<PeerConnectionFactory>,
-             rtc::scoped_refptr<webrtc::RtpTransceiverInterface>);
+  Create(PeerConnectionFactory *,
+         rtc::scoped_refptr<webrtc::RtpTransceiverInterface>);
 
   Napi::Value GetMid(const Napi::CallbackInfo &);
   Napi::Value GetSender(const Napi::CallbackInfo &);

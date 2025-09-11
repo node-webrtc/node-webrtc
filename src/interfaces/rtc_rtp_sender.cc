@@ -80,6 +80,7 @@ Napi::Value RTCRtpSender::GetCapabilities(const Napi::CallbackInfo &info) {
     auto kind = kindString == "audio" ? cricket::MEDIA_TYPE_AUDIO
                                       : cricket::MEDIA_TYPE_VIDEO;
     auto capabilities = factory->factory()->GetRtpSenderCapabilities(kind);
+    PeerConnectionFactory::Release();
     CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), capabilities, result,
                                      Napi::Value)
     return result;
@@ -161,18 +162,17 @@ Napi::Value RTCRtpSender::SetStreams(const Napi::CallbackInfo &info) {
 }
 
 Wrap<RTCRtpSender *, rtc::scoped_refptr<webrtc::RtpSenderInterface>,
-     RefPtr<PeerConnectionFactory>> *
+     PeerConnectionFactory *> *
 RTCRtpSender::wrap() {
   static auto wrap =
       new node_webrtc::Wrap<RTCRtpSender *,
                             rtc::scoped_refptr<webrtc::RtpSenderInterface>,
-                            RefPtr<PeerConnectionFactory>>(
-          RTCRtpSender::Create);
+                            PeerConnectionFactory *>(RTCRtpSender::Create);
   return wrap;
 }
 
 RTCRtpSender *
-RTCRtpSender::Create(RefPtr<PeerConnectionFactory> factory,
+RTCRtpSender::Create(PeerConnectionFactory *factory,
                      rtc::scoped_refptr<webrtc::RtpSenderInterface> sender) {
   auto env = constructor().Env();
   Napi::HandleScope scope(env);

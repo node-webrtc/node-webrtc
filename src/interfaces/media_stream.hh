@@ -40,7 +40,7 @@ public:
 
   static ::node_webrtc::Wrap<MediaStream *,
                              rtc::scoped_refptr<webrtc::MediaStreamInterface>,
-                             RefPtr<PeerConnectionFactory>> *
+                             PeerConnectionFactory *> *
   wrap();
 
   rtc::scoped_refptr<webrtc::MediaStreamInterface> stream();
@@ -48,17 +48,17 @@ public:
 private:
   class Impl {
   public:
-    explicit Impl(const RefPtr<PeerConnectionFactory> &factory = nullptr);
-    ~Impl() = default;
+    explicit Impl(PeerConnectionFactory *factory = nullptr);
+    ~Impl();
 
     Impl(std::vector<MediaStreamTrack *> &&tracks,
-         const RefPtr<PeerConnectionFactory> &factory = nullptr);
+         PeerConnectionFactory *factory = nullptr);
 
     Impl(rtc::scoped_refptr<webrtc::MediaStreamInterface> &&stream,
-         const RefPtr<PeerConnectionFactory> &factory = nullptr);
+         PeerConnectionFactory *factory = nullptr);
 
     Impl(const RTCMediaStreamInit &init,
-         const RefPtr<PeerConnectionFactory> &factory = nullptr);
+         PeerConnectionFactory *factory = nullptr);
 
     Impl(const Impl &) = delete;
     Impl &operator=(const Impl &) = delete;
@@ -67,15 +67,18 @@ private:
       if (&other != this) {
         _factory = std::move(other._factory);
         _stream = std::move(other._stream);
+        _shouldReleaseFactory = other._shouldReleaseFactory;
+        other._shouldReleaseFactory = false;
       }
       return *this;
     }
 
     RefPtr<PeerConnectionFactory> _factory;
     rtc::scoped_refptr<webrtc::MediaStreamInterface> _stream;
+    bool _shouldReleaseFactory;
   };
 
-  static MediaStream *Create(RefPtr<PeerConnectionFactory>,
+  static MediaStream *Create(PeerConnectionFactory *,
                              rtc::scoped_refptr<webrtc::MediaStreamInterface>);
 
   Napi::Value GetId(const Napi::CallbackInfo &);

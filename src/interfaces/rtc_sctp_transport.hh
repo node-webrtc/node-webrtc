@@ -37,7 +37,7 @@ public:
 
   static ::node_webrtc::Wrap<RTCSctpTransport *,
                              rtc::scoped_refptr<webrtc::SctpTransportInterface>,
-                             RefPtr<PeerConnectionFactory>> *
+                             PeerConnectionFactory *> *
   wrap();
 
   void OnStateChange(webrtc::SctpTransportInformation) override;
@@ -49,8 +49,8 @@ private:
   static Napi::FunctionReference &constructor();
 
   static RTCSctpTransport *
-      Create(RefPtr<PeerConnectionFactory>,
-             rtc::scoped_refptr<webrtc::SctpTransportInterface>);
+  Create(PeerConnectionFactory *,
+         rtc::scoped_refptr<webrtc::SctpTransportInterface>);
 
   Napi::Value GetTransport(const Napi::CallbackInfo &);
   Napi::Value GetState(const Napi::CallbackInfo &);

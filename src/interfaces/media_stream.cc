@@ -29,18 +29,20 @@ Napi::FunctionReference &MediaStream::constructor() {
   return constructor;
 }
 
-MediaStream::Impl::Impl(const RefPtr<PeerConnectionFactory> &factory)
+MediaStream::Impl::Impl(PeerConnectionFactory *factory)
     : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault()),
-      _stream(_factory->factory()->CreateLocalMediaStream(
-          rtc::CreateRandomUuid())) {}
+      _stream(
+          _factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid())),
+      _shouldReleaseFactory(!factory) {}
 
 MediaStream::Impl::Impl(std::vector<MediaStreamTrack *> &&tracks,
-                        const RefPtr<PeerConnectionFactory> &factory)
+                        PeerConnectionFactory *factory)
     : _factory(factory          ? factory
                : tracks.empty() ? PeerConnectionFactory::GetOrCreateDefault()
                                 : tracks[0]->factory()),
-      _stream(_factory->factory()->CreateLocalMediaStream(
-          rtc::CreateRandomUuid())) {
+      _stream(
+          _factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid())),
+      _shouldReleaseFactory(!factory && tracks.empty()) {
   for (auto const &track : tracks) {
     if (track->track()->kind() == track->track()->kAudioKind) {
       auto audioTrack =
@@ -56,14 +58,23 @@ MediaStream::Impl::Impl(std::vector<MediaStreamTrack *> &&tracks,
 
 MediaStream::Impl::Impl(
     rtc::scoped_refptr<webrtc::MediaStreamInterface> &&stream,
-    const RefPtr<PeerConnectionFactory> &factory)
+    PeerConnectionFactory *factory)
     : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault()),
-      _stream(stream) {}
+      _stream(stream), _shouldReleaseFactory(!factory) {}
 
 MediaStream::Impl::Impl(const RTCMediaStreamInit &init,
-                        const RefPtr<PeerConnectionFactory> &factory)
+                        PeerConnectionFactory *factory)
     : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault()),
-      _stream(_factory->factory()->CreateLocalMediaStream(init.id)) {}
+      _stream(_factory->factory()->CreateLocalMediaStream(init.id)),
+      _shouldReleaseFactory(!factory) {}
+
+MediaStream::Impl::~Impl() {
+  Napi::HandleScope scope(PeerConnectionFactory::constructor().Env());
+
+  if (_shouldReleaseFactory) {
+    PeerConnectionFactory::Release();
+  }
+}
 
 std::vector<rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>>
 MediaStream::tracks() {
@@ -106,8 +117,7 @@ MediaStream::MediaStream(const Napi::CallbackInfo &info)
     // 1. Remote MediaStream
     auto pair = either1.UnsafeFromLeft();
     // FIXME(mroberts): There is a safer way to do this.
-    auto factory = RefPtr<PeerConnectionFactory>(
-        PeerConnectionFactory::Unwrap(std::get<0>(pair)));
+    auto factory = PeerConnectionFactory::Unwrap(std::get<0>(pair));
     auto stream = *std::get<1>(pair).Data();
     _impl = MediaStream::Impl(std::move(stream), factory);
   } else {
@@ -279,17 +289,17 @@ Napi::Value MediaStream::Clone(const Napi::CallbackInfo &info) {
 }
 
 Wrap<MediaStream *, rtc::scoped_refptr<webrtc::MediaStreamInterface>,
-     RefPtr<PeerConnectionFactory>> *
+     PeerConnectionFactory *> *
 MediaStream::wrap() {
   static auto wrap =
       new node_webrtc::Wrap<MediaStream *,
                             rtc::scoped_refptr<webrtc::MediaStreamInterface>,
-                            RefPtr<PeerConnectionFactory>>(MediaStream::Create);
+                            PeerConnectionFactory *>(MediaStream::Create);
   return wrap;
 }
 
 MediaStream *
-MediaStream::Create(RefPtr<PeerConnectionFactory> factory,
+MediaStream::Create(PeerConnectionFactory *factory,
                     rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) {
   auto env = MediaStream::constructor().Env();
   Napi::HandleScope scope(env);

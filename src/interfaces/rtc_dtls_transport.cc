@@ -167,18 +167,17 @@ RTCDtlsTransport::GetRemoteCertificates(const Napi::CallbackInfo &info) {
 }
 
 Wrap<RTCDtlsTransport *, rtc::scoped_refptr<webrtc::DtlsTransportInterface>,
-     RefPtr<PeerConnectionFactory>> *
+     PeerConnectionFactory *> *
 RTCDtlsTransport::wrap() {
   static auto wrap =
       new node_webrtc::Wrap<RTCDtlsTransport *,
                             rtc::scoped_refptr<webrtc::DtlsTransportInterface>,
-                            RefPtr<PeerConnectionFactory>>(
-          RTCDtlsTransport::Create);
+                            PeerConnectionFactory *>(RTCDtlsTransport::Create);
   return wrap;
 }
 
 RTCDtlsTransport *RTCDtlsTransport::Create(
-    RefPtr<PeerConnectionFactory> factory,
+    PeerConnectionFactory *factory,
     rtc::scoped_refptr<webrtc::DtlsTransportInterface> transport) {
   auto env = constructor().Env();
   Napi::HandleScope scope(env);

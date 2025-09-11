@@ -7,7 +7,6 @@
  */
 #pragma once
 
-#include "src/node/ref_ptr.hh"
 #include <memory>
 #include <mutex>
 
@@ -31,9 +30,15 @@ public:
 
   /**
    * Get or create the default PeerConnectionFactory. The default uses
-   * webrtc::AudioDeviceModule::AudioLayer::kDummyAudio.
+   * webrtc::AudioDeviceModule::AudioLayer::kDummyAudio. Call {@link Release}
+   * when done.
    */
-  static RefPtr<PeerConnectionFactory> GetOrCreateDefault();
+  static PeerConnectionFactory *GetOrCreateDefault();
+
+  /**
+   * Release a reference to the default PeerConnectionFactory.
+   */
+  static void Release();
 
   /**
    * Get the underlying webrtc::PeerConnectionFactoryInterface.
@@ -60,8 +65,9 @@ private:
   std::unique_ptr<rtc::Thread> _signalingThread;
   std::unique_ptr<rtc::Thread> _workerThread;
 
-  static RefPtr<PeerConnectionFactory> _default; // NOLINT
-  static std::mutex _mutex;                      // NOLINT
+  static PeerConnectionFactory *_default; // NOLINT
+  static std::mutex _mutex;               // NOLINT
+  static int _references;                 // NOLINT
 
   rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _factory;
   rtc::scoped_refptr<webrtc::AudioDeviceModule> _audioDeviceModule;
