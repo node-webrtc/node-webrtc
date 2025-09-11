@@ -1,6 +1,6 @@
 {
   "name": "@roamhq/wrtc-linux-x64",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "The Linux 64-bit binary for @roamhq/wrtc.",
   "repository": {
     "type": "git",

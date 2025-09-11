@@ -15,6 +15,11 @@ const inputFolder =
 const outputFolder = `prebuilds/${platform}-${arch}`;
 fs.copyFileSync(`${inputFolder}/wrtc.node`, `${outputFolder}/wrtc.node`);
 
+if (platform === "linux") {
+  // Need to patch binaries built on NixOS
+  childProcess.execSync(`patchelf --remove-rpath ${outputFolder}/wrtc.node`);
+}
+
 // Copy version from main package.json to sub package.json
 const mainPackageFilename = "package.json";
 const subPackageFilename = `${outputFolder}/package.json`;
