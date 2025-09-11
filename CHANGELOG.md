@@ -1,3 +1,10 @@
+# 0.9.1
+
+## Bug Fixes
+
+- Fix I420 helpers for images with odd resolutions
+  (<https://github.com/WonderInventions/node-webrtc/pull/38>)
+
 # 0.9.0
 
 ## New Features
