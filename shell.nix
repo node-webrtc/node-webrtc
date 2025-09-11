@@ -27,6 +27,8 @@ let
             nodejs_20
             pkg-config
             zlib
+            # For stripping binaries for release
+            patchelf
           ])
           ++ (with (llvm pkgs); [
             clang
