@@ -17,6 +17,7 @@ required by cmake-js, you will need
 - CMake 3.15 or newer
 - Microsoft Visual Studio 2022 or newer, with the Clang toolchain installed
 - Check the [additional prerequisites listed by WebRTC](https://webrtc.github.io/webrtc-org/native-code/development/prerequisite-sw/) - although their install is automated by the CMake scripts provided
+- Also follow the steps in [build-from-source-windows.md](./build-from-source-windows.md)
 
 ## Building
 
