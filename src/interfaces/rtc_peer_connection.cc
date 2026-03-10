@@ -109,8 +109,19 @@ RTCPeerConnection::RTCPeerConnection(const Napi::CallbackInfo &info)
 }
 
 RTCPeerConnection::~RTCPeerConnection() {
-  _jinglePeerConnection = nullptr;
+  // Clear the wrap caches before releasing the WebRTC peer connection.
+  // This releases all scoped_refptr references to WebRTC objects while
+  // the signaling thread may still be active, preventing crashes during
+  // cleanup.
+  _data_channel_wrap.clear();
+  _stream_wrap.clear();
+  _receiver_wrap.clear();
+  _transceiver_wrap.clear();
+  _sender_wrap.clear();
+  _transport_wrap.clear();
   _channels.clear();
+
+  _jinglePeerConnection = nullptr;
   if (_factory) {
     if (_shouldReleaseFactory) {
       PeerConnectionFactory::Release();
@@ -778,6 +789,17 @@ Napi::Value RTCPeerConnection::Close(const Napi::CallbackInfo &info) {
       channel->OnPeerConnectionClosed();
     }
   }
+
+  // Clear the wrap caches before releasing the WebRTC peer connection.
+  // This releases all scoped_refptr references to WebRTC objects while
+  // the signaling thread is still active, preventing crashes during cleanup.
+  _data_channel_wrap.clear();
+  _stream_wrap.clear();
+  _receiver_wrap.clear();
+  _transceiver_wrap.clear();
+  _sender_wrap.clear();
+  _transport_wrap.clear();
+  _channels.clear();
 
   _jinglePeerConnection = nullptr;
 

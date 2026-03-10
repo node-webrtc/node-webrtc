@@ -44,6 +44,8 @@ public:
 
   void Release(T value) { _map.reverseRemove(value); }
 
+  void clear() { _map.clear(); }
+
 private:
   BidiMap<U, Output> _map;
 };
