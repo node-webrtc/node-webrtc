@@ -240,13 +240,17 @@ void RTCPeerConnection::OnAddTrack(
     const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>
         &streams) {
 // TODO(jack): once libwebrtc fully deprecates kPlanB, we can remove this
+#ifndef _MSC_VER
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
   if (_jinglePeerConnection->GetConfiguration().sdp_semantics !=
       webrtc::SdpSemantics::kPlanB) {
     return;
   }
+#ifndef _MSC_VER
 #pragma clang diagnostic pop
+#endif
   Dispatch(CreateCallback<RTCPeerConnection>([this, receiver, streams]() {
     if (_factory == nullptr) {
       // We have closed, but have not processed close event to stop the event

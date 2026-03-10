@@ -3,6 +3,7 @@
 "use strict";
 
 const os = require("os");
+const path = require("path");
 const { spawnSync } = require("child_process");
 const { platform, arch, buildFolder } = require("./build-vars.js");
 
@@ -18,24 +19,44 @@ if (platform === "win32") {
 
 if (arch !== os.arch()) {
   args.push(
-    `--CDCMAKE_TOOLCHAIN_FILE=toolchains/${platform}-${arch}.toolchain`
+    `--CDCMAKE_TOOLCHAIN_FILE=toolchains/${platform}-${arch}.toolchain`,
   );
 }
 
 function main() {
+  // Resolve cmake-js path before modifying PATH, since it lives in node_modules/.bin
+  const cmakeJs = path.resolve(
+    __dirname,
+    "..",
+    "node_modules",
+    ".bin",
+    "cmake-js",
+  );
+
+  // On Windows, remove node_modules/.bin from PATH to prevent the npm "rc"
+  // package from shadowing the Windows Resource Compiler (rc.exe).
+  const env = { ...process.env };
+  if (platform === "win32") {
+    env.PATH = env.PATH?.split(";")
+      .filter((p) => !p.includes("node_modules"))
+      .join(";");
+  }
+
   console.log("Running cmake-js " + args.join(" "));
-  let { status } = spawnSync("cmake-js", ["configure", ...args], {
+  let { status } = spawnSync(cmakeJs, ["configure", ...args], {
     shell: true,
     stdio: "inherit",
+    env,
   });
   if (status) {
     throw new Error("cmake-js configure failed for wrtc");
   }
 
   console.log("Running cmake-js build");
-  status = spawnSync("cmake-js", ["build", ...args], {
+  status = spawnSync(cmakeJs, ["build", ...args], {
     shell: true,
     stdio: "inherit",
+    env,
   }).status;
   if (status) {
     throw new Error("cmake-js build failed for wrtc");
