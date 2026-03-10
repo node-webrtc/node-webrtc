@@ -10,8 +10,8 @@
 .travis.yml
 .vim
 .vs
-build
-build-*
+/build
+/build-*
 compile_commands.json
 example
 gcc-arm-*
@@ -19,6 +19,6 @@ nix.gni
 node_modules
 npm-debug.log*
 package-lock.json
-result
+/result
 third_party
 yarn.lock

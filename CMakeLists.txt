@@ -68,8 +68,12 @@ set(libc++_objects
   chrono.o
   condition_variable.o
   condition_variable_destructor.o
+  d2fixed.o
+  d2s.o
   debug.o
   exception.o
+  f2s.o
+  format.o
   functional.o
   future.o
   hash.o
@@ -210,14 +214,14 @@ endif()
 if (WIN32)
   set(byproducts
     ${libwebrtc_binary_dir}/obj/webrtc.lib
-    ${libwebrtc_binary_dir}/obj/pc/peerconnection.lib
+    ${libwebrtc_binary_dir}/obj/api/libjingle_peerconnection_api.lib
   )
 else()
   set(byproducts
     ${libc++_objects}
     ${libc++abi_objects}
     ${libwebrtc_binary_dir}/obj/libwebrtc.a
-    ${libwebrtc_binary_dir}/obj/pc/libpeerconnection.a
+    ${libwebrtc_binary_dir}/obj/api/libjingle_peerconnection_api.a
   )
 endif()
 
@@ -260,9 +264,9 @@ add_library(libpeerconnection STATIC IMPORTED)
 add_dependencies(libpeerconnection project_libwebrtc)
 
 if(WIN32)
-  set_property(TARGET libpeerconnection PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/pc/peerconnection.lib")
+  set_property(TARGET libpeerconnection PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/api/libjingle_peerconnection_api.lib")
 else()
-  set_property(TARGET libpeerconnection PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/pc/libpeerconnection.a")
+  set_property(TARGET libpeerconnection PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/api/libjingle_peerconnection_api.a")
 endif()
 
 set(libc++_include_dir
@@ -417,12 +421,14 @@ else()
     )
 
     target_compile_options(${MODULE} PRIVATE
+      -nostdlib++
       -nostdinc++
       -nodefaultlibs
     )
 
     target_compile_definitions(${MODULE} PRIVATE
-      -D_LIBCPP_ABI_UNSTABLE
+      -D_LIBCPP_ABI_NAMESPACE=Cr
+      -D_LIBCPP_ABI_VERSION=2
     )
   endif()
 
