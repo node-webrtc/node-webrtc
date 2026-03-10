@@ -25,7 +25,7 @@
     "types"
   ],
   "optionalDependencies": {
-    "@roamhq/wrtc-darwin-arm64": "0.9.1",
+    "@roamhq/wrtc-darwin-arm64": "0.10.0",
     "@roamhq/wrtc-darwin-x64": "0.9.1",
     "@roamhq/wrtc-linux-arm64": "0.9.1",
     "@roamhq/wrtc-linux-x64": "0.9.1",
