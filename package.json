@@ -6,8 +6,8 @@
     "p2p",
     "peer"
   ],
-  "version": "0.9.1",
-  "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
+  "version": "0.10.0",
+  "author": "Jack Duvall <theduvallj@gmail.com> (https://duvallj.pw)",
   "homepage": "https://github.com/WonderInventions/node-webrtc",
   "bugs": "https://github.com/WonderInventions/node-webrtc/issues",
   "license": "BSD-2-Clause",

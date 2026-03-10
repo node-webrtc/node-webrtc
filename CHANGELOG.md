@@ -1,3 +1,15 @@
+# 0.10.0
+
+## New Features
+
+- Update libwebrtc to M106!
+
+## Bug Fixes
+
+- Fix segfault/abort during program cleanup; some destructors that relied on
+  the V8 environment were being called after said environment had shut down.
+  Forcing them to run earlier (on `pc.close()`) seems to fix things.
+
 # 0.9.1
 
 ## Bug Fixes
