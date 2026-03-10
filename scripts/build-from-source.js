@@ -33,20 +33,19 @@ function main() {
     "cmake-js",
   );
 
-  // On Windows, remove node_modules/.bin from PATH to prevent the npm "rc"
-  // package from shadowing the Windows Resource Compiler (rc.exe).
-  const env = { ...process.env };
   if (platform === "win32") {
-    env.PATH = env.PATH?.split(";")
-      .filter((p) => !p.includes("node_modules"))
-      .join(";");
+    // Explicitly find the real rc.exe from the Windows SDK and pass it to
+    // CMake, since cmake-js may still find the npm "rc" package otherwise.
+    const { stdout } = spawnSync("where", ["rc.exe"], { encoding: "utf-8" });
+    if (stdout) {
+      args.push(`--CDCMAKE_RC_COMPILER="${stdout.replace(/\\/g, "/")}"`);
+    }
   }
 
   console.log("Running cmake-js " + args.join(" "));
   let { status } = spawnSync(cmakeJs, ["configure", ...args], {
     shell: true,
     stdio: "inherit",
-    env,
   });
   if (status) {
     throw new Error("cmake-js configure failed for wrtc");
@@ -56,7 +55,6 @@ function main() {
   status = spawnSync(cmakeJs, ["build", ...args], {
     shell: true,
     stdio: "inherit",
-    env,
   }).status;
   if (status) {
     throw new Error("cmake-js build failed for wrtc");

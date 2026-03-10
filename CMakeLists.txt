@@ -10,12 +10,17 @@ macro(assign_bool var)
   endif()
 endmacro()
 
-assign_bool(use_custom_libcxx NOT WIN32)
+assign_bool(use_custom_libcxx "TRUE")
 assign_bool(is_arm32 "y$ENV{TARGET_ARCH}" STREQUAL "yarm")
 assign_bool(is_arm64 "y$ENV{TARGET_ARCH}" STREQUAL "yarm64")
 
 if (APPLE AND ${is_arm64})
   set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE INTERNAL "" FORCE)
+endif()
+
+if (WIN32 AND ${use_custom_libcxx})
+  set(CMAKE_C_COMPILER "clang-cl" CACHE STRING "" FORCE)
+  set(CMAKE_CXX_COMPILER "clang-cl" CACHE STRING "" FORCE)
 endif()
 
 set(MODULE wrtc)
@@ -58,49 +63,67 @@ set(libwebrtc_src_dir ${CMAKE_BINARY_DIR}/external/libwebrtc/download/src)
 add_library(libc++ OBJECT IMPORTED)
 add_dependencies(libc++ libwebrtc)
 
+if(WIN32)
+  set(obj_ext .obj)
+else()
+  set(obj_ext .o)
+endif()
+
 set(libc++_objects
-  algorithm.o
-  any.o
-  atomic.o
-  barrier.o
-  bind.o
-  charconv.o
-  chrono.o
-  condition_variable.o
-  condition_variable_destructor.o
-  d2fixed.o
-  d2s.o
-  debug.o
-  exception.o
-  f2s.o
-  format.o
-  functional.o
-  future.o
-  hash.o
-  ios.instantiations.o
-  ios.o
-  iostream.o
-  locale.o
-  memory.o
-  mutex.o
-  mutex_destructor.o
-  new.o
-  optional.o
-  random.o
-  random_shuffle.o
-  regex.o
-  shared_mutex.o
-  stdexcept.o
-  string.o
-  strstream.o
-  system_error.o
-  thread.o
-  typeinfo.o
-  utility.o
-  valarray.o
-  variant.o
-  vector.o
+  algorithm${obj_ext}
+  any${obj_ext}
+  atomic${obj_ext}
+  barrier${obj_ext}
+  bind${obj_ext}
+  charconv${obj_ext}
+  chrono${obj_ext}
+  condition_variable${obj_ext}
+  condition_variable_destructor${obj_ext}
+  d2fixed${obj_ext}
+  d2s${obj_ext}
+  debug${obj_ext}
+  exception${obj_ext}
+  f2s${obj_ext}
+  format${obj_ext}
+  functional${obj_ext}
+  future${obj_ext}
+  hash${obj_ext}
+  ios.instantiations${obj_ext}
+  ios${obj_ext}
+  iostream${obj_ext}
+  locale${obj_ext}
+  memory${obj_ext}
+  mutex${obj_ext}
+  mutex_destructor${obj_ext}
+  new${obj_ext}
+  optional${obj_ext}
+  random${obj_ext}
+  random_shuffle${obj_ext}
+  regex${obj_ext}
+  shared_mutex${obj_ext}
+  stdexcept${obj_ext}
+  string${obj_ext}
+  strstream${obj_ext}
+  system_error${obj_ext}
+  thread${obj_ext}
+  typeinfo${obj_ext}
+  utility${obj_ext}
+  valarray${obj_ext}
+  variant${obj_ext}
+  vector${obj_ext}
 )
+
+if(WIN32)
+  list(APPEND libc++_objects
+    legacy_debug_handler${obj_ext}
+    legacy_pointer_safety${obj_ext}
+    locale_win32${obj_ext}
+    support${obj_ext}
+    thread_win32${obj_ext}
+    verbose_abort${obj_ext}
+  )
+endif()
+
 list(TRANSFORM libc++_objects PREPEND ${libwebrtc_binary_dir}/obj/buildtools/third_party/libc++/libc++/)
 
 set_property(TARGET libc++ APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
@@ -168,9 +191,19 @@ list(APPEND GN_GEN_ARGS
   rtc_include_pulse_audio=false
   rtc_include_tests=false
   use_lld=false
-  "target_cpu=\"$ENV{TARGET_ARCH}\""
   "${NIX_GN_GEN_ARGS}"
 )
+
+if (WIN32)
+  # The escaping is very strange here
+  list(APPEND GN_GEN_ARGS
+    "target_cpu=\\\"$ENV{TARGET_ARCH}\\\""
+  )
+else()
+  list(APPEND GN_GEN_ARGS
+    "target_cpu=\"$ENV{TARGET_ARCH}\""
+  )
+endif()
 
 if (${use_custom_libcxx})
   list(APPEND GN_GEN_ARGS
@@ -213,6 +246,7 @@ endif()
 
 if (WIN32)
   set(byproducts
+    ${libc++_objects}
     ${libwebrtc_binary_dir}/obj/webrtc.lib
     ${libwebrtc_binary_dir}/obj/api/libjingle_peerconnection_api.lib
   )
@@ -368,7 +402,33 @@ if(WIN32)
     winmm.lib
     wmcodecdspuuid.lib
     ws2_32.lib
+    Iphlpapi.lib
+    delayimp.lib
   )
+
+  if (${use_custom_libcxx})
+    target_include_directories(${MODULE} SYSTEM PRIVATE
+      ${libc++_include_dir}
+    )
+
+    target_link_libraries(${MODULE} PRIVATE
+      libc++
+    )
+
+    target_link_options(${MODULE} PRIVATE
+      /defaultlib:libcmt
+      /defaultlib:libcpmt
+      /nodefaultlib:libc++
+      /nodefaultlib:c++
+    )
+
+    target_compile_definitions(${MODULE} PRIVATE
+      -D_LIBCPP_ABI_NAMESPACE=Cr
+      -D_LIBCPP_ABI_VERSION=2
+      -D_LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS
+      -D_LIBCPP_HAS_NO_VENDOR_AVAILABILITY_ANNOTATIONS
+    )
+  endif()
 
   target_compile_definitions(${MODULE} PRIVATE
     -D_WINSOCKAPI_
