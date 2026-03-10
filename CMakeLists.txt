@@ -37,7 +37,7 @@ ExternalProject_Add(
   project_depot_tools
 
   GIT_REPOSITORY    https://chromium.googlesource.com/chromium/tools/depot_tools.git
-  GIT_TAG           495b23b39aaba2ca3b55dd27cadc523f1cb17ee6
+  GIT_TAG           4ce8ba39a3488397a2d1494f167020f21de502f3
 
   PREFIX            ${CMAKE_BINARY_DIR}/external/depot_tools/prefix
   TMP_DIR           ${CMAKE_BINARY_DIR}/external/depot_tools/tmp
@@ -181,6 +181,8 @@ set_target_properties(libc++abi PROPERTIES IMPORTED_OBJECTS_DEBUG "${libc++abi_o
 # M98: branch-heads/4758
 # M102: branch-heads/5005
 # M106: branch-heads/5249
+# M110: branch-heads/5481
+# M114: branch-heads/5735
 set(WEBRTC_REVISION branch-heads/5249)
 
 file(STRINGS nix.gni NIX_GN_GEN_ARGS)
@@ -327,7 +329,7 @@ ExternalProject_Add(
   project_catch2
 
   GIT_REPOSITORY    https://github.com/catchorg/Catch2.git
-  GIT_TAG           a1cdff4f188170c5b0aa3d5d217b60d821f237df
+  GIT_TAG           ee1450f268dfd5c13aa8670ba97e93cabaf2e15d
 
   PREFIX            ${CMAKE_BINARY_DIR}/external/catch2/prefix
   TMP_DIR           ${CMAKE_BINARY_DIR}/external/catch2/tmp
