@@ -81,7 +81,6 @@ set(libc++_objects
   condition_variable_destructor${obj_ext}
   d2fixed${obj_ext}
   d2s${obj_ext}
-  debug${obj_ext}
   exception${obj_ext}
   f2s${obj_ext}
   format${obj_ext}
@@ -111,6 +110,7 @@ set(libc++_objects
   valarray${obj_ext}
   variant${obj_ext}
   vector${obj_ext}
+  verbose_abort${obj_ext}
 )
 
 if(WIN32)
@@ -353,7 +353,7 @@ file(GLOB_RECURSE MODULE_SRC src/*.cc src/*.hh)
 add_library(${MODULE} SHARED ${MODULE_SRC} ${CMAKE_JS_SRC})
 set_target_properties(${MODULE} PROPERTIES PREFIX "" SUFFIX ".node")
 
-set_property(TARGET ${MODULE} PROPERTY CXX_STANDARD 17)
+set_property(TARGET ${MODULE} PROPERTY CXX_STANDARD 20)
 
 # NOTE(mroberts): Workaround for
 #
@@ -449,6 +449,7 @@ else()
   target_compile_options(${MODULE} PRIVATE
     -fno-rtti
     -fvisibility=hidden
+    -fsafe-buffer-usage-suggestions
     -Wall
     -Wextra
     -Wpedantic

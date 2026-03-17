@@ -9,6 +9,7 @@
 #define VIDEO_FRAME_BUFFER_TYPE_LIST                                           \
   ENUM_UNSUPPORTED(VIDEO_FRAME_BUFFER_TYPE::kNative, "native",                 \
                    "\"native\" is not a valid VideoFrameBufferType")           \
+  ENUM_SUPPORTED(VIDEO_FRAME_BUFFER_TYPE::kI410, "I410")                       \
   ENUM_SUPPORTED(VIDEO_FRAME_BUFFER_TYPE::kI420, "I420")                       \
   ENUM_SUPPORTED(VIDEO_FRAME_BUFFER_TYPE::kI420A, "I420A")                     \
   ENUM_SUPPORTED(VIDEO_FRAME_BUFFER_TYPE::kI422, "I422")                       \

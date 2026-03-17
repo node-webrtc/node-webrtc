@@ -7,7 +7,6 @@
  */
 #include "src/interfaces/rtc_data_channel.hh"
 
-#include <iostream>
 #include <utility>
 
 #include <webrtc/api/data_channel_interface.h>
@@ -212,8 +211,10 @@ Napi::Value RTCDataChannel::Send(const Napi::CallbackInfo &info) {
         return env.Undefined();
       }
 
+#pragma clang unsafe_buffer_usage begin
       auto content = static_cast<char *>(arraybuffer.Data());
       rtc::CopyOnWriteBuffer buffer(content + byte_offset, byte_length);
+#pragma clang unsafe_buffer_usage end
 
       webrtc::DataBuffer data_buffer(buffer, true);
       _jingleDataChannel->Send(data_buffer);

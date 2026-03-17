@@ -7,9 +7,6 @@
  */
 #pragma once
 
-#include <iosfwd>
-#include <memory>
-
 #include <webrtc/api/data_channel_interface.h>
 #include <webrtc/api/scoped_refptr.h>
 

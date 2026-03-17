@@ -8,6 +8,8 @@
 #include "src/interfaces/media_stream_track.hh"
 
 #include <node-addon-api/napi.h>
+#include <src/api/scoped_refptr.h>
+#include <src/third_party/abseil-cpp/absl/strings/string_view.h>
 #include <webrtc/api/media_stream_interface.h>
 #include <webrtc/api/peer_connection_interface.h>
 #include <webrtc/rtc_base/helpers.h>
@@ -144,8 +146,9 @@ Napi::Value MediaStreamTrack::Clone(const Napi::CallbackInfo &) {
         _factory->factory()->CreateAudioTrack(label, audioTrack->GetSource());
   } else {
     auto videoTrack = static_cast<webrtc::VideoTrackInterface *>(_track.get());
-    clonedTrack =
-        _factory->factory()->CreateVideoTrack(label, videoTrack->GetSource());
+    auto source = rtc::scoped_refptr<webrtc::VideoTrackSourceInterface>(
+        videoTrack->GetSource());
+    clonedTrack = _factory->factory()->CreateVideoTrack(source, label);
   }
   auto clonedMediaStreamTrack = wrap()->GetOrCreate(_factory, clonedTrack);
   if (_ended) {

@@ -15,7 +15,6 @@
 
 #include "src/converters.hh"
 #include "src/converters/arguments.hh"
-#include "src/converters/interfaces.hh"
 #include "src/converters/napi.hh"
 #include "src/dictionaries/node_webrtc/rtc_media_stream_init.hh"
 #include "src/functional/either.hh"
@@ -36,7 +35,7 @@ MediaStream::Impl::Impl(PeerConnectionFactory *factory)
           _factory->factory()->CreateLocalMediaStream(rtc::CreateRandomUuid())),
       _shouldReleaseFactory(!factory) {}
 
-MediaStream::Impl::Impl(std::vector<MediaStreamTrack *> &&tracks,
+MediaStream::Impl::Impl(std::vector<MediaStreamTrack *> &tracks,
                         PeerConnectionFactory *factory)
     : _factory(factory          ? factory
                : tracks.empty() ? PeerConnectionFactory::GetOrCreateDefault()
@@ -57,7 +56,7 @@ MediaStream::Impl::Impl(std::vector<MediaStreamTrack *> &&tracks,
 }
 
 MediaStream::Impl::Impl(
-    rtc::scoped_refptr<webrtc::MediaStreamInterface> &&stream,
+    rtc::scoped_refptr<webrtc::MediaStreamInterface> &stream,
     PeerConnectionFactory *factory)
     : _factory(factory ? factory : PeerConnectionFactory::GetOrCreateDefault()),
       _stream(stream), _shouldReleaseFactory(!factory) {}
@@ -119,13 +118,13 @@ MediaStream::MediaStream(const Napi::CallbackInfo &info)
     // FIXME(mroberts): There is a safer way to do this.
     auto factory = PeerConnectionFactory::Unwrap(std::get<0>(pair));
     auto stream = *std::get<1>(pair).Data();
-    _impl = MediaStream::Impl(std::move(stream), factory);
+    _impl = MediaStream::Impl(stream, factory);
   } else {
     auto either2 = either1.UnsafeFromRight();
     if (either2.IsLeft()) {
       // 2. Local MediaStream, Array of MediaStreamTracks
       auto tracks = either2.UnsafeFromLeft();
-      _impl = MediaStream::Impl(std::move(tracks));
+      _impl = MediaStream::Impl(tracks);
     } else {
       auto either3 = either2.UnsafeFromRight();
       if (either3.IsLeft()) {
@@ -143,10 +142,10 @@ MediaStream::MediaStream(const Napi::CallbackInfo &info)
         // live until the end of this block. So it's safe to convert them back
         // into pointers and call the _impl constructor
         std::vector<MediaStreamTrack *> raw_tracks;
-        std::transform(
-            tracks.begin(), tracks.end(), std::back_inserter(raw_tracks),
-            [](auto track) -> auto{ return track; });
-        _impl = MediaStream::Impl(std::move(raw_tracks), factory);
+        std::transform(tracks.begin(), tracks.end(),
+                       std::back_inserter(raw_tracks),
+                       [](auto track) -> auto { return track; });
+        _impl = MediaStream::Impl(raw_tracks, factory);
       } else {
         // Check if RTCMediaStreamInit was provided
         auto maybeMediaStreamInit = either3.UnsafeFromRight();
@@ -277,9 +276,10 @@ Napi::Value MediaStream::Clone(const Napi::CallbackInfo &info) {
       clonedStream->AddTrack(clonedTrack);
     } else {
       auto videoTrack = static_cast<webrtc::VideoTrackInterface *>(track.get());
-      auto source = videoTrack->GetSource();
+      auto source = rtc::scoped_refptr<webrtc::VideoTrackSourceInterface>(
+          videoTrack->GetSource());
       auto clonedTrack = _impl._factory->factory()->CreateVideoTrack(
-          rtc::CreateRandomUuid(), source);
+          source, rtc::CreateRandomUuid());
       clonedStream->AddTrack(clonedTrack);
     }
   }

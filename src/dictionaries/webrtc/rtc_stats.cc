@@ -1,9 +1,7 @@
 #include "src/dictionaries/webrtc/rtc_stats.hh"
 
-#include <iosfwd>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include <node-addon-api/napi.h>
 #include <webrtc/api/stats/rtc_stats.h>
@@ -22,7 +20,7 @@ TO_NAPI_IMPL(const webrtc::RTCStats *, pair) {
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, stats, "id", value->id())
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(
       env, stats, "timestamp",
-      static_cast<double>(value->timestamp_us()) / 1000.0)
+      static_cast<double>(value->timestamp().us()) / 1000.0)
   NODE_WEBRTC_CONVERT_AND_SET_OR_RETURN(env, stats, "type",
                                         std::string(value->type()))
   for (const webrtc::RTCStatsMemberInterface *member : value->Members()) {

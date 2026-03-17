@@ -7,8 +7,6 @@
  */
 #pragma once
 
-#include <memory>
-
 #include <node-addon-api/napi.h>
 #include <webrtc/api/media_stream_interface.h>
 #include <webrtc/api/scoped_refptr.h>
@@ -51,10 +49,10 @@ private:
     explicit Impl(PeerConnectionFactory *factory = nullptr);
     ~Impl();
 
-    Impl(std::vector<MediaStreamTrack *> &&tracks,
+    Impl(std::vector<MediaStreamTrack *> &tracks,
          PeerConnectionFactory *factory = nullptr);
 
-    Impl(rtc::scoped_refptr<webrtc::MediaStreamInterface> &&stream,
+    Impl(rtc::scoped_refptr<webrtc::MediaStreamInterface> &stream,
          PeerConnectionFactory *factory = nullptr);
 
     Impl(const RTCMediaStreamInit &init,

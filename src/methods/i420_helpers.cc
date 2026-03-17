@@ -9,9 +9,7 @@
 
 #include <libyuv.h>
 
-#include "src/converters.hh"
 #include "src/converters/arguments.hh"
-#include "src/converters/napi.hh"
 #include "src/dictionaries/node_webrtc/image_data.hh"
 
 namespace node_webrtc {
@@ -30,8 +28,9 @@ Validation<I420ImageData> I420ImageData::Create(ImageData imageData) {
   auto v = (imageData.width + 1) / 2;
   auto h = imageData.height;
 
-  size_t expectedByteLength = static_cast<size_t>(y * h + (u + v) * ((h + 1) / 2));
-  
+  auto expectedByteLength =
+      static_cast<size_t>(y * h + (u + v) * ((h + 1) / 2));
+
   auto actualByteLength = imageData.contents.ByteLength();
   if (actualByteLength != expectedByteLength) {
     auto error = "Expected a .byteLength of " +
@@ -44,8 +43,7 @@ Validation<I420ImageData> I420ImageData::Create(ImageData imageData) {
 }
 
 Validation<RgbaImageData> RgbaImageData::Create(ImageData imageData) {
-  auto expectedByteLength =
-      static_cast<size_t>(imageData.width * imageData.height * 4.0);
+  auto expectedByteLength = imageData.width * imageData.height * 4;
   auto actualByteLength = imageData.contents.ByteLength();
   if (actualByteLength != expectedByteLength) {
     auto error = "Expected a .byteLength of " +
@@ -71,11 +69,13 @@ Napi::Value I420Helpers::RgbaToI420(const Napi::CallbackInfo &info) {
     return info.Env().Undefined();
   }
 
-  libyuv::ABGRToI420(rgbaFrame.dataRgba(), rgbaFrame.strideRgba(),
-                     i420Frame.dataY(), i420Frame.strideY(), i420Frame.dataU(),
-                     i420Frame.strideU(), i420Frame.dataV(),
-                     i420Frame.strideV(), rgbaFrame.width(),
-                     rgbaFrame.height());
+  libyuv::ABGRToI420(
+      rgbaFrame.dataRgba(), static_cast<int>(rgbaFrame.strideRgba()),
+      i420Frame.dataY().data(), static_cast<int>(i420Frame.strideY()),
+      i420Frame.dataU().data(), static_cast<int>(i420Frame.strideU()),
+      i420Frame.dataV().data(), static_cast<int>(i420Frame.strideV()),
+      static_cast<int>(rgbaFrame.width()),
+      static_cast<int>(rgbaFrame.height()));
 
   return info.Env().Undefined();
 }
@@ -94,11 +94,13 @@ Napi::Value I420Helpers::I420ToRgba(const Napi::CallbackInfo &info) {
     return info.Env().Undefined();
   }
 
-  libyuv::I420ToABGR(i420Frame.dataY(), i420Frame.strideY(), i420Frame.dataU(),
-                     i420Frame.strideU(), i420Frame.dataV(),
-                     i420Frame.strideV(), rgbaFrame.dataRgba(),
-                     rgbaFrame.strideRgba(), i420Frame.width(),
-                     i420Frame.height());
+  libyuv::I420ToABGR(
+      i420Frame.dataY().data(), static_cast<int>(i420Frame.strideY()),
+      i420Frame.dataU().data(), static_cast<int>(i420Frame.strideU()),
+      i420Frame.dataV().data(), static_cast<int>(i420Frame.strideV()),
+      rgbaFrame.dataRgba(), static_cast<int>(rgbaFrame.strideRgba()),
+      static_cast<int>(i420Frame.width()),
+      static_cast<int>(i420Frame.height()));
 
   return info.Env().Undefined();
 }

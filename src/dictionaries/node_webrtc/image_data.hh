@@ -1,9 +1,9 @@
 #pragma once
 
 #include <node-addon-api/napi.h>
+#include <span>
 
 #include "src/converters/napi.hh"
-#include "src/functional/either.hh"
 #include "src/functional/validation.hh"
 
 namespace node_webrtc {
@@ -13,11 +13,12 @@ class RgbaImageData;
 
 class ImageData {
 public:
-  int width;
-  int height;
+  size_t width;
+  size_t height;
   Napi::ArrayBuffer contents;
 
-  static ImageData Create(int width, int height, Napi::ArrayBuffer contents) {
+  static ImageData Create(size_t width, size_t height,
+                          Napi::ArrayBuffer contents) {
     return {width, height, contents};
   }
 
@@ -36,24 +37,43 @@ public:
   }
 
   [[nodiscard]] size_t sizeOfChromaPlane() const {
-    return static_cast<size_t>((width() + 1) / 2) * static_cast<size_t>((height() + 1) / 2);
+    return static_cast<size_t>((width() + 1) / 2) *
+           static_cast<size_t>((height() + 1) / 2);
   }
 
-  uint8_t *dataY() { return static_cast<uint8_t *>(data.contents.Data()); }
+  std::span<uint8_t> dataY() {
+    auto ptr = static_cast<uint8_t *>(data.contents.Data());
+    auto len = sizeOfLuminancePlane();
+    return {ptr, len};
+  }
 
-  [[nodiscard]] int strideY() const { return width(); }
+  [[nodiscard]] size_t strideY() const { return width(); }
 
-  uint8_t *dataU() { return &dataY()[sizeOfLuminancePlane()]; }
+  std::span<uint8_t> dataU() {
+#pragma clang unsafe_buffer_usage begin
+    auto ptr =
+        static_cast<uint8_t *>(data.contents.Data()) + sizeOfLuminancePlane();
+    auto len = sizeOfChromaPlane();
+#pragma clang unsafe_buffer_usage end
+    return {ptr, len};
+  }
 
-  [[nodiscard]] int strideU() const { return (width() + 1) / 2; }
+  [[nodiscard]] size_t strideU() const { return (width() + 1) / 2; }
 
-  uint8_t *dataV() { return &dataU()[sizeOfChromaPlane()]; }
+  std::span<uint8_t> dataV() {
+#pragma clang unsafe_buffer_usage begin
+    auto ptr = static_cast<uint8_t *>(data.contents.Data()) +
+               sizeOfLuminancePlane() + sizeOfChromaPlane();
+    auto len = sizeOfChromaPlane();
+#pragma clang unsafe_buffer_usage end
+    return {ptr, len};
+  }
 
-  [[nodiscard]] int strideV() const { return strideU(); }
+  [[nodiscard]] size_t strideV() const { return strideU(); }
 
-  [[nodiscard]] int width() const { return data.width; }
+  [[nodiscard]] size_t width() const { return data.width; }
 
-  [[nodiscard]] int height() const { return data.height; }
+  [[nodiscard]] size_t height() const { return data.height; }
 
 private:
   explicit I420ImageData(const ImageData data) : data(data) {}
@@ -69,11 +89,11 @@ public:
 
   uint8_t *dataRgba() { return static_cast<uint8_t *>(data.contents.Data()); }
 
-  [[nodiscard]] int strideRgba() const { return width() * 4; }
+  [[nodiscard]] size_t strideRgba() const { return width() * 4; }
 
-  [[nodiscard]] int width() const { return data.width; }
+  [[nodiscard]] size_t width() const { return data.width; }
 
-  [[nodiscard]] int height() const { return data.height; }
+  [[nodiscard]] size_t height() const { return data.height; }
 
 private:
   explicit RgbaImageData(const ImageData data) : data(data) {}

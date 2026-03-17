@@ -12,7 +12,6 @@
 #include <webrtc/api/video/video_frame.h>
 #include <webrtc/rtc_base/ref_counted_object.h>
 
-#include "src/converters.hh"
 #include "src/converters/absl.hh"
 #include "src/converters/arguments.hh"
 #include "src/converters/napi.hh"
@@ -21,7 +20,6 @@
 #include "src/interfaces/media_stream_track.hh"
 
 #include <chrono>
-#include <ctime>
 
 namespace node_webrtc {
 
@@ -65,8 +63,8 @@ Napi::Value RTCVideoSource::CreateTrack(const Napi::CallbackInfo &) {
   // TODO(mroberts): Again, we have some implicit factory we are threading
   // around. How to handle?
   auto factory = PeerConnectionFactory::GetOrCreateDefault();
-  auto track = factory->factory()->CreateVideoTrack(rtc::CreateRandomUuid(),
-                                                    _source.get());
+  auto track =
+      factory->factory()->CreateVideoTrack(_source, rtc::CreateRandomUuid());
   return _track_wrap.GetOrCreate(factory, track)->Value();
 }
 
