@@ -38,7 +38,7 @@ RTCSctpTransport::RTCSctpTransport(const Napi::CallbackInfo &info)
 
   _transport = std::move(transport);
 
-  _factory->WorkerThread()->Invoke<void>(RTC_FROM_HERE, [this]() {
+  _factory->WorkerThread()->BlockingCall([this]() {
     _dtls_transport = _transport->dtls_transport();
     _transport->RegisterObserver(this);
   });

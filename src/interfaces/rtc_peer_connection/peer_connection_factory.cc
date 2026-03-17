@@ -21,7 +21,6 @@
 #include <webrtc/modules/audio_device/include/fake_audio_device.h>
 #include <webrtc/modules/audio_device/include/test_audio_device.h>
 #include <webrtc/p2p/base/basic_packet_socket_factory.h>
-#include <webrtc/rtc_base/location.h>
 #include <webrtc/rtc_base/ssl_adapter.h>
 #include <webrtc/rtc_base/thread.h>
 
@@ -65,24 +64,21 @@ PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo &info)
   assert(result);
   (void)result;
 
-  _audioDeviceModule =
-      _workerThread->Invoke<rtc::scoped_refptr<webrtc::AudioDeviceModule>>(
-          RTC_FROM_HERE, [audioLayer]() {
-            return audioLayer
-                .Map([](auto audioLayer) {
-                  // TODO(mroberts): I'm just trying to get this to compile
-                  // right now. We need to call something like
-                  // CreateDefaultTaskQueueFactory(). This code is currently
-                  // unused, though.
-                  return webrtc::AudioDeviceModule::Create(audioLayer, nullptr);
-                })
-                .Or([]() {
-                  return TestAudioDeviceModule::CreateTestAudioDeviceModule(
-                      TestAudioDeviceModule::CreateZeroCapturer(48000, 1),
-                      webrtc::TestAudioDeviceModule::CreateDiscardRenderer(
-                          48000));
-                });
-          });
+  _audioDeviceModule = _workerThread->BlockingCall([audioLayer]() {
+    return audioLayer
+        .Map([](auto audioLayer) {
+          // TODO(mroberts): I'm just trying to get this to compile
+          // right now. We need to call something like
+          // CreateDefaultTaskQueueFactory(). This code is currently
+          // unused, though.
+          return webrtc::AudioDeviceModule::Create(audioLayer, nullptr);
+        })
+        .Or([]() {
+          return TestAudioDeviceModule::CreateTestAudioDeviceModule(
+              TestAudioDeviceModule::CreateZeroCapturer(48000, 1),
+              webrtc::TestAudioDeviceModule::CreateDiscardRenderer(48000));
+        });
+  });
 
   _signalingThread = rtc::Thread::Create();
   assert(_signalingThread);
@@ -120,8 +116,7 @@ PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo &info)
 PeerConnectionFactory::~PeerConnectionFactory() {
   _factory = nullptr;
 
-  _workerThread->Invoke<void>(RTC_FROM_HERE,
-                              [this]() { this->_audioDeviceModule = nullptr; });
+  _workerThread->BlockingCall([this]() { this->_audioDeviceModule = nullptr; });
 
   _workerThread->Stop();
   _signalingThread->Stop();

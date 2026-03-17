@@ -14,7 +14,6 @@
 #include <node-addon-api/napi.h>
 #include <webrtc/api/peer_connection_interface.h> // IWYU pragma: keep
 #include <webrtc/api/rtc_error.h>
-#include <webrtc/rtc_base/location.h>
 #include <webrtc/rtc_base/thread.h>
 
 #include "src/converters.hh"
@@ -77,7 +76,7 @@ RTCDtlsTransport::RTCDtlsTransport(const Napi::CallbackInfo &info)
   // NOTE(mroberts): Ensure we create this.
   _transport_wrap.GetOrCreate(_factory, _transport->ice_transport());
 
-  _factory->WorkerThread()->Invoke<void>(RTC_FROM_HERE, [this]() {
+  _factory->WorkerThread()->BlockingCall([this]() {
     _transport->RegisterObserver(this);
     auto information = _transport->Information();
     _state = information.state();
