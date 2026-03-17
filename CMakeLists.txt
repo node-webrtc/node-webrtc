@@ -183,7 +183,7 @@ set_target_properties(libc++abi PROPERTIES IMPORTED_OBJECTS_DEBUG "${libc++abi_o
 # M106: branch-heads/5249
 # M110: branch-heads/5481
 # M114: branch-heads/5735
-set(WEBRTC_REVISION branch-heads/5481)
+set(WEBRTC_REVISION branch-heads/5735)
 
 file(STRINGS nix.gni NIX_GN_GEN_ARGS)
 list(APPEND GN_GEN_ARGS

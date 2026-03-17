@@ -10,10 +10,10 @@ let
     pkgs:
     (
       let
-        apple-sdk = if is-darwin then pkgs.apple-sdk_12 else null;
+        apple-sdk = if is-darwin then pkgs.apple-sdk_13 else null;
         llvm =
           pkgs:
-          pkgs.llvmPackages_15.override {
+          pkgs.llvmPackages_17.override {
             inherit apple-sdk;
           };
         clang = (llvm pkgs).clang;
@@ -24,7 +24,7 @@ let
           (with pkgs; [
             cmake
             ninja
-            nodejs_22
+            nodejs_24
             pkg-config
             zlib
             # For stripping binaries for release
@@ -43,36 +43,35 @@ let
             (llvm pkgs.pkgsCross.aarch64-multiplatform.buildPackages).clang
           ]);
         # Build variables based on documentation from https://github.com/timniederhausen/gn-build/blob/01c96fd9981b111a3a028356284968acd77fa435/README.md
-        shellHook =
-          ''
-            cat <<EOF > nix.gni
-            is_clang=true
-            use_lld=false
-            clang_use_chrome_plugins=false
-          ''
-          + (lib.optionalString is-darwin ''
-            clang_base_path="${clang}"
-            mac_sdk_path="${apple-sdk}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
-          '')
-          + ''
-            EOF
+        shellHook = ''
+          cat <<EOF > nix.gni
+          is_clang=true
+          use_lld=false
+          clang_use_chrome_plugins=false
+        ''
+        + (lib.optionalString is-darwin ''
+          clang_base_path="${clang}"
+          mac_sdk_path="${apple-sdk}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+        '')
+        + ''
+          EOF
 
-            cat <<EOF > .lazy.lua
-            -- Override the version of clang used for clangd
-            return {
-              {
-                "neovim/nvim-lspconfig",
-                opts = {
-                  servers = {
-                    clangd = {
-                      cmd = { "clangd", "--query-driver=${clang}/bin/clang++" },
-                    },
+          cat <<EOF > .lazy.lua
+          -- Override the version of clang used for clangd
+          return {
+            {
+              "neovim/nvim-lspconfig",
+              opts = {
+                servers = {
+                  clangd = {
+                    cmd = { "clangd", "--query-driver=${clang}/bin/clang++" },
                   },
                 },
               },
-            }
-            EOF
-          '';
+            },
+          }
+          EOF
+        '';
       }
     );
 
