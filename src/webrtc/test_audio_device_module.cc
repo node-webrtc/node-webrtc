@@ -151,13 +151,15 @@ public:
 
   // Blocks until the Renderer refuses to receive data.
   // Returns false if |timeout_ms| passes before that happens.
-  bool WaitForPlayoutEnd(int timeout_ms = rtc::Event::kForever) override {
+  bool WaitForPlayoutEnd(
+      webrtc::TimeDelta timeout_ms = rtc::Event::kForever) override {
     return done_rendering_.Wait(timeout_ms);
   }
 
   // Blocks until the Recorder stops producing data.
   // Returns false if |timeout_ms| passes before that happens.
-  bool WaitForRecordingEnd(int timeout_ms = rtc::Event::kForever) override {
+  bool WaitForRecordingEnd(
+      webrtc::TimeDelta timeout_ms = rtc::Event::kForever) override {
     return done_capturing_.Wait(timeout_ms);
   }
 

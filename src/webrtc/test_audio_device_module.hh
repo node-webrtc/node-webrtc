@@ -33,11 +33,16 @@ namespace node_webrtc {
 class TestAudioDeviceModule
     : public rtc::RefCountedObject<webrtc::AudioDeviceModule> {
 public:
+  TestAudioDeviceModule() = default;
+  TestAudioDeviceModule(const TestAudioDeviceModule &) = delete;
+  TestAudioDeviceModule(TestAudioDeviceModule &&) = delete;
+  TestAudioDeviceModule &operator=(const TestAudioDeviceModule &) = delete;
+  TestAudioDeviceModule &operator=(TestAudioDeviceModule &&) = delete;
+  ~TestAudioDeviceModule() override = default;
+
   // Returns the number of samples that Capturers and Renderers with this
   // sampling frequency will work with every time Capture or Render is called.
   static size_t SamplesPerFrame(int sampling_frequency_in_hz);
-
-  ~TestAudioDeviceModule() override = default;
 
   // Creates a new TestAudioDeviceModule. When capturing or playing, 10 ms audio
   // frames will be processed every 10ms / |speed|.
@@ -72,10 +77,12 @@ public:
 
   // Blocks until the Renderer refuses to receive data.
   // Returns false if |timeout_ms| passes before that happens.
-  virtual bool WaitForPlayoutEnd(int timeout_ms = rtc::Event::kForever) = 0;
+  virtual bool
+  WaitForPlayoutEnd(webrtc::TimeDelta timeout_ms = rtc::Event::kForever) = 0;
   // Blocks until the Recorder stops producing data.
   // Returns false if |timeout_ms| passes before that happens.
-  virtual bool WaitForRecordingEnd(int timeout_ms = rtc::Event::kForever) = 0;
+  virtual bool
+  WaitForRecordingEnd(webrtc::TimeDelta timeout_ms = rtc::Event::kForever) = 0;
 };
 
 } // namespace node_webrtc
