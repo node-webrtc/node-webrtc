@@ -11,8 +11,10 @@
                    "\"native\" is not a valid VideoFrameBufferType")           \
   ENUM_SUPPORTED(VIDEO_FRAME_BUFFER_TYPE::kI420, "I420")                       \
   ENUM_SUPPORTED(VIDEO_FRAME_BUFFER_TYPE::kI420A, "I420A")                     \
+  ENUM_SUPPORTED(VIDEO_FRAME_BUFFER_TYPE::kI422, "I422")                       \
   ENUM_SUPPORTED(VIDEO_FRAME_BUFFER_TYPE::kI444, "I444")                       \
   ENUM_SUPPORTED(VIDEO_FRAME_BUFFER_TYPE::kI010, "I010")                       \
+  ENUM_SUPPORTED(VIDEO_FRAME_BUFFER_TYPE::kI210, "I210")                       \
   ENUM_SUPPORTED(VIDEO_FRAME_BUFFER_TYPE::kNV12, "NV12")
 
 #define ENUM(X) VIDEO_FRAME_BUFFER_TYPE##X
