@@ -258,6 +258,7 @@ else()
     ${libc++abi_objects}
     ${libwebrtc_binary_dir}/obj/libwebrtc.a
     ${libwebrtc_binary_dir}/obj/api/libjingle_peerconnection_api.a
+    ${libwebrtc_binary_dir}/obj/media/librtc_media_engine_defaults.a
   )
 endif()
 
@@ -304,6 +305,11 @@ if(WIN32)
 else()
   set_property(TARGET libpeerconnection PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/api/libjingle_peerconnection_api.a")
 endif()
+
+# Media engine defaults (includes all codec factories)
+add_library(librtc_media_engine_defaults STATIC IMPORTED)
+add_dependencies(librtc_media_engine_defaults project_libwebrtc)
+set_property(TARGET librtc_media_engine_defaults PROPERTY IMPORTED_LOCATION "${libwebrtc_binary_dir}/obj/media/librtc_media_engine_defaults.a")
 
 set(libc++_include_dir
   "${libwebrtc_source_dir}/src/buildtools/third_party/libc++/trunk/include"
@@ -384,6 +390,7 @@ target_link_libraries(${MODULE} PRIVATE
   ${CMAKE_THREAD_LIBS_INIT}
   libpeerconnection
   libwebrtc
+  librtc_media_engine_defaults
   ${CMAKE_JS_LIB}
 )
 

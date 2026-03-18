@@ -76,7 +76,7 @@ PeerConnectionFactory::PeerConnectionFactory(const Napi::CallbackInfo &info)
         .Or([]() {
           return TestAudioDeviceModule::CreateTestAudioDeviceModule(
               TestAudioDeviceModule::CreateZeroCapturer(48000, 1),
-              webrtc::TestAudioDeviceModule::CreateDiscardRenderer(48000));
+              TestAudioDeviceModule::CreateDiscardRenderer(48000));
         });
   });
 

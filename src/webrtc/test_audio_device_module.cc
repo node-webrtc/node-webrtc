@@ -302,6 +302,26 @@ private:
   const int num_channels_;
 };
 
+class DiscardRendererImpl final
+    : public webrtc::TestAudioDeviceModule::Renderer {
+public:
+  DiscardRendererImpl(int sampling_frequency_in_hz, int num_channels)
+      : sampling_frequency_in_hz_(sampling_frequency_in_hz),
+        num_channels_(num_channels) {}
+
+  [[nodiscard]] int SamplingFrequency() const override {
+    return sampling_frequency_in_hz_;
+  }
+
+  [[nodiscard]] int NumChannels() const override { return num_channels_; }
+
+  bool Render(rtc::ArrayView<const int16_t> /*data*/) override { return true; }
+
+private:
+  int sampling_frequency_in_hz_;
+  const int num_channels_;
+};
+
 } // namespace
 
 size_t TestAudioDeviceModule::SamplesPerFrame(int sampling_frequency_in_hz) {
@@ -324,6 +344,13 @@ TestAudioDeviceModule::CreateZeroCapturer(
     int sampling_frequency_in_hz, int num_channels) {
   return std::make_unique<ZeroCapturerImpl>(sampling_frequency_in_hz,
                                             num_channels);
+}
+
+std::unique_ptr<webrtc::TestAudioDeviceModule::Renderer>
+TestAudioDeviceModule::CreateDiscardRenderer(int sampling_frequency_in_hz,
+                                             int num_channels) {
+  return std::make_unique<DiscardRendererImpl>(sampling_frequency_in_hz,
+                                               num_channels);
 }
 
 } // namespace node_webrtc
