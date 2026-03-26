@@ -1,23 +1,22 @@
-#include "src/dictionaries/node_webrtc/image_data.h"
+#include "src/dictionaries/node_webrtc/image_data.hh"
 
 #include <node-addon-api/napi.h>
 #include <webrtc/api/video/i420_buffer.h>
 
-#include "src/converters.h"
-#include "src/converters/object.h"
-#include "src/dictionaries/webrtc/video_frame_buffer.h"
-#include "src/functional/curry.h"
-#include "src/functional/operators.h"
+#include "src/converters.hh"
+#include "src/converters/object.hh"
+#include "src/dictionaries/webrtc/video_frame_buffer.hh"
+#include "src/functional/curry.hh"
+#include "src/functional/operators.hh"
 
 namespace node_webrtc {
 
 DECLARE_FROM_NAPI(ImageData)
 FROM_NAPI_IMPL(ImageData, value) {
   return From<Napi::Object>(value).FlatMap<ImageData>([](auto object) {
-    return curry(ImageData::Create)
-        % GetRequired<int>(object, "width")
-        * GetRequired<int>(object, "height")
-        * GetRequired<Napi::ArrayBuffer>(object, "data");
+    return curry(ImageData::Create) % GetRequired<int>(object, "width") *
+           GetRequired<int>(object, "height") *
+           GetRequired<Napi::ArrayBuffer>(object, "data");
   });
 }
 
@@ -35,4 +34,4 @@ CONVERTER_IMPL(ImageData, RgbaImageData, imageData) {
 
 CONVERT_VIA(Napi::Value, ImageData, RgbaImageData)
 
-}  // namespace node_webrtc
+} // namespace node_webrtc

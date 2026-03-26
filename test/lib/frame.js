@@ -1,12 +1,12 @@
-'use strict';
+"use strict";
 
-const { i420ToRgba, rgbaToI420 } = require('../..').nonstandard;
+const { i420ToRgba, rgbaToI420 } = require("../..").nonstandard;
 
 class I420Frame {
   constructor(width = 640, height = 480) {
     this.width = width;
     this.height = height;
-    this.data = new Uint8ClampedArray(this.byteLength);
+    this.data = new Uint8Array(this.byteLength);
     Object.freeze(this);
   }
 
@@ -17,9 +17,11 @@ class I420Frame {
   }
 
   get byteLength() {
-    return this.sizeOfLuminancePlane  // Y
-         + this.sizeOfChromaPlane     // U
-         + this.sizeOfChromaPlane;    // V
+    return (
+      this.sizeOfLuminancePlane + // Y
+      this.sizeOfChromaPlane + // U
+      this.sizeOfChromaPlane
+    ); // V
   }
 
   get sizeOfLuminancePlane() {
@@ -27,7 +29,9 @@ class I420Frame {
   }
 
   get sizeOfChromaPlane() {
-    return this.sizeOfLuminancePlane / 4;
+    const chromaWidth = Math.floor((this.width + 1) / 2);
+    const chromaHeight = Math.floor((this.height + 1) / 2);
+    return chromaWidth * chromaHeight;
   }
 }
 

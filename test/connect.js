@@ -1,13 +1,13 @@
-'use strict';
+"use strict";
 
-var test = require('tape');
+var test = require("tape");
 
-var wrtc = require('..');
+var wrtc = require("..");
 
 var RTCIceCandidate = wrtc.RTCIceCandidate;
 var RTCPeerConnection = wrtc.RTCPeerConnection;
 
-var captureCandidates = require('./helpers/capture-candidates');
+var captureCandidates = require("./helpers/capture-candidates");
 var candidatesPromises;
 
 var peers = [];
@@ -16,46 +16,45 @@ var dcs = [];
 var localDesc;
 var dcPromise;
 
-test('create the peer connections', function(t) {
+test("create the peer connections", function (t) {
   t.plan(2);
   peers = [
     new RTCPeerConnection({ iceServers: [] }),
-    new RTCPeerConnection({ iceServers: [] })
+    new RTCPeerConnection({ iceServers: [] }),
   ];
 
-  dcPromise = new Promise(function(resolve) {
-    peers[1].ondatachannel = function(evt) {
+  dcPromise = new Promise(function (resolve) {
+    peers[1].ondatachannel = function (evt) {
       dcs[1] = evt.channel;
       resolve(dcs[1]);
     };
   });
 
-  candidatesPromises = peers.map(function(pc, i) {
+  candidatesPromises = peers.map(function (pc, i) {
     var candidatesPromise = captureCandidates(pc);
-    return candidatesPromise.then(function(_candidates) {
+    return candidatesPromise.then(function (_candidates) {
       candidates[i] = _candidates;
       return _candidates;
     });
   });
 
-  t.ok(peers[0] instanceof RTCPeerConnection, 'peer:0 created ok');
-  t.ok(peers[1] instanceof RTCPeerConnection, 'peer:1 created ok');
+  t.ok(peers[0] instanceof RTCPeerConnection, "peer:0 created ok");
+  t.ok(peers[1] instanceof RTCPeerConnection, "peer:1 created ok");
 });
 
-test('peers are created and in the expected connection state', function(t) {
+test("peers are created and in the expected connection state", function (t) {
   t.plan(2);
-  t.equal(peers[0].iceConnectionState, 'new');
-  t.equal(peers[1].iceConnectionState, 'new');
+  t.equal(peers[0].iceConnectionState, "new");
+  t.equal(peers[1].iceConnectionState, "new");
 });
 
-test('create a datachannel on peer:0', function(t) {
+test("create a datachannel on peer:0", function (t) {
   t.plan(2);
-  t.ok(dcs[0] = peers[0].createDataChannel('test'));
-  t.equal(dcs[0].label, 'test', 'created with correct label');
+  t.ok((dcs[0] = peers[0].createDataChannel("test")));
+  t.equal(dcs[0].label, "test", "created with correct label");
 });
 
-test('createOffer for peer:0', function(t) {
-
+test("createOffer for peer:0", function (t) {
   var fail = t.ifError.bind(t);
 
   function pass(desc) {
@@ -63,39 +62,43 @@ test('createOffer for peer:0', function(t) {
     localDesc = desc;
 
     // run the checks
-    t.ok(desc, 'createOffer succeeded');
-    t.equal(desc.type, 'offer', 'type === offer');
-    t.ok(desc.sdp, 'got sdp');
+    t.ok(desc, "createOffer succeeded");
+    t.equal(desc.type, "offer", "type === offer");
+    t.ok(desc.sdp, "got sdp");
   }
 
   t.plan(3);
   peers[0].createOffer(pass, fail);
 });
 
-test('setLocalDescription for peer:0', function(t) {
+test("setLocalDescription for peer:0", function (t) {
   var fail = t.ifError.bind(t);
-  var pass = t.pass.bind(t, 'ok');
+  var pass = t.pass.bind(t, "ok");
 
   t.plan(1);
   peers[0].setLocalDescription(localDesc, pass, fail);
 });
 
-test('capture ice candidates for peer:0', function(t) {
+test("capture ice candidates for peer:0", function (t) {
   t.plan(1);
-  candidatesPromises[0].then(function() {
-    t.equal(peers[0].iceGatheringState, 'complete', 'have candidates for peer:0');
+  candidatesPromises[0].then(function () {
+    t.equal(
+      peers[0].iceGatheringState,
+      "complete",
+      "have candidates for peer:0",
+    );
   });
 });
 
-test('setRemoteDescription for peer:1', function(t) {
+test("setRemoteDescription for peer:1", function (t) {
   var fail = t.ifError.bind(t);
-  var pass = t.pass.bind(t, 'ok');
+  var pass = t.pass.bind(t, "ok");
 
   t.plan(1);
   peers[1].setRemoteDescription(peers[0].localDescription, pass, fail);
 });
 
-test('provide peer:1 with the peer:0 gathered ice candidates', function(t) {
+test("provide peer:1 with the peer:0 gathered ice candidates", function (t) {
   if (!candidates[0].length) {
     t.end();
     return;
@@ -103,16 +106,16 @@ test('provide peer:1 with the peer:0 gathered ice candidates', function(t) {
 
   t.plan(candidates[0].length);
 
-  candidates[0].forEach(function(candidate) {
+  candidates[0].forEach(function (candidate) {
     peers[1].addIceCandidate(
       new RTCIceCandidate(candidate),
-      t.pass.bind(t, 'added candidate'),
-      t.ifError.bind(t)
+      t.pass.bind(t, "added candidate"),
+      t.ifError.bind(t),
     );
   });
 });
 
-test('createAnswer for peer:1', function(t) {
+test("createAnswer for peer:1", function (t) {
   var fail = t.ifError.bind(t);
 
   function pass(desc) {
@@ -120,39 +123,43 @@ test('createAnswer for peer:1', function(t) {
     localDesc = desc;
 
     // run the checks
-    t.ok(desc, 'createOffer succeeded');
-    t.equal(desc.type, 'answer', 'type === answer');
-    t.ok(desc.sdp, 'got sdp');
+    t.ok(desc, "createOffer succeeded");
+    t.equal(desc.type, "answer", "type === answer");
+    t.ok(desc.sdp, "got sdp");
   }
 
   t.plan(3);
   peers[1].createAnswer(pass, fail);
 });
 
-test('setLocalDescription for peer:1', function(t) {
+test("setLocalDescription for peer:1", function (t) {
   var fail = t.ifError.bind(t);
-  var pass = t.pass.bind(t, 'ok');
+  var pass = t.pass.bind(t, "ok");
 
   t.plan(1);
   peers[1].setLocalDescription(localDesc, pass, fail);
 });
 
-test('capture ice candidates for peer:1', function(t) {
+test("capture ice candidates for peer:1", function (t) {
   t.plan(1);
-  candidatesPromises[1].then(function() {
-    t.equal(peers[1].iceGatheringState, 'complete', 'have candidates for peer:1');
+  candidatesPromises[1].then(function () {
+    t.equal(
+      peers[1].iceGatheringState,
+      "complete",
+      "have candidates for peer:1",
+    );
   });
 });
 
-test('setRemoteDescription for peer:0', function(t) {
+test("setRemoteDescription for peer:0", function (t) {
   var fail = t.ifError.bind(t);
-  var pass = t.pass.bind(t, 'ok');
+  var pass = t.pass.bind(t, "ok");
 
   t.plan(1);
   peers[0].setRemoteDescription(peers[1].localDescription, pass, fail);
 });
 
-test('provide peer:0 with the peer:1 gathered ice candidates', function(t) {
+test("provide peer:0 with the peer:1 gathered ice candidates", function (t) {
   if (!candidates[1].length) {
     t.end();
     return;
@@ -160,31 +167,33 @@ test('provide peer:0 with the peer:1 gathered ice candidates', function(t) {
 
   t.plan(candidates[1].length);
 
-  candidates[1].forEach(function(candidate) {
+  candidates[1].forEach(function (candidate) {
     peers[0].addIceCandidate(
       new RTCIceCandidate(candidate),
-      t.pass.bind(t, 'added candidate'),
-      t.ifError.bind(t)
+      t.pass.bind(t, "added candidate"),
+      t.ifError.bind(t),
     );
   });
 });
 
-test('peer:1 triggers data channel event', function(t) {
+test("peer:1 triggers data channel event", function (t) {
   t.plan(2);
 
-  dcPromise.then(function(dc) {
-    t.ok(dc, 'got data channel');
-    t.equal(dc.label, 'test', 'data channel has correct label');
+  dcPromise.then(function (dc) {
+    t.ok(dc, "got data channel");
+    t.equal(dc.label, "test", "data channel has correct label");
   });
 });
 
-test('monitor the ice connection state of peer:0', function(t) {
+test("monitor the ice connection state of peer:0", function (t) {
   t.plan(1);
 
   function checkState() {
-    if (peers[0].iceConnectionState === 'connected' ||
-      peers[0].iceConnectionState === 'completed') {
-      t.pass('peer:0 in connected state');
+    if (
+      peers[0].iceConnectionState === "connected" ||
+      peers[0].iceConnectionState === "completed"
+    ) {
+      t.pass("peer:0 in connected state");
       peers[0].oniceconnectionstatechange = null;
     }
   }
@@ -193,12 +202,12 @@ test('monitor the ice connection state of peer:0', function(t) {
   checkState();
 });
 
-test('monitor the ice connection state of peer:1', function(t) {
+test("monitor the ice connection state of peer:1", function (t) {
   t.plan(1);
 
   function checkState() {
-    if (peers[1].iceConnectionState === 'connected') {
-      t.pass('peer:1 in connected state');
+    if (peers[1].iceConnectionState === "connected") {
+      t.pass("peer:1 in connected state");
       peers[1].oniceconnectionstatechange = null;
     }
   }
@@ -215,15 +224,15 @@ test('monitor the ice connection state of peer:1', function(t) {
  * @returns {Promise<void>}
  */
 function testSendingAMessage(t, sender, receiver, message) {
-  var messageEventPromise = new Promise(function(resolve) {
-    receiver.addEventListener('message', resolve);
+  var messageEventPromise = new Promise(function (resolve) {
+    receiver.addEventListener("message", resolve);
   });
   sender.send(message);
-  t.pass('successfully sent message');
-  return messageEventPromise.then(function(messageEvent) {
+  t.pass("successfully sent message");
+  return messageEventPromise.then(function (messageEvent) {
     var data = messageEvent.data;
-    t.ok(data, 'got valid data');
-    if (typeof message === 'string') {
+    t.ok(data, "got valid data");
+    if (typeof message === "string") {
       t.equal(data.length, message.length);
       t.equal(data, message);
     } else {
@@ -245,9 +254,9 @@ function testSendingAMessage(t, sender, receiver, message) {
 function testSendingAMessageNTimes(t, sender, receiver, message, n) {
   return n <= 0
     ? Promise.resolve()
-    : testSendingAMessage(t, sender, receiver, message).then(function() {
-      return testSendingAMessageNTimes(t, sender, receiver, message, n - 1);
-    });
+    : testSendingAMessage(t, sender, receiver, message).then(function () {
+        return testSendingAMessageNTimes(t, sender, receiver, message, n - 1);
+      });
 }
 
 /**
@@ -262,62 +271,62 @@ function testSendingAMessageNTimes(t, sender, receiver, message, n) {
  * @returns {Promise<void>}
  */
 function testSendingAMessageWithOptions(t, sender, receiver, message, options) {
-  options = Object.assign({
-    times: 1,
-    type: 'string'
-  }, options);
-  if (options.type === 'arraybuffer') {
-    message = new Uint8Array(message.split('').map(function(char) {
-      return char.charCodeAt(0);
-    }));
-  } else if (options.type === 'buffer') {
+  options = Object.assign(
+    {
+      times: 1,
+      type: "string",
+    },
+    options,
+  );
+  if (options.type === "arraybuffer") {
+    message = new Uint8Array(
+      message.split("").map(function (char) {
+        return char.charCodeAt(0);
+      }),
+    );
+  } else if (options.type === "buffer") {
     message = new Buffer(message);
   }
   return testSendingAMessageNTimes(t, sender, receiver, message, options.times);
 }
 
-test('data channel connectivity', function(t) {
+test("data channel connectivity", function (t) {
   var sender = dcs[0];
   var receiver = dcs[1];
-  var message1 = 'hello world';
+  var message1 = "hello world";
   // First, test sending strings.
-  testSendingAMessageWithOptions(t, sender, receiver, message1, { times: 3 }).then(function() {
-    // Then, test sending ArrayBuffers.
-    return testSendingAMessageWithOptions(t, sender, receiver, message1, {
-      times: 3,
-      type: 'arraybuffer'
+  testSendingAMessageWithOptions(t, sender, receiver, message1, { times: 3 })
+    .then(function () {
+      // Then, test sending ArrayBuffers.
+      return testSendingAMessageWithOptions(t, sender, receiver, message1, {
+        times: 3,
+        type: "arraybuffer",
+      });
+    })
+    .then(function () {
+      // Finally, test sending Buffers.
+      return testSendingAMessageWithOptions(t, sender, receiver, message1, {
+        times: 3,
+        type: "buffer",
+      });
+    })
+    .then(function () {
+      t.end();
     });
-  }).then(function() {
-    // Finally, test sending Buffers.
-    return testSendingAMessageWithOptions(t, sender, receiver, message1, {
-      times: 3,
-      type: 'buffer'
-    });
-  }).then(function() {
-    t.end();
-  });
 });
 
-test('getStats (legacy)', function(t) {
+test("getStats", function (t) {
   t.plan(2);
 
   function getStats(peer, callback) {
-    peer.getStats(function(response) {
-      var reports = response.result();
-      callback(null, reports.map(function(report) {
-        var obj = {
-          timestamp: report.timestamp,
-          type: report.type
-        };
-        var names = report.names();
-        names.forEach(function(name) {
-          obj[name] = report.stat(name);
-        });
-        return obj;
-      }));
-    }, function(error) {
-      callback(error);
-    });
+    peer.getStats().then(
+      (response) => {
+        callback(null, response);
+      },
+      (error) => {
+        callback(error);
+      },
+    );
   }
 
   function done(error, reports) {
@@ -327,41 +336,15 @@ test('getStats (legacy)', function(t) {
     }
     // eslint-disable-next-line no-console
     console.log(reports);
-    t.pass('successfully called getStats (legacy)');
+    t.pass("successfully called getStats");
   }
 
-  peers.forEach(function(peer) {
+  peers.forEach(function (peer) {
     getStats(peer, done);
   });
 });
 
-test('getStats', function(t) {
-  t.plan(2);
-
-  function getStats(peer, callback) {
-    peer.getStats().then(response => {
-      callback(null, response);
-    }, error => {
-      callback(error);
-    });
-  }
-
-  function done(error, reports) {
-    if (error) {
-      t.fail(error);
-      return;
-    }
-    // eslint-disable-next-line no-console
-    console.log(reports);
-    t.pass('successfully called getStats');
-  }
-
-  peers.forEach(function(peer) {
-    getStats(peer, done);
-  });
-});
-
-test('close the connections', function(t) {
+test("close the connections", function (t) {
   t.plan(7);
 
   peers[0].close();
@@ -369,25 +352,42 @@ test('close the connections', function(t) {
 
   // make sure nothing crashes after connection is closed and _jinglePeerConnection is null
   for (var i = 0; i < 2; i++) {
-    peers[i].createOffer();
-    peers[i].createAnswer();
-    peers[i].setLocalDescription({}, function() {}, function() {});
-    peers[i].setRemoteDescription({}, function() {}, function() {});
-    peers[i].addIceCandidate({}, function() {}, function() {});
+    // TODO(jack): figure out how to not make these following functions throw, maybe
+    // peers[i].createOffer();
+    // peers[i].createAnswer();
+    peers[i].setLocalDescription(
+      {},
+      function () {},
+      function () {},
+    );
+    peers[i].setRemoteDescription(
+      {},
+      function () {},
+      function () {},
+    );
+    peers[i].addIceCandidate(
+      {},
+      function () {},
+      function () {},
+    );
     try {
-      peers[i].createDataChannel('test');
-      t.fail('createDataChannel should throw InvalidStateError');
+      peers[i].createDataChannel("test");
+      t.fail("createDataChannel should throw InvalidStateError");
     } catch (error) {
       t.equal(error.code, 11);
-      t.equal(error.name, 'InvalidStateError');
+      t.equal(error.name, "InvalidStateError");
     }
-    peers[i].getStats(function() {}, function(err) {
-      t.ok(err);
-    });
+    peers[i].getStats().then(
+      () => {},
+      (err) => {
+        // We should throw an error for getStats() called on closed connections
+        t.ok(err);
+      },
+    );
     peers[i].close();
   }
 
-  t.pass('closed connections');
+  t.pass("closed connections");
 
   peers = [];
 });

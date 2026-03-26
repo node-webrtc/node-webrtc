@@ -1,13 +1,13 @@
-'use strict';
+"use strict";
 
-const test = require('tape');
+const test = require("tape");
 
-const { RTCPeerConnection } = require('..');
+const { RTCPeerConnection } = require("..");
 
-test('local rollback (wrong state)', async t => {
-  const pc = new RTCPeerConnection({ sdpSemantics: 'unified-plan' });
+test("local rollback (wrong state)", async (t) => {
+  const pc = new RTCPeerConnection({ sdpSemantics: "unified-plan" });
   try {
-    await pc.setLocalDescription({ type: 'rollback' });
+    await pc.setLocalDescription({ type: "rollback" });
     t.fail();
   } catch (error) {
     t.pass(error);
@@ -17,10 +17,10 @@ test('local rollback (wrong state)', async t => {
   }
 });
 
-test('remote rollback (wrong state)', async t => {
-  const pc = new RTCPeerConnection({ sdpSemantics: 'unified-plan' });
+test("remote rollback (wrong state)", async (t) => {
+  const pc = new RTCPeerConnection({ sdpSemantics: "unified-plan" });
   try {
-    await pc.setRemoteDescription({ type: 'rollback' });
+    await pc.setRemoteDescription({ type: "rollback" });
     t.fail();
   } catch (error) {
     t.pass(error);
@@ -30,15 +30,15 @@ test('remote rollback (wrong state)', async t => {
   }
 });
 
-test('local rollback', async t => {
-  const pc = new RTCPeerConnection({ sdpSemantics: 'unified-plan' });
+test("local rollback", async (t) => {
+  const pc = new RTCPeerConnection({ sdpSemantics: "unified-plan" });
   try {
-    pc.addTransceiver('audio');
+    pc.addTransceiver("audio");
     const localDescription = await pc.createOffer();
     await pc.setLocalDescription(localDescription);
-    t.equal(pc.signalingState, 'have-local-offer');
-    await pc.setLocalDescription({ type: 'rollback' });
-    t.equal(pc.signalingState, 'stable');
+    t.equal(pc.signalingState, "have-local-offer");
+    await pc.setLocalDescription({ type: "rollback" });
+    t.equal(pc.signalingState, "stable");
   } catch (error) {
     t.fail(error);
   } finally {
@@ -47,36 +47,36 @@ test('local rollback', async t => {
   }
 });
 
-test('remote rollback', async t => {
-  const pc1 = new RTCPeerConnection({ sdpSemantics: 'unified-plan' });
-  const pc2 = new RTCPeerConnection({ sdpSemantics: 'unified-plan' });
+test("remote rollback", async (t) => {
+  const pc1 = new RTCPeerConnection({ sdpSemantics: "unified-plan" });
+  const pc2 = new RTCPeerConnection({ sdpSemantics: "unified-plan" });
   try {
-    pc1.addTransceiver('audio');
+    pc1.addTransceiver("audio");
     const remoteDescription = await pc1.createOffer();
     await pc2.setRemoteDescription(remoteDescription);
-    t.equal(pc2.signalingState, 'have-remote-offer');
-    await pc2.setRemoteDescription({ type: 'rollback' });
-    t.equal(pc2.signalingState, 'stable');
+    t.equal(pc2.signalingState, "have-remote-offer");
+    await pc2.setRemoteDescription({ type: "rollback" });
+    t.equal(pc2.signalingState, "stable");
   } catch (error) {
-    t.fail();
+    t.fail(`${error}`);
   } finally {
     pc1.close();
     pc2.close();
     t.end();
   }
 });
-test('remote rollback', async t => {
-  const pc1 = new RTCPeerConnection({ sdpSemantics: 'unified-plan' });
-  const pc2 = new RTCPeerConnection({ sdpSemantics: 'unified-plan' });
+test("remote rollback", async (t) => {
+  const pc1 = new RTCPeerConnection({ sdpSemantics: "unified-plan" });
+  const pc2 = new RTCPeerConnection({ sdpSemantics: "unified-plan" });
   try {
-    pc1.addTransceiver('audio');
+    pc1.addTransceiver("audio");
     const remoteDescription = await pc1.createOffer();
     await pc2.setRemoteDescription(remoteDescription);
-    t.equal(pc2.signalingState, 'have-remote-offer');
-    await pc2.setRemoteDescription({ type: 'rollback' });
-    t.equal(pc2.signalingState, 'stable');
+    t.equal(pc2.signalingState, "have-remote-offer");
+    await pc2.setRemoteDescription({ type: "rollback" });
+    t.equal(pc2.signalingState, "stable");
   } catch (error) {
-    t.fail();
+    t.fail(`${error}`);
   } finally {
     pc1.close();
     pc2.close();

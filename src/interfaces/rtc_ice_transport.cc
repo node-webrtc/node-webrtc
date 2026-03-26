@@ -5,42 +5,46 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/interfaces/rtc_ice_transport.h"
+#include "src/interfaces/rtc_ice_transport.hh"
 
-#include "src/converters/arguments.h"
-#include "src/enums/webrtc/ice_connection_state.h"
-#include "src/enums/webrtc/ice_gathering_state.h"
-#include "src/enums/webrtc/ice_role.h"
-#include "src/enums/webrtc/ice_transport_state.h"
-#include "src/interfaces/rtc_peer_connection/peer_connection_factory.h"
+#include "src/converters/arguments.hh"
+#include "src/enums/webrtc/ice_connection_state.hh"
+#include "src/enums/webrtc/ice_gathering_state.hh"
+#include "src/enums/webrtc/ice_role.hh"
+#include "src/enums/webrtc/ice_transport_state.hh"
+#include "src/interfaces/rtc_peer_connection/peer_connection_factory.hh"
 
 namespace node_webrtc {
 
-Napi::FunctionReference& RTCIceTransport::constructor() {
+Napi::FunctionReference &RTCIceTransport::constructor() {
   static Napi::FunctionReference constructor;
   return constructor;
 }
 
-RTCIceTransport::RTCIceTransport(const Napi::CallbackInfo& info)
-  : AsyncObjectWrapWithLoop<RTCIceTransport>("RTCIceTransport", *this, info) {
+RTCIceTransport::RTCIceTransport(const Napi::CallbackInfo &info)
+    : AsyncObjectWrapWithLoop<RTCIceTransport>("RTCIceTransport", *this, info) {
   if (info.Length() != 2 || !info[0].IsObject() || !info[1].IsExternal()) {
-    Napi::TypeError::New(info.Env(), "You cannot construct an RTCIceTransport").ThrowAsJavaScriptException();
+    Napi::TypeError::New(info.Env(), "You cannot construct an RTCIceTransport")
+        .ThrowAsJavaScriptException();
     return;
   }
 
-  auto factory = PeerConnectionFactory::Unwrap(info[0].ToObject());
-  auto transport = *info[1].As<Napi::External<rtc::scoped_refptr<webrtc::IceTransportInterface>>>().Data();
-
-  _factory = factory;
-  _factory->Ref();
+  _factory = PeerConnectionFactory::Unwrap(info[0].ToObject());
+  auto transport =
+      *info[1]
+           .As<Napi::External<
+               rtc::scoped_refptr<webrtc::IceTransportInterface>>>()
+           .Data();
 
   _transport = std::move(transport);
 
-  _factory->_workerThread->Invoke<void>(RTC_FROM_HERE, [this]() {
+  _factory->WorkerThread()->BlockingCall([this]() {
     auto internal = _transport->internal();
     if (internal) {
-      internal->SignalIceTransportStateChanged.connect(this, &RTCIceTransport::OnStateChanged);
-      internal->SignalGatheringState.connect(this, &RTCIceTransport::OnGatheringStateChanged);
+      internal->SignalIceTransportStateChanged.connect(
+          this, &RTCIceTransport::OnStateChanged);
+      internal->SignalGatheringState.connect(
+          this, &RTCIceTransport::OnGatheringStateChanged);
     }
     TakeSnapshot();
     if (_state == webrtc::IceTransportState::kClosed) {
@@ -54,7 +58,8 @@ void RTCIceTransport::TakeSnapshot() {
   auto internal = _transport->internal();
   if (internal) {
     _role = internal->GetIceRole();
-    _component = internal->component() == 1 ? RTCIceComponent::kRtp : RTCIceComponent::kRtcp;
+    _component = internal->component() == 1 ? RTCIceComponent::kRtp
+                                            : RTCIceComponent::kRtcp;
     _state = internal->GetIceTransportState();
     _gathering_state = internal->gathering_state();
   } else {
@@ -63,12 +68,7 @@ void RTCIceTransport::TakeSnapshot() {
   }
 }
 
-RTCIceTransport::~RTCIceTransport() {
-  Napi::HandleScope scope(PeerConnectionFactory::constructor().Env());
-  _factory->Unref();
-  _factory = nullptr;
-  wrap()->Release(this);
-}  // NOLINT
+RTCIceTransport::~RTCIceTransport() { wrap()->Release(this); }
 
 void RTCIceTransport::OnRTCDtlsTransportStopped() {
   std::lock_guard<std::mutex> lock(_mutex);
@@ -85,34 +85,32 @@ void RTCIceTransport::Stop() {
   AsyncObjectWrapWithLoop<RTCIceTransport>::Stop();
 }
 
-Wrap <
-RTCIceTransport*,
-rtc::scoped_refptr<webrtc::IceTransportInterface>,
-PeerConnectionFactory*
-> * RTCIceTransport::wrap() {
-  static auto wrap = new node_webrtc::Wrap <
-  RTCIceTransport*,
-  rtc::scoped_refptr<webrtc::IceTransportInterface>,
-  PeerConnectionFactory*
-  > (RTCIceTransport::Create);
+Wrap<RTCIceTransport *, rtc::scoped_refptr<webrtc::IceTransportInterface>,
+     PeerConnectionFactory *> *
+RTCIceTransport::wrap() {
+  static auto wrap =
+      new node_webrtc::Wrap<RTCIceTransport *,
+                            rtc::scoped_refptr<webrtc::IceTransportInterface>,
+                            PeerConnectionFactory *>(RTCIceTransport::Create);
   return wrap;
 }
 
-RTCIceTransport* RTCIceTransport::Create(
-    PeerConnectionFactory* factory,
+RTCIceTransport *RTCIceTransport::Create(
+    PeerConnectionFactory *factory,
     rtc::scoped_refptr<webrtc::IceTransportInterface> transport) {
   auto env = constructor().Env();
   Napi::HandleScope scope(env);
 
-  auto object = constructor().New({
-    factory->Value(),
-    Napi::External<rtc::scoped_refptr<webrtc::IceTransportInterface>>::New(env, &transport)
-  });
+  auto object = constructor().New(
+      {factory->Value(),
+       Napi::External<rtc::scoped_refptr<webrtc::IceTransportInterface>>::New(
+           env, &transport)});
 
-  return RTCIceTransport::Unwrap(object);
+  auto unwrapped = Unwrap(object);
+  return unwrapped;
 }
 
-void RTCIceTransport::OnStateChanged(cricket::IceTransportInternal*) {
+void RTCIceTransport::OnStateChanged(cricket::IceTransportInternal *) {
   TakeSnapshot();
 
   Dispatch(CreateCallback<RTCIceTransport>([this]() {
@@ -120,7 +118,7 @@ void RTCIceTransport::OnStateChanged(cricket::IceTransportInternal*) {
     Napi::HandleScope scope(env);
     auto event = Napi::Object::New(env);
     event.Set("type", Napi::String::New(env, "statechange"));
-    MakeCallback("dispatchEvent", { event });
+    MakeCallback("dispatchEvent", {event});
   }));
 
   if (_state == webrtc::IceTransportState::kClosed) {
@@ -128,7 +126,7 @@ void RTCIceTransport::OnStateChanged(cricket::IceTransportInternal*) {
   }
 }
 
-void RTCIceTransport::OnGatheringStateChanged(cricket::IceTransportInternal*) {
+void RTCIceTransport::OnGatheringStateChanged(cricket::IceTransportInternal *) {
   TakeSnapshot();
 
   Dispatch(CreateCallback<RTCIceTransport>([this]() {
@@ -136,83 +134,102 @@ void RTCIceTransport::OnGatheringStateChanged(cricket::IceTransportInternal*) {
     Napi::HandleScope scope(env);
     auto event = Napi::Object::New(env);
     event.Set("type", Napi::String::New(env, "gatheringstatechange"));
-    MakeCallback("dispatchEvent", { event });
+    MakeCallback("dispatchEvent", {event});
   }));
 }
 
-Napi::Value RTCIceTransport::GetRole(const Napi::CallbackInfo& info) {
+Napi::Value RTCIceTransport::GetRole(const Napi::CallbackInfo &info) {
   std::lock_guard<std::mutex> lock(_mutex);
   CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _role, result, Napi::Value)
   return result;
 }
 
-Napi::Value RTCIceTransport::GetComponent(const Napi::CallbackInfo& info) {
+Napi::Value RTCIceTransport::GetComponent(const Napi::CallbackInfo &info) {
   std::lock_guard<std::mutex> lock(_mutex);
   CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _component, result, Napi::Value)
   return result;
 }
 
-Napi::Value RTCIceTransport::GetState(const Napi::CallbackInfo& info) {
+Napi::Value RTCIceTransport::GetState(const Napi::CallbackInfo &info) {
   std::lock_guard<std::mutex> lock(_mutex);
   CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), _state, result, Napi::Value)
   return result;
 }
 
-Napi::Value RTCIceTransport::GetGatheringState(const Napi::CallbackInfo& info) {
+Napi::Value RTCIceTransport::GetGatheringState(const Napi::CallbackInfo &info) {
   std::lock_guard<std::mutex> lock(_mutex);
-  webrtc::PeerConnectionInterface::IceGatheringState state;
+  webrtc::PeerConnectionInterface::IceGatheringState state = {};
   switch (_gathering_state) {
-    case cricket::IceGatheringState::kIceGatheringNew:
-      state = webrtc::PeerConnectionInterface::IceGatheringState::kIceGatheringComplete;
-      break;
-    case cricket::IceGatheringState::kIceGatheringGathering:
-      state = webrtc::PeerConnectionInterface::IceGatheringState::kIceGatheringComplete;
-      break;
-    case cricket::IceGatheringState::kIceGatheringComplete:
-      state = webrtc::PeerConnectionInterface::IceGatheringState::kIceGatheringComplete;
-      break;
+  case cricket::IceGatheringState::kIceGatheringNew:
+    state =
+        webrtc::PeerConnectionInterface::IceGatheringState::kIceGatheringNew;
+    break;
+  case cricket::IceGatheringState::kIceGatheringGathering:
+    state = webrtc::PeerConnectionInterface::IceGatheringState::
+        kIceGatheringGathering;
+    break;
+  case cricket::IceGatheringState::kIceGatheringComplete:
+    state = webrtc::PeerConnectionInterface::IceGatheringState::
+        kIceGatheringComplete;
+    break;
   }
   CONVERT_OR_THROW_AND_RETURN_NAPI(info.Env(), state, result, Napi::Value)
   return result;
 }
 
-Napi::Value RTCIceTransport::GetLocalCandidates(const Napi::CallbackInfo& info) {
-  Napi::Error::New(info.Env(), "Not yet implemented!").ThrowAsJavaScriptException();
+Napi::Value
+RTCIceTransport::GetLocalCandidates(const Napi::CallbackInfo &info) {
+  Napi::Error::New(info.Env(), "Not yet implemented!")
+      .ThrowAsJavaScriptException();
   return info.Env().Undefined();
 }
 
-Napi::Value RTCIceTransport::GetRemoteCandidates(const Napi::CallbackInfo& info) {
-  Napi::Error::New(info.Env(), "Not yet implemented!").ThrowAsJavaScriptException();
+Napi::Value
+RTCIceTransport::GetRemoteCandidates(const Napi::CallbackInfo &info) {
+  Napi::Error::New(info.Env(), "Not yet implemented!")
+      .ThrowAsJavaScriptException();
   return info.Env().Undefined();
 }
 
-Napi::Value RTCIceTransport::GetSelectedCandidatePair(const Napi::CallbackInfo& info) {
-  Napi::Error::New(info.Env(), "Not yet implemented!").ThrowAsJavaScriptException();
+Napi::Value
+RTCIceTransport::GetSelectedCandidatePair(const Napi::CallbackInfo &info) {
+  Napi::Error::New(info.Env(), "Not yet implemented!")
+      .ThrowAsJavaScriptException();
   return info.Env().Undefined();
 }
 
-Napi::Value RTCIceTransport::GetLocalParameters(const Napi::CallbackInfo& info) {
-  Napi::Error::New(info.Env(), "Not yet implemented!").ThrowAsJavaScriptException();
+Napi::Value
+RTCIceTransport::GetLocalParameters(const Napi::CallbackInfo &info) {
+  Napi::Error::New(info.Env(), "Not yet implemented!")
+      .ThrowAsJavaScriptException();
   return info.Env().Undefined();
 }
 
-Napi::Value RTCIceTransport::GetRemoteParameters(const Napi::CallbackInfo& info) {
-  Napi::Error::New(info.Env(), "Not yet implemented!").ThrowAsJavaScriptException();
+Napi::Value
+RTCIceTransport::GetRemoteParameters(const Napi::CallbackInfo &info) {
+  Napi::Error::New(info.Env(), "Not yet implemented!")
+      .ThrowAsJavaScriptException();
   return info.Env().Undefined();
 }
 
 void RTCIceTransport::Init(Napi::Env env, Napi::Object exports) {
-  auto func = DefineClass(env, "RTCIceTransport", {
-    InstanceAccessor("role", &RTCIceTransport::GetRole, nullptr),
-    InstanceAccessor("component", &RTCIceTransport::GetComponent, nullptr),
-    InstanceAccessor("state", &RTCIceTransport::GetState, nullptr),
-    InstanceAccessor("gatheringState", &RTCIceTransport::GetGatheringState, nullptr),
-    InstanceMethod("getLocalCandidates", &RTCIceTransport::GetLocalCandidates),
-    InstanceMethod("getRemoteCandidates", &RTCIceTransport::GetRemoteCandidates),
-    InstanceMethod("getSelectedCandidatePair", &RTCIceTransport::GetSelectedCandidatePair),
-    InstanceMethod("getLocalParameters", &RTCIceTransport::GetLocalParameters),
-    InstanceMethod("getRemoteParameters", &RTCIceTransport::GetRemoteParameters)
-  });
+  auto func = DefineClass(
+      env, "RTCIceTransport",
+      {InstanceAccessor("role", &RTCIceTransport::GetRole, nullptr),
+       InstanceAccessor("component", &RTCIceTransport::GetComponent, nullptr),
+       InstanceAccessor("state", &RTCIceTransport::GetState, nullptr),
+       InstanceAccessor("gatheringState", &RTCIceTransport::GetGatheringState,
+                        nullptr),
+       InstanceMethod("getLocalCandidates",
+                      &RTCIceTransport::GetLocalCandidates),
+       InstanceMethod("getRemoteCandidates",
+                      &RTCIceTransport::GetRemoteCandidates),
+       InstanceMethod("getSelectedCandidatePair",
+                      &RTCIceTransport::GetSelectedCandidatePair),
+       InstanceMethod("getLocalParameters",
+                      &RTCIceTransport::GetLocalParameters),
+       InstanceMethod("getRemoteParameters",
+                      &RTCIceTransport::GetRemoteParameters)});
 
   constructor() = Napi::Persistent(func);
   constructor().SuppressDestruct();
@@ -220,4 +237,4 @@ void RTCIceTransport::Init(Napi::Env env, Napi::Object exports) {
   exports.Set("RTCIceTransport", func);
 }
 
-}  // namespace node_webrtc
+} // namespace node_webrtc

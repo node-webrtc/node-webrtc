@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 function printBitsI420(frame, bits) {
   const { width, height, data } = frame;
@@ -9,7 +9,7 @@ function printBitsI420(frame, bits) {
   for (let i = 0; i < width * height; i++) {
     const row = Math.floor(i / (8 * pixelWidth * pixelHeight));
     const column = Math.floor(i / pixelWidth) % 8;
-    const bit = (row * 8) + column;
+    const bit = row * 8 + column;
 
     const y = bits[bit] ? 0 : 255;
 
@@ -27,12 +27,15 @@ function readBitsI420(frame) {
   const pixelWidth = width / 8;
   const pixelHeight = height / 8;
 
-  const bits = '0'.repeat(64).split('').map(x => Number.parseInt(x, 10));
+  const bits = "0"
+    .repeat(64)
+    .split("")
+    .map((x) => Number.parseInt(x, 10));
 
   for (let i = 0; i < width * height; i++) {
     const row = Math.floor(i / (8 * pixelWidth * pixelHeight));
     const column = Math.floor(i / pixelWidth) % 8;
-    const bit = (row * 8) + column;
+    const bit = row * 8 + column;
 
     const y = data[i];
 

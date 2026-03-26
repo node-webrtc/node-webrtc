@@ -5,10 +5,11 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#include "src/methods/get_display_media.h"
+#include "src/methods/get_display_media.hh"
 
-#include "src/methods/get_user_media.h"
+#include "src/methods/get_user_media.hh"
 
 void node_webrtc::GetDisplayMedia::Init(Napi::Env env, Napi::Object exports) {
-  exports.Set("getDisplayMedia", Napi::Function::New(env, GetUserMedia::GetUserMediaImpl));
+  exports.Set("getDisplayMedia",
+              Napi::Function::New(env, GetUserMedia::GetUserMediaImpl));
 }

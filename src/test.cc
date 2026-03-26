@@ -5,20 +5,20 @@
  * project authors may be found in the AUTHORS file in the root of the source
  * tree.
  */
-#ifdef DEBUG
+#if DEBUG && defined(__x86_64__)
 
-#include "src/test.h"
+#include "src/test.hh"
 
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
 
-#include "src/converters.h"
-#include "src/converters/napi.h"
+#include "src/converters.hh"
+#include "src/converters/napi.hh"
 
 TEST_CASE("converting booleans", "[converting-booleans]") {
   auto env = *node_webrtc::Test::env;
 
-  SECTION("from JavaScript") {  // NOLINT
+  SECTION("from JavaScript") {
     SECTION("works for") {
       SECTION("true") {
         Napi::Value True = Napi::Boolean::New(env, true);
@@ -52,7 +52,8 @@ TEST_CASE("converting objects", "[converting-objects]") {
     SECTION("works for") {
       SECTION("objects") {
         Napi::Object object = Napi::Object::New(env);
-        REQUIRE(node_webrtc::From<Napi::Object>(object.As<Napi::Value>()) == node_webrtc::Pure(object));
+        REQUIRE(node_webrtc::From<Napi::Object>(object.As<Napi::Value>()) ==
+                node_webrtc::Pure(object));
       }
     }
 
@@ -78,7 +79,8 @@ TEST_CASE("converting arrays", "[converting-arrays]") {
       SECTION("empty arrays") {
         Napi::Array array = Napi::Array::New(env);
         Napi::Value value = array;
-        REQUIRE(node_webrtc::From<Napi::Array>(value) == node_webrtc::Pure(array));
+        REQUIRE(node_webrtc::From<Napi::Array>(value) ==
+                node_webrtc::Pure(array));
       }
 
       SECTION("arrays of objects") {
@@ -90,7 +92,8 @@ TEST_CASE("converting arrays", "[converting-arrays]") {
         array.Set(static_cast<uint32_t>(0), object1);
         array.Set(1, object2);
 
-        REQUIRE(node_webrtc::From<std::vector<Napi::Object>>(array.As<Napi::Value>()) == node_webrtc::Pure(expected));
+        REQUIRE(node_webrtc::From<std::vector<Napi::Object>>(
+                    array.As<Napi::Value>()) == node_webrtc::Pure(expected));
       }
     }
 
@@ -108,9 +111,9 @@ TEST_CASE("converting arrays", "[converting-arrays]") {
   }
 }
 
-Napi::Env* node_webrtc::Test::env = nullptr;
+Napi::Env *node_webrtc::Test::env = nullptr;
 
-Napi::Value node_webrtc::Test::TestImpl(const Napi::CallbackInfo& info) {
+Napi::Value node_webrtc::Test::TestImpl(const Napi::CallbackInfo &info) {
   auto env = info.Env();
   Test::env = &env;
   auto result = Catch::Session().run();
@@ -123,4 +126,4 @@ void node_webrtc::Test::Init(Napi::Env env, Napi::Object exports) {
   exports.Set("test", func);
 }
 
-#endif  // DEBUG
+#endif // DEBUG && defined(__x86_64__)

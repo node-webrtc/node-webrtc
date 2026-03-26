@@ -1,19 +1,21 @@
-#include "src/converters/napi.h"
+#include "src/converters/napi.hh"
 
-#include "src/functional/validation.h"
+#include "src/functional/validation.hh"
 
 namespace node_webrtc {
 
 FROM_NAPI_IMPL(bool, value) {
   auto maybeBoolean = value.ToBoolean();
   return maybeBoolean.Env().IsExceptionPending()
-      ? Validation<bool>::Invalid(maybeBoolean.Env().GetAndClearPendingException().Message())
-      : Pure(maybeBoolean.Value());
+             ? Validation<bool>::Invalid(
+                   maybeBoolean.Env().GetAndClearPendingException().Message())
+             : Pure(maybeBoolean.Value());
 }
 
 TO_NAPI_IMPL(bool, pair) {
   Napi::EscapableHandleScope scope(pair.first);
-  return Pure(scope.Escape(Napi::Boolean::New(pair.first, pair.second).As<Napi::Value>()));
+  return Pure(scope.Escape(
+      Napi::Boolean::New(pair.first, pair.second).As<Napi::Value>()));
 }
 
 FROM_NAPI_IMPL(double, value) {
@@ -22,13 +24,15 @@ FROM_NAPI_IMPL(double, value) {
   }
   auto maybeNumber = value.ToNumber();
   return maybeNumber.Env().IsExceptionPending()
-      ? Validation<double>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message())
-      : Pure(maybeNumber.DoubleValue());
+             ? Validation<double>::Invalid(
+                   maybeNumber.Env().GetAndClearPendingException().Message())
+             : Pure(maybeNumber.DoubleValue());
 }
 
 TO_NAPI_IMPL(double, pair) {
   Napi::EscapableHandleScope scope(pair.first);
-  return Pure(scope.Escape(Napi::Number::New(pair.first, pair.second).As<Napi::Value>()));
+  return Pure(scope.Escape(
+      Napi::Number::New(pair.first, pair.second).As<Napi::Value>()));
 }
 
 FROM_NAPI_IMPL(uint8_t, value) {
@@ -37,7 +41,8 @@ FROM_NAPI_IMPL(uint8_t, value) {
   }
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<uint8_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
+    return Validation<uint8_t>::Invalid(
+        maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
   if (doubleValue < 0 || doubleValue > UINT8_MAX) {
@@ -48,7 +53,8 @@ FROM_NAPI_IMPL(uint8_t, value) {
 
 TO_NAPI_IMPL(uint8_t, pair) {
   Napi::EscapableHandleScope scope(pair.first);
-  return Pure(scope.Escape(Napi::Number::New(pair.first, pair.second).As<Napi::Value>()));
+  return Pure(scope.Escape(
+      Napi::Number::New(pair.first, pair.second).As<Napi::Value>()));
 }
 
 FROM_NAPI_IMPL(uint16_t, value) {
@@ -57,7 +63,8 @@ FROM_NAPI_IMPL(uint16_t, value) {
   }
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<uint16_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
+    return Validation<uint16_t>::Invalid(
+        maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
   if (doubleValue < 0 || doubleValue > UINT16_MAX) {
@@ -68,7 +75,8 @@ FROM_NAPI_IMPL(uint16_t, value) {
 
 TO_NAPI_IMPL(uint16_t, pair) {
   Napi::EscapableHandleScope scope(pair.first);
-  return Pure(scope.Escape(Napi::Number::New(pair.first, pair.second).As<Napi::Value>()));
+  return Pure(scope.Escape(
+      Napi::Number::New(pair.first, pair.second).As<Napi::Value>()));
 }
 
 FROM_NAPI_IMPL(uint32_t, value) {
@@ -77,7 +85,8 @@ FROM_NAPI_IMPL(uint32_t, value) {
   }
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<uint32_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
+    return Validation<uint32_t>::Invalid(
+        maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
   if (doubleValue < 0 || doubleValue > UINT32_MAX) {
@@ -88,7 +97,8 @@ FROM_NAPI_IMPL(uint32_t, value) {
 
 TO_NAPI_IMPL(uint32_t, pair) {
   Napi::EscapableHandleScope scope(pair.first);
-  return Pure(scope.Escape(Napi::Number::New(pair.first, pair.second).As<Napi::Value>()));
+  return Pure(scope.Escape(
+      Napi::Number::New(pair.first, pair.second).As<Napi::Value>()));
 }
 
 FROM_NAPI_IMPL(uint64_t, value) {
@@ -97,10 +107,11 @@ FROM_NAPI_IMPL(uint64_t, value) {
   }
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<uint64_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
+    return Validation<uint64_t>::Invalid(
+        maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
-  if (doubleValue < 0 || doubleValue > UINT64_MAX) {
+  if (doubleValue < 0 || static_cast<uint64_t>(doubleValue) > UINT64_MAX) {
     return Validation<uint64_t>::Invalid("Expected a 64-bit unsigned integer");
   }
   return Pure(static_cast<uint64_t>(maybeNumber.DoubleValue()));
@@ -108,7 +119,9 @@ FROM_NAPI_IMPL(uint64_t, value) {
 
 TO_NAPI_IMPL(uint64_t, pair) {
   Napi::EscapableHandleScope scope(pair.first);
-  return Pure(scope.Escape(Napi::Number::New(pair.first, pair.second).As<Napi::Value>()));
+  return Pure(scope.Escape(
+      Napi::Number::New(pair.first, static_cast<double>(pair.second))
+          .As<Napi::Value>()));
 }
 
 FROM_NAPI_IMPL(int8_t, value) {
@@ -117,7 +130,8 @@ FROM_NAPI_IMPL(int8_t, value) {
   }
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<int8_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
+    return Validation<int8_t>::Invalid(
+        maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
   if (doubleValue < INT8_MIN || doubleValue > INT8_MAX) {
@@ -132,7 +146,8 @@ FROM_NAPI_IMPL(int16_t, value) {
   }
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<int16_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
+    return Validation<int16_t>::Invalid(
+        maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
   if (doubleValue < INT16_MIN || doubleValue > INT16_MAX) {
@@ -143,7 +158,8 @@ FROM_NAPI_IMPL(int16_t, value) {
 
 TO_NAPI_IMPL(int16_t, pair) {
   Napi::EscapableHandleScope scope(pair.first);
-  return Pure(scope.Escape(Napi::Number::New(pair.first, pair.second).As<Napi::Value>()));
+  return Pure(scope.Escape(
+      Napi::Number::New(pair.first, pair.second).As<Napi::Value>()));
 }
 
 FROM_NAPI_IMPL(int32_t, value) {
@@ -152,7 +168,8 @@ FROM_NAPI_IMPL(int32_t, value) {
   }
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<int32_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
+    return Validation<int32_t>::Invalid(
+        maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
   if (doubleValue < INT32_MIN || doubleValue > INT32_MAX) {
@@ -163,7 +180,8 @@ FROM_NAPI_IMPL(int32_t, value) {
 
 TO_NAPI_IMPL(int32_t, pair) {
   Napi::EscapableHandleScope scope(pair.first);
-  return Pure(scope.Escape(Napi::Number::New(pair.first, pair.second).As<Napi::Value>()));
+  return Pure(scope.Escape(
+      Napi::Number::New(pair.first, pair.second).As<Napi::Value>()));
 }
 
 FROM_NAPI_IMPL(int64_t, value) {
@@ -172,10 +190,12 @@ FROM_NAPI_IMPL(int64_t, value) {
   }
   auto maybeNumber = value.ToNumber();
   if (maybeNumber.Env().IsExceptionPending()) {
-    return Validation<int64_t>::Invalid(maybeNumber.Env().GetAndClearPendingException().Message());
+    return Validation<int64_t>::Invalid(
+        maybeNumber.Env().GetAndClearPendingException().Message());
   }
   auto doubleValue = maybeNumber.DoubleValue();
-  if (doubleValue < INT64_MIN || doubleValue > INT64_MAX) {
+  auto int64Value = static_cast<int64_t>(doubleValue);
+  if (int64Value < INT64_MIN || int64Value > INT64_MAX) {
     return Validation<int64_t>::Invalid("Expected a 64-bit integer");
   }
   return Pure(maybeNumber.Int64Value());
@@ -183,22 +203,25 @@ FROM_NAPI_IMPL(int64_t, value) {
 
 TO_NAPI_IMPL(int64_t, pair) {
   Napi::EscapableHandleScope scope(pair.first);
-  return Pure(scope.Escape(Napi::Number::New(pair.first, pair.second).As<Napi::Value>()));
+  return Pure(scope.Escape(
+      Napi::Number::New(pair.first, static_cast<double>(pair.second))
+          .As<Napi::Value>()));
 }
 
 FROM_NAPI_IMPL(std::string, value) {
   auto maybeString = value.ToString();
   return maybeString.Env().IsExceptionPending()
-      ? Validation<std::string>::Invalid("Expected a string")
-      : Pure(maybeString.Utf8Value());
+             ? Validation<std::string>::Invalid("Expected a string")
+             : Pure(maybeString.Utf8Value());
 }
 
 TO_NAPI_IMPL(std::string, pair) {
   Napi::EscapableHandleScope scope(pair.first);
   auto maybeValue = Napi::String::New(pair.first, pair.second);
   return maybeValue.Env().IsExceptionPending()
-      ? Validation<Napi::Value>::Invalid(maybeValue.Env().GetAndClearPendingException().Message())
-      : Pure(scope.Escape(maybeValue.As<Napi::Value>()));
+             ? Validation<Napi::Value>::Invalid(
+                   maybeValue.Env().GetAndClearPendingException().Message())
+             : Pure(scope.Escape(maybeValue.As<Napi::Value>()));
 }
 
 TO_NAPI_IMPL(Napi::Error, pair) {
@@ -207,31 +230,31 @@ TO_NAPI_IMPL(Napi::Error, pair) {
 
 FROM_NAPI_IMPL(Napi::Function, value) {
   return value.IsFunction()
-      ? Pure(value.As<Napi::Function>())
-      : Validation<Napi::Function>::Invalid("Expected a function");
+             ? Pure(value.As<Napi::Function>())
+             : Validation<Napi::Function>::Invalid("Expected a function");
 }
 
 FROM_NAPI_IMPL(Napi::Object, value) {
   return value.IsObject()
-      ? Pure(value.As<Napi::Object>())
-      : Validation<Napi::Object>::Invalid("Expected an object");
+             ? Pure(value.As<Napi::Object>())
+             : Validation<Napi::Object>::Invalid("Expected an object");
 }
 
-TO_NAPI_IMPL(Napi::Value, pair) {
-  return Pure(pair.second);
-}
+TO_NAPI_IMPL(Napi::Value, pair) { return Pure(pair.second); }
 
 TO_NAPI_IMPL(std::vector<bool>, pair) {
   Napi::EscapableHandleScope scope(pair.first);
   auto maybeArray = Napi::Array::New(pair.first, pair.second.size());
   if (maybeArray.Env().IsExceptionPending()) {
-    return Validation<Napi::Value>::Invalid(maybeArray.Env().GetAndClearPendingException().Message());
+    return Validation<Napi::Value>::Invalid(
+        maybeArray.Env().GetAndClearPendingException().Message());
   }
   uint32_t i = 0;
   for (bool value : pair.second) {
     maybeArray.Set(i++, Napi::Boolean::New(pair.first, value));
     if (maybeArray.Env().IsExceptionPending()) {
-      return Validation<Napi::Value>::Invalid(maybeArray.Env().GetAndClearPendingException().Message());
+      return Validation<Napi::Value>::Invalid(
+          maybeArray.Env().GetAndClearPendingException().Message());
     }
   }
   return Pure(scope.Escape(maybeArray.As<Napi::Value>()));
@@ -242,9 +265,9 @@ FROM_NAPI_IMPL(Napi::ArrayBuffer, value) {
     auto typedArray = value.As<Napi::TypedArray>();
     return Pure(typedArray.ArrayBuffer());
   }
-  return value.IsArrayBuffer()
-      ? Pure(value.As<Napi::ArrayBuffer>())
-      : Validation<Napi::ArrayBuffer>::Invalid("Expected an ArrayBuffer");
+  return value.IsArrayBuffer() ? Pure(value.As<Napi::ArrayBuffer>())
+                               : Validation<Napi::ArrayBuffer>::Invalid(
+                                     "Expected an ArrayBuffer");
 }
 
-}  // namespace node_webrtc
+} // namespace node_webrtc

@@ -1,0 +1,20 @@
+diff --git a/node_modules/cmake-js/lib/toolset.js b/node_modules/cmake-js/lib/toolset.js
+index c6cbad4..1184ee1 100644
+--- a/node_modules/cmake-js/lib/toolset.js
++++ b/node_modules/cmake-js/lib/toolset.js
+@@ -180,13 +180,13 @@ Toolset.prototype.initializeWin = async function (install) {
+         }
+     }
+ 
+-    this.linkerFlags.push("/DELAYLOAD:NODE.EXE");
++    this.linkerFlags.push("-DELAYLOAD:NODE.EXE");
+ 
+     if (this.targetOptions.isX86) {
+         if (install) {
+             this.log.verbose("TOOL", "Setting SAFESEH:NO linker flag.");
+         }
+-        this.linkerFlags.push("/SAFESEH:NO");
++        this.linkerFlags.push("-SAFESEH:NO");
+     }
+ };
+ 

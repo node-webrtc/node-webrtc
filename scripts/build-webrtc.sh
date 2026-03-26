@@ -1,18 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
-
 set -v
 
-export PATH=$DEPOT_TOOLS:$PATH
+# We want to use system ninja, _NOT_ depot_tools ninja, actually
+export PATH="${DEPOT_TOOLS}/python-bin:${PATH}:${DEPOT_TOOLS}"
 
-export TARGETS="webrtc libjingle_peerconnection"
-if [[ "$TARGET_ARCH" == arm* ]]; then
-  export TARGETS="$TARGETS pc:peerconnection libc++ libc++abi"
-fi
+export TARGETS="webrtc libjingle_peerconnection libc++ libc++abi builtin_video_encoder_factory builtin_video_decoder_factory rtc_internal_video_codecs"
 
-if [ -z "$PARALLELISM" ]; then
-  ninja $TARGETS
-else
-  ninja $TARGETS -j $PARALLELISM
-fi
+ninja $TARGETS

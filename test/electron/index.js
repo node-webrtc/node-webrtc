@@ -1,7 +1,7 @@
 /* eslint no-process-exit:0 */
-'use strict';
+"use strict";
 
-const { RTCPeerConnection } = require('../..');
+const { RTCPeerConnection } = require("../..");
 
 const pc = new RTCPeerConnection();
 

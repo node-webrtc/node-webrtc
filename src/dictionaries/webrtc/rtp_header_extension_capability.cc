@@ -1,12 +1,12 @@
-#include "src/dictionaries/webrtc/rtp_header_extension_capability.h"
+#include "src/dictionaries/webrtc/rtp_header_extension_capability.hh"
 
 #include <utility>
 
 #include <node-addon-api/napi.h>
 #include <webrtc/api/rtp_parameters.h>
 
-#include "src/dictionaries/macros/napi.h"
-#include "src/functional/validation.h"
+#include "src/dictionaries/macros/napi.hh"
+#include "src/functional/validation.hh"
 
 namespace node_webrtc {
 
@@ -19,4 +19,4 @@ TO_NAPI_IMPL(webrtc::RtpHeaderExtensionCapability, pair) {
   return Pure(scope.Escape(object));
 }
 
-}  // namespace node_webrtc
+} // namespace node_webrtc

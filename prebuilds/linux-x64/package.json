@@ -1,0 +1,16 @@
+{
+  "name": "@roamhq/wrtc-linux-x64",
+  "version": "0.10.0",
+  "description": "The Linux 64-bit binary for @roamhq/wrtc.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WonderInventions/node-webrtc.git"
+  },
+  "license": "BSD-2-Clause",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ]
+}

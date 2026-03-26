@@ -2,104 +2,104 @@
 
 ## Prerequisites
 
-node-webrtc uses [node-cmake](https://github.com/cjntaylor/node-cmake) to build
+### macOS/Linux
+
+On macOS and Linux, a reproducible build environment is provided in the form of a Nix dev shell. You can install Nix using the [Lix installer](https://lix.systems/install/), then activate the build environment using `nix develop`.
+
+### Windows
+
+node-webrtc uses [cmake-js](https://github.com/cmake-js/cmake-js) to build
 from source. When building from source, in addition to the prerequisites
-required by node-cmake, you will need
+required by cmake-js, you will need
 
-* Git
-* CMake 3.12 or newer
-* GCC 5.4 or newer (Linux)
-* Xcode 9 or newer (macOS)
-* Microsoft Visual Studio 2019 (Windows)
-* Check the [additional prerequisites listed by WebRTC](https://webrtc.github.io/webrtc-org/native-code/development/prerequisite-sw/) - although their install is automated by the CMake scripts provided
+- Git
+- Ninja
+- CMake 3.15 or newer
+- Microsoft Visual Studio 2022 or newer, with the Clang toolchain installed
+- Check the [additional prerequisites listed by WebRTC](https://webrtc.github.io/webrtc-org/native-code/development/prerequisite-sw/) - although their install is automated by the CMake scripts provided
+- Also follow the steps in [build-from-source-windows.md](./build-from-source-windows.md)
 
+## Building
 
-## Install
-
-Once you have the prerequisites, clone the repository, set the `SKIP_DOWNLOAD`
-environment variable to "true", and run `npm install`. Just like when
-installing prebuilt binaries, you can set the `TARGET_ARCH` environment
-variable to "arm" or "arm64" to build for armv7l or arm64, respectively. Linux
-and macOS users can also set the `DEBUG` environment variable for debug builds.
+Once you have the prerequisites, just clone the repository, run `npm install` to install the Javascript dependencies, and `npm run build` to build node-webrtc for your host platform.
 
 ```
 git clone https://github.com/node-webrtc/node-webrtc.git
 cd node-webrtc
-SKIP_DOWNLOAD=true npm install
+npm install
+nix develop # macOS/Linux only
+npm run build
 ```
 
-Note: Use `$SKIP_DOWNLOAD = 'true'; npm install` on Windows Powershell.
+### Subsequent Builds
 
-## Subsequent Builds
-
-Subsequent builds can be triggered with `ncmake`:
+Subsequent builds can be triggered with `cmake`, e.g. on MacOS:
 
 ```
-./node_modules/.bin/ncmake configure
-./node_modules/.bin/ncmake build
+cmake --build build-darwin-arm64
 ```
 
 You can pass either `--debug` or `--release` to build a debug or release build
-of node-webrtc (and the underlying WebRTC library). Refer to
-[node-cmake](https://github.com/cjntaylor/node-cmake) for additional
-command-line options to `ncmake`.
+of node-webrtc (and the underlying WebRTC library). Refer to the CMake
+documentation for additional command line options.
+
+### Cross-Compiling
+
+The supported cross-compilation directions are:
+
+- MacOS arm64 ➡️ MacOS x64
+- MacOS x64 ➡️ ️MacOS arm64
+- Linux x64 ➡️ Linux arm64
+
+To run e.g. that that cross-compilation:
+
+1. Set `TARGET_ARCH` to "arm64"
+2. Re-run `npm run build`
+
+### Debug Builds
+
+1. Set `DEBUG=1`
+2. Re-run `npm run build`
+
+This is only fully-supported on macOS/Linux; Windows support is a bit dicey thanks to CMake.
+
+To run a release build after doing a debug build, `unset DEBUG`.
 
 ## Other Notes
 
 ### Linux
 
-On Linux, we statically link libc++ and libc++abi. Also, although we compile
-WebRTC sources with Clang (downloaded as part of WebRTC's build process), we
-compile node-webrtc sources with GCC 5.4 or newer.
-
-#### armv7l
-
-In order to cross-compile for armv7l on Linux,
-
-1. Set `TARGET_ARCH` to "arm".
-2. Install the appropriate toolchain, and set `ARM_TOOLS_PATH`.
-3. On Ubuntu, you may also need g++-arm-linux-gnueabihf.
-
-```
-wget https://releases.linaro.org/components/toolchain/binaries/7.3-2018.05/arm-linux-gnueabihf/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
-tar xf gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
-SKIP_DOWNLOAD=true TARGET_ARCH=arm ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf npm install
-```
-
-#### arm64
-
-In order to cross-compile for arm64 on Linux,
-
-1. Set `TARGET_ARCH` to "arm64".
-2. Install the appropriate toolchain, and set `ARM_TOOLS_PATH`.
-3. On Ubuntu, you may also need g++-aarch64-linux-gnu.
-
-```
-wget https://releases.linaro.org/components/toolchain/binaries/7.3-2018.05/aarch64-linux-gnu/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu.tar.xz
-tar xf gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu.tar.xz
-SKIP_DOWNLOAD=true TARGET_ARCH=arm64 ARM_TOOLS_PATH=$(pwd)/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu npm install
-```
+On Linux, we compile libwebrtc's sources with libwebrtc's Clang toolchain and libwebrtc's sysroot. We statically link against its libc++ and libc++abi. This is a little dangerous (due to ABI concerns) but we match Clang major versions so it's probably OK?
 
 ### macOS
 
-On macOS, we statically link libc++ and libc++abi. Also, we compile WebRTC
-sources with the version of Clang downloaded as part of WebRTC's build process,
-but we compile node-webrtc sources using the system Clang.
+On macOS, we compile libwebrtc's sources with our own clang toolchain and our own sysroot. We statically link against its libc++ and libc++abi.
 
 ### Windows
 
-On Windows, we do not compile WebRTC sources with Clang. This is disabled by
-passing `is_clang=false` to `gn gen`.
+We use the Clang toolchain and the Ninja generator on Windows in order to have
+similar support for the `clangd` language server and `compile_commands.json`;
+Visual Studio proper has not been tested.
 
-To fix error `Filename too long`, use (optionally with `--global` or `--system` switches to set for more than just this project):
+To fix the error `Filename too long`, when downloading libwebrtc, use
+(optionally with `--global` or `--system` switches to set for more than just
+this project):
 
 ```
 git config core.longpaths true
 ```
 
-Creating symbolic links with MKLINK is used by the build script but is disabled for non-Administrative users by default with a local security policy. On Windows 10, fix this with Run (Windows-R) then `gpedit.msc`. Edit key "Local Computer Policy -> Windows Settings -> Security Settings -> Local Policies -> User Rights Assignment -> Create Symbolic Links" and add your user name. Log out and in to change the policy. Note the [associated security vunerability](https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/create-symbolic-links#vulnerability).
+Creating symbolic links with MKLINK is used by the build script but is disabled
+for non-Administrative users by default with a local security policy. On
+Windows 10, fix this with Run (Windows-R) then `gpedit.msc`. Edit key "Local
+Computer Policy -> Windows Settings -> Security Settings -> Local Policies ->
+User Rights Assignment -> Create Symbolic Links" and add your user name. Log
+out and in to change the policy. Note the [associated security
+vunerability](https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/create-symbolic-links#vulnerability).
 
-The Windows SDK debugging tools should be installed. One way to achieve this is to [Download the Windows Driver Kit](https://docs.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk).
+The Windows SDK debugging tools should be installed. One way to achieve this is
+to [Download the Windows Driver
+Kit](https://docs.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk).
 
 # Test
 
@@ -111,25 +111,5 @@ Once everything is built, run
 npm test
 ```
 
-## Web Platform Tests
-
-[web-platform-tests/wpt](https://github.com/web-platform-tests/wpt) defines a suite of WebRTC tests. node-webrtc borrows a technique from [jsdom/jsdom](https://github.com/jsdom/jsdom) to run these tests in Node.js. Run the tests with
-
-```
-npm run wpt:test
-```
-
-## Browser Tests
-
-These tests are run by Circle CI to ensure node-webrtc remains compatible with
-the latest versions of Chrome and Firefox.
-
-```
-npm run test:browsers
-```
-
-## Electron Test
-
-```
-npm run test:electron
-```
+> [!WARNING]
+> If testing a release build, make sure to remove the debug build in `build-{os}-{arch}/Debug/wrtc.node` first! This takes precedence in module resolution.

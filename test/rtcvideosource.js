@@ -1,21 +1,21 @@
 /* globals gc */
-'use strict';
+"use strict";
 
-const test = require('tape');
+const test = require("tape");
 
-const RTCVideoSource = require('..').nonstandard.RTCVideoSource;
+const RTCVideoSource = require("..").nonstandard.RTCVideoSource;
 
 const {
   confirmSentFrameDimensions,
-  negotiateRTCPeerConnections
-} = require('./lib/pc');
+  negotiateRTCPeerConnections,
+} = require("./lib/pc");
 
-const { I420Frame } = require('./lib/frame');
+const { I420Frame } = require("./lib/frame");
 
 const frame = new I420Frame(640, 480);
 
 function tick() {
-  return new Promise(resolve => setTimeout(resolve));
+  return new Promise((resolve) => setTimeout(resolve));
 }
 
 function printSource(source) {
@@ -26,7 +26,7 @@ function printTrack(track) {
   console.log(track);
 }
 
-test('simple usage', async t => {
+test("simple usage", async (t) => {
   await (async () => {
     const source = new RTCVideoSource();
     printSource(source);
@@ -61,27 +61,27 @@ test('simple usage', async t => {
     await tick();
   })();
 
-  if (typeof gc === 'function') {
+  if (typeof gc === "function") {
     gc();
   }
 
   t.end();
 });
 
-test('getStats()', async t => {
+test("getStats()", async (t) => {
   const source = new RTCVideoSource();
   const track = source.createTrack();
 
   const [pc1, pc2] = await negotiateRTCPeerConnections({
     withPc1(pc1) {
       pc1.addTrack(track);
-    }
+    },
   });
 
   const frames = [
     new I420Frame(640, 480),
     new I420Frame(1280, 720),
-    new I420Frame(320, 240)
+    new I420Frame(320, 240),
   ];
 
   for (const frame of frames) {
@@ -96,7 +96,7 @@ test('getStats()', async t => {
   t.end();
 });
 
-test('constructor', t => {
+test("constructor", (t) => {
   const source1 = new RTCVideoSource();
   t.equal(source1.needsDenoising, null);
   t.equal(source1.isScreencast, false);

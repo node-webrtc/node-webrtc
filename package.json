@@ -1,90 +1,68 @@
 {
-  "name": "wrtc",
-  "private": true,
+  "name": "@roamhq/wrtc",
   "description": "Standards-compliant WebRTC implementation for Node",
   "keywords": [
     "webrtc",
     "p2p",
     "peer"
   ],
-  "version": "0.4.7-dev",
-  "author": "Alan K <ack@modeswitch.org> (http://blog.modeswitch.org)",
-  "homepage": "https://github.com/node-webrtc/node-webrtc",
-  "bugs": "https://github.com/node-webrtc/node-webrtc/issues",
+  "version": "0.10.0",
+  "author": "Jack Duvall <theduvallj@gmail.com> (https://duvallj.pw)",
+  "homepage": "https://github.com/WonderInventions/node-webrtc",
+  "bugs": "https://github.com/WonderInventions/node-webrtc/issues",
   "license": "BSD-2-Clause",
   "repository": {
     "type": "git",
-    "url": "http://github.com/node-webrtc/node-webrtc.git"
+    "url": "git+ssh://git@github.com/WonderInventions/node-webrtc.git"
   },
   "main": "lib/index.js",
+  "types": "types/index.d.ts",
   "browser": "lib/browser.js",
-  "binary": {
-    "module_name": "wrtc",
-    "module_path": "./build/{configuration}/",
-    "remote_path": "./{module_name}/v{version}/{configuration}/",
-    "package_name": "{platform}-{arch}.tar.gz",
-    "host": "https://node-webrtc.s3.amazonaws.com"
-  },
-  "engines": {
-    "node": "^8.11.2 || ^10.0.0 || ^11.0.0 || ^12.0.0 || ^13.0.0 || ^14.0.0 || ^15.0.0"
-  },
-  "dependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.4",
-    "nan": "^2.3.2",
-    "node-addon-api": "^1.6.2",
-    "node-cmake": "2.3.2"
-  },
-  "optionalDependencies": {
-    "domexception": "^1.0.1"
-  },
-  "bundledDependencies": [
-    "@mapbox/node-pre-gyp"
+  "files": [
+    "AUTHORS",
+    "CHANGELOG.md",
+    "lib",
+    "types"
   ],
+  "optionalDependencies": {
+    "@roamhq/wrtc-darwin-arm64": "0.10.0",
+    "@roamhq/wrtc-darwin-x64": "0.10.0",
+    "@roamhq/wrtc-linux-arm64": "0.10.0",
+    "@roamhq/wrtc-linux-x64": "0.10.0",
+    "@roamhq/wrtc-win32-x64": "0.10.0",
+    "domexception": "^4.0.0"
+  },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.17.0",
     "@fidm/x509": "^1.2.1",
-    "aws-sdk": "^2.2.10",
-    "browserify-middleware": "^8.1.1",
+    "cmake-js": "^7.3.0",
     "cross-env": "^5.1.4",
-    "eslint": "^4.14.0",
-    "express": "^4.16.2",
-    "js-yaml": "^3.13.0",
-    "jsdom": "^15.0.0",
-    "karma": "^4.0.1",
-    "karma-browserify": "^5.1.2",
-    "karma-chrome-launcher": "^2.2.0",
-    "karma-firefox-launcher": "^1.1.0",
-    "karma-tap": "^4.1.4",
-    "karma-tap-pretty-reporter": "^4.1.0",
-    "minimatch": "^3.0.4",
-    "minimist": "1.2.5",
-    "mocha": "^5.2.0",
-    "mocha-sugar-free": "^1.4.0",
-    "node-fetch": "^2.5.0",
-    "q": "^1.5.1",
-    "recursive-copy": "^2.0.10",
-    "request": "^2.88.0",
-    "request-promise-native": "^1.0.5",
-    "rimraf": "^2.6.2",
-    "semver": "^5.5.0",
-    "server-destroy": "^1.0.1",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.14.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11",
+    "node-addon-api": "^7.0.0",
+    "patch-package": "^8.0.0",
+    "prettier": "^3.4.2",
+    "recursive-copy": "^2.0.14",
     "simple-peer": "~9.7.0",
-    "tap-spec": "^5.0.0",
-    "tape": "^4.9.1",
-    "temp": "^0.9.0",
-    "travis-multirunner": "^4.3.0",
-    "ws": "^5.2.0"
+    "tape": "^5.6.1",
+    "temp": "^0.9.4"
   },
   "scripts": {
-    "install": "node scripts/download-prebuilt-or-build-from-source.js",
+    "patch": "patch-package --error-on-warn",
+    "build": "node scripts/build-from-source.js",
+    "make-prebuilt": "node scripts/make-prebuilt.js",
     "install-example": "node scripts/install-example.js",
-    "lint": "eslint lib/*.js lib/**/*.js test/*.js test/**/*.js karma/*.js scripts/*.js",
-    "publish-binary": "node scripts/publish.js",
+    "lint": "eslint lib/*.js lib/**/*.js test/*.js test/**/*.js scripts/*.js",
     "test": "node --expose-gc test/all.js",
-    "test:browsers": "cross-env BROWSER=chrome node scripts/karma.js && cross-env BROWSER=firefox node scripts/karma.js",
-    "test:electron": "electron test/electron",
-    "wpt:init": "git submodule update --init --recursive",
-    "wpt:reset": "rimraf ./test/web-platform-tests/tests && npm run wpt:init",
-    "wpt:test": "mocha test/web-platform-tests/run-wpts.js --exit",
-    "wpt:update": "git submodule update --recursive --remote --force && cd test/web-platform-tests/tests && python wpt.py manifest --path ../wpt-manifest.json"
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.js": "eslint --cache --fix",
+    "*.{js,css,md}": "prettier --write",
+    "*.{cc,h}": "clang-format -i"
   }
 }
