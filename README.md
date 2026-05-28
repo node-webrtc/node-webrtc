@@ -69,4 +69,4 @@ See [node-webrtc/node-webrtc-examples](https://github.com/node-webrtc/node-webrt
 
 ## See Also
 
-If this package doesn't work for you, other alternatives that might suit your needs are [node-datachannel](https://github.com/murat-dogan/node-datachannel) and [werift](https://github.com/shinyoshiaki/werift-webrtc)
+If this package doesn't work for you, other alternatives that might suit your needs are [node-datachannel](https://github.com/murat-dogan/node-datachannel), [werift](https://github.com/shinyoshiaki/werift-webrtc), and [node-webrtc-rust](https://github.com/akirilyuk/node-webrtc-rust) (WebRTC + agentic voice STT/TTS in Node).
